@@ -1,6 +1,8 @@
 #pragma once
 
 
+#include "splitter_window.h"
+
 #include <windows.h>
 
 
@@ -22,8 +24,14 @@ private:
 private:
 	LRESULT on_message(UINT msg, WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_destroy(WPARAM wparam, LPARAM lparam);
+	LRESULT on_wm_size(WPARAM wparam, LPARAM lparam);
 private:
 	static ATOM m_s_class;
 private:
 	HWND m_hwnd;
+	splitter_window_hor m_splitter_hor;
+	HWND m_tree;
+	splitter_window_ver m_splitter_ver;
+	HWND m_import_list;
+	HWND m_export_list;
 };

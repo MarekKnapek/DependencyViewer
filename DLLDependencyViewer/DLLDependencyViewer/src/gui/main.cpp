@@ -1,8 +1,11 @@
 #include "main.h"
 
 #include "main_window.h"
+#include "splitter_window.h"
 
 #include <cassert>
+
+#include <commctrl.h>
 
 
 static HINSTANCE g_instance;
@@ -11,6 +14,9 @@ static HINSTANCE g_instance;
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
 	g_instance = hInstance;
+	InitCommonControls();
+	splitter_window_hor::register_class();
+	splitter_window_ver::register_class();
 	main_window::register_class();
 	main_window mw;
 	BOOL const shown = ShowWindow(mw.get_hwnd(), nCmdShow);

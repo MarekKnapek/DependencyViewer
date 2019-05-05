@@ -15,12 +15,18 @@
     <ClCompile Include="src\gui\main_window.cpp">
       <Filter>src\gui</Filter>
     </ClCompile>
+    <ClCompile Include="src\gui\splitter_window.cpp">
+      <Filter>src\gui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\gui\main_window.h">
       <Filter>src\gui</Filter>
     </ClInclude>
     <ClInclude Include="src\gui\main.h">
+      <Filter>src\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gui\splitter_window.h">
       <Filter>src\gui</Filter>
     </ClInclude>
   </ItemGroup>
