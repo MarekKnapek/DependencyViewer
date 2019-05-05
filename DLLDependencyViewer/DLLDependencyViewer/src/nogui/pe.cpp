@@ -1,5 +1,6 @@
 #include "pe.h"
 
+#include <array>
 #include <cstdint>
 #include <cassert>
 
@@ -162,6 +163,34 @@ static_assert(sizeof(coff_entie_header_pe32_plus) == sizeof(coff_header) + sizeo
 static_assert(sizeof(coff_entie_header_pe32_plus) == 136, "");
 static_assert(sizeof(coff_entie_header_pe32_plus) == 0x88, "");
 
+enum class data_directory_type
+{
+	export_table = 0,
+	import_table,
+	resource_table,
+	exception_table,
+	certificate_table,
+	relocation_table,
+	debug,
+	architecture,
+	global_ptr,
+	tls_table,
+	load_config_table,
+	bound_import_table,
+	import_address_table,
+	delay_import_descriptor,
+	clr_header,
+	reserved
+};
+
+struct data_directory
+{
+	std::uint32_t m_rva;
+	std::uint32_t m_size;
+};
+static_assert(sizeof(data_directory) == 8, "");
+static_assert(sizeof(data_directory) == 0x8, "");
+
 
 static constexpr char const s_bad_format[] = "Bad format.";
 
@@ -218,6 +247,16 @@ void const* pe_get_coff_header(void const* const fd, int const fs)
 
 	coff_entie_header_pe32 const& coff_entire_hdr = *reinterpret_cast<coff_entie_header_pe32 const*>(file_data + dos_hdr.m_pe_offset);
 	coff_entie_header_pe32_plus const& coff_entire_hdr_plus = *reinterpret_cast<coff_entie_header_pe32_plus const*>(file_data + dos_hdr.m_pe_offset);
+
+	VERIFY((is_pe32 ? coff_hdr_opt_pe32.m_windows.m_data_directory_count : coff_hdr_opt_pe32_plus.m_windows.m_data_directory_count) == 16);
+	VERIFY(coff_hdr.m_optional_header_size == (is_pe32 ? sizeof(coff_optional_header_pe32) : sizeof(coff_optional_header_pe32_plus)) + sizeof(std::array<data_directory, 16>));
+	VERIFY(file_size >= dos_hdr.m_pe_offset + sizeof(coff_header) + (is_pe32 ? sizeof(coff_optional_header_pe32) : sizeof(coff_optional_header_pe32_plus)) + sizeof(std::array<data_directory, 16>));
+	std::array<data_directory, 16> const& data_directories = *reinterpret_cast<std::array<data_directory, 16> const*>(file_data + dos_hdr.m_pe_offset + sizeof(coff_header) + (is_pe32 ? sizeof(coff_optional_header_pe32) : sizeof(coff_optional_header_pe32_plus)));
+	VERIFY(data_directories[static_cast<int>(data_directory_type::architecture)].m_rva  == 0);
+	VERIFY(data_directories[static_cast<int>(data_directory_type::architecture)].m_size == 0);
+	VERIFY(data_directories[static_cast<int>(data_directory_type::global_ptr)].m_size == 0);
+	VERIFY(data_directories[static_cast<int>(data_directory_type::reserved)].m_rva == 0);
+	VERIFY(data_directories[static_cast<int>(data_directory_type::reserved)].m_size == 0);
 
 	return file_data + dos_hdr.m_pe_offset;
 }
