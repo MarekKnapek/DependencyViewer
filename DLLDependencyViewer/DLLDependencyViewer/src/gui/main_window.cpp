@@ -55,7 +55,10 @@ main_window::main_window() :
 	LONG_PTR const set = SetWindowLongPtrW(m_hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
 
 	LRESULT const set_tree = SendMessageW(m_tree, TVM_SETEXTENDEDSTYLE, TVS_EX_DOUBLEBUFFER, TVS_EX_DOUBLEBUFFER);
+	LONG_PTR const prev = SetWindowLongPtrW(m_tree, GWL_STYLE, GetWindowLongPtrW(m_tree, GWL_STYLE) | TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS);
+
 	LRESULT const set_import = SendMessageW(m_import_list, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_DOUBLEBUFFER, LVS_EX_DOUBLEBUFFER);
+
 	LRESULT const set_export = SendMessageW(m_export_list, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_DOUBLEBUFFER, LVS_EX_DOUBLEBUFFER);
 
 	m_splitter_ver.set_elements(m_import_list, m_export_list);
@@ -212,6 +215,28 @@ void main_window::on_menu_exit()
 
 void main_window::open_file(wchar_t const* const file_name)
 {
+	LRESULT const deleted = SendMessageW(m_tree, TVM_DELETEITEM, 0, reinterpret_cast<LPARAM>(TVI_ROOT));
+
+	TVINSERTSTRUCTW tvi;
+	tvi.hParent = TVI_ROOT;
+	tvi.hInsertAfter = TVI_ROOT;
+	tvi.itemex.mask = TVIF_TEXT;
+	tvi.itemex.hItem = nullptr;
+	tvi.itemex.state = 0;
+	tvi.itemex.stateMask = 0;
+	tvi.itemex.pszText = const_cast<wchar_t*>(file_name);
+	tvi.itemex.cchTextMax = 0;
+	tvi.itemex.iImage = 0;
+	tvi.itemex.iSelectedImage = 0;
+	tvi.itemex.cChildren = 0;
+	tvi.itemex.lParam = 0;
+	tvi.itemex.iIntegral = 0;
+	tvi.itemex.uStateEx = 0;
+	tvi.itemex.hwnd = nullptr;
+	tvi.itemex.iExpandedImage = 0;
+	tvi.itemex.iReserved = 0;
+
+	LRESULT const added = SendMessageW(m_tree, TVM_INSERTITEMW, 0, reinterpret_cast<LPARAM>(&tvi));
 }
 
 ATOM main_window::m_s_class;
