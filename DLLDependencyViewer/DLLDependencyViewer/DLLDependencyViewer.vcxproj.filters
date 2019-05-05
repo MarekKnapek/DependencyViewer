@@ -27,6 +27,9 @@
     <ClCompile Include="src\nogui\pe.cpp">
       <Filter>src\nogui</Filter>
     </ClCompile>
+    <ClCompile Include="src\nogui\unicode.cpp">
+      <Filter>src\nogui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\gui\main_window.h">
@@ -42,6 +45,9 @@
       <Filter>src\nogui</Filter>
     </ClInclude>
     <ClInclude Include="src\nogui\pe.h">
+      <Filter>src\nogui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nogui\unicode.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
   </ItemGroup>
