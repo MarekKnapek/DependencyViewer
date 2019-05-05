@@ -214,7 +214,7 @@ static constexpr char const s_bad_format[] = "Bad format.";
 #define VERIFY(X) do{ assert(X); if(!(X)){ throw s_bad_format; } }while(false)
 
 
-void const* pe_get_coff_header(void const* const fd, int const fs)
+pe_header_info pe_get_coff_header(void const* const fd, int const fs)
 {
 	char const* const file_data = static_cast<char const*>(fd);
 	std::uint32_t const file_size = static_cast<std::uint32_t>(fs);
@@ -297,5 +297,11 @@ void const* pe_get_coff_header(void const* const fd, int const fs)
 		VERIFY((sct_hdr.m_raw_ptr % (is_pe32 ? coff_hdr_opt_pe32.m_windows.m_file_alignment : coff_hdr_opt_pe32_plus.m_windows.m_file_alignment)) == 0);
 	}
 
-	return file_data + dos_hdr.m_pe_offset;
+	pe_header_info ret;
+	ret.m_pe_header_start = dos_hdr.m_pe_offset;
+	ret.m_is_pe32 = is_pe32;
+	ret.m_data_directory_count = 16;
+	ret.m_section_count = coff_hdr.m_section_count;
+	ret.m_section_headers_start = dos_hdr.m_pe_offset + sizeof(coff_header) + (is_pe32 ? sizeof(coff_optional_header_pe32) : sizeof(coff_optional_header_pe32_plus)) + sizeof(std::array<data_directory, 16>);
+	return ret;
 }
