@@ -207,6 +207,17 @@ struct section_header
 static_assert(sizeof(section_header) == 40, "");
 static_assert(sizeof(section_header) == 0x28, "");
 
+struct import_directory_entry
+{
+	std::uint32_t m_import_lookup_table;
+	std::uint32_t m_date_time;
+	std::uint32_t m_forwarder_chain;
+	std::uint32_t m_name;
+	std::uint32_t m_import_adress_table;
+};
+static_assert(sizeof(import_directory_entry) == 20, "");
+static_assert(sizeof(import_directory_entry) == 0x14, "");
+
 
 static constexpr char const s_bad_format[] = "Bad format.";
 
@@ -214,7 +225,7 @@ static constexpr char const s_bad_format[] = "Bad format.";
 #define VERIFY(X) do{ assert(X); if(!(X)){ throw s_bad_format; } }while(false)
 
 
-pe_header_info pe_get_coff_header(void const* const fd, int const fs)
+pe_header_info pe_process_header(void const* const fd, int const fs)
 {
 	char const* const file_data = static_cast<char const*>(fd);
 	std::uint32_t const file_size = static_cast<std::uint32_t>(fs);
@@ -298,10 +309,100 @@ pe_header_info pe_get_coff_header(void const* const fd, int const fs)
 	}
 
 	pe_header_info ret;
+	ret.m_file_data = file_data;
+	ret.m_file_size = file_size;
 	ret.m_pe_header_start = dos_hdr.m_pe_offset;
 	ret.m_is_pe32 = is_pe32;
 	ret.m_data_directory_count = 16;
+	ret.m_data_directory_start = dos_hdr.m_pe_offset + sizeof(coff_header) + (is_pe32 ? sizeof(coff_optional_header_pe32) : sizeof(coff_optional_header_pe32_plus));
 	ret.m_section_count = coff_hdr.m_section_count;
 	ret.m_section_headers_start = dos_hdr.m_pe_offset + sizeof(coff_header) + (is_pe32 ? sizeof(coff_optional_header_pe32) : sizeof(coff_optional_header_pe32_plus)) + sizeof(std::array<data_directory, 16>);
 	return ret;
+}
+
+pe_import_table_info pe_process_import_table(void const* const fd, int const fs, pe_header_info const& hi)
+{
+	char const* const file_data = static_cast<char const*>(fd);
+	std::uint32_t const file_size = static_cast<std::uint32_t>(fs);
+	pe_import_table_info ret;
+
+	data_directory const* const dta_dir_table = reinterpret_cast<data_directory const*>(file_data + hi.m_data_directory_start);
+
+	std::uint32_t const import_table_addr = dta_dir_table[static_cast<int>(data_directory_type::import_table)].m_rva;
+	std::uint32_t const import_table_size = dta_dir_table[static_cast<int>(data_directory_type::import_table)].m_size;
+	if(import_table_size == 0)
+	{
+		return ret;
+	}
+
+	auto const import_table_section_and_offset = convert_rva_to_disk_ptr(import_table_addr, hi);
+	section_header const& it_section = *import_table_section_and_offset.first;
+	std::uint32_t const it_disk = import_table_section_and_offset.second;
+	VERIFY(it_section.m_raw_ptr + it_section.m_raw_size >= it_disk + import_table_size);
+	std::uint32_t const max_it_size = import_table_size / sizeof(import_directory_entry);
+	VERIFY(max_it_size <= 1024); // 1k DLLs should be enough for everybody.
+	import_directory_entry const* const import_directory_table = reinterpret_cast<import_directory_entry const*>(file_data + it_disk);
+	std::uint32_t it_size = 0xFFFFFFFF;
+	for(std::uint32_t i = 0; i != max_it_size; ++i)
+	{
+		if
+		(
+			import_directory_table[i].m_import_lookup_table == 0 &&
+			import_directory_table[i].m_date_time == 0 &&
+			import_directory_table[i].m_forwarder_chain == 0 &&
+			import_directory_table[i].m_name == 0 &&
+			import_directory_table[i].m_import_adress_table == 0
+		)
+		{
+			it_size = i;
+			break;
+		}
+	}
+	VERIFY(it_size != 0xFFFFFFFF);
+	ret.m_dlls.reserve(it_size);
+	for(std::uint32_t i = 0; i != it_size; ++i)
+	{
+		std::uint32_t const name_rva = import_directory_table[i].m_name;
+		auto const name_sct_dsk = convert_rva_to_disk_ptr(name_rva, hi);
+		section_header const& name_sct = *name_sct_dsk.first;
+		std::uint32_t const name_dsk = name_sct_dsk.second;
+		std::uint32_t name_len = 0xFFFFFFFF;
+		// 1k DLL name should be enough for everybody.
+		for(std::uint32_t i = 0; i != 1024 && i != name_sct.m_raw_size - name_dsk; ++i)
+		{
+			if(reinterpret_cast<char const*>(file_data + name_dsk)[i] == '\0')
+			{
+				name_len = i;
+				break;
+			}
+		}
+		VERIFY(name_len != 0xFFFFFFFF);
+		ret.m_dlls.push_back(reinterpret_cast<char const*>(file_data + name_dsk));
+	}
+	return ret;
+}
+
+
+std::pair<section_header const*, std::uint32_t> convert_rva_to_disk_ptr(std::uint32_t const rva, pe_header_info const& hi, section_header const* const s /* = nullptr */)
+{
+	section_header const* section = nullptr;
+	if(s)
+	{
+		section = s;
+		VERIFY(rva >= section->m_virtual_address && rva < section->m_virtual_address + section->m_virtual_size);
+	}
+	else
+	{
+		for(std::uint32_t i = 0; i != hi.m_section_count; ++i)
+		{
+			section_header const* const ss = reinterpret_cast<section_header const*>(hi.m_file_data + hi.m_section_headers_start) + i;
+			if(rva >= ss->m_virtual_address && rva < ss->m_virtual_address + ss->m_virtual_size)
+			{
+				section = ss;
+				break;
+			}
+		}
+		VERIFY(section);
+	}
+	return {section, (rva - section->m_virtual_address) + section->m_raw_ptr};
 }

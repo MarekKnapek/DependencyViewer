@@ -245,7 +245,8 @@ void main_window::open_file(wchar_t const* const file_name)
 	try
 	{
 		memory_mapped_file mmf(file_name);
-		auto const hdr = pe_get_coff_header(mmf.begin(), mmf.size());
+		auto const hi = pe_process_header(mmf.begin(), mmf.size());
+		auto const iti = pe_process_import_table(mmf.begin(), mmf.size(), hi);
 	}
 	catch(wchar_t const* const ex)
 	{
