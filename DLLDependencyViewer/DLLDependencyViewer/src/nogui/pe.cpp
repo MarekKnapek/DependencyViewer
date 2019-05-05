@@ -1,5 +1,7 @@
 #include "pe.h"
 
+#include "unicode.h"
+
 #include <array>
 #include <cstdint>
 #include <cassert>
@@ -376,8 +378,10 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 				break;
 			}
 		}
-		VERIFY(name_len != 0xFFFFFFFF);
-		ret.m_dlls.push_back(reinterpret_cast<char const*>(file_data + name_dsk));
+		VERIFY(name_len != 0xFFFFFFFF && name_len > 0);
+		char const* const dll = reinterpret_cast<char const*>(file_data + name_dsk);
+		VERIFY(is_ascii(dll, static_cast<int>(name_len)));
+		ret.m_dlls.push_back(dll);
 	}
 	return ret;
 }
