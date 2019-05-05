@@ -12,5 +12,13 @@
     <ClCompile Include="src\gui\main.cpp">
       <Filter>src\gui</Filter>
     </ClCompile>
+    <ClCompile Include="src\gui\main_window.cpp">
+      <Filter>src\gui</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\gui\main_window.h">
+      <Filter>src\gui</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
