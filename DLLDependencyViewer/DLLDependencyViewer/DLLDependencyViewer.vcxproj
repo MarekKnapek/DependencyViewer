@@ -146,6 +146,7 @@
     <ClCompile Include="src\gui\main_window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\gui\main.h" />
     <ClInclude Include="src\gui\main_window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -20,5 +20,8 @@
     <ClInclude Include="src\gui\main_window.h">
       <Filter>src\gui</Filter>
     </ClInclude>
+    <ClInclude Include="src\gui\main.h">
+      <Filter>src\gui</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
