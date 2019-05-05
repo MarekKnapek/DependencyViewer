@@ -20,11 +20,17 @@ public:
 public:
 	HWND get_hwnd() const;
 private:
+	static HMENU create_menu();
 	static LRESULT CALLBACK class_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 private:
 	LRESULT on_message(UINT msg, WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_destroy(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_size(WPARAM wparam, LPARAM lparam);
+	LRESULT on_wm_command(WPARAM wparam, LPARAM lparam);
+	LRESULT on_menu(WPARAM wparam, LPARAM lparam);
+	void on_menu_open();
+	void on_menu_exit();
+	void open_file(wchar_t const* const file_name);
 private:
 	static ATOM m_s_class;
 private:

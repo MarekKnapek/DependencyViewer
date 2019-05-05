@@ -5,12 +5,19 @@
 #include <cassert>
 #include <cstdlib>
 #include <cstdint>
+#include <iterator>
 
 #include <commctrl.h>
 
 
 static constexpr wchar_t const s_window_class_name[] = L"main_window";
 static constexpr wchar_t const s_window_title[] = L"DLLDependencyViewer";
+static constexpr wchar_t const s_menu_file[] = L"&File";
+static constexpr wchar_t const s_menu_open[] = L"&Open";
+static constexpr wchar_t const s_menu_exit[] = L"E&xit";
+static constexpr wchar_t const s_open_file_dialog_file_name_filter[] = L"Executable files and libraries (*.exe;*.dll;*.ocx)\0*.exe;*.dll;*.ocx\0All files\0*.*\0";
+static constexpr int s_menu_open_id = 2000;
+static constexpr int s_menu_exit_id = 2001;
 static constexpr int s_tree_id = 1000;
 static constexpr int s_import_list = 1001;
 static constexpr int s_export_list = 1002;
@@ -38,7 +45,7 @@ void main_window::register_class()
 }
 
 main_window::main_window() :
-	m_hwnd(CreateWindowExW(0, reinterpret_cast<wchar_t const*>(m_s_class), s_window_title, WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, nullptr, nullptr, get_instance(), nullptr)),
+	m_hwnd(CreateWindowExW(0, reinterpret_cast<wchar_t const*>(m_s_class), s_window_title, WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, nullptr, create_menu(), get_instance(), nullptr)),
 	m_splitter_hor(m_hwnd),
 	m_tree(CreateWindowExW(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE, WC_TREEVIEWW, nullptr, WS_VISIBLE | WS_CHILD, 0, 0, 0, 0, m_splitter_hor.get_hwnd(), reinterpret_cast<HMENU>(static_cast<std::uintptr_t>(s_tree_id)), get_instance(), nullptr)),
 	m_splitter_ver(m_splitter_hor.get_hwnd()),
@@ -67,6 +74,16 @@ HWND main_window::get_hwnd() const
 	return m_hwnd;
 }
 
+HMENU main_window::create_menu()
+{
+	HMENU const menu_bar = CreateMenu();
+	HMENU const menu_file = CreatePopupMenu();
+	BOOL const menu_file_appended = AppendMenuW(menu_bar, MF_POPUP, reinterpret_cast<UINT_PTR>(menu_file), s_menu_file);
+	BOOL const menu_open_appended = AppendMenuW(menu_file, MF_STRING, s_menu_open_id, s_menu_open);
+	BOOL const menu_exit_appended = AppendMenuW(menu_file, MF_STRING, s_menu_exit_id, s_menu_exit);
+	return menu_bar;
+}
+
 LRESULT CALLBACK main_window::class_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	if(LONG_PTR const ptr = GetWindowLongPtrW(hwnd, GWLP_USERDATA))
@@ -93,6 +110,11 @@ LRESULT main_window::on_message(UINT msg, WPARAM wparam, LPARAM lparam)
 			return on_wm_size(wparam, lparam);
 		}
 		break;
+		case WM_COMMAND:
+		{
+			return on_wm_command(wparam, lparam);
+		}
+		break;
 	}
 	LRESULT const ret = DefWindowProcW(m_hwnd, msg, wparam, lparam);
 	return ret;
@@ -114,6 +136,82 @@ LRESULT main_window::on_wm_size(WPARAM wparam, LPARAM lparam)
 	int const h = HIWORD(lparam);
 	BOOL const moved = MoveWindow(m_splitter_hor.get_hwnd(), 0, 0, w, h, TRUE);
 	return DefWindowProcW(m_hwnd, WM_SIZE, wparam, lparam);
+}
+
+LRESULT main_window::on_wm_command(WPARAM wparam, LPARAM lparam)
+{
+	if(HIWORD(wparam) == 0 && lparam == 0)
+	{
+		return on_menu(wparam, lparam);
+	}
+	return DefWindowProcW(m_hwnd, WM_COMMAND, wparam, lparam);
+}
+
+LRESULT main_window::on_menu(WPARAM wparam, LPARAM lparam)
+{
+	int const menu_id = LOWORD(wparam);
+	switch(menu_id)
+	{
+		case s_menu_open_id:
+		{
+			on_menu_open();
+		}
+		break;
+		case s_menu_exit_id:
+		{
+			on_menu_exit();
+		}
+		break;
+	}
+	return DefWindowProcW(m_hwnd, WM_COMMAND, wparam, lparam);
+}
+
+void main_window::on_menu_open()
+{
+	wchar_t buff[32 * 1024];
+	buff[0] = L'\0';
+
+	OPENFILENAMEW ofn;
+	ofn.lStructSize = sizeof(ofn);
+	ofn.hwndOwner = m_hwnd;
+	ofn.hInstance = nullptr;
+	ofn.lpstrFilter = s_open_file_dialog_file_name_filter;
+	ofn.lpstrCustomFilter = nullptr;
+	ofn.nMaxCustFilter = 0;
+	ofn.nFilterIndex = 1;
+	ofn.lpstrFile = buff;
+	ofn.nMaxFile = std::size(buff);
+	ofn.lpstrFileTitle = nullptr;
+	ofn.nMaxFileTitle = 0;
+	ofn.lpstrInitialDir = nullptr;
+	ofn.lpstrTitle = nullptr;
+	ofn.Flags = OFN_ENABLESIZING | OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY | OFN_PATHMUSTEXIST;
+	ofn.nFileOffset = 0;
+	ofn.nFileExtension = 0;
+	ofn.lpstrDefExt = nullptr;
+	ofn.lCustData = 0;
+	ofn.lpfnHook = nullptr;
+	ofn.lpTemplateName = nullptr;
+	ofn.pvReserved = nullptr;
+	ofn.dwReserved = 0;
+	ofn.FlagsEx = 0;
+
+	BOOL const opened = GetOpenFileNameW(&ofn);
+	if(opened == 0)
+	{
+		return;
+	}
+
+	open_file(buff);
+}
+
+void main_window::on_menu_exit()
+{
+	PostQuitMessage(EXIT_SUCCESS);
+}
+
+void main_window::open_file(wchar_t const* const file_name)
+{
 }
 
 ATOM main_window::m_s_class;
