@@ -18,6 +18,7 @@ static constexpr wchar_t const s_menu_file[] = L"&File";
 static constexpr wchar_t const s_menu_open[] = L"&Open";
 static constexpr wchar_t const s_menu_exit[] = L"E&xit";
 static constexpr wchar_t const s_open_file_dialog_file_name_filter[] = L"Executable files and libraries (*.exe;*.dll;*.ocx)\0*.exe;*.dll;*.ocx\0All files\0*.*\0";
+static constexpr wchar_t const s_msg_error[] = L"DLLDependencyViewer error.";
 static constexpr int s_menu_open_id = 2000;
 static constexpr int s_menu_exit_id = 2001;
 static constexpr int s_tree_id = 1000;
@@ -240,7 +241,14 @@ void main_window::open_file(wchar_t const* const file_name)
 
 	LRESULT const added = SendMessageW(m_tree, TVM_INSERTITEMW, 0, reinterpret_cast<LPARAM>(&tvi));
 
-	memory_mapped_file mmf(file_name);
+	try
+	{
+		memory_mapped_file mmf(file_name);
+	}
+	catch(wchar_t const* const ex)
+	{
+		int const msgbox = MessageBoxW(m_hwnd, ex, s_msg_error, MB_OK | MB_ICONERROR);
+	}
 }
 
 ATOM main_window::m_s_class;
