@@ -33,6 +33,9 @@ private:
 	LRESULT on_message(UINT msg, WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_destroy(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_size(WPARAM wparam, LPARAM lparam);
+	LRESULT on_wm_mousemove(WPARAM wparam, LPARAM lparam);
+	LRESULT on_wm_lbuttondown(WPARAM wparam, LPARAM lparam);
+	LRESULT on_wm_lbuttonup(WPARAM wparam, LPARAM lparam);
 private:
 	static wchar_t const s_window_class_name[];
 	static wchar_t const* const s_cursor_id;
@@ -42,6 +45,8 @@ private:
 	HWND m_hwnd;
 	HWND m_first;
 	HWND m_second;
+	float m_position;
+	bool m_sizing;
 };
 
 typedef splitter_window<splitter_window_orientation::horizontal> splitter_window_hor;
