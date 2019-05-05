@@ -2,6 +2,8 @@
 
 #include "main.h"
 
+#include "../nogui/memory_mapped_file.h"
+
 #include <cassert>
 #include <cstdlib>
 #include <cstdint>
@@ -183,7 +185,7 @@ void main_window::on_menu_open()
 	ofn.nMaxCustFilter = 0;
 	ofn.nFilterIndex = 1;
 	ofn.lpstrFile = buff;
-	ofn.nMaxFile = std::size(buff);
+	ofn.nMaxFile = static_cast<int>(std::size(buff));
 	ofn.lpstrFileTitle = nullptr;
 	ofn.nMaxFileTitle = 0;
 	ofn.lpstrInitialDir = nullptr;
@@ -237,6 +239,8 @@ void main_window::open_file(wchar_t const* const file_name)
 	tvi.itemex.iReserved = 0;
 
 	LRESULT const added = SendMessageW(m_tree, TVM_INSERTITEMW, 0, reinterpret_cast<LPARAM>(&tvi));
+
+	memory_mapped_file mmf(file_name);
 }
 
 ATOM main_window::m_s_class;
