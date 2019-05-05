@@ -15,9 +15,9 @@ static constexpr wchar_t const s_mmf_mapping[] = L"Failed to create file mapping
 static constexpr wchar_t const s_mmf_view[] = L"Failed to create file view.";
 
 
-void close_handle_deleter::operator()(void const* const ptr) const
+void close_handle_deleter::operator()(void* const ptr) const
 {
-	BOOL const closed = CloseHandle(const_cast<void*>(ptr));
+	BOOL const closed = CloseHandle(ptr);
 	assert(closed != 0);
 }
 
@@ -103,4 +103,19 @@ void memory_mapped_file::swap(memory_mapped_file& other) noexcept
 	swap(m_mapping, other.m_mapping);
 	swap(m_view, other.m_view);
 	swap(m_end, other.m_end);
+}
+
+void const* memory_mapped_file::begin() const
+{
+	return m_view.get();
+}
+
+void const* memory_mapped_file::end() const
+{
+	return m_end;
+}
+
+int memory_mapped_file::size() const
+{
+	return static_cast<int>(static_cast<char const*>(end()) - static_cast<char const*>(begin()));
 }

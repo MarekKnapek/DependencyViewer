@@ -3,6 +3,7 @@
 #include "main.h"
 
 #include "../nogui/memory_mapped_file.h"
+#include "../nogui/pe.h"
 
 #include <cassert>
 #include <cstdlib>
@@ -244,6 +245,7 @@ void main_window::open_file(wchar_t const* const file_name)
 	try
 	{
 		memory_mapped_file mmf(file_name);
+		auto const hdr = pe_get_coff_header(mmf.begin(), mmf.size());
 	}
 	catch(wchar_t const* const ex)
 	{

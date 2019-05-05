@@ -7,7 +7,7 @@
 struct close_handle_deleter
 {
 public:
-	void operator()(void const* const ptr) const;
+	void operator()(void* const ptr) const;
 };
 typedef std::unique_ptr<void, close_handle_deleter> smart_handle;
 
@@ -31,6 +31,10 @@ public:
 	memory_mapped_file& operator=(memory_mapped_file&& other) noexcept;
 	~memory_mapped_file() noexcept;
 	void swap(memory_mapped_file& other) noexcept;
+public:
+	void const* begin() const;
+	void const* end() const;
+	int size() const;
 private:
 	smart_handle m_file;
 	smart_handle m_mapping;

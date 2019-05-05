@@ -150,12 +150,14 @@
     <ClCompile Include="src\gui\main_window.cpp" />
     <ClCompile Include="src\gui\splitter_window.cpp" />
     <ClCompile Include="src\nogui\memory_mapped_file.cpp" />
+    <ClCompile Include="src\nogui\pe.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\gui\main.h" />
     <ClInclude Include="src\gui\main_window.h" />
     <ClInclude Include="src\gui\splitter_window.h" />
     <ClInclude Include="src\nogui\memory_mapped_file.h" />
+    <ClInclude Include="src\nogui\pe.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

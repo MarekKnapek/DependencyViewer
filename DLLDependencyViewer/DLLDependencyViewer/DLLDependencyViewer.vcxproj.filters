@@ -24,6 +24,9 @@
     <ClCompile Include="src\nogui\memory_mapped_file.cpp">
       <Filter>src\nogui</Filter>
     </ClCompile>
+    <ClCompile Include="src\nogui\pe.cpp">
+      <Filter>src\nogui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\gui\main_window.h">
@@ -36,6 +39,9 @@
       <Filter>src\gui</Filter>
     </ClInclude>
     <ClInclude Include="src\nogui\memory_mapped_file.h">
+      <Filter>src\nogui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nogui\pe.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
   </ItemGroup>
