@@ -191,6 +191,22 @@ struct data_directory
 static_assert(sizeof(data_directory) == 8, "");
 static_assert(sizeof(data_directory) == 0x8, "");
 
+struct section_header
+{
+	std::array<std::uint8_t, 8> m_name;
+	std::uint32_t m_virtual_size;
+	std::uint32_t m_virtual_address;
+	std::uint32_t m_raw_size;
+	std::uint32_t m_raw_ptr;
+	std::uint32_t m_relocations;
+	std::uint32_t m_line_numbers;
+	std::uint16_t m_relocation_count;
+	std::uint16_t m_line_numbers_count;
+	std::uint32_t m_characteristics;
+};
+static_assert(sizeof(section_header) == 40, "");
+static_assert(sizeof(section_header) == 0x28, "");
+
 
 static constexpr char const s_bad_format[] = "Bad format.";
 
@@ -257,6 +273,29 @@ void const* pe_get_coff_header(void const* const fd, int const fs)
 	VERIFY(data_directories[static_cast<int>(data_directory_type::global_ptr)].m_size == 0);
 	VERIFY(data_directories[static_cast<int>(data_directory_type::reserved)].m_rva == 0);
 	VERIFY(data_directories[static_cast<int>(data_directory_type::reserved)].m_size == 0);
+
+	VERIFY(file_size >= dos_hdr.m_pe_offset + sizeof(coff_header) + (is_pe32 ? sizeof(coff_optional_header_pe32) : sizeof(coff_optional_header_pe32_plus)) + sizeof(std::array<data_directory, 16>) + coff_hdr.m_section_count * sizeof(section_header));
+	section_header const* const section_headers_begin = reinterpret_cast<section_header const*>(file_data + dos_hdr.m_pe_offset + sizeof(coff_header) + (is_pe32 ? sizeof(coff_optional_header_pe32) : sizeof(coff_optional_header_pe32_plus)) + sizeof(std::array<data_directory, 16>));
+	section_header const* const section_headers_end = section_headers_begin + coff_hdr.m_section_count;
+	std::uint32_t prev_va;
+	std::uint32_t prev_size;
+	if(coff_hdr.m_section_count > 0)
+	{
+		prev_va = section_headers_begin[0].m_virtual_address;
+		prev_size = 0;
+	}
+	for(std::uint32_t i = 0; i != coff_hdr.m_section_count; ++i)
+	{
+		section_header const& sct_hdr = section_headers_begin[i];
+		VERIFY(file_size >= sct_hdr.m_raw_ptr + sct_hdr.m_raw_size);
+		VERIFY((sct_hdr.m_virtual_address % (is_pe32 ? coff_hdr_opt_pe32.m_windows.m_section_alignment : coff_hdr_opt_pe32_plus.m_windows.m_section_alignment)) == 0);
+		VERIFY(sct_hdr.m_virtual_address >= prev_va + prev_size);
+		prev_va = sct_hdr.m_virtual_address;
+		prev_size = sct_hdr.m_virtual_size;
+		//VERIFY(sct_hdr.m_virtual_size >= sct_hdr.m_raw_size); // Most of the times, except size on disk is rounded but size in memory is not.
+		VERIFY((sct_hdr.m_raw_size % (is_pe32 ? coff_hdr_opt_pe32.m_windows.m_file_alignment : coff_hdr_opt_pe32_plus.m_windows.m_file_alignment)) == 0);
+		VERIFY((sct_hdr.m_raw_ptr % (is_pe32 ? coff_hdr_opt_pe32.m_windows.m_file_alignment : coff_hdr_opt_pe32_plus.m_windows.m_file_alignment)) == 0);
+	}
 
 	return file_data + dos_hdr.m_pe_offset;
 }
