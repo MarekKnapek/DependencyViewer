@@ -239,19 +239,53 @@ void main_window::open_file(wchar_t const* const file_name)
 	tvi.itemex.hwnd = nullptr;
 	tvi.itemex.iExpandedImage = 0;
 	tvi.itemex.iReserved = 0;
+	LRESULT const hroot = SendMessageW(m_tree, TVM_INSERTITEMW, 0, reinterpret_cast<LPARAM>(&tvi));
 
-	LRESULT const added = SendMessageW(m_tree, TVM_INSERTITEMW, 0, reinterpret_cast<LPARAM>(&tvi));
-
+	memory_mapped_file mmf;
+	pe_header_info hi;
+	pe_import_table_info iti;
 	try
 	{
-		memory_mapped_file mmf(file_name);
-		auto const hi = pe_process_header(mmf.begin(), mmf.size());
-		auto const iti = pe_process_import_table(mmf.begin(), mmf.size(), hi);
+		mmf = memory_mapped_file(file_name);
+		hi = pe_process_header(mmf.begin(), mmf.size());
+		iti = pe_process_import_table(mmf.begin(), mmf.size(), hi);
 	}
 	catch(wchar_t const* const ex)
 	{
 		int const msgbox = MessageBoxW(m_hwnd, ex, s_msg_error, MB_OK | MB_ICONERROR);
 	}
+
+	for(auto const& e : iti.m_dlls)
+	{
+		wchar_t buff[1024];
+		int i = 0;
+		while(e[i] != '\0')
+		{
+			buff[i] = e[i]; // char to wchar_t conversion
+			++i;
+		}
+		buff[i] = L'\0';
+		TVINSERTSTRUCTW tvi;
+		tvi.hParent = reinterpret_cast<HTREEITEM>(hroot);
+		tvi.hInsertAfter = TVI_LAST;
+		tvi.itemex.mask = TVIF_TEXT;
+		tvi.itemex.hItem = nullptr;
+		tvi.itemex.state = 0;
+		tvi.itemex.stateMask = 0;
+		tvi.itemex.pszText = buff;
+		tvi.itemex.cchTextMax = 0;
+		tvi.itemex.iImage = 0;
+		tvi.itemex.iSelectedImage = 0;
+		tvi.itemex.cChildren = 0;
+		tvi.itemex.lParam = 0;
+		tvi.itemex.iIntegral = 0;
+		tvi.itemex.uStateEx = 0;
+		tvi.itemex.hwnd = nullptr;
+		tvi.itemex.iExpandedImage = 0;
+		tvi.itemex.iReserved = 0;
+		LRESULT const added_dll = SendMessageW(m_tree, TVM_INSERTITEMW, 0, reinterpret_cast<LPARAM>(&tvi));
+	}
+	LRESULT const expanded = SendMessageW(m_tree, TVM_EXPAND, TVE_EXPAND, reinterpret_cast<LPARAM>(reinterpret_cast<HTREEITEM>(hroot)));
 }
 
 ATOM main_window::m_s_class;
