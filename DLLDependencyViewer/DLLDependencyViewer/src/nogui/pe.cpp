@@ -221,7 +221,7 @@ static_assert(sizeof(import_directory_entry) == 20, "");
 static_assert(sizeof(import_directory_entry) == 0x14, "");
 
 
-static constexpr char const s_bad_format[] = "Bad format.";
+static constexpr wchar_t const s_bad_format[] = L"Bad format.";
 
 
 #define VERIFY(X) do{ assert(X); if(!(X)){ throw s_bad_format; } }while(false)
