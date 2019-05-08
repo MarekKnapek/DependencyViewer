@@ -327,7 +327,6 @@ pe_header_info pe_process_header(void const* const fd, int const fs)
 		VERIFY(sct_hdr.m_virtual_address >= prev_va + prev_size);
 		prev_va = sct_hdr.m_virtual_address;
 		prev_size = sct_hdr.m_virtual_size;
-		//VERIFY(sct_hdr.m_virtual_size >= sct_hdr.m_raw_size); // Most of the times, except size on disk is rounded but size in memory is not.
 		VERIFY((sct_hdr.m_raw_size % (is_pe32 ? coff_hdr_opt_pe32.m_windows.m_file_alignment : coff_hdr_opt_pe32_plus.m_windows.m_file_alignment)) == 0);
 		VERIFY((sct_hdr.m_raw_ptr % (is_pe32 ? coff_hdr_opt_pe32.m_windows.m_file_alignment : coff_hdr_opt_pe32_plus.m_windows.m_file_alignment)) == 0);
 	}
