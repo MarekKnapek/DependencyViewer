@@ -259,9 +259,9 @@ void main_window::open_file(wchar_t const* const file_name)
 	{
 		wchar_t buff[1024];
 		int i = 0;
-		while(e[i] != '\0')
+		while(e.m_dll[i] != '\0')
 		{
-			buff[i] = e[i]; // char to wchar_t conversion
+			buff[i] = e.m_dll[i]; // char to wchar_t conversion
 			++i;
 		}
 		buff[i] = L'\0';

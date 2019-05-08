@@ -2,8 +2,10 @@
 
 
 #include <cstdint>
+#include <string>
 #include <utility>
 #include <vector>
+#include <tuple>
 
 
 struct section_header;
@@ -21,9 +23,15 @@ struct pe_header_info
 	std::uint32_t m_section_headers_start;
 };
 
+struct pe_import_dll_with_entries
+{
+	std::string m_dll;
+	std::vector<std::tuple<bool, std::uint16_t, std::string>> m_entries;
+};
+
 struct pe_import_table_info
 {
-	std::vector<char const*> m_dlls;
+	std::vector<pe_import_dll_with_entries> m_dlls;
 };
 
 

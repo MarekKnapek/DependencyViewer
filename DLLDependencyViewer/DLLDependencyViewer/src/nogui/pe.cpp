@@ -220,11 +220,33 @@ struct import_directory_entry
 static_assert(sizeof(import_directory_entry) == 20, "");
 static_assert(sizeof(import_directory_entry) == 0x14, "");
 
+struct import_lookup_entry_pe32
+{
+	std::uint32_t m_value;
+};
+static_assert(sizeof(import_lookup_entry_pe32) == 4, "");
+static_assert(sizeof(import_lookup_entry_pe32) == 0x4, "");
+
+struct import_lookup_entry_pe32_plus
+{
+	std::uint64_t m_value;
+};
+static_assert(sizeof(import_lookup_entry_pe32_plus) == 8, "");
+static_assert(sizeof(import_lookup_entry_pe32_plus) == 0x8, "");
+
+struct import_hint_name
+{
+	std::uint16_t m_hint;
+	char m_name[2];
+};
+static_assert(sizeof(import_hint_name) == 4, "");
+static_assert(sizeof(import_hint_name) == 0x4, "");
+
 
 static constexpr wchar_t const s_bad_format[] = L"Bad format.";
 
 
-#define VERIFY(X) do{ assert(X); if(!(X)){ throw s_bad_format; } }while(false)
+#define VERIFY(X) do{ if(!(X)){ throw s_bad_format; } }while(false)
 
 
 pe_header_info pe_process_header(void const* const fd, int const fs)
@@ -370,7 +392,7 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 		std::uint32_t const name_dsk = name_sct_dsk.second;
 		std::uint32_t name_len = 0xFFFFFFFF;
 		// 1k DLL name should be enough for everybody.
-		for(std::uint32_t i = 0; i != 1024 && i != name_sct.m_raw_size - name_dsk; ++i)
+		for(std::uint32_t i = 0; i != 1024 && i != name_sct.m_raw_ptr + name_sct.m_raw_size - name_dsk; ++i)
 		{
 			if(reinterpret_cast<char const*>(file_data + name_dsk)[i] == '\0')
 			{
@@ -381,7 +403,114 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 		VERIFY(name_len != 0xFFFFFFFF && name_len > 0);
 		char const* const dll = reinterpret_cast<char const*>(file_data + name_dsk);
 		VERIFY(is_ascii(dll, static_cast<int>(name_len)));
-		ret.m_dlls.push_back(dll);
+		ret.m_dlls.push_back({});
+		ret.m_dlls.back().m_dll.assign(dll, dll + name_len);
+		auto const import_lookup_table_off_sect = convert_rva_to_disk_ptr(import_directory_table[i].m_import_lookup_table, hi);
+		section_header const* const import_lookup_table_section = import_lookup_table_off_sect.first;
+		std::uint32_t const import_lookup_table_off_disk = import_lookup_table_off_sect.second;
+		std::uint32_t import_lookup_table_size = 0xFFFFFFFF;
+		if(hi.m_is_pe32)
+		{
+			import_lookup_entry_pe32 const* const import_lookup_table = reinterpret_cast<import_lookup_entry_pe32 const*>(file_data + import_lookup_table_off_disk);
+			// 32k imports should be enough for everybody.
+			for(std::uint32_t i = 0; i != 32 * 1024 && i != (import_lookup_table_section->m_raw_ptr + import_lookup_table_section->m_raw_size - import_lookup_table_off_disk) / sizeof(import_lookup_entry_pe32); ++i)
+			{
+				import_lookup_entry_pe32 const& import_entry = import_lookup_table[i];
+				if(import_entry.m_value == 0u)
+				{
+					import_lookup_table_size = i;
+					break;
+				}
+				bool const is_ordinal = (import_entry.m_value & 0x80000000u) == 0x80000000u;
+				if(is_ordinal)
+				{
+					VERIFY((import_entry.m_value & 0x7FFF0000u) == 0u);
+					std::uint16_t const import_ordinal = import_entry.m_value & 0x0000FFFFu;
+					ret.m_dlls.back().m_entries.push_back({});
+					std::get<0>(ret.m_dlls.back().m_entries.back()) = true;
+					std::get<1>(ret.m_dlls.back().m_entries.back()) = import_ordinal;
+				}
+				else
+				{
+					std::uint32_t const hint_name_offset = import_entry.m_value &~ 0x80000000u;
+					auto const hint_name_sect_off = convert_rva_to_disk_ptr(hint_name_offset, hi);
+					section_header const& hint_name_section = *hint_name_sect_off.first;
+					std::uint32_t const hint_name_disk_offset = hint_name_sect_off.second;
+					VERIFY(file_size >= hint_name_disk_offset + sizeof(import_hint_name));
+					/* VERIFY(hint_name_section.m_raw_size >= sizeof(import_hint_name)); */
+					import_hint_name const& hint_name = *reinterpret_cast<import_hint_name const*>(file_data + hint_name_disk_offset);
+					std::uint16_t const hint = hint_name.m_hint;
+					char const* const name = hint_name.m_name;
+					std::uint32_t import_name_size = 0xFFFFFFFF;
+					// 4k import name length should be enough for everybody.
+					for(std::uint32_t i = 0; i != 4 * 1024 /* && i != hint_name_section.m_raw_ptr + hint_name_section.m_raw_size - hint_name_offset */; ++i)
+					{
+						if(name[i] == '\0')
+						{
+							import_name_size = i;
+							break;
+						}
+					}
+					VERIFY(import_name_size != 0xFFFFFFFF);
+					ret.m_dlls.back().m_entries.push_back({});
+					std::get<0>(ret.m_dlls.back().m_entries.back()) = false;
+					std::get<1>(ret.m_dlls.back().m_entries.back()) = hint;
+					std::get<2>(ret.m_dlls.back().m_entries.back()).assign(name, name + import_name_size);
+				}
+			}
+		}
+		else
+		{
+			import_lookup_entry_pe32_plus const* const import_lookup_table = reinterpret_cast<import_lookup_entry_pe32_plus const*>(file_data + import_lookup_table_off_disk);
+			// 32k imports should be enough for everybody.
+			for(std::uint32_t i = 0; i != 32 * 1024 && i != (import_lookup_table_section->m_raw_ptr + import_lookup_table_section->m_raw_size - import_lookup_table_off_disk) / sizeof(import_lookup_entry_pe32_plus); ++i)
+			{
+				import_lookup_entry_pe32_plus const& import_entry = import_lookup_table[i];
+				if(import_entry.m_value == 0ull)
+				{
+					import_lookup_table_size = i;
+					break;
+				}
+				bool const is_ordinal = (import_entry.m_value & 0x8000000000000000ull) == 0x8000000000000000ull;
+				if(is_ordinal)
+				{
+					VERIFY((import_entry.m_value & 0x7FFFFFFFFFFF0000ull) == 0ull);
+					std::uint16_t const import_ordinal = import_entry.m_value & 0x000000000000FFFFull;
+					ret.m_dlls.back().m_entries.push_back({});
+					std::get<0>(ret.m_dlls.back().m_entries.back()) = true;
+					std::get<1>(ret.m_dlls.back().m_entries.back()) = import_ordinal;
+				}
+				else
+				{
+					VERIFY((import_entry.m_value & 0x7FFFFFFF00000000ull) == 0ull);
+					std::uint32_t const hint_name_offset = import_entry.m_value &~ 0xFFFFFFFF80000000ull;
+					auto const hint_name_sect_off = convert_rva_to_disk_ptr(hint_name_offset, hi);
+					section_header const& hint_name_section = *hint_name_sect_off.first;
+					std::uint32_t const hint_name_disk_offset = hint_name_sect_off.second;
+					VERIFY(file_size >= hint_name_disk_offset + sizeof(import_hint_name));
+					/* VERIFY(hint_name_section.m_raw_size >= sizeof(import_hint_name)); */
+					import_hint_name const& hint_name = *reinterpret_cast<import_hint_name const*>(file_data + hint_name_disk_offset);
+					std::uint16_t const hint = hint_name.m_hint;
+					char const* const name = hint_name.m_name;
+					std::uint32_t import_name_size = 0xFFFFFFFF;
+					// 4k import name length should be enough for everybody.
+					for(std::uint32_t i = 0; i != 4 * 1024 /* && i != hint_name_section.m_raw_ptr + hint_name_section.m_raw_size - hint_name_offset */; ++i)
+					{
+						if(name[i] == '\0')
+						{
+							import_name_size = i;
+							break;
+						}
+					}
+					VERIFY(import_name_size != 0xFFFFFFFF);
+					ret.m_dlls.back().m_entries.push_back({});
+					std::get<0>(ret.m_dlls.back().m_entries.back()) = false;
+					std::get<1>(ret.m_dlls.back().m_entries.back()) = hint;
+					std::get<2>(ret.m_dlls.back().m_entries.back()).assign(name, name + import_name_size);
+				}
+			}
+		}
+		VERIFY(import_lookup_table_size != 0xFFFFFFFF);
 	}
 	return ret;
 }
