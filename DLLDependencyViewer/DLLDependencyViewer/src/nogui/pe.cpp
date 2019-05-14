@@ -2,6 +2,7 @@
 
 #include "unicode.h"
 
+#include <algorithm>
 #include <array>
 #include <cstdint>
 #include <cassert>
@@ -351,22 +352,22 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 
 	data_directory const* const dta_dir_table = reinterpret_cast<data_directory const*>(file_data + hi.m_data_directory_start);
 
-	std::uint32_t const import_table_addr = dta_dir_table[static_cast<int>(data_directory_type::import_table)].m_rva;
+	std::uint32_t const import_table_rva = dta_dir_table[static_cast<int>(data_directory_type::import_table)].m_rva;
 	std::uint32_t const import_table_size = dta_dir_table[static_cast<int>(data_directory_type::import_table)].m_size;
 	if(import_table_size == 0)
 	{
 		return ret;
 	}
 
-	auto const import_table_section_and_offset = convert_rva_to_disk_ptr(import_table_addr, hi);
-	section_header const& it_section = *import_table_section_and_offset.first;
-	std::uint32_t const it_disk = import_table_section_and_offset.second;
-	VERIFY(it_section.m_raw_ptr + it_section.m_raw_size >= it_disk + import_table_size);
-	std::uint32_t const max_it_size = import_table_size / sizeof(import_directory_entry);
-	VERIFY(max_it_size <= 1024); // 1k DLLs should be enough for everybody.
-	import_directory_entry const* const import_directory_table = reinterpret_cast<import_directory_entry const*>(file_data + it_disk);
-	std::uint32_t it_size = 0xFFFFFFFF;
-	for(std::uint32_t i = 0; i != max_it_size; ++i)
+	auto const import_table_section_and_offset = convert_rva_to_disk_ptr(import_table_rva, hi);
+	section_header const& import_table_section = *import_table_section_and_offset.first;
+	std::uint32_t const import_table_offset = import_table_section_and_offset.second;
+	VERIFY(import_table_section.m_raw_ptr + import_table_section.m_raw_size >= import_table_offset + import_table_size);
+	// 1k DLLs should be enough for everybody.
+	std::uint32_t const import_table_max_count = std::min<std::uint32_t>(1024, import_table_size / sizeof(import_directory_entry));
+	import_directory_entry const* const import_directory_table = reinterpret_cast<import_directory_entry const*>(file_data + import_table_offset);
+	std::uint32_t import_directory_table_count = 0xFFFFFFFF;
+	for(std::uint32_t i = 0; i != import_table_max_count; ++i)
 	{
 		if
 		(
@@ -377,47 +378,49 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 			import_directory_table[i].m_import_adress_table == 0
 		)
 		{
-			it_size = i;
+			import_directory_table_count = i;
 			break;
 		}
 	}
-	VERIFY(it_size != 0xFFFFFFFF);
-	ret.m_dlls.reserve(it_size);
-	for(std::uint32_t i = 0; i != it_size; ++i)
+	VERIFY(import_directory_table_count != 0xFFFFFFFF);
+	ret.m_dlls.reserve(import_directory_table_count);
+	for(std::uint32_t i = 0; i != import_directory_table_count; ++i)
 	{
-		std::uint32_t const name_rva = import_directory_table[i].m_name;
-		auto const name_sct_dsk = convert_rva_to_disk_ptr(name_rva, hi);
-		section_header const& name_sct = *name_sct_dsk.first;
-		std::uint32_t const name_dsk = name_sct_dsk.second;
-		std::uint32_t name_len = 0xFFFFFFFF;
+		std::uint32_t const dll_name_rva = import_directory_table[i].m_name;
+		auto const dll_name_sct_dsk = convert_rva_to_disk_ptr(dll_name_rva, hi);
+		section_header const& dll_name_sct = *dll_name_sct_dsk.first;
+		std::uint32_t const dll_name_dsk = dll_name_sct_dsk.second;
+		std::uint32_t dll_name_len = 0xFFFFFFFF;
 		// 1k DLL name should be enough for everybody.
-		for(std::uint32_t i = 0; i != 1024 && i != name_sct.m_raw_ptr + name_sct.m_raw_size - name_dsk; ++i)
+		std::uint32_t const dll_name_len_max = std::min<std::uint32_t>(1024, dll_name_sct.m_raw_ptr + dll_name_sct.m_raw_size - dll_name_dsk);
+		for(std::uint32_t i = 0; i != dll_name_len_max; ++i)
 		{
-			if(reinterpret_cast<char const*>(file_data + name_dsk)[i] == '\0')
+			if(reinterpret_cast<char const*>(file_data + dll_name_dsk)[i] == '\0')
 			{
-				name_len = i;
+				dll_name_len = i;
 				break;
 			}
 		}
-		VERIFY(name_len != 0xFFFFFFFF && name_len > 0);
-		char const* const dll = reinterpret_cast<char const*>(file_data + name_dsk);
-		VERIFY(is_ascii(dll, static_cast<int>(name_len)));
+		VERIFY(dll_name_len != 0xFFFFFFFF && dll_name_len > 0);
+		char const* const dll_name = reinterpret_cast<char const*>(file_data + dll_name_dsk);
+		VERIFY(is_ascii(dll_name, static_cast<int>(dll_name_len)));
 		ret.m_dlls.push_back({});
-		ret.m_dlls.back().m_dll.assign(dll, dll + name_len);
-		auto const import_lookup_table_off_sect = convert_rva_to_disk_ptr(import_directory_table[i].m_import_lookup_table, hi);
-		section_header const* const import_lookup_table_section = import_lookup_table_off_sect.first;
-		std::uint32_t const import_lookup_table_off_disk = import_lookup_table_off_sect.second;
-		std::uint32_t import_lookup_table_size = 0xFFFFFFFF;
+		ret.m_dlls.back().m_dll.assign(dll_name, dll_name + dll_name_len);
+		auto const import_lookup_table_sct_dsk = convert_rva_to_disk_ptr(import_directory_table[i].m_import_lookup_table, hi);
+		section_header const& import_lookup_table_sct = *import_lookup_table_sct_dsk.first;
+		std::uint32_t const import_lookup_table_dsk = import_lookup_table_sct_dsk.second;
+		std::uint32_t import_lookup_table_count = 0xFFFFFFFF;
 		if(hi.m_is_pe32)
 		{
-			import_lookup_entry_pe32 const* const import_lookup_table = reinterpret_cast<import_lookup_entry_pe32 const*>(file_data + import_lookup_table_off_disk);
-			// 32k imports should be enough for everybody.
-			for(std::uint32_t i = 0; i != 32 * 1024 && i != (import_lookup_table_section->m_raw_ptr + import_lookup_table_section->m_raw_size - import_lookup_table_off_disk) / sizeof(import_lookup_entry_pe32); ++i)
+			// 32k imports per DLL should be enough for everybody.
+			std::uint32_t const import_lookup_table_max_count = std::min<std::uint32_t>(32 * 1024, (import_lookup_table_sct.m_raw_ptr + import_lookup_table_sct.m_raw_size - import_lookup_table_dsk) / sizeof(import_lookup_entry_pe32));
+			import_lookup_entry_pe32 const* const import_lookup_table = reinterpret_cast<import_lookup_entry_pe32 const*>(file_data + import_lookup_table_dsk);
+			for(std::uint32_t i = 0; i != import_lookup_table_max_count; ++i)
 			{
 				import_lookup_entry_pe32 const& import_entry = import_lookup_table[i];
 				if(import_entry.m_value == 0u)
 				{
-					import_lookup_table_size = i;
+					import_lookup_table_count = i;
 					break;
 				}
 				bool const is_ordinal = (import_entry.m_value & 0x80000000u) == 0x80000000u;
@@ -431,43 +434,47 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 				}
 				else
 				{
+					VERIFY((import_entry.m_value & 0x80000000u) == 0u);
 					std::uint32_t const hint_name_offset = import_entry.m_value &~ 0x80000000u;
 					auto const hint_name_sect_off = convert_rva_to_disk_ptr(hint_name_offset, hi);
 					section_header const& hint_name_section = *hint_name_sect_off.first;
 					std::uint32_t const hint_name_disk_offset = hint_name_sect_off.second;
 					VERIFY(file_size >= hint_name_disk_offset + sizeof(import_hint_name));
-					/* VERIFY(hint_name_section.m_raw_size >= sizeof(import_hint_name)); */
+					VERIFY(hint_name_section.m_raw_size >= sizeof(import_hint_name));
 					import_hint_name const& hint_name = *reinterpret_cast<import_hint_name const*>(file_data + hint_name_disk_offset);
 					std::uint16_t const hint = hint_name.m_hint;
 					char const* const name = hint_name.m_name;
-					std::uint32_t import_name_size = 0xFFFFFFFF;
+					std::uint32_t import_name_len = 0xFFFFFFFF;
 					// 4k import name length should be enough for everybody.
-					for(std::uint32_t i = 0; i != 4 * 1024 /* && i != hint_name_section.m_raw_ptr + hint_name_section.m_raw_size - hint_name_offset */; ++i)
+					std::uint32_t const import_name_len_max = std::min<std::uint32_t>(4 * 1024, hint_name_section.m_raw_ptr + hint_name_section.m_raw_size - hint_name_disk_offset - sizeof(import_hint_name::m_hint));
+					for(std::uint32_t i = 0; i != import_name_len_max; ++i)
 					{
 						if(name[i] == '\0')
 						{
-							import_name_size = i;
+							import_name_len = i;
 							break;
 						}
 					}
-					VERIFY(import_name_size != 0xFFFFFFFF);
+					VERIFY(import_name_len != 0xFFFFFFFF && import_name_len > 0);
+					VERIFY(is_ascii(name, import_name_len));
 					ret.m_dlls.back().m_entries.push_back({});
 					std::get<0>(ret.m_dlls.back().m_entries.back()) = false;
 					std::get<1>(ret.m_dlls.back().m_entries.back()) = hint;
-					std::get<2>(ret.m_dlls.back().m_entries.back()).assign(name, name + import_name_size);
+					std::get<2>(ret.m_dlls.back().m_entries.back()).assign(name, name + import_name_len);
 				}
 			}
 		}
 		else
 		{
-			import_lookup_entry_pe32_plus const* const import_lookup_table = reinterpret_cast<import_lookup_entry_pe32_plus const*>(file_data + import_lookup_table_off_disk);
-			// 32k imports should be enough for everybody.
-			for(std::uint32_t i = 0; i != 32 * 1024 && i != (import_lookup_table_section->m_raw_ptr + import_lookup_table_section->m_raw_size - import_lookup_table_off_disk) / sizeof(import_lookup_entry_pe32_plus); ++i)
+			// 32k imports per DLL should be enough for everybody.
+			std::uint32_t const import_lookup_table_max_count = std::min<std::uint32_t>(32 * 1024, (import_lookup_table_sct.m_raw_ptr + import_lookup_table_sct.m_raw_size - import_lookup_table_dsk) / sizeof(import_lookup_entry_pe32_plus));
+			import_lookup_entry_pe32_plus const* const import_lookup_table = reinterpret_cast<import_lookup_entry_pe32_plus const*>(file_data + import_lookup_table_dsk);
+			for(std::uint32_t i = 0; i != import_lookup_table_max_count; ++i)
 			{
 				import_lookup_entry_pe32_plus const& import_entry = import_lookup_table[i];
 				if(import_entry.m_value == 0ull)
 				{
-					import_lookup_table_size = i;
+					import_lookup_table_count = i;
 					break;
 				}
 				bool const is_ordinal = (import_entry.m_value & 0x8000000000000000ull) == 0x8000000000000000ull;
@@ -487,29 +494,31 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 					section_header const& hint_name_section = *hint_name_sect_off.first;
 					std::uint32_t const hint_name_disk_offset = hint_name_sect_off.second;
 					VERIFY(file_size >= hint_name_disk_offset + sizeof(import_hint_name));
-					/* VERIFY(hint_name_section.m_raw_size >= sizeof(import_hint_name)); */
+					VERIFY(hint_name_section.m_raw_size >= sizeof(import_hint_name));
 					import_hint_name const& hint_name = *reinterpret_cast<import_hint_name const*>(file_data + hint_name_disk_offset);
 					std::uint16_t const hint = hint_name.m_hint;
 					char const* const name = hint_name.m_name;
-					std::uint32_t import_name_size = 0xFFFFFFFF;
+					std::uint32_t import_name_len = 0xFFFFFFFF;
 					// 4k import name length should be enough for everybody.
-					for(std::uint32_t i = 0; i != 4 * 1024 /* && i != hint_name_section.m_raw_ptr + hint_name_section.m_raw_size - hint_name_offset */; ++i)
+					std::uint32_t const import_name_len_max = std::min<std::uint32_t>(4 * 1024, hint_name_section.m_raw_ptr + hint_name_section.m_raw_size - hint_name_disk_offset - sizeof(import_hint_name::m_hint));
+					for(std::uint32_t i = 0; i != import_name_len_max; ++i)
 					{
 						if(name[i] == '\0')
 						{
-							import_name_size = i;
+							import_name_len = i;
 							break;
 						}
 					}
-					VERIFY(import_name_size != 0xFFFFFFFF);
+					VERIFY(import_name_len != 0xFFFFFFFF && import_name_len > 0);
+					VERIFY(is_ascii(name, import_name_len));
 					ret.m_dlls.back().m_entries.push_back({});
 					std::get<0>(ret.m_dlls.back().m_entries.back()) = false;
 					std::get<1>(ret.m_dlls.back().m_entries.back()) = hint;
-					std::get<2>(ret.m_dlls.back().m_entries.back()).assign(name, name + import_name_size);
+					std::get<2>(ret.m_dlls.back().m_entries.back()).assign(name, name + import_name_len);
 				}
 			}
 		}
-		VERIFY(import_lookup_table_size != 0xFFFFFFFF);
+		VERIFY(import_lookup_table_count != 0xFFFFFFFF);
 	}
 	return ret;
 }
