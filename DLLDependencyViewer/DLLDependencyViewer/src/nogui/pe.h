@@ -5,7 +5,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include <tuple>
 
 
 struct section_header;
@@ -23,10 +22,17 @@ struct pe_header_info
 	std::uint32_t m_section_headers_start;
 };
 
+struct pe_import_entry
+{
+	bool m_is_ordinal;
+	std::uint16_t m_ordinal_or_hint;
+	std::string m_name;
+};
+
 struct pe_import_dll_with_entries
 {
 	std::string m_dll;
-	std::vector<std::tuple<bool, std::uint16_t, std::string>> m_entries;
+	std::vector<pe_import_entry> m_entries;
 };
 
 struct pe_import_table_info

@@ -429,8 +429,8 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 					VERIFY((import_entry.m_value & 0x7FFF0000u) == 0u);
 					std::uint16_t const import_ordinal = import_entry.m_value & 0x0000FFFFu;
 					ret.m_dlls.back().m_entries.push_back({});
-					std::get<0>(ret.m_dlls.back().m_entries.back()) = true;
-					std::get<1>(ret.m_dlls.back().m_entries.back()) = import_ordinal;
+					ret.m_dlls.back().m_entries.back().m_is_ordinal = true;
+					ret.m_dlls.back().m_entries.back().m_ordinal_or_hint = import_ordinal;
 				}
 				else
 				{
@@ -458,9 +458,9 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 					VERIFY(import_name_len != 0xFFFFFFFF && import_name_len > 0);
 					VERIFY(is_ascii(name, import_name_len));
 					ret.m_dlls.back().m_entries.push_back({});
-					std::get<0>(ret.m_dlls.back().m_entries.back()) = false;
-					std::get<1>(ret.m_dlls.back().m_entries.back()) = hint;
-					std::get<2>(ret.m_dlls.back().m_entries.back()).assign(name, name + import_name_len);
+					ret.m_dlls.back().m_entries.back().m_is_ordinal = false;
+					ret.m_dlls.back().m_entries.back().m_ordinal_or_hint = hint;
+					ret.m_dlls.back().m_entries.back().m_name.assign(name, name + import_name_len);
 				}
 			}
 		}
@@ -483,8 +483,8 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 					VERIFY((import_entry.m_value & 0x7FFFFFFFFFFF0000ull) == 0ull);
 					std::uint16_t const import_ordinal = import_entry.m_value & 0x000000000000FFFFull;
 					ret.m_dlls.back().m_entries.push_back({});
-					std::get<0>(ret.m_dlls.back().m_entries.back()) = true;
-					std::get<1>(ret.m_dlls.back().m_entries.back()) = import_ordinal;
+					ret.m_dlls.back().m_entries.back().m_is_ordinal = true;
+					ret.m_dlls.back().m_entries.back().m_ordinal_or_hint = import_ordinal;
 				}
 				else
 				{
@@ -512,9 +512,9 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 					VERIFY(import_name_len != 0xFFFFFFFF && import_name_len > 0);
 					VERIFY(is_ascii(name, import_name_len));
 					ret.m_dlls.back().m_entries.push_back({});
-					std::get<0>(ret.m_dlls.back().m_entries.back()) = false;
-					std::get<1>(ret.m_dlls.back().m_entries.back()) = hint;
-					std::get<2>(ret.m_dlls.back().m_entries.back()).assign(name, name + import_name_len);
+					ret.m_dlls.back().m_entries.back().m_is_ordinal = false;
+					ret.m_dlls.back().m_entries.back().m_ordinal_or_hint = hint;
+					ret.m_dlls.back().m_entries.back().m_name.assign(name, name + import_name_len);
 				}
 			}
 		}
