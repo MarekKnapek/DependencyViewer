@@ -3,6 +3,8 @@
 
 #include "splitter_window.h"
 
+#include "../nogui/pe.h"
+
 #include <windows.h>
 
 
@@ -31,6 +33,7 @@ private:
 	void on_menu_open();
 	void on_menu_exit();
 	void open_file(wchar_t const* const file_name);
+	void refresh_view() const;
 private:
 	static ATOM m_s_class;
 private:
@@ -40,4 +43,6 @@ private:
 	splitter_window_ver m_splitter_ver;
 	HWND m_import_list;
 	HWND m_export_list;
+private:
+	pe_file_info m_file_info;
 };

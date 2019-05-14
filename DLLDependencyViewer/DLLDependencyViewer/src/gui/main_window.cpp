@@ -54,7 +54,8 @@ main_window::main_window() :
 	m_tree(CreateWindowExW(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE, WC_TREEVIEWW, nullptr, WS_VISIBLE | WS_CHILD, 0, 0, 0, 0, m_splitter_hor.get_hwnd(), reinterpret_cast<HMENU>(static_cast<std::uintptr_t>(s_tree_id)), get_instance(), nullptr)),
 	m_splitter_ver(m_splitter_hor.get_hwnd()),
 	m_import_list(CreateWindowExW(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE, WC_LISTVIEWW, nullptr, WS_VISIBLE | WS_CHILD, 0, 0, 0, 0, m_splitter_ver.get_hwnd(), reinterpret_cast<HMENU>(static_cast<std::uintptr_t>(s_import_list)), get_instance(), nullptr)),
-	m_export_list(CreateWindowExW(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE, WC_LISTVIEWW, nullptr, WS_VISIBLE | WS_CHILD, 0, 0, 0, 0, m_splitter_ver.get_hwnd(), reinterpret_cast<HMENU>(static_cast<std::uintptr_t>(s_export_list)), get_instance(), nullptr))
+	m_export_list(CreateWindowExW(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE, WC_LISTVIEWW, nullptr, WS_VISIBLE | WS_CHILD, 0, 0, 0, 0, m_splitter_ver.get_hwnd(), reinterpret_cast<HMENU>(static_cast<std::uintptr_t>(s_export_list)), get_instance(), nullptr)),
+	m_file_info()
 {
 	LONG_PTR const set = SetWindowLongPtrW(m_hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
 
@@ -219,6 +220,24 @@ void main_window::on_menu_exit()
 
 void main_window::open_file(wchar_t const* const file_name)
 {
+	pe_import_table_info iti;
+	try
+	{
+		memory_mapped_file const mmf = memory_mapped_file(file_name);
+		pe_header_info const hi = pe_process_header(mmf.begin(), mmf.size());
+		iti = pe_process_import_table(mmf.begin(), mmf.size(), hi);
+	}
+	catch(wchar_t const* const ex)
+	{
+		int const msgbox = MessageBoxW(m_hwnd, ex, s_msg_error, MB_OK | MB_ICONERROR);
+	}
+	m_file_info.m_file_name.assign(file_name);
+	m_file_info.m_import_table = std::move(iti);
+	refresh_view();
+}
+
+void main_window::refresh_view() const
+{
 	LRESULT const deleted = SendMessageW(m_tree, TVM_DELETEITEM, 0, reinterpret_cast<LPARAM>(TVI_ROOT));
 
 	TVINSERTSTRUCTW tvi;
@@ -228,7 +247,7 @@ void main_window::open_file(wchar_t const* const file_name)
 	tvi.itemex.hItem = nullptr;
 	tvi.itemex.state = 0;
 	tvi.itemex.stateMask = 0;
-	tvi.itemex.pszText = const_cast<wchar_t*>(file_name);
+	tvi.itemex.pszText = const_cast<wchar_t*>(m_file_info.m_file_name.c_str());
 	tvi.itemex.cchTextMax = 0;
 	tvi.itemex.iImage = 0;
 	tvi.itemex.iSelectedImage = 0;
@@ -241,27 +260,14 @@ void main_window::open_file(wchar_t const* const file_name)
 	tvi.itemex.iReserved = 0;
 	LRESULT const hroot = SendMessageW(m_tree, TVM_INSERTITEMW, 0, reinterpret_cast<LPARAM>(&tvi));
 
-	memory_mapped_file mmf;
-	pe_header_info hi;
-	pe_import_table_info iti;
-	try
-	{
-		mmf = memory_mapped_file(file_name);
-		hi = pe_process_header(mmf.begin(), mmf.size());
-		iti = pe_process_import_table(mmf.begin(), mmf.size(), hi);
-	}
-	catch(wchar_t const* const ex)
-	{
-		int const msgbox = MessageBoxW(m_hwnd, ex, s_msg_error, MB_OK | MB_ICONERROR);
-	}
-
-	for(auto const& e : iti.m_dlls)
+	for(auto const& e : m_file_info.m_import_table.m_dlls)
 	{
 		wchar_t buff[1024];
 		int i = 0;
 		while(e.m_dll[i] != '\0')
 		{
-			buff[i] = e.m_dll[i]; // char to wchar_t conversion
+			// char to wchar_t conversion
+			buff[i] = e.m_dll[i];
 			++i;
 		}
 		buff[i] = L'\0';

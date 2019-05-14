@@ -40,6 +40,12 @@ struct pe_import_table_info
 	std::vector<pe_import_dll_with_entries> m_dlls;
 };
 
+struct pe_file_info
+{
+	std::wstring m_file_name;
+	pe_import_table_info m_import_table;
+};
+
 
 pe_header_info pe_process_header(void const* const file_data, int const file_size);
 pe_import_table_info pe_process_import_table(void const* const file_data, int const file_size, pe_header_info const& hi);
