@@ -33,6 +33,7 @@ private:
 	LRESULT on_message(UINT msg, WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_destroy(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_size(WPARAM wparam, LPARAM lparam);
+	LRESULT on_wm_notify(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_mousemove(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_lbuttondown(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_lbuttonup(WPARAM wparam, LPARAM lparam);

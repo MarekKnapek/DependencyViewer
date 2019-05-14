@@ -86,6 +86,11 @@ LRESULT splitter_window<orientation>::on_message(UINT msg, WPARAM wparam, LPARAM
 			return on_wm_size(wparam, lparam);
 		}
 		break;
+		case  WM_NOTIFY:
+		{
+			return on_wm_notify(wparam, lparam);
+		}
+		break;
 		case WM_MOUSEMOVE:
 		{
 			return on_wm_mousemove(wparam, lparam);
@@ -149,6 +154,12 @@ LRESULT splitter_window<splitter_window_orientation::vertical>::on_wm_size(WPARA
 	BOOL const moved_2 = MoveWindow(m_second, 0, y_2, w, y_3, TRUE);
 
 	return DefWindowProcW(m_hwnd, WM_SIZE, wparam, lparam);
+}
+
+template<splitter_window_orientation orientation>
+LRESULT splitter_window<orientation>::on_wm_notify(WPARAM wparam, LPARAM lparam)
+{
+	return SendMessageW(reinterpret_cast<HWND>(GetWindowLongPtrW(m_hwnd, GWLP_HWNDPARENT)), WM_NOTIFY, wparam, lparam);
 }
 
 template<>
