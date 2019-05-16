@@ -40,14 +40,24 @@ struct pe_import_table_info
 	std::vector<pe_import_dll_with_entries> m_dlls;
 };
 
-struct pe_file_info
+struct pe_export_address_entry
 {
-	std::wstring m_file_name;
-	pe_import_table_info m_import_table;
+	bool m_is_rva;
+	std::uint32_t m_ordinal;
+	std::uint32_t m_rva;
+	std::string m_forwarder;
+	std::uint16_t m_hint;
+	std::string m_name;
+};
+
+struct pe_export_table_info
+{
+	std::vector<pe_export_address_entry> m_export_address_table;
 };
 
 
 pe_header_info pe_process_header(void const* const file_data, int const file_size);
 pe_import_table_info pe_process_import_table(void const* const file_data, int const file_size, pe_header_info const& hi);
+pe_export_table_info pe_process_export_table(void const* const file_data, int const file_size, pe_header_info const& hi);
 
 std::pair<section_header const*, std::uint32_t> convert_rva_to_disk_ptr(std::uint32_t const rva, pe_header_info const& hi, section_header const* const section = nullptr);

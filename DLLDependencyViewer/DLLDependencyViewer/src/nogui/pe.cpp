@@ -243,6 +243,23 @@ struct import_hint_name
 static_assert(sizeof(import_hint_name) == 4, "");
 static_assert(sizeof(import_hint_name) == 0x4, "");
 
+struct export_directory
+{
+	std::uint32_t m_characteristics;
+	std::uint32_t m_date_time;
+	std::uint16_t m_major;
+	std::uint16_t m_minor;
+	std::uint32_t m_name_rva;
+	std::uint32_t m_ordinal_base;
+	std::uint32_t m_export_address_count;
+	std::uint32_t m_names_count;
+	std::uint32_t m_export_address_table_rva;
+	std::uint32_t m_export_name_table_rva;
+	std::uint32_t m_ordinal_table_rva;
+};
+static_assert(sizeof(export_directory) == 40, "");
+static_assert(sizeof(export_directory) == 0x28, "");
+
 
 static constexpr wchar_t const s_bad_format[] = L"Bad format.";
 
@@ -520,6 +537,112 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 		}
 		VERIFY(import_lookup_table_count != 0xFFFFFFFF);
 	}
+	return ret;
+}
+
+pe_export_table_info pe_process_export_table(void const* const fd, int const fs, pe_header_info const& hi)
+{
+	char const* const file_data = static_cast<char const*>(fd);
+	std::uint32_t const file_size = static_cast<std::uint32_t>(fs);
+	pe_export_table_info ret;
+
+	data_directory const* const dta_dir_table = reinterpret_cast<data_directory const*>(file_data + hi.m_data_directory_start);
+
+	std::uint32_t const export_directory_rva = dta_dir_table[static_cast<int>(data_directory_type::export_table)].m_rva;
+	std::uint32_t const export_directory_size = dta_dir_table[static_cast<int>(data_directory_type::export_table)].m_size;
+	if(export_directory_size == 0)
+	{
+		return ret;
+	}
+
+	auto const export_directory_sect_off = convert_rva_to_disk_ptr(export_directory_rva, hi);
+	section_header const& export_directory_section = *export_directory_sect_off.first;
+	std::uint32_t const export_directory_disk_offset = export_directory_sect_off.second;
+	VERIFY(export_directory_disk_offset + export_directory_size <= export_directory_section.m_raw_ptr + export_directory_section.m_raw_size);
+	VERIFY(export_directory_size >= sizeof(export_directory));
+	export_directory const& export_dir = *reinterpret_cast<export_directory const*>(file_data + export_directory_disk_offset);
+	VERIFY(export_dir.m_ordinal_base <= 0xFFFF);
+	VERIFY(export_dir.m_export_address_count <= 0xFFFF);
+	VERIFY(export_dir.m_ordinal_base + export_dir.m_export_address_count <= 0xFFFF);
+	VERIFY(export_dir.m_names_count <= export_dir.m_export_address_count);
+	VERIFY((export_dir.m_export_name_table_rva == 0 && export_dir.m_ordinal_table_rva == 0) || (export_dir.m_export_name_table_rva != 0 && export_dir.m_ordinal_table_rva != 0));
+
+	// 32k export names should be enough for everybody.
+	VERIFY(export_dir.m_names_count <= 32 * 1024);
+	std::uint32_t const* export_name_pointer_table = nullptr;
+	std::uint16_t const* export_ordinal_table = nullptr;
+	if(export_dir.m_export_name_table_rva != 0)
+	{
+		std::uint32_t const export_name_pointer_table_disk_offset = convert_rva_to_disk_ptr(export_dir.m_export_name_table_rva, hi, &export_directory_section).second;
+		VERIFY(export_directory_section.m_raw_ptr + export_directory_section.m_raw_size - export_name_pointer_table_disk_offset >= export_dir.m_names_count * sizeof(std::uint32_t));
+		export_name_pointer_table = reinterpret_cast<std::uint32_t const*>(file_data + export_name_pointer_table_disk_offset);
+		std::uint32_t const export_ordinal_table_disk_offset = convert_rva_to_disk_ptr(export_dir.m_ordinal_table_rva, hi, &export_directory_section).second;
+		VERIFY(export_directory_section.m_raw_ptr + export_directory_section.m_raw_size - export_ordinal_table_disk_offset >= export_dir.m_names_count * sizeof(std::uint16_t));
+		export_ordinal_table = reinterpret_cast<std::uint16_t const*>(file_data + export_ordinal_table_disk_offset);
+	}
+
+	// 32k exports should be enough for everybody.
+	VERIFY(export_dir.m_export_address_count <= 32 * 1024);
+	auto const export_address_table_sect_off = convert_rva_to_disk_ptr(export_dir.m_export_address_table_rva, hi, &export_directory_section);
+	section_header const& export_address_table_section = *export_address_table_sect_off.first;
+	std::uint32_t const export_address_table_disk_off = export_address_table_sect_off.second;
+	VERIFY(export_address_table_section.m_raw_ptr + export_address_table_section.m_raw_size - export_address_table_disk_off >= export_dir.m_export_address_count * sizeof(std::uint32_t));
+	std::uint32_t const* export_address_table = reinterpret_cast<std::uint32_t const*>(file_data + export_address_table_disk_off);
+	for(std::uint32_t i = 0; i != export_dir.m_export_address_count; ++i)
+	{
+		std::uint32_t const export_rva = export_address_table[i];
+		std::uint16_t const ordinal = i + export_dir.m_ordinal_base;
+		std::uint16_t hint;
+		char const* export_address_name = nullptr;
+		std::uint32_t export_address_name_len;
+		if(export_ordinal_table)
+		{
+			auto const it = std::find(export_ordinal_table, export_ordinal_table + export_dir.m_names_count, i);
+			if(it != export_ordinal_table + export_dir.m_names_count)
+			{
+				hint = static_cast<std::uint16_t>(it - export_ordinal_table);
+				std::uint32_t const export_address_name_rva = export_name_pointer_table[it - export_ordinal_table];
+				std::uint32_t const export_address_name_disk_offset = convert_rva_to_disk_ptr(export_address_name_rva, hi, &export_directory_section).second;
+				export_address_name = reinterpret_cast<char const*>(file_data + export_address_name_disk_offset);
+				// 4k export name length should be enough for everybody.
+				std::uint32_t const export_address_name_len_max = std::min<std::uint32_t>(4 * 1024, export_directory_section.m_raw_ptr + export_directory_section.m_raw_size - export_address_name_disk_offset);
+				auto const export_address_name_end = std::find(export_address_name, export_address_name + export_address_name_len_max, L'\0');
+				VERIFY(export_address_name_end != export_address_name + export_address_name_len_max);
+				export_address_name_len = static_cast<std::uint32_t>(export_address_name_end - export_address_name);
+				VERIFY(export_address_name_len > 0);
+			}
+		}
+		if(export_rva >= export_directory_rva && export_rva < export_directory_rva + export_directory_size)
+		{
+			// 4k export forwarder name length should be enough for everybody.
+			std::uint32_t const forwarder_name_dsk = convert_rva_to_disk_ptr(export_rva, hi, &export_directory_section).second;
+			char const* const forwarder_name = reinterpret_cast<char const*>(file_data + forwarder_name_dsk);
+			std::uint32_t const forwarder_name_len_max = std::min<std::uint32_t>(4 * 1024, export_directory_section.m_raw_ptr + export_directory_section.m_raw_size - forwarder_name_dsk);
+			char const* const forwarder_name_end = std::find(forwarder_name, forwarder_name + forwarder_name_len_max, '\0');
+			VERIFY(forwarder_name_end != forwarder_name + forwarder_name_len_max);
+			std::uint32_t const forwarder_name_len = static_cast<std::uint32_t>(forwarder_name_end - forwarder_name);
+			VERIFY(forwarder_name_len >= 3);
+			VERIFY(is_ascii(forwarder_name, forwarder_name_len));
+			VERIFY(std::find(forwarder_name, forwarder_name_end, '.') != forwarder_name_end);
+			ret.m_export_address_table.push_back({});
+			ret.m_export_address_table.back().m_is_rva = false;
+			ret.m_export_address_table.back().m_ordinal = ordinal;
+			ret.m_export_address_table.back().m_forwarder.assign(forwarder_name, forwarder_name_end);
+		}
+		else
+		{
+			ret.m_export_address_table.push_back({});
+			ret.m_export_address_table.back().m_is_rva = true;
+			ret.m_export_address_table.back().m_ordinal = ordinal;
+			ret.m_export_address_table.back().m_rva = export_rva;
+		}
+		if(export_address_name)
+		{
+			ret.m_export_address_table.back().m_hint = hint;
+			ret.m_export_address_table.back().m_name.assign(export_address_name, export_address_name + export_address_name_len);
+		}
+	}
+
 	return ret;
 }
 

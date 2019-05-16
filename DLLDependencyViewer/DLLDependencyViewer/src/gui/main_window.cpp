@@ -11,6 +11,8 @@
 #include <iterator>
 #include <cassert>
 
+#include <commctrl.h>
+
 
 static constexpr wchar_t const s_window_class_name[] = L"main_window";
 static constexpr wchar_t const s_window_title[] = L"DLLDependencyViewer";
@@ -19,17 +21,61 @@ static constexpr wchar_t const s_menu_open[] = L"&Open";
 static constexpr wchar_t const s_menu_exit[] = L"E&xit";
 static constexpr wchar_t const s_open_file_dialog_file_name_filter[] = L"Executable files and libraries (*.exe;*.dll;*.ocx)\0*.exe;*.dll;*.ocx\0All files\0*.*\0";
 static constexpr wchar_t const s_msg_error[] = L"DLLDependencyViewer error.";
-static constexpr wchar_t const* const s_import_headers[] = { L"type", L"ordinal", L"hint", L"function" };
+static constexpr wchar_t const* const s_import_headers[] = { L"type", L"ordinal", L"hint", L"name" };
 static constexpr wchar_t const s_import_type_true[] = L"ordinal";
 static constexpr wchar_t const s_import_type_false[] = L"name";
 static constexpr wchar_t const s_import_ordinal_na[] = L"N/A";
 static constexpr wchar_t const s_import_hint_na[] = L"N/A";
-static constexpr wchar_t const s_import_function_na[] = L"N/A";
+static constexpr wchar_t const s_import_name_na[] = L"N/A";
+static constexpr wchar_t const* const s_export_headers[] = { L"type", L"ordinal", L"hint", L"name", L"entry point" };
+static constexpr wchar_t const s_export_type_true[] = L"address";
+static constexpr wchar_t const s_export_type_false[] = L"forwarder";
+static constexpr wchar_t const s_export_hint_na[] = L"N/A";
+static constexpr wchar_t const s_export_name_na[] = L"N/A";
 static constexpr int s_menu_open_id = 2000;
 static constexpr int s_menu_exit_id = 2001;
 static constexpr int s_tree_id = 1000;
 static constexpr int s_import_list = 1001;
 static constexpr int s_export_list = 1002;
+
+
+template<typename begin_it, typename end_it, typename val_t>
+end_it rfind(begin_it const& begin, end_it const& end, val_t const& val)
+{
+	if(begin == end)
+	{
+		return end;
+	}
+	end_it it = end;
+	do
+	{
+		--it;
+		if(*it == val)
+		{
+			return it;
+		}
+	}
+	while (it != begin);
+	return end;
+}
+
+inline wchar_t const* find_file_name(wchar_t const* const& file_path, int const& len)
+{
+	wchar_t const* const it = rfind(file_path, file_path + len, L'\\');
+	if(it == file_path + len)
+	{
+		return file_path;
+	}
+	else
+	{
+		return it + 1;
+	}
+}
+
+inline wchar_t const* find_file_name(wchar_t const* const& file_path)
+{
+	return find_file_name(file_path, static_cast<int>(std::wcslen(file_path)));
+}
 
 
 void main_window::register_class()
@@ -89,6 +135,22 @@ main_window::main_window() :
 	}
 
 	LRESULT const set_export = SendMessageW(m_export_list, LVM_SETEXTENDEDLISTVIEWSTYLE, extended_lv_styles, extended_lv_styles);
+	for(int i = 0; i != static_cast<int>(std::size(s_export_headers)); ++i)
+	{
+		LVCOLUMNW cl;
+		cl.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
+		cl.fmt = LVCFMT_LEFT;
+		cl.cx = 100;
+		cl.pszText = const_cast<LPWSTR>(s_export_headers[i]);
+		cl.cchTextMax = 0;
+		cl.iSubItem = i;
+		cl.iImage = 0;
+		cl.iOrder = i;
+		cl.cxMin = 0;
+		cl.cxDefault = 100;
+		cl.cxIdeal = 100;
+		auto const inserted = SendMessageW(m_export_list, LVM_INSERTCOLUMNW, i, reinterpret_cast<LPARAM>(&cl));
+	}
 
 	m_splitter_ver.set_elements(m_import_list, m_export_list);
 	m_splitter_hor.set_elements(m_tree, m_splitter_ver.get_hwnd());
@@ -180,26 +242,51 @@ LRESULT main_window::on_wm_notify(WPARAM wparam, LPARAM lparam)
 	NMHDR& nmhdr = *reinterpret_cast<NMHDR*>(lparam);
 	if(nmhdr.hwndFrom == m_tree)
 	{
-		on_tree_notify(reinterpret_cast<NMTREEVIEWW&>(nmhdr));
+		on_tree_notify(nmhdr);
 	}
 	else if(nmhdr.hwndFrom == m_import_list)
 	{
-		on_import_notify(reinterpret_cast<NMLVDISPINFOW&>(nmhdr));
+		on_import_notify(nmhdr);
+	}
+	else if(nmhdr.hwndFrom == m_export_list)
+	{
+		on_export_notify(nmhdr);
 	}
 	return DefWindowProcW(m_hwnd, WM_NOTIFY, wparam, lparam);
 }
 
-void main_window::on_tree_notify(NMTREEVIEWW& nm)
+void main_window::on_tree_notify(NMHDR& nmhdr)
 {
-	if(nm.hdr.code == TVN_SELCHANGEDW)
+	if(nmhdr.code == TVN_GETDISPINFOW)
 	{
-		LRESULT const redr_off = SendMessageW(m_import_list, WM_SETREDRAW, FALSE, 0);
-		LRESULT const deleted = SendMessageW(m_import_list, LVM_DELETEALLITEMS, 0, 0);
-		pe_import_dll_with_entries const* const dll_with_entries = reinterpret_cast<pe_import_dll_with_entries*>(nm.itemNew.lParam);
-		if(dll_with_entries)
+		NMTVDISPINFOW& di = reinterpret_cast<NMTVDISPINFOW&>(nmhdr);
+		if((di.item.mask | TVIF_TEXT) != 0)
 		{
-			LRESULT const set_size = SendMessageW(m_import_list, LVM_SETITEMCOUNT, dll_with_entries->m_entries.size(), 0);
-			for(int row = 0; row != dll_with_entries->m_entries.size(); ++row)
+			file_info const& fi = *reinterpret_cast<file_info*>(di.item.lParam);
+			std::wstring& tmp = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
+			tmp.clear();
+			tmp.append(fi.m_file_name).append(L" (").append(fi.m_file_path).append(L")");
+			di.item.pszText = const_cast<wchar_t*>(tmp.c_str());
+		}
+	}
+	else if(nmhdr.code == TVN_SELCHANGEDW)
+	{
+		NMTREEVIEWW& nm = reinterpret_cast<NMTREEVIEWW&>(nmhdr);
+
+		LRESULT const redr_off_1 = SendMessageW(m_import_list, WM_SETREDRAW, FALSE, 0);
+		LRESULT const deleted_1 = SendMessageW(m_import_list, LVM_DELETEALLITEMS, 0, 0);
+		HTREEITEM const parent = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(nm.itemNew.hItem)));
+		if(parent)
+		{
+			TVITEMEXW ti;
+			ti.hItem = parent;
+			ti.mask = TVIF_PARAM;
+			LRESULT const got = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
+			file_info const& parent_fi = *reinterpret_cast<file_info*>(ti.lParam);
+			file_info const& fi = *reinterpret_cast<file_info*>(nm.itemNew.lParam);
+			int const idx = static_cast<int>(&fi - parent_fi.m_dependencies.data());
+			LRESULT const set_size = SendMessageW(m_import_list, LVM_SETITEMCOUNT, parent_fi.m_import_table.m_dlls[idx].m_entries.size(), 0);
+			for(int row = 0; row != static_cast<int>(parent_fi.m_import_table.m_dlls[idx].m_entries.size()); ++row)
 			{
 				LVITEMW lv;
 				lv.mask = LVIF_TEXT | LVIF_PARAM;
@@ -210,7 +297,7 @@ void main_window::on_tree_notify(NMTREEVIEWW& nm)
 				lv.pszText = LPSTR_TEXTCALLBACKW;
 				lv.cchTextMax = 0;
 				lv.iImage = 0;
-				lv.lParam = reinterpret_cast<LPARAM>(const_cast<pe_import_entry*>(&dll_with_entries->m_entries[row]));
+				lv.lParam = reinterpret_cast<LPARAM>(&parent_fi.m_import_table.m_dlls[idx].m_entries[row]);
 				lv.iIndent = 0;
 				lv.iGroupId = 0;
 				lv.cColumns = 0;
@@ -219,19 +306,49 @@ void main_window::on_tree_notify(NMTREEVIEWW& nm)
 				lv.iGroup = 0;
 				LRESULT const added = SendMessageW(m_import_list, LVM_INSERTITEM, 0, reinterpret_cast<LPARAM>(&lv));
 			}
+			for(int i = 0; i != static_cast<int>(std::size(s_import_headers)); ++i)
+			{
+				LRESULT const auto_sized = SendMessageW(m_import_list, LVM_SETCOLUMNWIDTH, i, LVSCW_AUTOSIZE);
+			}
+			LRESULT const redr_on = SendMessageW(m_import_list, WM_SETREDRAW, TRUE, 0);
 		}
-		for(int i = 0; i != static_cast<int>(std::size(s_import_headers)); ++i)
+		LRESULT const redr_off_2 = SendMessageW(m_export_list, WM_SETREDRAW, FALSE, 0);
+		LRESULT const deleted_2 = SendMessageW(m_export_list, LVM_DELETEALLITEMS, 0, 0);
+		file_info const& fi = *reinterpret_cast<file_info*>(nm.itemNew.lParam);
+		LRESULT const set_size = SendMessageW(m_export_list, LVM_SETITEMCOUNT, fi.m_export_table.m_export_address_table.size(), 0);
+		for(int row = 0; row != fi.m_export_table.m_export_address_table.size(); ++row)
 		{
-			LRESULT const auto_sized = SendMessageW(m_import_list, LVM_SETCOLUMNWIDTH, i, LVSCW_AUTOSIZE);
+			LVITEMW lv;
+			lv.mask = LVIF_TEXT | LVIF_PARAM;
+			lv.iItem = row;
+			lv.iSubItem = 0;
+			lv.state = 0;
+			lv.stateMask = 0;
+			lv.pszText = LPSTR_TEXTCALLBACKW;
+			lv.cchTextMax = 0;
+			lv.iImage = 0;
+			lv.lParam = reinterpret_cast<LPARAM>(& fi.m_export_table.m_export_address_table[row]);
+			lv.iIndent = 0;
+			lv.iGroupId = 0;
+			lv.cColumns = 0;
+			lv.puColumns = nullptr;
+			lv.piColFmt = nullptr;
+			lv.iGroup = 0;
+			LRESULT const added = SendMessageW(m_export_list, LVM_INSERTITEM, 0, reinterpret_cast<LPARAM>(&lv));
 		}
-		LRESULT const redr_on = SendMessageW(m_import_list, WM_SETREDRAW, TRUE, 0);
+		for(int i = 0; i != static_cast<int>(std::size(s_export_headers)); ++i)
+		{
+			LRESULT const auto_sized = SendMessageW(m_export_list, LVM_SETCOLUMNWIDTH, i, LVSCW_AUTOSIZE);
+		}
+		LRESULT const redr_on = SendMessageW(m_export_list, WM_SETREDRAW, TRUE, 0);
 	}
 }
 
-void main_window::on_import_notify(NMLVDISPINFOW& nm)
+void main_window::on_import_notify(NMHDR& nmhdr)
 {
-	if(nm.hdr.code == LVN_GETDISPINFOW)
+	if(nmhdr.code == LVN_GETDISPINFOW)
 	{
+		NMLVDISPINFOW& nm = reinterpret_cast<NMLVDISPINFOW&>(nmhdr);
 		if((nm.item.mask | LVIF_TEXT) != 0)
 		{
 			pe_import_entry const& import_entry = *reinterpret_cast<pe_import_entry*>(nm.item.lParam);
@@ -257,8 +374,8 @@ void main_window::on_import_notify(NMLVDISPINFOW& nm)
 					{
 						static_assert(sizeof(std::uint16_t) == sizeof(unsigned short int), "");
 						std::array<wchar_t, 32> buff;
-						int const formatted = std::swprintf(buff.data(), buff.size(), L"%hu (%#04hx)", static_cast<unsigned short int>(import_entry.m_ordinal_or_hint), static_cast<unsigned short int>(import_entry.m_ordinal_or_hint));
-						std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % 4];
+						int const formatted = std::swprintf(buff.data(), buff.size(), L"%hu (0x%04hx)", static_cast<unsigned short int>(import_entry.m_ordinal_or_hint), static_cast<unsigned short int>(import_entry.m_ordinal_or_hint));
+						std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
 						tmpstr.assign(buff.data(), buff.data() + formatted);
 						nm.item.pszText = const_cast<wchar_t*>(tmpstr.c_str());
 					}
@@ -278,8 +395,8 @@ void main_window::on_import_notify(NMLVDISPINFOW& nm)
 					{
 						static_assert(sizeof(std::uint16_t) == sizeof(unsigned short int), "");
 						std::array<wchar_t, 32> buff;
-						int const formatted = std::swprintf(buff.data(), buff.size(), L"%hu (%#04hx)", static_cast<unsigned short int>(import_entry.m_ordinal_or_hint), static_cast<unsigned short int>(import_entry.m_ordinal_or_hint));
-						std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % 4];
+						int const formatted = std::swprintf(buff.data(), buff.size(), L"%hu (0x%04hx)", static_cast<unsigned short int>(import_entry.m_ordinal_or_hint), static_cast<unsigned short int>(import_entry.m_ordinal_or_hint));
+						std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
 						tmpstr.assign(buff.data(), buff.data() + formatted);
 						nm.item.pszText = const_cast<wchar_t*>(tmpstr.c_str());
 					}
@@ -289,13 +406,109 @@ void main_window::on_import_notify(NMLVDISPINFOW& nm)
 				{
 					if(import_entry.m_is_ordinal)
 					{
-						nm.item.pszText = const_cast<wchar_t*>(s_import_function_na);
+						nm.item.pszText = const_cast<wchar_t*>(s_import_name_na);
 					}
 					else
 					{
-						std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % 4];
+						std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
 						tmpstr.resize(import_entry.m_name.size());
 						std::transform(cbegin(import_entry.m_name), cend(import_entry.m_name), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
+						nm.item.pszText = const_cast<wchar_t*>(tmpstr.c_str());
+					}
+				}
+				break;
+				default:
+				{
+					assert(false);
+				}
+				break;
+			}
+		}
+	}
+}
+
+void main_window::on_export_notify(NMHDR& nmhdr)
+{
+	if(nmhdr.code == LVN_GETDISPINFOW)
+	{
+		NMLVDISPINFOW& nm = reinterpret_cast<NMLVDISPINFOW&>(nmhdr);
+		if((nm.item.mask | LVIF_TEXT) != 0)
+		{
+			pe_export_address_entry const& export_entry = *reinterpret_cast<pe_export_address_entry*>(nm.item.lParam);
+			int const row = nm.item.iItem;
+			int const col = nm.item.iSubItem;
+			switch(col)
+			{
+				case 0:
+				{
+					if(export_entry.m_is_rva)
+					{
+						nm.item.pszText = const_cast<wchar_t*>(s_export_type_true);
+					}
+					else
+					{
+						nm.item.pszText = const_cast<wchar_t*>(s_export_type_false);
+					}
+				}
+				break;
+				case 1:
+				{
+					static_assert(sizeof(std::uint16_t) == sizeof(unsigned short int), "");
+					std::array<wchar_t, 32> buff;
+					int const formatted = std::swprintf(buff.data(), buff.size(), L"%hu (0x%04hx)", static_cast<unsigned short int>(export_entry.m_ordinal), static_cast<unsigned short int>(export_entry.m_ordinal));
+					std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
+					tmpstr.assign(buff.data(), buff.data() + formatted);
+					nm.item.pszText = const_cast<wchar_t*>(tmpstr.c_str());
+				}
+				break;
+				case 2:
+				{
+					if(export_entry.m_name.empty())
+					{
+						nm.item.pszText = const_cast<wchar_t*>(s_export_hint_na);
+					}
+					else
+					{
+						static_assert(sizeof(std::uint16_t) == sizeof(unsigned short int), "");
+						std::array<wchar_t, 32> buff;
+						int const formatted = std::swprintf(buff.data(), buff.size(), L"%hu (0x%04hx)", static_cast<unsigned short int>(export_entry.m_hint), static_cast<unsigned short int>(export_entry.m_hint));
+						std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
+						tmpstr.assign(buff.data(), buff.data() + formatted);
+						nm.item.pszText = const_cast<wchar_t*>(tmpstr.c_str());
+					}
+				}
+				break;
+				case 3:
+				{
+					if(export_entry.m_name.empty())
+					{
+						nm.item.pszText = const_cast<wchar_t*>(s_export_name_na);
+					}
+					else
+					{
+						std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
+						tmpstr.resize(export_entry.m_name.size());
+						std::transform(cbegin(export_entry.m_name), cend(export_entry.m_name), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
+						nm.item.pszText = const_cast<wchar_t*>(tmpstr.c_str());
+					}
+				}
+				break;
+				case 4:
+				{
+					if(export_entry.m_is_rva)
+					{
+						static_assert(sizeof(std::uint32_t) == sizeof(unsigned int), "");
+						std::array<wchar_t, 32> buff;
+						int const formatted = std::swprintf(buff.data(), buff.size(), L"0x%08x", static_cast<unsigned int>(export_entry.m_rva));
+						std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
+						tmpstr.assign(buff.data(), buff.data() + formatted);
+						nm.item.pszText = const_cast<wchar_t*>(tmpstr.c_str());
+					}
+					else
+					{
+						std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
+						tmpstr.resize(export_entry.m_forwarder.size());
+						std::transform(cbegin(export_entry.m_forwarder), cend(export_entry.m_forwarder), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
 						nm.item.pszText = const_cast<wchar_t*>(tmpstr.c_str());
 					}
 				}
@@ -382,53 +595,61 @@ void main_window::on_menu_exit()
 	PostQuitMessage(EXIT_SUCCESS);
 }
 
-void main_window::open_file(wchar_t const* const file_name)
+void main_window::open_file(wchar_t const* const file_path)
 {
 	pe_import_table_info iti;
+	pe_export_table_info eti;
 	try
 	{
-		memory_mapped_file const mmf = memory_mapped_file(file_name);
+		memory_mapped_file const mmf = memory_mapped_file(file_path);
 		pe_header_info const hi = pe_process_header(mmf.begin(), mmf.size());
 		iti = pe_process_import_table(mmf.begin(), mmf.size(), hi);
+		eti = pe_process_export_table(mmf.begin(), mmf.size(), hi);
 	}
 	catch(wchar_t const* const ex)
 	{
 		int const msgbox = MessageBoxW(m_hwnd, ex, s_msg_error, MB_OK | MB_ICONERROR);
+		return;
 	}
-	m_file_info.m_file_name.assign(file_name);
+	int const file_path_len = static_cast<int>(std::wcslen(file_path));
+	m_file_info.m_file_name.assign(find_file_name(file_path, file_path_len), file_path + file_path_len);
+	m_file_info.m_file_path.assign(file_path, file_path + file_path_len);
 	m_file_info.m_import_table = std::move(iti);
+	m_file_info.m_export_table = std::move(eti);
+	m_file_info.m_dependencies.clear();
+	m_file_info.m_dependencies.resize(m_file_info.m_import_table.m_dlls.size());
+	for(int i = 0; i != static_cast<int>(m_file_info.m_import_table.m_dlls.size()); ++i)
+	{
+		m_file_info.m_dependencies[i].m_file_name.resize(m_file_info.m_import_table.m_dlls[i].m_dll.size());
+		std::transform(cbegin(m_file_info.m_import_table.m_dlls[i].m_dll), cend(m_file_info.m_import_table.m_dlls[i].m_dll), begin(m_file_info.m_dependencies[i].m_file_name), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
+	}
 	refresh_view();
 }
 
 void main_window::refresh_view()
 {
 	LRESULT const deleted = SendMessageW(m_tree, TVM_DELETEITEM, 0, reinterpret_cast<LPARAM>(TVI_ROOT));
-
 	TVINSERTSTRUCTW tvi;
 	tvi.hParent = TVI_ROOT;
 	tvi.hInsertAfter = TVI_ROOT;
-	tvi.itemex.mask = TVIF_TEXT;
+	tvi.itemex.mask = TVIF_TEXT | TVIF_PARAM;
 	tvi.itemex.hItem = nullptr;
 	tvi.itemex.state = 0;
 	tvi.itemex.stateMask = 0;
-	tvi.itemex.pszText = const_cast<wchar_t*>(m_file_info.m_file_name.c_str());
+	tvi.itemex.pszText = LPSTR_TEXTCALLBACK;
 	tvi.itemex.cchTextMax = 0;
 	tvi.itemex.iImage = 0;
 	tvi.itemex.iSelectedImage = 0;
 	tvi.itemex.cChildren = 0;
-	tvi.itemex.lParam = 0;
+	tvi.itemex.lParam = reinterpret_cast<LPARAM>(&m_file_info);
 	tvi.itemex.iIntegral = 0;
 	tvi.itemex.uStateEx = 0;
 	tvi.itemex.hwnd = nullptr;
 	tvi.itemex.iExpandedImage = 0;
 	tvi.itemex.iReserved = 0;
 	LRESULT const hroot = SendMessageW(m_tree, TVM_INSERTITEMW, 0, reinterpret_cast<LPARAM>(&tvi));
-
-	for(auto const& dll_with_entries : m_file_info.m_import_table.m_dlls)
+	for(auto const& fi : m_file_info.m_dependencies)
 	{
-		std::wstring& tmpstr = m_tmp_strings[0];
-		tmpstr.resize(dll_with_entries.m_dll.size());
-		std::transform(cbegin(dll_with_entries.m_dll), cend(dll_with_entries.m_dll), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
 		TVINSERTSTRUCTW tvi;
 		tvi.hParent = reinterpret_cast<HTREEITEM>(hroot);
 		tvi.hInsertAfter = TVI_LAST;
@@ -436,12 +657,12 @@ void main_window::refresh_view()
 		tvi.itemex.hItem = nullptr;
 		tvi.itemex.state = 0;
 		tvi.itemex.stateMask = 0;
-		tvi.itemex.pszText = const_cast<wchar_t*>(tmpstr.c_str());
+		tvi.itemex.pszText = LPSTR_TEXTCALLBACK;
 		tvi.itemex.cchTextMax = 0;
 		tvi.itemex.iImage = 0;
 		tvi.itemex.iSelectedImage = 0;
 		tvi.itemex.cChildren = 0;
-		tvi.itemex.lParam = reinterpret_cast<LPARAM>(const_cast<pe_import_dll_with_entries*>(&dll_with_entries));
+		tvi.itemex.lParam = reinterpret_cast<LPARAM>(&fi);
 		tvi.itemex.iIntegral = 0;
 		tvi.itemex.uStateEx = 0;
 		tvi.itemex.hwnd = nullptr;

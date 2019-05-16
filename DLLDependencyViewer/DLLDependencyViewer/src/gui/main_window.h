@@ -6,9 +6,19 @@
 #include "../nogui/pe.h"
 
 #include <array>
+#include <string>
 
 #include <windows.h>
-#include <commctrl.h>
+
+
+struct file_info
+{
+	std::wstring m_file_name;
+	std::wstring m_file_path;
+	pe_import_table_info m_import_table;
+	pe_export_table_info m_export_table;
+	std::vector<file_info> m_dependencies;
+};
 
 
 class main_window
@@ -32,13 +42,14 @@ private:
 	LRESULT on_wm_destroy(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_size(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_notify(WPARAM wparam, LPARAM lparam);
-	void on_tree_notify(NMTREEVIEWW& nm);
-	void on_import_notify(NMLVDISPINFOW& nm);
+	void on_tree_notify(NMHDR& nmhdr);
+	void on_import_notify(NMHDR& nmhdr);
+	void on_export_notify(NMHDR& nmhdr);
 	LRESULT on_wm_command(WPARAM wparam, LPARAM lparam);
 	LRESULT on_menu(WPARAM wparam, LPARAM lparam);
 	void on_menu_open();
 	void on_menu_exit();
-	void open_file(wchar_t const* const file_name);
+	void open_file(wchar_t const* const file_path);
 	void refresh_view();
 private:
 	static ATOM m_s_class;
@@ -50,8 +61,8 @@ private:
 	HWND m_import_list;
 	HWND m_export_list;
 private:
-	std::array<std::wstring, 4> m_tmp_strings;
+	std::array<std::wstring, 16> m_tmp_strings;
 	unsigned m_tmp_string_idx;
 private:
-	pe_file_info m_file_info;
+	file_info m_file_info;
 };
