@@ -39,6 +39,24 @@ static constexpr int s_import_list = 1001;
 static constexpr int s_export_list = 1002;
 
 
+enum class e_import_column
+{
+	e_type,
+	e_ordinal,
+	e_hint,
+	e_name
+};
+
+enum class e_export_column
+{
+	e_type,
+	e_ordinal,
+	e_hint,
+	e_name,
+	e_entry_point
+};
+
+
 template<typename begin_it, typename end_it, typename val_t>
 end_it rfind(begin_it const& begin, end_it const& end, val_t const& val)
 {
@@ -355,9 +373,10 @@ void main_window::on_import_notify(NMHDR& nmhdr)
 			pe_import_entry const& import_entry = *reinterpret_cast<pe_import_entry*>(nm.item.lParam);
 			int const row = nm.item.iItem;
 			int const col = nm.item.iSubItem;
-			switch(col)
+			e_import_column const ecol = static_cast<e_import_column>(col);
+			switch(ecol)
 			{
-				case 0:
+				case e_import_column::e_type:
 				{
 					if(import_entry.m_is_ordinal)
 					{
@@ -369,7 +388,7 @@ void main_window::on_import_notify(NMHDR& nmhdr)
 					}
 				}
 				break;
-				case 1:
+				case e_import_column::e_ordinal:
 				{
 					if(import_entry.m_is_ordinal)
 					{
@@ -386,7 +405,7 @@ void main_window::on_import_notify(NMHDR& nmhdr)
 					}
 				}
 				break;
-				case 2:
+				case e_import_column::e_hint:
 				{
 					if(import_entry.m_is_ordinal)
 					{
@@ -403,7 +422,7 @@ void main_window::on_import_notify(NMHDR& nmhdr)
 					}
 				}
 				break;
-				case 3:
+				case e_import_column::e_name:
 				{
 					if(import_entry.m_is_ordinal)
 					{
@@ -438,9 +457,10 @@ void main_window::on_export_notify(NMHDR& nmhdr)
 			pe_export_address_entry const& export_entry = *reinterpret_cast<pe_export_address_entry*>(nm.item.lParam);
 			int const row = nm.item.iItem;
 			int const col = nm.item.iSubItem;
-			switch(col)
+			e_export_column const ecol = static_cast<e_export_column>(col);
+			switch(ecol)
 			{
-				case 0:
+				case e_export_column::e_type:
 				{
 					if(export_entry.m_is_rva)
 					{
@@ -452,7 +472,7 @@ void main_window::on_export_notify(NMHDR& nmhdr)
 					}
 				}
 				break;
-				case 1:
+				case e_export_column::e_ordinal:
 				{
 					static_assert(sizeof(std::uint16_t) == sizeof(unsigned short int), "");
 					std::array<wchar_t, 32> buff;
@@ -462,7 +482,7 @@ void main_window::on_export_notify(NMHDR& nmhdr)
 					nm.item.pszText = const_cast<wchar_t*>(tmpstr.c_str());
 				}
 				break;
-				case 2:
+				case e_export_column::e_hint:
 				{
 					if(export_entry.m_name.empty())
 					{
@@ -479,7 +499,7 @@ void main_window::on_export_notify(NMHDR& nmhdr)
 					}
 				}
 				break;
-				case 3:
+				case e_export_column::e_name:
 				{
 					if(export_entry.m_name.empty())
 					{
@@ -494,7 +514,7 @@ void main_window::on_export_notify(NMHDR& nmhdr)
 					}
 				}
 				break;
-				case 4:
+				case e_export_column::e_entry_point:
 				{
 					if(export_entry.m_is_rva)
 					{
