@@ -30,6 +30,12 @@
     <ClCompile Include="src\nogui\unicode.cpp">
       <Filter>src\nogui</Filter>
     </ClCompile>
+    <ClCompile Include="src\gui\search.cpp">
+      <Filter>src\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gui\processor.cpp">
+      <Filter>src\gui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\gui\main_window.h">
@@ -49,6 +55,12 @@
     </ClInclude>
     <ClInclude Include="src\nogui\unicode.h">
       <Filter>src\nogui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gui\search.h">
+      <Filter>src\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gui\processor.h">
+      <Filter>src\gui</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -2,6 +2,7 @@
 
 
 #include "splitter_window.h"
+#include "processor.h"
 
 #include "../nogui/pe.h"
 
@@ -11,14 +12,7 @@
 #include <windows.h>
 
 
-struct file_info
-{
-	std::wstring m_file_name;
-	std::wstring m_file_path;
-	pe_import_table_info m_import_table;
-	pe_export_table_info m_export_table;
-	std::vector<file_info> m_dependencies;
-};
+struct _TREEITEM; typedef struct _TREEITEM* HTREEITEM;
 
 
 class main_window
@@ -51,6 +45,7 @@ private:
 	void on_menu_exit();
 	void open_file(wchar_t const* const file_path);
 	void refresh_view();
+	void refresh_view_recursive(file_info const& parent_fi, HTREEITEM const& parent_ti);
 private:
 	static ATOM m_s_class;
 private:

@@ -422,7 +422,7 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 		char const* const dll_name = reinterpret_cast<char const*>(file_data + dll_name_dsk);
 		VERIFY(is_ascii(dll_name, static_cast<int>(dll_name_len)));
 		ret.m_dlls.push_back({});
-		ret.m_dlls.back().m_dll.assign(dll_name, dll_name + dll_name_len);
+		ret.m_dlls.back().m_dll_name.assign(dll_name, dll_name + dll_name_len);
 		auto const import_lookup_table_sct_dsk = convert_rva_to_disk_ptr(import_directory_table[i].m_import_lookup_table, hi);
 		section_header const& import_lookup_table_sct = *import_lookup_table_sct_dsk.first;
 		std::uint32_t const import_lookup_table_dsk = import_lookup_table_sct_dsk.second;
