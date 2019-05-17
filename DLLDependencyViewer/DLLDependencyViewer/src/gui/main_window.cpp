@@ -140,15 +140,15 @@ main_window::main_window() :
 		LVCOLUMNW cl;
 		cl.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
 		cl.fmt = LVCFMT_LEFT;
-		cl.cx = 100;
+		cl.cx = 0;
 		cl.pszText = const_cast<LPWSTR>(s_import_headers[i]);
 		cl.cchTextMax = 0;
 		cl.iSubItem = i;
 		cl.iImage = 0;
 		cl.iOrder = i;
 		cl.cxMin = 0;
-		cl.cxDefault = 100;
-		cl.cxIdeal = 100;
+		cl.cxDefault = 0;
+		cl.cxIdeal = 0;
 		auto const inserted = SendMessageW(m_import_list, LVM_INSERTCOLUMNW, i, reinterpret_cast<LPARAM>(&cl));
 	}
 
@@ -158,15 +158,15 @@ main_window::main_window() :
 		LVCOLUMNW cl;
 		cl.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
 		cl.fmt = LVCFMT_LEFT;
-		cl.cx = 100;
+		cl.cx = 0;
 		cl.pszText = const_cast<LPWSTR>(s_export_headers[i]);
 		cl.cchTextMax = 0;
 		cl.iSubItem = i;
 		cl.iImage = 0;
 		cl.iOrder = i;
 		cl.cxMin = 0;
-		cl.cxDefault = 100;
-		cl.cxIdeal = 100;
+		cl.cxDefault = 0;
+		cl.cxIdeal = 0;
 		auto const inserted = SendMessageW(m_export_list, LVM_INSERTCOLUMNW, i, reinterpret_cast<LPARAM>(&cl));
 	}
 
