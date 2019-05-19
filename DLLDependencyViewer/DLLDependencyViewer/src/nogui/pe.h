@@ -8,7 +8,8 @@
 
 
 struct section_header;
-
+class memory_manager;
+template<typename> struct basic_string; typedef basic_string<char> string;
 
 struct pe_header_info
 {
@@ -31,7 +32,7 @@ struct pe_import_entry
 
 struct pe_import_dll_with_entries
 {
-	std::string m_dll_name;
+	string const* m_dll_name;
 	std::vector<pe_import_entry> m_entries;
 };
 
@@ -57,7 +58,7 @@ struct pe_export_table_info
 
 
 pe_header_info pe_process_header(void const* const file_data, int const file_size);
-pe_import_table_info pe_process_import_table(void const* const file_data, int const file_size, pe_header_info const& hi);
-pe_export_table_info pe_process_export_table(void const* const file_data, int const file_size, pe_header_info const& hi);
+pe_import_table_info pe_process_import_table(void const* const file_data, int const file_size, pe_header_info const& hi, memory_manager& mm);
+pe_export_table_info pe_process_export_table(void const* const file_data, int const file_size, pe_header_info const& hi, memory_manager& mm);
 
 std::pair<section_header const*, std::uint32_t> convert_rva_to_disk_ptr(std::uint32_t const rva, pe_header_info const& hi, section_header const* const section = nullptr);

@@ -1,5 +1,6 @@
 #include "pe.h"
 
+#include "memory_manager.h"
 #include "unicode.h"
 
 #include <algorithm>
@@ -361,7 +362,7 @@ pe_header_info pe_process_header(void const* const fd, int const fs)
 	return ret;
 }
 
-pe_import_table_info pe_process_import_table(void const* const fd, int const fs, pe_header_info const& hi)
+pe_import_table_info pe_process_import_table(void const* const fd, int const fs, pe_header_info const& hi, memory_manager& mm)
 {
 	char const* const file_data = static_cast<char const*>(fd);
 	std::uint32_t const file_size = static_cast<std::uint32_t>(fs);
@@ -380,8 +381,8 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 	section_header const& import_table_section = *import_table_section_and_offset.first;
 	std::uint32_t const import_table_offset = import_table_section_and_offset.second;
 	VERIFY(import_table_section.m_raw_ptr + import_table_section.m_raw_size >= import_table_offset + import_table_size);
-	// 1k DLLs should be enough for everybody.
-	std::uint32_t const import_table_max_count = std::min<std::uint32_t>(1024, import_table_size / sizeof(import_directory_entry));
+	// 32k DLLs should be enough for everybody.
+	std::uint32_t const import_table_max_count = std::min<std::uint32_t>(32 * 1024, import_table_size / sizeof(import_directory_entry));
 	import_directory_entry const* const import_directory_table = reinterpret_cast<import_directory_entry const*>(file_data + import_table_offset);
 	std::uint32_t import_directory_table_count = 0xFFFFFFFF;
 	for(std::uint32_t i = 0; i != import_table_max_count; ++i)
@@ -408,8 +409,8 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 		section_header const& dll_name_sct = *dll_name_sct_dsk.first;
 		std::uint32_t const dll_name_dsk = dll_name_sct_dsk.second;
 		std::uint32_t dll_name_len = 0xFFFFFFFF;
-		// 1k DLL name should be enough for everybody.
-		std::uint32_t const dll_name_len_max = std::min<std::uint32_t>(1024, dll_name_sct.m_raw_ptr + dll_name_sct.m_raw_size - dll_name_dsk);
+		// 32k DLL name should be enough for everybody.
+		std::uint32_t const dll_name_len_max = std::min<std::uint32_t>(32 * 1024, dll_name_sct.m_raw_ptr + dll_name_sct.m_raw_size - dll_name_dsk);
 		for(std::uint32_t i = 0; i != dll_name_len_max; ++i)
 		{
 			if(reinterpret_cast<char const*>(file_data + dll_name_dsk)[i] == '\0')
@@ -422,15 +423,15 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 		char const* const dll_name = reinterpret_cast<char const*>(file_data + dll_name_dsk);
 		VERIFY(is_ascii(dll_name, static_cast<int>(dll_name_len)));
 		ret.m_dlls.push_back({});
-		ret.m_dlls.back().m_dll_name.assign(dll_name, dll_name + dll_name_len);
+		ret.m_dlls.back().m_dll_name = mm.m_strs.add_string(dll_name, dll_name_len, mm.m_alc);
 		auto const import_lookup_table_sct_dsk = convert_rva_to_disk_ptr(import_directory_table[i].m_import_lookup_table, hi);
 		section_header const& import_lookup_table_sct = *import_lookup_table_sct_dsk.first;
 		std::uint32_t const import_lookup_table_dsk = import_lookup_table_sct_dsk.second;
 		std::uint32_t import_lookup_table_count = 0xFFFFFFFF;
 		if(hi.m_is_pe32)
 		{
-			// 32k imports per DLL should be enough for everybody.
-			std::uint32_t const import_lookup_table_max_count = std::min<std::uint32_t>(32 * 1024, (import_lookup_table_sct.m_raw_ptr + import_lookup_table_sct.m_raw_size - import_lookup_table_dsk) / sizeof(import_lookup_entry_pe32));
+			// 64k imports per DLL should be enough for everybody.
+			std::uint32_t const import_lookup_table_max_count = std::min<std::uint32_t>(64 * 1024, (import_lookup_table_sct.m_raw_ptr + import_lookup_table_sct.m_raw_size - import_lookup_table_dsk) / sizeof(import_lookup_entry_pe32));
 			import_lookup_entry_pe32 const* const import_lookup_table = reinterpret_cast<import_lookup_entry_pe32 const*>(file_data + import_lookup_table_dsk);
 			for(std::uint32_t i = 0; i != import_lookup_table_max_count; ++i)
 			{
@@ -462,8 +463,8 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 					std::uint16_t const hint = hint_name.m_hint;
 					char const* const name = hint_name.m_name;
 					std::uint32_t import_name_len = 0xFFFFFFFF;
-					// 4k import name length should be enough for everybody.
-					std::uint32_t const import_name_len_max = std::min<std::uint32_t>(4 * 1024, hint_name_section.m_raw_ptr + hint_name_section.m_raw_size - hint_name_disk_offset - sizeof(import_hint_name::m_hint));
+					// 32k import name length should be enough for everybody.
+					std::uint32_t const import_name_len_max = std::min<std::uint32_t>(32 * 1024, hint_name_section.m_raw_ptr + hint_name_section.m_raw_size - hint_name_disk_offset - sizeof(import_hint_name::m_hint));
 					for(std::uint32_t i = 0; i != import_name_len_max; ++i)
 					{
 						if(name[i] == '\0')
@@ -483,8 +484,8 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 		}
 		else
 		{
-			// 32k imports per DLL should be enough for everybody.
-			std::uint32_t const import_lookup_table_max_count = std::min<std::uint32_t>(32 * 1024, (import_lookup_table_sct.m_raw_ptr + import_lookup_table_sct.m_raw_size - import_lookup_table_dsk) / sizeof(import_lookup_entry_pe32_plus));
+			// 64k imports per DLL should be enough for everybody.
+			std::uint32_t const import_lookup_table_max_count = std::min<std::uint32_t>(64 * 1024, (import_lookup_table_sct.m_raw_ptr + import_lookup_table_sct.m_raw_size - import_lookup_table_dsk) / sizeof(import_lookup_entry_pe32_plus));
 			import_lookup_entry_pe32_plus const* const import_lookup_table = reinterpret_cast<import_lookup_entry_pe32_plus const*>(file_data + import_lookup_table_dsk);
 			for(std::uint32_t i = 0; i != import_lookup_table_max_count; ++i)
 			{
@@ -516,8 +517,8 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 					std::uint16_t const hint = hint_name.m_hint;
 					char const* const name = hint_name.m_name;
 					std::uint32_t import_name_len = 0xFFFFFFFF;
-					// 4k import name length should be enough for everybody.
-					std::uint32_t const import_name_len_max = std::min<std::uint32_t>(4 * 1024, hint_name_section.m_raw_ptr + hint_name_section.m_raw_size - hint_name_disk_offset - sizeof(import_hint_name::m_hint));
+					// 32k import name length should be enough for everybody.
+					std::uint32_t const import_name_len_max = std::min<std::uint32_t>(32 * 1024, hint_name_section.m_raw_ptr + hint_name_section.m_raw_size - hint_name_disk_offset - sizeof(import_hint_name::m_hint));
 					for(std::uint32_t i = 0; i != import_name_len_max; ++i)
 					{
 						if(name[i] == '\0')
@@ -540,7 +541,7 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 	return ret;
 }
 
-pe_export_table_info pe_process_export_table(void const* const fd, int const fs, pe_header_info const& hi)
+pe_export_table_info pe_process_export_table(void const* const fd, int const fs, pe_header_info const& hi, memory_manager& mm)
 {
 	char const* const file_data = static_cast<char const*>(fd);
 	std::uint32_t const file_size = static_cast<std::uint32_t>(fs);
@@ -567,8 +568,8 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 	VERIFY(export_dir.m_names_count <= export_dir.m_export_address_count);
 	VERIFY((export_dir.m_export_name_table_rva == 0 && export_dir.m_ordinal_table_rva == 0) || (export_dir.m_export_name_table_rva != 0 && export_dir.m_ordinal_table_rva != 0));
 
-	// 32k export names should be enough for everybody.
-	VERIFY(export_dir.m_names_count <= 32 * 1024);
+	// 64k export names should be enough for everybody.
+	VERIFY(export_dir.m_names_count <= 64 * 1024);
 	std::uint32_t const* export_name_pointer_table = nullptr;
 	std::uint16_t const* export_ordinal_table = nullptr;
 	if(export_dir.m_export_name_table_rva != 0)
@@ -581,8 +582,8 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 		export_ordinal_table = reinterpret_cast<std::uint16_t const*>(file_data + export_ordinal_table_disk_offset);
 	}
 
-	// 32k exports should be enough for everybody.
-	VERIFY(export_dir.m_export_address_count <= 32 * 1024);
+	// 64k exports should be enough for everybody.
+	VERIFY(export_dir.m_export_address_count <= 64 * 1024);
 	auto const export_address_table_sect_off = convert_rva_to_disk_ptr(export_dir.m_export_address_table_rva, hi, &export_directory_section);
 	section_header const& export_address_table_section = *export_address_table_sect_off.first;
 	std::uint32_t const export_address_table_disk_off = export_address_table_sect_off.second;
@@ -604,8 +605,8 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 				std::uint32_t const export_address_name_rva = export_name_pointer_table[it - export_ordinal_table];
 				std::uint32_t const export_address_name_disk_offset = convert_rva_to_disk_ptr(export_address_name_rva, hi, &export_directory_section).second;
 				export_address_name = reinterpret_cast<char const*>(file_data + export_address_name_disk_offset);
-				// 4k export name length should be enough for everybody.
-				std::uint32_t const export_address_name_len_max = std::min<std::uint32_t>(4 * 1024, export_directory_section.m_raw_ptr + export_directory_section.m_raw_size - export_address_name_disk_offset);
+				// 32k export name length should be enough for everybody.
+				std::uint32_t const export_address_name_len_max = std::min<std::uint32_t>(32 * 1024, export_directory_section.m_raw_ptr + export_directory_section.m_raw_size - export_address_name_disk_offset);
 				auto const export_address_name_end = std::find(export_address_name, export_address_name + export_address_name_len_max, L'\0');
 				VERIFY(export_address_name_end != export_address_name + export_address_name_len_max);
 				export_address_name_len = static_cast<std::uint32_t>(export_address_name_end - export_address_name);
@@ -614,10 +615,10 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 		}
 		if(export_rva >= export_directory_rva && export_rva < export_directory_rva + export_directory_size)
 		{
-			// 4k export forwarder name length should be enough for everybody.
+			// 32k export forwarder name length should be enough for everybody.
 			std::uint32_t const forwarder_name_dsk = convert_rva_to_disk_ptr(export_rva, hi, &export_directory_section).second;
 			char const* const forwarder_name = reinterpret_cast<char const*>(file_data + forwarder_name_dsk);
-			std::uint32_t const forwarder_name_len_max = std::min<std::uint32_t>(4 * 1024, export_directory_section.m_raw_ptr + export_directory_section.m_raw_size - forwarder_name_dsk);
+			std::uint32_t const forwarder_name_len_max = std::min<std::uint32_t>(32 * 1024, export_directory_section.m_raw_ptr + export_directory_section.m_raw_size - forwarder_name_dsk);
 			char const* const forwarder_name_end = std::find(forwarder_name, forwarder_name + forwarder_name_len_max, '\0');
 			VERIFY(forwarder_name_end != forwarder_name + forwarder_name_len_max);
 			std::uint32_t const forwarder_name_len = static_cast<std::uint32_t>(forwarder_name_end - forwarder_name);

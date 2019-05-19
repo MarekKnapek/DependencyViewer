@@ -67,23 +67,8 @@ template struct basic_string_equal<wchar_t>;
 
 template<typename char_t>
 basic_unique_strings<char_t>::basic_unique_strings() noexcept :
-	m_strings(),
-	m_alc()
+	m_strings()
 {
-}
-
-template<typename char_t>
-basic_unique_strings<char_t>::basic_unique_strings(allocator& alc) noexcept :
-	basic_unique_strings()
-{
-	m_alc = &alc;
-}
-
-template<typename char_t>
-basic_unique_strings<char_t>::basic_unique_strings(allocator* const& alc) noexcept :
-	basic_unique_strings()
-{
-	m_alc = alc;
 }
 
 template<typename char_t>
@@ -110,19 +95,18 @@ void basic_unique_strings<char_t>::swap(basic_unique_strings& other) noexcept
 {
 	using std::swap;
 	swap(m_strings, other.m_strings);
-	swap(m_alc, other.m_alc);
 }
 
 template<typename char_t>
-basic_string<char_t> const* const& basic_unique_strings<char_t>::add_string(char_t const* const& str, int const& len)
+basic_string<char_t> const* const& basic_unique_strings<char_t>::add_string(char_t const* const& str, int const& len, allocator& alc)
 {
 	basic_string<char_t> const tmp_str{str, len};
 	auto const it = m_strings.find(&tmp_str);
 	if(it == m_strings.end())
 	{
-		char_t* const new_buff = m_alc->allocate_objects<char_t>(len + 1);
+		char_t* const new_buff = alc.allocate_objects<char_t>(len + 1);
 		std::memcpy(new_buff, str, len * sizeof(char_t));
-		basic_string<char_t>* const new_str = m_alc->allocate_objects<basic_string<char_t>>(1);
+		basic_string<char_t>* const new_str = alc.allocate_objects<basic_string<char_t>>(1);
 		new_str->m_str = new_buff;
 		new_str->m_len = len;
 		auto itb = m_strings.insert(new_str);

@@ -1,4 +1,5 @@
 #pragma once
 
 
-bool is_ascii(char const* const str, int const size);
+template<typename char_t>
+bool is_ascii(char_t const* const str, int const size);

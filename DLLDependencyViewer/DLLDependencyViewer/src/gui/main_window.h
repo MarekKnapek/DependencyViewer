@@ -45,7 +45,7 @@ private:
 	void on_menu_open();
 	void on_menu_exit();
 	void open_file(wchar_t const* const file_path);
-	void refresh_view();
+	void refresh(main_type&& mo);
 	void refresh_view_recursive(file_info const& parent_fi, HTREEITEM const& parent_ti);
 private:
 	static ATOM m_s_class;
@@ -60,5 +60,5 @@ private:
 	std::array<std::wstring, 16> m_tmp_strings;
 	unsigned m_tmp_string_idx;
 private:
-	file_info m_file_info;
+	main_type m_mo;
 };

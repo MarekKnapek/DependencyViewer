@@ -4,6 +4,7 @@
 
 #include "../nogui/memory_mapped_file.h"
 #include "../nogui/pe.h"
+#include "../nogui/utils.h"
 
 #include <cassert>
 #include <cstdlib>
@@ -58,45 +59,6 @@ enum class e_export_column
 };
 
 
-template<typename begin_it, typename end_it, typename val_t>
-end_it rfind(begin_it const& begin, end_it const& end, val_t const& val)
-{
-	if(begin == end)
-	{
-		return end;
-	}
-	end_it it = end;
-	do
-	{
-		--it;
-		if(*it == val)
-		{
-			return it;
-		}
-	}
-	while (it != begin);
-	return end;
-}
-
-inline wchar_t const* find_file_name(wchar_t const* const& file_path, int const& len)
-{
-	wchar_t const* const it = rfind(file_path, file_path + len, L'\\');
-	if(it == file_path + len)
-	{
-		return file_path;
-	}
-	else
-	{
-		return it + 1;
-	}
-}
-
-inline wchar_t const* find_file_name(wchar_t const* const& file_path)
-{
-	return find_file_name(file_path, static_cast<int>(std::wcslen(file_path)));
-}
-
-
 void main_window::register_class()
 {
 	WNDCLASSEXW wc;
@@ -127,7 +89,7 @@ main_window::main_window() :
 	m_export_list(CreateWindowExW(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE, WC_LISTVIEWW, nullptr, WS_VISIBLE | WS_CHILD | LVS_REPORT | LVS_SHOWSELALWAYS, 0, 0, 0, 0, m_splitter_ver.get_hwnd(), reinterpret_cast<HMENU>(static_cast<std::uintptr_t>(s_export_list)), get_instance(), nullptr)),
 	m_tmp_strings(),
 	m_tmp_string_idx(),
-	m_file_info()
+	m_mo()
 {
 	LONG_PTR const set = SetWindowLongPtrW(m_hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
 	DragAcceptFiles(m_hwnd, TRUE);
@@ -289,16 +251,37 @@ void main_window::on_tree_notify(NMHDR& nmhdr)
 		{
 			file_info const& tmp_fi = *reinterpret_cast<file_info*>(di.item.lParam);
 			file_info const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
-			std::wstring& tmp = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-			tmp.clear();
-			tmp.append(fi.m_file_name).append(L" (").append(fi.m_file_path).append(L")");
-			di.item.pszText = const_cast<wchar_t*>(tmp.c_str());
+			HTREEITEM const parent = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(di.item.hItem)));
+			if(parent)
+			{
+				TVITEMEXW ti;
+				ti.hItem = parent;
+				ti.mask = TVIF_PARAM;
+				LRESULT const got = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
+				file_info const& parent_fi = *reinterpret_cast<file_info*>(ti.lParam);
+				int const idx = static_cast<int>(&tmp_fi - parent_fi.m_sub_file_infos.data());
+				string const* const my_name = parent_fi.m_import_table.m_dlls[idx].m_dll_name;
+				m_mo.m_tmpw.resize(my_name->m_len);
+				std::transform(my_name->m_str, my_name->m_str + my_name->m_len, m_mo.m_tmpw.begin(), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
+				std::wstring& tmp = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
+				tmp.clear();
+				tmp.append(m_mo.m_tmpw).append(L" (").append(fi.m_file_path->m_str).append(L")");
+				di.item.pszText = const_cast<wchar_t*>(tmp.c_str());
+			}
+			else
+			{
+				std::wstring& tmp = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
+				tmp.clear();
+				tmp.append(find_file_name(fi.m_file_path->m_str, fi.m_file_path->m_len)).append(L" (").append(fi.m_file_path->m_str).append(L")");
+				di.item.pszText = const_cast<wchar_t*>(tmp.c_str());
+			}
 		}
 	}
 	else if(nmhdr.code == TVN_SELCHANGEDW)
 	{
 		NMTREEVIEWW& nm = reinterpret_cast<NMTREEVIEWW&>(nmhdr);
 		LRESULT const redr_off_1 = SendMessageW(m_import_list, WM_SETREDRAW, FALSE, 0);
+		LRESULT const deleted_1 = SendMessageW(m_import_list, LVM_DELETEALLITEMS, 0, 0);
 		HTREEITEM const parent = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(nm.itemNew.hItem)));
 		if(parent)
 		{
@@ -337,6 +320,7 @@ void main_window::on_tree_notify(NMHDR& nmhdr)
 		}
 		LRESULT const redr_on_1 = SendMessageW(m_import_list, WM_SETREDRAW, TRUE, 0);
 		LRESULT const redr_off_2 = SendMessageW(m_export_list, WM_SETREDRAW, FALSE, 0);
+		LRESULT const deleted_2 = SendMessageW(m_export_list, LVM_DELETEALLITEMS, 0, 0);
 		file_info const& tmp_fi = *reinterpret_cast<file_info*>(nm.itemNew.lParam);
 		file_info const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
 		LRESULT const set_size = SendMessageW(m_export_list, LVM_SETITEMCOUNT, fi.m_export_table.m_export_address_table.size(), 0);
@@ -639,25 +623,31 @@ void main_window::on_menu_exit()
 
 void main_window::open_file(wchar_t const* const file_path)
 {
-	file_info fi;
+	main_type mo;
 	try
 	{
-		fi = process(file_path);
+		mo = process(file_path);
 	}
 	catch(wchar_t const* const ex)
 	{
 		int const msgbox = MessageBoxW(m_hwnd, ex, s_msg_error, MB_OK | MB_ICONERROR);
 		return;
 	}
+	refresh(std::move(mo));
+}
+
+void main_window::refresh(main_type&& mo)
+{
+	LRESULT const redr_off_1 = SendMessageW(m_tree, WM_SETREDRAW, FALSE, 0);
+	LRESULT const redr_off_2 = SendMessageW(m_import_list, WM_SETREDRAW, FALSE, 0);
+	LRESULT const redr_off_3 = SendMessageW(m_export_list, WM_SETREDRAW, FALSE, 0);
+
 	LRESULT const deleted_1 = SendMessageW(m_tree, TVM_DELETEITEM, 0, reinterpret_cast<LPARAM>(TVI_ROOT));
 	LRESULT const deleted_2 = SendMessageW(m_import_list, LVM_DELETEALLITEMS, 0, 0);
 	LRESULT const deleted_3 = SendMessageW(m_export_list, LVM_DELETEALLITEMS, 0, 0);
-	m_file_info = std::move(fi);
-	refresh_view();
-}
 
-void main_window::refresh_view()
-{
+	m_mo = std::move(mo);
+
 	TVINSERTSTRUCTW tvi;
 	tvi.hParent = TVI_ROOT;
 	tvi.hInsertAfter = TVI_ROOT;
@@ -670,16 +660,20 @@ void main_window::refresh_view()
 	tvi.itemex.iImage = 0;
 	tvi.itemex.iSelectedImage = 0;
 	tvi.itemex.cChildren = 0;
-	tvi.itemex.lParam = reinterpret_cast<LPARAM>(&m_file_info);
+	tvi.itemex.lParam = reinterpret_cast<LPARAM>(&m_mo.m_fi.m_sub_file_infos[0]);
 	tvi.itemex.iIntegral = 0;
 	tvi.itemex.uStateEx = 0;
 	tvi.itemex.hwnd = nullptr;
 	tvi.itemex.iExpandedImage = 0;
 	tvi.itemex.iReserved = 0;
 	HTREEITEM const hroot = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_INSERTITEMW, 0, reinterpret_cast<LPARAM>(&tvi)));
-	refresh_view_recursive(m_file_info, hroot);
+	refresh_view_recursive(m_mo.m_fi.m_sub_file_infos[0], hroot);
 	LRESULT const expanded = SendMessageW(m_tree, TVM_EXPAND, TVE_EXPAND, reinterpret_cast<LPARAM>(hroot));
 	LRESULT const selected = SendMessageW(m_tree, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(hroot));
+
+	LRESULT const redr_on_1 = SendMessageW(m_tree, WM_SETREDRAW, TRUE, 0);
+	LRESULT const redr_on_2 = SendMessageW(m_import_list, WM_SETREDRAW, TRUE, 0);
+	LRESULT const redr_on_3 = SendMessageW(m_export_list, WM_SETREDRAW, TRUE, 0);
 }
 
 void main_window::refresh_view_recursive(file_info const& parent_fi, HTREEITEM const& parent_ti)

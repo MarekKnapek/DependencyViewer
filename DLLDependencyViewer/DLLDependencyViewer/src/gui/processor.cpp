@@ -3,61 +3,56 @@
 #include "search.h"
 
 #include "../nogui/memory_mapped_file.h"
+#include "../nogui/utils.h"
+#include "../nogui/unicode.h"
+#include "../nogui/unique_strings.h"
 
+#include <cassert>
 #include <algorithm>
 #include <queue>
 #include <unordered_map>
-#include <experimental/filesystem>
+#include <iterator>
 
 
-namespace fs = std::experimental::filesystem;
-
-
-struct processor_hash
-{
-	std::size_t operator()(std::wstring* const& e) const
-	{
-		return std::hash<std::wstring>()(*e);
-	}
-};
-
-struct processor_equal
-{
-	bool operator()(std::wstring* const& a, std::wstring* const& b) const
-	{
-		return *a == *b;
-	}
-};
+static constexpr wchar_t const s_not_found_path[] = L"* not found *";
+static constexpr wstring const s_not_found_wstr = wstring{static_cast<wchar_t const*>(s_not_found_path), static_cast<int>(std::size(s_not_found_path)) - 1};
 
 
 struct processor
 {
+	main_type* m_mo;
 	std::wstring const* m_main_file_path;
 	std::queue<file_info*> m_queue;
-	std::unordered_map<std::wstring*, file_info*, processor_hash, processor_equal> m_map;
+	std::unordered_map<string const*, file_info*, string_hash, string_equal> m_map;
 };
 
 
 void process_r(processor& prcsr);
-void process_e(processor& prcsr, file_info& fi);
+void process_e(processor& prcsr, file_info& fi, string const* const& dll_name);
 
 
-file_info process(std::wstring const& main_file_path)
+main_type process(std::wstring const& main_file_path)
 {
-	file_info fi;
+	main_type mo;
 	processor prcsr;
+	prcsr.m_mo = &mo;
 	prcsr.m_main_file_path = &main_file_path;
-	try
-	{
-		fi.m_file_name = fs::path(main_file_path).filename();
-		prcsr.m_queue.push(&fi);
-		process_r(prcsr);
-	}
-	catch(wchar_t const* const)
-	{
-		return {};
-	}
-	return fi;
+
+	file_info& fi = mo.m_fi;
+	fi.m_orig_instance = nullptr;
+	fi.m_file_path = nullptr;
+	fi.m_sub_file_infos.resize(1);
+	fi.m_import_table.m_dlls.resize(1);
+	pe_import_dll_with_entries& only_dependency = fi.m_import_table.m_dlls[0];
+	wchar_t const* const name = find_file_name(main_file_path.c_str(), static_cast<int>(main_file_path.size()));
+	int const name_len = static_cast<int>(main_file_path.c_str() + main_file_path.size() - name);
+	assert(is_ascii(name, name_len));
+	mo.m_tmpn.resize(name_len);
+	std::transform(name, name + name_len, begin(mo.m_tmpn), [](wchar_t const& e) -> char { return static_cast<char>(e); });
+	only_dependency.m_dll_name = mo.m_mm.m_strs.add_string(mo.m_tmpn.c_str(), name_len, mo.m_mm.m_alc);
+	prcsr.m_queue.push(&fi);
+	process_r(prcsr);
+	return mo;
 }
 
 void process_r(processor& prcsr)
@@ -66,41 +61,41 @@ void process_r(processor& prcsr)
 	{
 		file_info& fi = *prcsr.m_queue.front();
 		prcsr.m_queue.pop();
-		std::wstring& dll_name = fi.m_file_name;
-		auto const it = prcsr.m_map.find(&dll_name);
-		if(it != cend(prcsr.m_map))
+		for(int i = 0; i != static_cast<int>(fi.m_import_table.m_dlls.size()); ++i)
 		{
-			fi.m_orig_instance = it->second;
-		}
-		else
-		{
-			process_e(prcsr, fi);
+			file_info& sub_fi = fi.m_sub_file_infos[i];
+			string const* const& sub_name = fi.m_import_table.m_dlls[i].m_dll_name;
+			auto const it = prcsr.m_map.find(sub_name);
+			if(it != prcsr.m_map.cend())
+			{
+				sub_fi.m_orig_instance = it->second;
+			}
+			else
+			{
+				process_e(prcsr, sub_fi, sub_name);
+				prcsr.m_map[sub_name] = &sub_fi;
+				sub_fi.m_sub_file_infos.resize(sub_fi.m_import_table.m_dlls.size());
+				std::for_each(begin(fi.m_sub_file_infos), end(fi.m_sub_file_infos), [&](file_info& e){ prcsr.m_queue.push(&e); });
+			}
 		}
 	}
 }
 
-void process_e(processor& prcsr, file_info& fi)
+void process_e(processor& prcsr, file_info& fi, string const* const& dll_name)
 {
 	searcher sch;
+	sch.m_mo = prcsr.m_mo;
 	sch.m_main_file_path = prcsr.m_main_file_path;
-	fi.m_file_path = search(sch, fi.m_file_name);
-	if(fi.m_file_path.empty())
+	wstring const* const file_path = search(sch, dll_name);
+	if(!file_path)
 	{
-		fi.m_file_path = L"* not found *";
+		fi.m_file_path = &s_not_found_wstr;
 		return;
 	}
+	fi.m_file_path = file_path;
 
-	memory_mapped_file const mmf = memory_mapped_file(fi.m_file_path.c_str());
+	memory_mapped_file const mmf = memory_mapped_file(fi.m_file_path->m_str);
 	pe_header_info const hi = pe_process_header(mmf.begin(), mmf.size());
-	fi.m_import_table = pe_process_import_table(mmf.begin(), mmf.size(), hi);
-	fi.m_export_table = pe_process_export_table(mmf.begin(), mmf.size(), hi);
-	fi.m_orig_instance = nullptr;
-	fi.m_sub_file_infos.resize(fi.m_import_table.m_dlls.size());
-	for(int i = 0; i != static_cast<int>(fi.m_import_table.m_dlls.size()); ++i)
-	{
-		fi.m_sub_file_infos[i].m_file_name.resize(fi.m_import_table.m_dlls[i].m_dll_name.size());
-		std::transform(cbegin(fi.m_import_table.m_dlls[i].m_dll_name), cend(fi.m_import_table.m_dlls[i].m_dll_name), begin(fi.m_sub_file_infos[i].m_file_name), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
-	}
-	prcsr.m_map[&fi.m_file_name] = &fi;
-	std::for_each(begin(fi.m_sub_file_infos), end(fi.m_sub_file_infos), [&](file_info& e){ prcsr.m_queue.push(&e); });
+	fi.m_import_table = pe_process_import_table(mmf.begin(), mmf.size(), hi, prcsr.m_mo->m_mm);
+	fi.m_export_table = pe_process_export_table(mmf.begin(), mmf.size(), hi, prcsr.m_mo->m_mm);
 }

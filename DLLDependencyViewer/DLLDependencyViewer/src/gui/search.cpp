@@ -1,5 +1,9 @@
 #include "search.h"
 
+#include "processor.h"
+
+#include "../nogui/unique_strings.h"
+
 #include <array>
 #include <experimental/filesystem>
 
@@ -9,7 +13,7 @@
 namespace fs = std::experimental::filesystem;
 
 
-std::wstring search(searcher& sch, std::wstring const& dll_name)
+wstring const* search(searcher& sch, string const* const& dll_name)
 {
 	// Standard Search Order for Desktop Applications
 	// - SafeDllSearchMode is enabled
@@ -20,30 +24,39 @@ std::wstring search(searcher& sch, std::wstring const& dll_name)
 	// -- The current directory.
 	// -- The directories that are listed in the PATH environment variable. Note that this does not include the per-application path specified by the App Paths registry key. The App Paths key is not used when computing the DLL search path.
 
-	fs::path p = *sch.m_main_file_path;
-	p.replace_filename(dll_name);
-	if(fs::exists(p))
+	std::string& tmpn = sch.m_mo->m_tmpn;
+	std::wstring& tmpw = sch.m_mo->m_tmpw;
+	fs::path& tmpp = sch.m_mo->m_tmpp;
+
+	tmpp = *sch.m_main_file_path;
+	tmpw.resize(dll_name->m_len);
+	std::transform(dll_name->m_str, dll_name->m_str + dll_name->m_len, tmpw.begin(), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
+	tmpp.replace_filename(tmpw);
+	if(fs::exists(tmpp))
 	{
-		return p;
+		tmpw = tmpp.wstring();
+		return sch.m_mo->m_mm.m_wstrs.add_string(tmpw.c_str(), static_cast<int>(tmpw.size()), sch.m_mo->m_mm.m_alc);
 	}
 
 	std::array<wchar_t, 32 * 1024> buff;
 	UINT const got_sys = GetSystemDirectoryW(buff.data(), static_cast<UINT>(buff.size()));
-	p.assign(buff.data(), buff.data() + got_sys);
-	p.append(dll_name);
-	if(fs::exists(p))
+	tmpp.assign(buff.data(), buff.data() + got_sys);
+	tmpp.append(tmpw);
+	if(fs::exists(tmpp))
 	{
-		return p;
+		tmpw = tmpp.wstring();
+		return sch.m_mo->m_mm.m_wstrs.add_string(tmpw.c_str(), static_cast<int>(tmpw.size()), sch.m_mo->m_mm.m_alc);
 	}
 
 	// TODO: 16 bit system.
 
 	UINT const got_win = GetWindowsDirectoryW(buff.data(), static_cast<UINT>(buff.size()));
-	p.assign(buff.data(), buff.data() + got_win);
-	p.append(dll_name);
-	if(fs::exists(p))
+	tmpp.assign(buff.data(), buff.data() + got_win);
+	tmpp.append(tmpw);
+	if(fs::exists(tmpp))
 	{
-		return p;
+		tmpw = tmpp.wstring();
+		return sch.m_mo->m_mm.m_wstrs.add_string(tmpw.c_str(), static_cast<int>(tmpw.size()), sch.m_mo->m_mm.m_alc);
 	}
 
 	// TODO: Current directory.
@@ -58,26 +71,28 @@ std::wstring search(searcher& sch, std::wstring const& dll_name)
 			std::size_t const idx = path_env.find_first_of(L';', last);
 			if(idx == std::wstring::npos)
 			{
-				p.assign(cbegin(path_env) + last, cend(path_env));
-				p.append(dll_name);
-				if(fs::exists(p))
+				tmpp.assign(cbegin(path_env) + last, cend(path_env));
+				tmpp.append(tmpw);
+				if(fs::exists(tmpp))
 				{
-					return p;
+					tmpw = tmpp.wstring();
+					return sch.m_mo->m_mm.m_wstrs.add_string(tmpw.c_str(), static_cast<int>(tmpw.size()), sch.m_mo->m_mm.m_alc);
 				}
 				break;
 			}
 			else
 			{
-				p.assign(cbegin(path_env) + last, cbegin(path_env) + idx);
-				p.append(dll_name);
-				if(fs::exists(p))
+				tmpp.assign(cbegin(path_env) + last, cbegin(path_env) + idx);
+				tmpp.append(tmpw);
+				if(fs::exists(tmpp))
 				{
-					return p;
+					tmpw = tmpp.wstring();
+					return sch.m_mo->m_mm.m_wstrs.add_string(tmpw.c_str(), static_cast<int>(tmpw.size()), sch.m_mo->m_mm.m_alc);
 				}
 				last = idx + 1;
 			}
 		}
 	}
 
-	return {};
+	return nullptr;
 }
