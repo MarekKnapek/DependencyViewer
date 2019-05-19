@@ -401,7 +401,7 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 		}
 	}
 	VERIFY(import_directory_table_count != 0xFFFFFFFF);
-	ret.m_dlls.reserve(import_directory_table_count);
+	ret.m_dlls.resize(import_directory_table_count);
 	for(std::uint32_t i = 0; i != import_directory_table_count; ++i)
 	{
 		std::uint32_t const dll_name_rva = import_directory_table[i].m_name;
@@ -422,8 +422,7 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 		VERIFY(dll_name_len != 0xFFFFFFFF && dll_name_len > 0);
 		char const* const dll_name = reinterpret_cast<char const*>(file_data + dll_name_dsk);
 		VERIFY(is_ascii(dll_name, static_cast<int>(dll_name_len)));
-		ret.m_dlls.push_back({});
-		ret.m_dlls.back().m_dll_name = mm.m_strs.add_string(dll_name, dll_name_len, mm.m_alc);
+		ret.m_dlls[i].m_dll_name = mm.m_strs.add_string(dll_name, dll_name_len, mm.m_alc);
 		auto const import_lookup_table_sct_dsk = convert_rva_to_disk_ptr(import_directory_table[i].m_import_lookup_table, hi);
 		section_header const& import_lookup_table_sct = *import_lookup_table_sct_dsk.first;
 		std::uint32_t const import_lookup_table_dsk = import_lookup_table_sct_dsk.second;
@@ -441,14 +440,19 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 					import_lookup_table_count = i;
 					break;
 				}
+			}
+			VERIFY(import_lookup_table_count != 0xFFFFFFFF);
+			ret.m_dlls[i].m_entries.resize(import_lookup_table_count);
+			for(std::uint32_t j = 0; j != import_lookup_table_count; ++j)
+			{
+				import_lookup_entry_pe32 const& import_entry = import_lookup_table[j];
 				bool const is_ordinal = (import_entry.m_value & 0x80000000u) == 0x80000000u;
 				if(is_ordinal)
 				{
 					VERIFY((import_entry.m_value & 0x7FFF0000u) == 0u);
 					std::uint16_t const import_ordinal = import_entry.m_value & 0x0000FFFFu;
-					ret.m_dlls.back().m_entries.push_back({});
-					ret.m_dlls.back().m_entries.back().m_is_ordinal = true;
-					ret.m_dlls.back().m_entries.back().m_ordinal_or_hint = import_ordinal;
+					ret.m_dlls[i].m_entries[j].m_is_ordinal = true;
+					ret.m_dlls[i].m_entries[j].m_ordinal_or_hint = import_ordinal;
 				}
 				else
 				{
@@ -475,10 +479,9 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 					}
 					VERIFY(import_name_len != 0xFFFFFFFF && import_name_len > 0);
 					VERIFY(is_ascii(name, import_name_len));
-					ret.m_dlls.back().m_entries.push_back({});
-					ret.m_dlls.back().m_entries.back().m_is_ordinal = false;
-					ret.m_dlls.back().m_entries.back().m_ordinal_or_hint = hint;
-					ret.m_dlls.back().m_entries.back().m_name.assign(name, name + import_name_len);
+					ret.m_dlls[i].m_entries[j].m_is_ordinal = false;
+					ret.m_dlls[i].m_entries[j].m_ordinal_or_hint = hint;
+					ret.m_dlls[i].m_entries[j].m_name.assign(name, name + import_name_len);
 				}
 			}
 		}
@@ -495,14 +498,19 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 					import_lookup_table_count = i;
 					break;
 				}
+			}
+			VERIFY(import_lookup_table_count != 0xFFFFFFFF);
+			ret.m_dlls[i].m_entries.resize(import_lookup_table_count);
+			for(std::uint32_t j = 0; j != import_lookup_table_count; ++j)
+			{
+				import_lookup_entry_pe32_plus const& import_entry = import_lookup_table[j];
 				bool const is_ordinal = (import_entry.m_value & 0x8000000000000000ull) == 0x8000000000000000ull;
 				if(is_ordinal)
 				{
 					VERIFY((import_entry.m_value & 0x7FFFFFFFFFFF0000ull) == 0ull);
 					std::uint16_t const import_ordinal = import_entry.m_value & 0x000000000000FFFFull;
-					ret.m_dlls.back().m_entries.push_back({});
-					ret.m_dlls.back().m_entries.back().m_is_ordinal = true;
-					ret.m_dlls.back().m_entries.back().m_ordinal_or_hint = import_ordinal;
+					ret.m_dlls[i].m_entries[j].m_is_ordinal = true;
+					ret.m_dlls[i].m_entries[j].m_ordinal_or_hint = import_ordinal;
 				}
 				else
 				{
@@ -529,14 +537,12 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 					}
 					VERIFY(import_name_len != 0xFFFFFFFF && import_name_len > 0);
 					VERIFY(is_ascii(name, import_name_len));
-					ret.m_dlls.back().m_entries.push_back({});
-					ret.m_dlls.back().m_entries.back().m_is_ordinal = false;
-					ret.m_dlls.back().m_entries.back().m_ordinal_or_hint = hint;
-					ret.m_dlls.back().m_entries.back().m_name.assign(name, name + import_name_len);
+					ret.m_dlls[i].m_entries[j].m_is_ordinal = false;
+					ret.m_dlls[i].m_entries[j].m_ordinal_or_hint = hint;
+					ret.m_dlls[i].m_entries[j].m_name.assign(name, name + import_name_len);
 				}
 			}
 		}
-		VERIFY(import_lookup_table_count != 0xFFFFFFFF);
 	}
 	return ret;
 }
