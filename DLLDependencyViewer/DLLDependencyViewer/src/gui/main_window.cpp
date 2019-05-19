@@ -12,6 +12,7 @@
 #include <cassert>
 
 #include <commctrl.h>
+#include <shellapi.h>
 
 
 static constexpr wchar_t const s_window_class_name[] = L"main_window";
@@ -129,6 +130,7 @@ main_window::main_window() :
 	m_file_info()
 {
 	LONG_PTR const set = SetWindowLongPtrW(m_hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
+	DragAcceptFiles(m_hwnd, TRUE);
 
 	LRESULT const set_tree = SendMessageW(m_tree, TVM_SETEXTENDEDSTYLE, TVS_EX_DOUBLEBUFFER, TVS_EX_DOUBLEBUFFER);
 	LONG_PTR const prev = SetWindowLongPtrW(m_tree, GWL_STYLE, GetWindowLongPtrW(m_tree, GWL_STYLE) | TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS);
@@ -230,6 +232,11 @@ LRESULT main_window::on_message(UINT msg, WPARAM wparam, LPARAM lparam)
 		case WM_COMMAND:
 		{
 			return on_wm_command(wparam, lparam);
+		}
+		break;
+		case WM_DROPFILES:
+		{
+			return on_wm_dropfiles(wparam, lparam);
 		}
 		break;
 	}
@@ -551,6 +558,22 @@ LRESULT main_window::on_wm_command(WPARAM wparam, LPARAM lparam)
 		return on_menu(wparam, lparam);
 	}
 	return DefWindowProcW(m_hwnd, WM_COMMAND, wparam, lparam);
+}
+
+LRESULT main_window::on_wm_dropfiles(WPARAM wparam, LPARAM lparam)
+{
+	HDROP const hdrop = reinterpret_cast<HDROP>(wparam);
+	struct drop_deleter{ void operator()(void* const& obj){ DragFinish(reinterpret_cast<HDROP>(obj)); } };
+	std::unique_ptr<void, drop_deleter> const sp_drop(hdrop);
+	UINT const queried_1 = DragQueryFileW(hdrop, 0xFFFFFFFF, nullptr, 0);
+	if(queried_1 != 1)
+	{
+		return DefWindowProcW(m_hwnd, WM_DROPFILES, wparam, lparam);
+	}
+	std::array<wchar_t, 32 * 1024> buff;
+	UINT const queried_2 = DragQueryFileW(hdrop, 0, buff.data(), static_cast<int>(buff.size()));
+	open_file(buff.data());
+	return DefWindowProcW(m_hwnd, WM_DROPFILES, wparam, lparam);
 }
 
 LRESULT main_window::on_menu(WPARAM wparam, LPARAM lparam)

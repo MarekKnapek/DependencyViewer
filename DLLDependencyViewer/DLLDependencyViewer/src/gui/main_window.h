@@ -40,6 +40,7 @@ private:
 	void on_import_notify(NMHDR& nmhdr);
 	void on_export_notify(NMHDR& nmhdr);
 	LRESULT on_wm_command(WPARAM wparam, LPARAM lparam);
+	LRESULT on_wm_dropfiles(WPARAM wparam, LPARAM lparam);
 	LRESULT on_menu(WPARAM wparam, LPARAM lparam);
 	void on_menu_open();
 	void on_menu_exit();
