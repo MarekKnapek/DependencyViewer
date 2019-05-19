@@ -27,7 +27,7 @@ struct pe_import_entry
 {
 	bool m_is_ordinal;
 	std::uint16_t m_ordinal_or_hint;
-	std::string m_name;
+	string const* m_name;
 };
 
 struct pe_import_dll_with_entries
@@ -46,9 +46,9 @@ struct pe_export_address_entry
 	bool m_is_rva;
 	std::uint32_t m_ordinal;
 	std::uint32_t m_rva;
-	std::string m_forwarder;
+	string const* m_forwarder;
 	std::uint16_t m_hint;
-	std::string m_name;
+	string const* m_name;
 };
 
 struct pe_export_table_info

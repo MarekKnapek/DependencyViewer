@@ -453,6 +453,7 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 					std::uint16_t const import_ordinal = import_entry.m_value & 0x0000FFFFu;
 					ret.m_dlls[i].m_entries[j].m_is_ordinal = true;
 					ret.m_dlls[i].m_entries[j].m_ordinal_or_hint = import_ordinal;
+					ret.m_dlls[i].m_entries[j].m_name = nullptr;
 				}
 				else
 				{
@@ -481,7 +482,7 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 					VERIFY(is_ascii(name, import_name_len));
 					ret.m_dlls[i].m_entries[j].m_is_ordinal = false;
 					ret.m_dlls[i].m_entries[j].m_ordinal_or_hint = hint;
-					ret.m_dlls[i].m_entries[j].m_name.assign(name, name + import_name_len);
+					ret.m_dlls[i].m_entries[j].m_name = mm.m_strs.add_string(name, import_name_len, mm.m_alc);
 				}
 			}
 		}
@@ -511,6 +512,7 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 					std::uint16_t const import_ordinal = import_entry.m_value & 0x000000000000FFFFull;
 					ret.m_dlls[i].m_entries[j].m_is_ordinal = true;
 					ret.m_dlls[i].m_entries[j].m_ordinal_or_hint = import_ordinal;
+					ret.m_dlls[i].m_entries[j].m_name = nullptr;
 				}
 				else
 				{
@@ -539,7 +541,7 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 					VERIFY(is_ascii(name, import_name_len));
 					ret.m_dlls[i].m_entries[j].m_is_ordinal = false;
 					ret.m_dlls[i].m_entries[j].m_ordinal_or_hint = hint;
-					ret.m_dlls[i].m_entries[j].m_name.assign(name, name + import_name_len);
+					ret.m_dlls[i].m_entries[j].m_name = mm.m_strs.add_string(name, import_name_len, mm.m_alc);
 				}
 			}
 		}
@@ -640,18 +642,25 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 			VERIFY(std::find(forwarder_name, forwarder_name_end, '.') != forwarder_name_end);
 			ret.m_export_address_table[j].m_is_rva = false;
 			ret.m_export_address_table[j].m_ordinal = ordinal;
-			ret.m_export_address_table[j].m_forwarder.assign(forwarder_name, forwarder_name_end);
+			ret.m_export_address_table[j].m_rva = 0;
+			ret.m_export_address_table[j].m_forwarder = mm.m_strs.add_string(forwarder_name, forwarder_name_len, mm.m_alc);
 		}
 		else
 		{
 			ret.m_export_address_table[j].m_is_rva = true;
 			ret.m_export_address_table[j].m_ordinal = ordinal;
 			ret.m_export_address_table[j].m_rva = export_rva;
+			ret.m_export_address_table[j].m_forwarder = nullptr;
 		}
 		if(export_address_name)
 		{
 			ret.m_export_address_table[j].m_hint = hint;
-			ret.m_export_address_table[j].m_name.assign(export_address_name, export_address_name + export_address_name_len);
+			ret.m_export_address_table[j].m_name = mm.m_strs.add_string(export_address_name, export_address_name_len, mm.m_alc);
+		}
+		else
+		{
+			ret.m_export_address_table[j].m_hint = 0;
+			ret.m_export_address_table[j].m_name = nullptr;
 		}
 		++j;
 	}

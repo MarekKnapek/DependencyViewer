@@ -420,7 +420,7 @@ void main_window::on_import_notify(NMHDR& nmhdr)
 					else
 					{
 						std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-						tmpstr.resize(import_entry.m_name.size());
+						tmpstr.resize(import_entry.m_name->m_len);
 						std::transform(cbegin(import_entry.m_name), cend(import_entry.m_name), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
 						nm.item.pszText = const_cast<wchar_t*>(tmpstr.c_str());
 					}
@@ -473,7 +473,7 @@ void main_window::on_export_notify(NMHDR& nmhdr)
 				break;
 				case e_export_column::e_hint:
 				{
-					if(export_entry.m_name.empty())
+					if(!export_entry.m_name)
 					{
 						nm.item.pszText = const_cast<wchar_t*>(s_export_hint_na);
 					}
@@ -490,14 +490,14 @@ void main_window::on_export_notify(NMHDR& nmhdr)
 				break;
 				case e_export_column::e_name:
 				{
-					if(export_entry.m_name.empty())
+					if(!export_entry.m_name)
 					{
 						nm.item.pszText = const_cast<wchar_t*>(s_export_name_na);
 					}
 					else
 					{
 						std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-						tmpstr.resize(export_entry.m_name.size());
+						tmpstr.resize(export_entry.m_name->m_len);
 						std::transform(cbegin(export_entry.m_name), cend(export_entry.m_name), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
 						nm.item.pszText = const_cast<wchar_t*>(tmpstr.c_str());
 					}
@@ -517,7 +517,7 @@ void main_window::on_export_notify(NMHDR& nmhdr)
 					else
 					{
 						std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-						tmpstr.resize(export_entry.m_forwarder.size());
+						tmpstr.resize(export_entry.m_forwarder->m_len);
 						std::transform(cbegin(export_entry.m_forwarder), cend(export_entry.m_forwarder), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
 						nm.item.pszText = const_cast<wchar_t*>(tmpstr.c_str());
 					}
