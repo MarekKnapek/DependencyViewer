@@ -32,10 +32,10 @@ std::size_t fnv1a_hash(void const* const& ptr, int const& len)
 
 
 template<typename char_t>
-std::size_t basic_string_hash<char_t>::operator()(basic_string<char_t> const& obj) const
+std::size_t basic_string_hash<char_t>::operator()(basic_string<char_t> const* const& obj) const
 {
 	//return std::hash<std::wstring_view>()(std::wstring_view(obj.m_str, obj.m_len));
-	return fnv1a_hash(obj.m_str, obj.m_len * sizeof(char_t));
+	return fnv1a_hash(obj->m_str, obj->m_len * sizeof(char_t));
 }
 
 template struct basic_string_hash<char>;
@@ -43,22 +43,22 @@ template struct basic_string_hash<wchar_t>;
 
 
 template<typename char_t>
-bool basic_string_equal<char_t>::operator()(basic_string<char_t> const& a, basic_string<char_t> const& b) const
+bool basic_string_equal<char_t>::operator()(basic_string<char_t> const* const& a, basic_string<char_t> const* const& b) const
 {
-	if(&a == &b)
+	if(a == b)
 	{
 		return true;
 	}
-	if(a.m_str == b.m_str)
+	if(a->m_str == b->m_str)
 	{
-		assert(a.m_len == b.m_len);
+		assert(a->m_len == b->m_len);
 		return true;
 	}
-	if(a.m_len != b.m_len)
+	if(a->m_len != b->m_len)
 	{
 		return false;
 	}
-	return std::memcmp(a.m_str, b.m_str, a.m_len * sizeof(char_t)) == 0;
+	return std::memcmp(a->m_str, b->m_str, a->m_len * sizeof(char_t)) == 0;
 }
 
 template struct basic_string_equal<char>;
@@ -114,15 +114,18 @@ void basic_unique_strings<char_t>::swap(basic_unique_strings& other) noexcept
 }
 
 template<typename char_t>
-basic_string<char_t> const& basic_unique_strings<char_t>::add_string(char_t const* const& str, int const& len)
+basic_string<char_t> const* const& basic_unique_strings<char_t>::add_string(char_t const* const& str, int const& len)
 {
 	basic_string<char_t> const tmp_str{str, len};
-	auto const it = m_strings.find(tmp_str);
+	auto const it = m_strings.find(&tmp_str);
 	if(it == m_strings.end())
 	{
-		char_t* const new_str = m_alc->allocate_objects<char_t>(len + 1);
-		std::memcpy(new_str, str, len * sizeof(char_t));
-		auto itb = m_strings.insert(basic_string<char_t>{new_str, len});
+		char_t* const new_buff = m_alc->allocate_objects<char_t>(len + 1);
+		std::memcpy(new_buff, str, len * sizeof(char_t));
+		basic_string<char_t>* const new_str = m_alc->allocate_objects<basic_string<char_t>>(1);
+		new_str->m_str = new_buff;
+		new_str->m_len = len;
+		auto itb = m_strings.insert(new_str);
 		assert(itb.first != m_strings.end());
 		assert(itb.second);
 		return *itb.first;

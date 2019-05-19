@@ -22,7 +22,7 @@ typedef basic_string<wchar_t> wstring;
 template<typename char_t>
 struct basic_string_hash
 {
-	std::size_t operator()(basic_string<char_t> const& obj) const;
+	std::size_t operator()(basic_string<char_t> const* const& obj) const;
 };
 
 typedef basic_string_hash<char> string_hash;
@@ -32,7 +32,7 @@ typedef basic_string_hash<wchar_t> wstring_hash;
 template<typename char_t>
 struct basic_string_equal
 {
-	bool operator()(basic_string<char_t> const& a, basic_string<char_t> const& b) const;
+	bool operator()(basic_string<char_t> const* const& a, basic_string<char_t> const* const& b) const;
 };
 
 typedef basic_string_equal<char> string_equal;
@@ -53,9 +53,9 @@ public:
 	~basic_unique_strings() noexcept;
 	void swap(basic_unique_strings<char_t>& other) noexcept;
 public:
-	basic_string<char_t> const& add_string(char_t const* const& str, int const& len);
+	basic_string<char_t> const* const& add_string(char_t const* const& str, int const& len);
 private:
-	std::unordered_set<basic_string<char_t>, basic_string_hash<char_t>, basic_string_equal<char_t>> m_strings;
+	std::unordered_set<basic_string<char_t> const*, basic_string_hash<char_t>, basic_string_equal<char_t>> m_strings;
 	allocator* m_alc;
 };
 
