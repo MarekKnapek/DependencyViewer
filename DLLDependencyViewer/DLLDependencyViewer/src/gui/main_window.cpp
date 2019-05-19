@@ -299,7 +299,6 @@ void main_window::on_tree_notify(NMHDR& nmhdr)
 	{
 		NMTREEVIEWW& nm = reinterpret_cast<NMTREEVIEWW&>(nmhdr);
 		LRESULT const redr_off_1 = SendMessageW(m_import_list, WM_SETREDRAW, FALSE, 0);
-		LRESULT const deleted_1 = SendMessageW(m_import_list, LVM_DELETEALLITEMS, 0, 0);
 		HTREEITEM const parent = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(nm.itemNew.hItem)));
 		if(parent)
 		{
@@ -338,7 +337,6 @@ void main_window::on_tree_notify(NMHDR& nmhdr)
 		}
 		LRESULT const redr_on_1 = SendMessageW(m_import_list, WM_SETREDRAW, TRUE, 0);
 		LRESULT const redr_off_2 = SendMessageW(m_export_list, WM_SETREDRAW, FALSE, 0);
-		LRESULT const deleted_2 = SendMessageW(m_export_list, LVM_DELETEALLITEMS, 0, 0);
 		file_info const& tmp_fi = *reinterpret_cast<file_info*>(nm.itemNew.lParam);
 		file_info const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
 		LRESULT const set_size = SendMessageW(m_export_list, LVM_SETITEMCOUNT, fi.m_export_table.m_export_address_table.size(), 0);
@@ -651,13 +649,15 @@ void main_window::open_file(wchar_t const* const file_path)
 		int const msgbox = MessageBoxW(m_hwnd, ex, s_msg_error, MB_OK | MB_ICONERROR);
 		return;
 	}
+	LRESULT const deleted_1 = SendMessageW(m_tree, TVM_DELETEITEM, 0, reinterpret_cast<LPARAM>(TVI_ROOT));
+	LRESULT const deleted_2 = SendMessageW(m_import_list, LVM_DELETEALLITEMS, 0, 0);
+	LRESULT const deleted_3 = SendMessageW(m_export_list, LVM_DELETEALLITEMS, 0, 0);
 	m_file_info = std::move(fi);
 	refresh_view();
 }
 
 void main_window::refresh_view()
 {
-	LRESULT const deleted = SendMessageW(m_tree, TVM_DELETEITEM, 0, reinterpret_cast<LPARAM>(TVI_ROOT));
 	TVINSERTSTRUCTW tvi;
 	tvi.hParent = TVI_ROOT;
 	tvi.hInsertAfter = TVI_ROOT;
