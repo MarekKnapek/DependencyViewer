@@ -251,9 +251,9 @@ void main_window::on_tree_notify(NMHDR& nmhdr)
 		{
 			file_info const& tmp_fi = *reinterpret_cast<file_info*>(di.item.lParam);
 			file_info const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
-			HTREEITEM const parent = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(di.item.hItem)));
-			if(parent)
+			if(fi.m_file_path == get_not_found_string())
 			{
+				HTREEITEM const parent = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(di.item.hItem)));
 				TVITEMEXW ti;
 				ti.hItem = parent;
 				ti.mask = TVIF_PARAM;

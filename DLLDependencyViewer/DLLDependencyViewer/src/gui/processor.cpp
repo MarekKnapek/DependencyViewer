@@ -31,6 +31,12 @@ void process_r(processor& prcsr);
 void process_e(processor& prcsr, file_info& fi, string const* const& dll_name);
 
 
+wstring const* get_not_found_string()
+{
+	return &s_not_found_wstr;
+}
+
+
 main_type process(std::wstring const& main_file_path)
 {
 	main_type mo;
