@@ -589,9 +589,16 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 	std::uint32_t const export_address_table_disk_off = export_address_table_sect_off.second;
 	VERIFY(export_address_table_section.m_raw_ptr + export_address_table_section.m_raw_size - export_address_table_disk_off >= export_dir.m_export_address_count * sizeof(std::uint32_t));
 	std::uint32_t const* export_address_table = reinterpret_cast<std::uint32_t const*>(file_data + export_address_table_disk_off);
+	int const export_address_count_proper = static_cast<int>(std::count_if(export_address_table, export_address_table + export_dir.m_export_address_count, [](std::uint32_t const& e){ return e != 0; }));
+	ret.m_export_address_table.resize(export_address_count_proper);
+	int j = 0;
 	for(std::uint32_t i = 0; i != export_dir.m_export_address_count; ++i)
 	{
 		std::uint32_t const export_rva = export_address_table[i];
+		if(export_rva == 0)
+		{
+			continue;
+		}
 		std::uint16_t const ordinal = i + export_dir.m_ordinal_base;
 		std::uint16_t hint;
 		char const* export_address_name = nullptr;
@@ -625,23 +632,22 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 			VERIFY(forwarder_name_len >= 3);
 			VERIFY(is_ascii(forwarder_name, forwarder_name_len));
 			VERIFY(std::find(forwarder_name, forwarder_name_end, '.') != forwarder_name_end);
-			ret.m_export_address_table.push_back({});
-			ret.m_export_address_table.back().m_is_rva = false;
-			ret.m_export_address_table.back().m_ordinal = ordinal;
-			ret.m_export_address_table.back().m_forwarder.assign(forwarder_name, forwarder_name_end);
+			ret.m_export_address_table[j].m_is_rva = false;
+			ret.m_export_address_table[j].m_ordinal = ordinal;
+			ret.m_export_address_table[j].m_forwarder.assign(forwarder_name, forwarder_name_end);
 		}
 		else
 		{
-			ret.m_export_address_table.push_back({});
-			ret.m_export_address_table.back().m_is_rva = true;
-			ret.m_export_address_table.back().m_ordinal = ordinal;
-			ret.m_export_address_table.back().m_rva = export_rva;
+			ret.m_export_address_table[j].m_is_rva = true;
+			ret.m_export_address_table[j].m_ordinal = ordinal;
+			ret.m_export_address_table[j].m_rva = export_rva;
 		}
 		if(export_address_name)
 		{
-			ret.m_export_address_table.back().m_hint = hint;
-			ret.m_export_address_table.back().m_name.assign(export_address_name, export_address_name + export_address_name_len);
+			ret.m_export_address_table[j].m_hint = hint;
+			ret.m_export_address_table[j].m_name.assign(export_address_name, export_address_name + export_address_name_len);
 		}
+		++j;
 	}
 
 	return ret;
