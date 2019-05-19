@@ -165,6 +165,7 @@
     <ClCompile Include="src\nogui\memory_mapped_file.cpp" />
     <ClCompile Include="src\nogui\pe.cpp" />
     <ClCompile Include="src\nogui\unicode.cpp" />
+    <ClCompile Include="src\nogui\unique_strings.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\gui\main.h" />
@@ -176,6 +177,7 @@
     <ClInclude Include="src\nogui\memory_mapped_file.h" />
     <ClInclude Include="src\nogui\pe.h" />
     <ClInclude Include="src\nogui\unicode.h" />
+    <ClInclude Include="src\nogui\unique_strings.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

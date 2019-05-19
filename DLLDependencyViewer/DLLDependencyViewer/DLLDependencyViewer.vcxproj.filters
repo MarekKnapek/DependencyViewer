@@ -39,6 +39,9 @@
     <ClCompile Include="src\nogui\allocator.cpp">
       <Filter>src\nogui</Filter>
     </ClCompile>
+    <ClCompile Include="src\nogui\unique_strings.cpp">
+      <Filter>src\nogui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\gui\main_window.h">
@@ -66,6 +69,9 @@
       <Filter>src\gui</Filter>
     </ClInclude>
     <ClInclude Include="src\nogui\allocator.h">
+      <Filter>src\nogui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nogui\unique_strings.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
   </ItemGroup>
