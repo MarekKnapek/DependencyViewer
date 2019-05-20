@@ -85,8 +85,8 @@ main_window::main_window() :
 	m_splitter_hor(m_hwnd),
 	m_tree(CreateWindowExW(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE, WC_TREEVIEWW, nullptr, WS_VISIBLE | WS_CHILD, 0, 0, 0, 0, m_splitter_hor.get_hwnd(), reinterpret_cast<HMENU>(static_cast<std::uintptr_t>(s_tree_id)), get_instance(), nullptr)),
 	m_splitter_ver(m_splitter_hor.get_hwnd()),
-	m_import_list(CreateWindowExW(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE, WC_LISTVIEWW, nullptr, WS_VISIBLE | WS_CHILD | LVS_REPORT | LVS_SHOWSELALWAYS, 0, 0, 0, 0, m_splitter_ver.get_hwnd(), reinterpret_cast<HMENU>(static_cast<std::uintptr_t>(s_import_list)), get_instance(), nullptr)),
-	m_export_list(CreateWindowExW(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE, WC_LISTVIEWW, nullptr, WS_VISIBLE | WS_CHILD | LVS_REPORT | LVS_SHOWSELALWAYS, 0, 0, 0, 0, m_splitter_ver.get_hwnd(), reinterpret_cast<HMENU>(static_cast<std::uintptr_t>(s_export_list)), get_instance(), nullptr)),
+	m_import_list(CreateWindowExW(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE, WC_LISTVIEWW, nullptr, WS_VISIBLE | WS_CHILD | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA, 0, 0, 0, 0, m_splitter_ver.get_hwnd(), reinterpret_cast<HMENU>(static_cast<std::uintptr_t>(s_import_list)), get_instance(), nullptr)),
+	m_export_list(CreateWindowExW(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE, WC_LISTVIEWW, nullptr, WS_VISIBLE | WS_CHILD | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA, 0, 0, 0, 0, m_splitter_ver.get_hwnd(), reinterpret_cast<HMENU>(static_cast<std::uintptr_t>(s_export_list)), get_instance(), nullptr)),
 	m_tmp_strings(),
 	m_tmp_string_idx(),
 	m_mo()
@@ -293,26 +293,6 @@ void main_window::on_tree_notify(NMHDR& nmhdr)
 			file_info const& fi = *reinterpret_cast<file_info*>(nm.itemNew.lParam);
 			int const idx = static_cast<int>(&fi - parent_fi.m_sub_file_infos.data());
 			LRESULT const set_size = SendMessageW(m_import_list, LVM_SETITEMCOUNT, parent_fi.m_import_table.m_dlls[idx].m_entries.size(), 0);
-			for(int row = 0; row != static_cast<int>(parent_fi.m_import_table.m_dlls[idx].m_entries.size()); ++row)
-			{
-				LVITEMW lv;
-				lv.mask = LVIF_TEXT | LVIF_PARAM;
-				lv.iItem = row;
-				lv.iSubItem = 0;
-				lv.state = 0;
-				lv.stateMask = 0;
-				lv.pszText = LPSTR_TEXTCALLBACKW;
-				lv.cchTextMax = 0;
-				lv.iImage = 0;
-				lv.lParam = reinterpret_cast<LPARAM>(&parent_fi.m_import_table.m_dlls[idx].m_entries[row]);
-				lv.iIndent = 0;
-				lv.iGroupId = 0;
-				lv.cColumns = 0;
-				lv.puColumns = nullptr;
-				lv.piColFmt = nullptr;
-				lv.iGroup = 0;
-				LRESULT const added = SendMessageW(m_import_list, LVM_INSERTITEM, 0, reinterpret_cast<LPARAM>(&lv));
-			}
 		}
 		for(int i = 0; i != static_cast<int>(std::size(s_import_headers)); ++i)
 		{
@@ -324,26 +304,6 @@ void main_window::on_tree_notify(NMHDR& nmhdr)
 		file_info const& tmp_fi = *reinterpret_cast<file_info*>(nm.itemNew.lParam);
 		file_info const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
 		LRESULT const set_size = SendMessageW(m_export_list, LVM_SETITEMCOUNT, fi.m_export_table.m_export_address_table.size(), 0);
-		for(int row = 0; row != fi.m_export_table.m_export_address_table.size(); ++row)
-		{
-			LVITEMW lv;
-			lv.mask = LVIF_TEXT | LVIF_PARAM;
-			lv.iItem = row;
-			lv.iSubItem = 0;
-			lv.state = 0;
-			lv.stateMask = 0;
-			lv.pszText = LPSTR_TEXTCALLBACKW;
-			lv.cchTextMax = 0;
-			lv.iImage = 0;
-			lv.lParam = reinterpret_cast<LPARAM>(& fi.m_export_table.m_export_address_table[row]);
-			lv.iIndent = 0;
-			lv.iGroupId = 0;
-			lv.cColumns = 0;
-			lv.puColumns = nullptr;
-			lv.piColFmt = nullptr;
-			lv.iGroup = 0;
-			LRESULT const added = SendMessageW(m_export_list, LVM_INSERTITEM, 0, reinterpret_cast<LPARAM>(&lv));
-		}
 		for(int i = 0; i != static_cast<int>(std::size(s_export_headers)); ++i)
 		{
 			LRESULT const auto_sized = SendMessageW(m_export_list, LVM_SETCOLUMNWIDTH, i, LVSCW_AUTOSIZE);
@@ -359,9 +319,29 @@ void main_window::on_import_notify(NMHDR& nmhdr)
 		NMLVDISPINFOW& nm = reinterpret_cast<NMLVDISPINFOW&>(nmhdr);
 		if((nm.item.mask | LVIF_TEXT) != 0)
 		{
-			pe_import_entry const& import_entry = *reinterpret_cast<pe_import_entry*>(nm.item.lParam);
+			TVITEMEXW ti;
+			HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(&ti)));
+			if(!selected)
+			{
+				return;
+			}
+			HTREEITEM const parent = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(selected)));
+			if(!parent)
+			{
+				return;
+			}
+			ti.hItem = parent;
+			ti.mask = TVIF_PARAM;
+			LRESULT const got_parent = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
+			file_info const& parent_fi = *reinterpret_cast<file_info*>(ti.lParam);
+			ti.hItem = selected;
+			ti.mask = TVIF_PARAM;
+			LRESULT const got_selected = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
+			file_info const& fi = *reinterpret_cast<file_info*>(ti.lParam);
+			int const idx = static_cast<int>(&fi - parent_fi.m_sub_file_infos.data());
 			int const row = nm.item.iItem;
 			int const col = nm.item.iSubItem;
+			pe_import_entry const& import_entry = parent_fi.m_import_table.m_dlls[idx].m_entries[row];
 			e_import_column const ecol = static_cast<e_import_column>(col);
 			switch(ecol)
 			{
@@ -443,9 +423,20 @@ void main_window::on_export_notify(NMHDR& nmhdr)
 		NMLVDISPINFOW& nm = reinterpret_cast<NMLVDISPINFOW&>(nmhdr);
 		if((nm.item.mask | LVIF_TEXT) != 0)
 		{
-			pe_export_address_entry const& export_entry = *reinterpret_cast<pe_export_address_entry*>(nm.item.lParam);
+			TVITEMEXW ti;
+			HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(&ti)));
+			if(!selected)
+			{
+				return;
+			}
+			ti.hItem = selected;
+			ti.mask = TVIF_PARAM;
+			LRESULT const got_selected = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
+			file_info const& fi_tmp = *reinterpret_cast<file_info*>(ti.lParam);
+			file_info const& fi = fi_tmp.m_orig_instance ? *fi_tmp.m_orig_instance : fi_tmp;
 			int const row = nm.item.iItem;
 			int const col = nm.item.iSubItem;
+			pe_export_address_entry const& export_entry = fi.m_export_table.m_export_address_table[row];
 			e_export_column const ecol = static_cast<e_export_column>(col);
 			switch(ecol)
 			{
