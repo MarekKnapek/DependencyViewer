@@ -102,6 +102,7 @@ void process_e(processor& prcsr, file_info& fi, string const* const& dll_name)
 
 	memory_mapped_file const mmf = memory_mapped_file(fi.m_file_path->m_str);
 	pe_header_info const hi = pe_process_header(mmf.begin(), mmf.size());
+	fi.m_is_32_bit = hi.m_is_pe32;
 	fi.m_import_table = pe_process_import_table(mmf.begin(), mmf.size(), hi, prcsr.m_mo->m_mm);
 	fi.m_export_table = pe_process_export_table(mmf.begin(), mmf.size(), hi, prcsr.m_mo->m_mm);
 }

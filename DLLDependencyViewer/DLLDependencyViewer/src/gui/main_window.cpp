@@ -284,6 +284,7 @@ void main_window::on_tree_notify(NMHDR& nmhdr)
 		{
 			file_info const& tmp_fi = *reinterpret_cast<file_info*>(di.item.lParam);
 			file_info const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
+			bool const is_32_bit = fi.m_is_32_bit;
 			bool const is_duplicate = tmp_fi.m_orig_instance != nullptr;
 			bool const is_missing = fi.m_file_path == get_not_found_string();
 			if(is_missing)
@@ -294,11 +295,25 @@ void main_window::on_tree_notify(NMHDR& nmhdr)
 			{
 				if(is_duplicate)
 				{
-					di.item.iImage = s_res_icon_duplicate;
+					if(is_32_bit)
+					{
+						di.item.iImage = s_res_icon_duplicate;
+					}
+					else
+					{
+						di.item.iImage = s_res_icon_duplicate_64;
+					}
 				}
 				else
 				{
-					di.item.iImage = s_res_icon_normal;
+					if(is_32_bit)
+					{
+						di.item.iImage = s_res_icon_normal;
+					}
+					else
+					{
+						di.item.iImage = s_res_icon_normal_64;
+					}
 				}
 			}
 			di.item.iSelectedImage = di.item.iImage;

@@ -20,6 +20,7 @@ struct file_info
 {
 	file_info const* m_orig_instance;
 	wstring const* m_file_path;
+	bool m_is_32_bit;
 	pe_import_table_info m_import_table;
 	pe_export_table_info m_export_table;
 	file_infos m_sub_file_infos;
