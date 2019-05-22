@@ -285,11 +285,12 @@ pe_header_info pe_process_header(void const* const fd, int const fs)
 	VERIFY(pe_signature == s_pe_signature);
 
 	static constexpr uint16_t const s_machine_type_386 = 0x014c;
+	static constexpr uint16_t const s_machine_type_ia64 = 0x0200;
 	static constexpr uint16_t const s_machine_type_amd64 = 0x8664;
 	static constexpr uint16_t const s_max_coff_header_sections = 96;
 	VERIFY(file_size >= dos_hdr.m_pe_offset + s_pe_signature_len + sizeof(coff_header));
 	coff_header const& coff_hdr = *reinterpret_cast<coff_header const*>(file_data + dos_hdr.m_pe_offset);
-	VERIFY(coff_hdr.m_machine == s_machine_type_386 || coff_hdr.m_machine == s_machine_type_amd64);
+	VERIFY(coff_hdr.m_machine == s_machine_type_386 || coff_hdr.m_machine == s_machine_type_ia64 || coff_hdr.m_machine == s_machine_type_amd64);
 	VERIFY(coff_hdr.m_section_count <= s_max_coff_header_sections);
 
 	static constexpr int const s_coff_optional_header_signature_len = 2;
