@@ -6,6 +6,8 @@
 #include "../nogui/pe.h"
 #include "../nogui/utils.h"
 
+#include "../res/resources.h"
+
 #include <cassert>
 #include <cstdlib>
 #include <cstdint>
@@ -96,6 +98,8 @@ main_window::main_window() :
 
 	LRESULT const set_tree = SendMessageW(m_tree, TVM_SETEXTENDEDSTYLE, TVS_EX_DOUBLEBUFFER, TVS_EX_DOUBLEBUFFER);
 	LONG_PTR const prev = SetWindowLongPtrW(m_tree, GWL_STYLE, GetWindowLongPtrW(m_tree, GWL_STYLE) | TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS);
+	HIMAGELIST const img_list = ImageList_LoadImageW(get_instance(), MAKEINTRESOURCEW(s_res_icons_tree), 26, 0, CLR_DEFAULT, IMAGE_BITMAP, LR_DEFAULTCOLOR);
+	LRESULT const img_list_set = SendMessageW(m_tree, TVM_SETIMAGELIST, TVSIL_NORMAL, reinterpret_cast<LPARAM>(img_list));
 
 	unsigned const extended_lv_styles = LVS_EX_FULLROWSELECT | LVS_EX_LABELTIP | LVS_EX_DOUBLEBUFFER;
 	LRESULT const set_import = SendMessageW(m_import_list, LVM_SETEXTENDEDLISTVIEWSTYLE, extended_lv_styles, extended_lv_styles);
@@ -247,7 +251,7 @@ void main_window::on_tree_notify(NMHDR& nmhdr)
 	if(nmhdr.code == TVN_GETDISPINFOW)
 	{
 		NMTVDISPINFOW& di = reinterpret_cast<NMTVDISPINFOW&>(nmhdr);
-		if((di.item.mask | TVIF_TEXT) != 0)
+		if((di.item.mask & TVIF_TEXT) != 0)
 		{
 			file_info const& tmp_fi = *reinterpret_cast<file_info*>(di.item.lParam);
 			file_info const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
@@ -275,6 +279,29 @@ void main_window::on_tree_notify(NMHDR& nmhdr)
 				tmp.append(find_file_name(fi.m_file_path->m_str, fi.m_file_path->m_len)).append(L" (").append(fi.m_file_path->m_str).append(L")");
 				di.item.pszText = const_cast<wchar_t*>(tmp.c_str());
 			}
+		}
+		if((di.item.mask & (TVIF_IMAGE | TVIF_SELECTEDIMAGE)) != 0)
+		{
+			file_info const& tmp_fi = *reinterpret_cast<file_info*>(di.item.lParam);
+			file_info const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
+			bool const is_duplicate = tmp_fi.m_orig_instance != nullptr;
+			bool const is_missing = fi.m_file_path == get_not_found_string();
+			if(is_missing)
+			{
+				di.item.iImage = s_res_icon_missing;
+			}
+			else
+			{
+				if(is_duplicate)
+				{
+					di.item.iImage = s_res_icon_duplicate;
+				}
+				else
+				{
+					di.item.iImage = s_res_icon_normal;
+				}
+			}
+			di.item.iSelectedImage = di.item.iImage;
 		}
 	}
 	else if(nmhdr.code == TVN_SELCHANGEDW)
@@ -642,14 +669,14 @@ void main_window::refresh(main_type&& mo)
 	TVINSERTSTRUCTW tvi;
 	tvi.hParent = TVI_ROOT;
 	tvi.hInsertAfter = TVI_ROOT;
-	tvi.itemex.mask = TVIF_TEXT | TVIF_PARAM;
+	tvi.itemex.mask = TVIF_TEXT | TVIF_IMAGE | TVIF_PARAM | TVIF_SELECTEDIMAGE;
 	tvi.itemex.hItem = nullptr;
 	tvi.itemex.state = 0;
 	tvi.itemex.stateMask = 0;
-	tvi.itemex.pszText = LPSTR_TEXTCALLBACK;
+	tvi.itemex.pszText = LPSTR_TEXTCALLBACKW;
 	tvi.itemex.cchTextMax = 0;
-	tvi.itemex.iImage = 0;
-	tvi.itemex.iSelectedImage = 0;
+	tvi.itemex.iImage = I_IMAGECALLBACK;
+	tvi.itemex.iSelectedImage = I_IMAGECALLBACK;
 	tvi.itemex.cChildren = 0;
 	tvi.itemex.lParam = reinterpret_cast<LPARAM>(&m_mo.m_fi.m_sub_file_infos[0]);
 	tvi.itemex.iIntegral = 0;
@@ -674,14 +701,14 @@ void main_window::refresh_view_recursive(file_info const& parent_fi, HTREEITEM c
 		TVINSERTSTRUCTW tvi;
 		tvi.hParent = parent_ti;
 		tvi.hInsertAfter = TVI_LAST;
-		tvi.itemex.mask = TVIF_TEXT | TVIF_PARAM;
+		tvi.itemex.mask = TVIF_TEXT | TVIF_IMAGE | TVIF_PARAM | TVIF_SELECTEDIMAGE;
 		tvi.itemex.hItem = nullptr;
 		tvi.itemex.state = 0;
 		tvi.itemex.stateMask = 0;
-		tvi.itemex.pszText = LPSTR_TEXTCALLBACK;
+		tvi.itemex.pszText = LPSTR_TEXTCALLBACKW;
 		tvi.itemex.cchTextMax = 0;
-		tvi.itemex.iImage = 0;
-		tvi.itemex.iSelectedImage = 0;
+		tvi.itemex.iImage = I_IMAGECALLBACK;
+		tvi.itemex.iSelectedImage = I_IMAGECALLBACK;
 		tvi.itemex.cChildren = 0;
 		tvi.itemex.lParam = reinterpret_cast<LPARAM>(&fi);
 		tvi.itemex.iIntegral = 0;
