@@ -182,6 +182,13 @@
     <ClInclude Include="src\nogui\unicode.h" />
     <ClInclude Include="src\nogui\unique_strings.h" />
     <ClInclude Include="src\nogui\utils.h" />
+    <ClInclude Include="src\res\resources.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="src\res\resources.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="src\res\icons_tree.bmp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -10,6 +10,9 @@
     <Filter Include="src\nogui">
       <UniqueIdentifier>{4f38166f-567e-4f16-a33d-07d3896f9c73}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\res">
+      <UniqueIdentifier>{369ddc17-bf29-4cf8-88e7-a5a98b3df90d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\main.cpp">
@@ -86,5 +89,18 @@
     <ClInclude Include="src\nogui\utils.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
+    <ClInclude Include="src\res\resources.h">
+      <Filter>src\res</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="src\res\resources.rc">
+      <Filter>src\res</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="src\res\icons_tree.bmp">
+      <Filter>src\res</Filter>
+    </Image>
   </ItemGroup>
 </Project>

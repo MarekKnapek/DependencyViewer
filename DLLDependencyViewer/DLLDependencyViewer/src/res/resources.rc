@@ -1,0 +1,4 @@
+#include "resources.h"
+
+
+s_res_icons_tree BITMAP "icons_tree.bmp"
