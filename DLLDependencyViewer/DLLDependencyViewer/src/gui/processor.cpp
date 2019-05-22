@@ -81,7 +81,7 @@ void process_r(processor& prcsr)
 				process_e(prcsr, sub_fi, sub_name);
 				prcsr.m_map[sub_name] = &sub_fi;
 				sub_fi.m_sub_file_infos.resize(sub_fi.m_import_table.m_dlls.size());
-				std::for_each(begin(fi.m_sub_file_infos), end(fi.m_sub_file_infos), [&](file_info& e){ prcsr.m_queue.push(&e); });
+				prcsr.m_queue.push(&sub_fi);
 			}
 		}
 	}
