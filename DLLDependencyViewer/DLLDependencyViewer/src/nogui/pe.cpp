@@ -365,11 +365,13 @@ pe_header_info pe_process_header(void const* const fd, int const fs)
 		VERIFY((sct_hdr.m_raw_ptr % (is_pe32 ? coff_hdr_opt_pe32.m_windows.m_file_alignment : coff_hdr_opt_pe32_plus.m_windows.m_file_alignment)) == 0);
 	}
 
+	VERIFY((is_pe32 ? coff_hdr_opt_pe32.m_windows.m_image_base : coff_hdr_opt_pe32_plus.m_windows.m_image_base) <= 0xFFFFFFFF);
 	pe_header_info ret;
 	ret.m_file_data = file_data;
 	ret.m_file_size = file_size;
 	ret.m_pe_header_start = dos_hdr.m_pe_offset;
 	ret.m_is_pe32 = is_pe32;
+	ret.m_image_base = is_pe32 ? coff_hdr_opt_pe32.m_windows.m_image_base : static_cast<std::uint32_t>(coff_hdr_opt_pe32_plus.m_windows.m_image_base);
 	ret.m_data_directory_count = 16;
 	ret.m_data_directory_start = dos_hdr.m_pe_offset + sizeof(coff_header) + (is_pe32 ? sizeof(coff_optional_header_pe32) : sizeof(coff_optional_header_pe32_plus));
 	ret.m_section_count = coff_hdr.m_section_count;
@@ -426,7 +428,7 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 
 	for(std::uint32_t i = 0; i != import_directory_table_count + delay_import_directory_table_count; ++i)
 	{
-		std::uint32_t const dll_name_rva = i < import_directory_table_count ? import_directory_table[i].m_name : delay_import_directory_table[i - import_directory_table_count].m_name;
+		std::uint32_t const dll_name_rva = i < import_directory_table_count ? import_directory_table[i].m_name : ((delay_import_directory_table->m_attributes & 1u) != 0 ? delay_import_directory_table[i - import_directory_table_count].m_name : (delay_import_directory_table[i - import_directory_table_count].m_name - hi.m_image_base));
 		auto const dll_name_sct_dsk = convert_rva_to_disk_ptr(dll_name_rva, hi);
 		section_header const& dll_name_sct = *dll_name_sct_dsk.first;
 		std::uint32_t const dll_name_dsk = dll_name_sct_dsk.second;
@@ -439,7 +441,7 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 		VERIFY(dll_name_len > 0);
 		VERIFY(is_ascii(dll_name, static_cast<int>(dll_name_len)));
 		ret.m_dlls[i].m_dll_name = mm.m_strs.add_string(dll_name, dll_name_len, mm.m_alc);
-		std::uint32_t const import_table_rva = i < import_directory_table_count ? (import_directory_table[i].m_import_lookup_table != 0 ? import_directory_table[i].m_import_lookup_table : import_directory_table[i].m_import_adress_table) : delay_import_directory_table[i - import_directory_table_count].m_delay_import_name_table;
+		std::uint32_t const import_table_rva = i < import_directory_table_count ? (import_directory_table[i].m_import_lookup_table != 0 ? import_directory_table[i].m_import_lookup_table : import_directory_table[i].m_import_adress_table) : ((delay_import_directory_table->m_attributes & 1u) != 0 ? delay_import_directory_table[i - import_directory_table_count].m_delay_import_name_table : (delay_import_directory_table[i - import_directory_table_count].m_delay_import_name_table - hi.m_image_base));
 		auto const import_lookup_table_sct_dsk = convert_rva_to_disk_ptr(import_table_rva, hi);
 		section_header const& import_lookup_table_sct = *import_lookup_table_sct_dsk.first;
 		std::uint32_t const import_lookup_table_dsk = import_lookup_table_sct_dsk.second;
@@ -468,7 +470,7 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 				{
 					VERIFY((import_entry.m_value & 0x80000000u) == 0u);
 					std::uint32_t const hint_name_offset = import_entry.m_value &~ 0x80000000u;
-					auto const hint_name_sect_off = convert_rva_to_disk_ptr(hint_name_offset, hi);
+					auto const hint_name_sect_off = convert_rva_to_disk_ptr((i >= import_directory_table_count && (delay_import_directory_table->m_attributes & 1u) == 0) ? hint_name_offset - hi.m_image_base : hint_name_offset, hi);
 					section_header const& hint_name_section = *hint_name_sect_off.first;
 					std::uint32_t const hint_name_disk_offset = hint_name_sect_off.second;
 					VERIFY(file_size >= hint_name_disk_offset + sizeof(import_hint_name));
@@ -514,7 +516,7 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 				{
 					VERIFY((import_entry.m_value & 0x7FFFFFFF00000000ull) == 0ull);
 					std::uint32_t const hint_name_offset = import_entry.m_value &~ 0xFFFFFFFF80000000ull;
-					auto const hint_name_sect_off = convert_rva_to_disk_ptr(hint_name_offset, hi);
+					auto const hint_name_sect_off = convert_rva_to_disk_ptr((i >= import_directory_table_count && (delay_import_directory_table->m_attributes & 1u) == 0) ? hint_name_offset - hi.m_image_base : hint_name_offset, hi);
 					section_header const& hint_name_section = *hint_name_sect_off.first;
 					std::uint32_t const hint_name_disk_offset = hint_name_sect_off.second;
 					VERIFY(file_size >= hint_name_disk_offset + sizeof(import_hint_name));
@@ -672,7 +674,7 @@ std::pair<section_header const*, std::uint32_t> convert_rva_to_disk_ptr(std::uin
 		for(std::uint32_t i = 0; i != hi.m_section_count; ++i)
 		{
 			section_header const* const ss = reinterpret_cast<section_header const*>(hi.m_file_data + hi.m_section_headers_start) + i;
-			if(rva >= ss->m_virtual_address && rva < ss->m_virtual_address + ss->m_virtual_size)
+			if(rva >= ss->m_virtual_address && rva < ss->m_virtual_address + ss->m_raw_size)
 			{
 				section = ss;
 				break;
