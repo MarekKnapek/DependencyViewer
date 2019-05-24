@@ -253,18 +253,23 @@ void main_window::on_tree_notify(NMHDR& nmhdr)
 		NMTVDISPINFOW& di = reinterpret_cast<NMTVDISPINFOW&>(nmhdr);
 		file_info const& tmp_fi = *reinterpret_cast<file_info*>(di.item.lParam);
 		file_info const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
+		file_info const* parent_fi = nullptr;
+		HTREEITEM const parent = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(di.item.hItem)));
+		if(parent)
+		{
+			TVITEMEXW ti;
+			ti.hItem = parent;
+			ti.mask = TVIF_PARAM;
+			LRESULT const got = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
+			parent_fi = reinterpret_cast<file_info*>(ti.lParam);
+		}
 		if((di.item.mask & TVIF_TEXT) != 0)
 		{
 			if(fi.m_file_path == get_not_found_string())
 			{
-				HTREEITEM const parent = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(di.item.hItem)));
-				TVITEMEXW ti;
-				ti.hItem = parent;
-				ti.mask = TVIF_PARAM;
-				LRESULT const got = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-				file_info const& parent_fi = *reinterpret_cast<file_info*>(ti.lParam);
-				int const idx = static_cast<int>(&tmp_fi - parent_fi.m_sub_file_infos.data());
-				string const* const my_name = parent_fi.m_import_table.m_dlls[idx].m_dll_name;
+				assert(parent_fi);
+				int const idx = static_cast<int>(&tmp_fi - parent_fi->m_sub_file_infos.data());
+				string const* const my_name = parent_fi->m_import_table.m_dlls[idx].m_dll_name;
 				m_mo.m_tmpw.resize(my_name->m_len);
 				std::transform(my_name->m_str, my_name->m_str + my_name->m_len, m_mo.m_tmpw.begin(), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
 				std::wstring& tmp = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
@@ -275,8 +280,20 @@ void main_window::on_tree_notify(NMHDR& nmhdr)
 			else
 			{
 				std::wstring& tmp = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-				tmp.clear();
-				tmp.append(find_file_name(fi.m_file_path->m_str, fi.m_file_path->m_len)).append(L" (").append(fi.m_file_path->m_str).append(L")");
+				if(parent_fi)
+				{
+					int const idx = static_cast<int>(&tmp_fi - parent_fi->m_sub_file_infos.data());
+					string const* const my_name = parent_fi->m_import_table.m_dlls[idx].m_dll_name;
+					m_mo.m_tmpw.resize(my_name->m_len);
+					std::transform(my_name->m_str, my_name->m_str + my_name->m_len, m_mo.m_tmpw.begin(), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
+					tmp.clear();
+					tmp.append(m_mo.m_tmpw).append(L" (").append(fi.m_file_path->m_str).append(L")");
+				}
+				else
+				{
+					tmp.clear();
+					tmp.append(find_file_name(fi.m_file_path->m_str, fi.m_file_path->m_len)).append(L" (").append(fi.m_file_path->m_str).append(L")");
+				}
 				di.item.pszText = const_cast<wchar_t*>(tmp.c_str());
 			}
 		}
