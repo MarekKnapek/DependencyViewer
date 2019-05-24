@@ -39,6 +39,7 @@ struct pe_import_dll_with_entries
 struct pe_import_table_info
 {
 	std::vector<pe_import_dll_with_entries> m_dlls;
+	int m_nondelay_imports_count;
 };
 
 struct pe_export_address_entry

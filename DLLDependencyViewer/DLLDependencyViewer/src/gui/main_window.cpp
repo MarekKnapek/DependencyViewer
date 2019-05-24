@@ -251,10 +251,10 @@ void main_window::on_tree_notify(NMHDR& nmhdr)
 	if(nmhdr.code == TVN_GETDISPINFOW)
 	{
 		NMTVDISPINFOW& di = reinterpret_cast<NMTVDISPINFOW&>(nmhdr);
+		file_info const& tmp_fi = *reinterpret_cast<file_info*>(di.item.lParam);
+		file_info const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
 		if((di.item.mask & TVIF_TEXT) != 0)
 		{
-			file_info const& tmp_fi = *reinterpret_cast<file_info*>(di.item.lParam);
-			file_info const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
 			if(fi.m_file_path == get_not_found_string())
 			{
 				HTREEITEM const parent = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(di.item.hItem)));
@@ -282,14 +282,34 @@ void main_window::on_tree_notify(NMHDR& nmhdr)
 		}
 		if((di.item.mask & (TVIF_IMAGE | TVIF_SELECTEDIMAGE)) != 0)
 		{
-			file_info const& tmp_fi = *reinterpret_cast<file_info*>(di.item.lParam);
-			file_info const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
+			file_info const* parent_fi = nullptr;
+			bool delay = false;
+			HTREEITEM const parent = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(di.item.hItem)));
+			TVITEMEXW ti;
+			ti.hItem = parent;
+			ti.mask = TVIF_PARAM;
+			LRESULT const got = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
+			if(got)
+			{
+				parent_fi = reinterpret_cast<file_info*>(ti.lParam);
+				int const idx = static_cast<int>(&tmp_fi - parent_fi->m_sub_file_infos.data());
+				delay = idx >= parent_fi->m_import_table.m_nondelay_imports_count;
+			}
+
 			bool const is_32_bit = fi.m_is_32_bit;
 			bool const is_duplicate = tmp_fi.m_orig_instance != nullptr;
 			bool const is_missing = fi.m_file_path == get_not_found_string();
+			bool const is_delay = delay;
 			if(is_missing)
 			{
-				di.item.iImage = s_res_icon_missing;
+				if(is_delay)
+				{
+					di.item.iImage = s_res_icon_missing_delay;
+				}
+				else
+				{
+					di.item.iImage = s_res_icon_missing;
+				}
 			}
 			else
 			{
@@ -297,22 +317,50 @@ void main_window::on_tree_notify(NMHDR& nmhdr)
 				{
 					if(is_32_bit)
 					{
-						di.item.iImage = s_res_icon_duplicate;
+						if(is_delay)
+						{
+							di.item.iImage = s_res_icon_duplicate_delay;
+						}
+						else
+						{
+							di.item.iImage = s_res_icon_duplicate;
+						}
 					}
 					else
 					{
-						di.item.iImage = s_res_icon_duplicate_64;
+						if(is_delay)
+						{
+							di.item.iImage = s_res_icon_duplicate_delay_64;
+						}
+						else
+						{
+							di.item.iImage = s_res_icon_duplicate_64;
+						}
 					}
 				}
 				else
 				{
 					if(is_32_bit)
 					{
-						di.item.iImage = s_res_icon_normal;
+						if(is_delay)
+						{
+							di.item.iImage = s_res_icon_normal_delay;
+						}
+						else
+						{
+							di.item.iImage = s_res_icon_normal;
+						}
 					}
 					else
 					{
-						di.item.iImage = s_res_icon_normal_64;
+						if(is_delay)
+						{
+							di.item.iImage = s_res_icon_normal_delay_64;
+						}
+						else
+						{
+							di.item.iImage = s_res_icon_normal_64;
+						}
 					}
 				}
 			}
