@@ -402,7 +402,7 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 		import_directory_table = reinterpret_cast<import_directory_entry const*>(file_data + import_table_offset);
 		auto const it = std::find_if(import_directory_table, import_directory_table + import_table_max_count + 1, [](import_directory_entry const& e){ return e.m_import_lookup_table == 0 && e.m_date_time == 0 && e.m_forwarder_chain == 0 && e.m_name == 0 && e.m_import_adress_table == 0; });
 		VERIFY(it != import_directory_table + import_table_max_count + 1);
-		import_directory_table_count = it - import_directory_table;
+		import_directory_table_count = static_cast<std::uint32_t>(it - import_directory_table);
 	}
 
 	std::uint32_t const delay_import_table_rva = dta_dir_table[static_cast<int>(data_directory_type::delay_import_descriptor)].m_rva;
@@ -420,7 +420,7 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 		delay_import_directory_table = reinterpret_cast<delay_load_directory_entry const*>(file_data + delay_import_table_offset);
 		auto const it = std::find_if(delay_import_directory_table, delay_import_directory_table + delay_import_table_max_count + 1, [](delay_load_directory_entry const& e){ return e.m_attributes == 0 && e.m_name == 0 && e.m_module_handle == 0 && e.m_delay_import_address_table == 0 && e.m_delay_import_name_table == 0 && e.m_bound_delay_import_table == 0 && e.m_unload_delay_import_table == 0 && e.m_timestamp == 0; });
 		VERIFY(it != delay_import_directory_table + delay_import_table_max_count + 1);
-		delay_import_directory_table_count = it - delay_import_directory_table;
+		delay_import_directory_table_count = static_cast<std::uint32_t>(it - delay_import_directory_table);
 	}
 
 	ret.m_dlls.resize(import_directory_table_count + delay_import_directory_table_count);
@@ -437,7 +437,7 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 		std::uint32_t const dll_name_len_max = std::min<std::uint32_t>(32 * 1024, dll_name_sct.m_raw_ptr + dll_name_sct.m_raw_size - dll_name_dsk);
 		auto const it = std::find(dll_name, dll_name + dll_name_len_max + 1, '\0');
 		VERIFY(it != dll_name + dll_name_len_max + 1);
-		std::uint32_t const dll_name_len = it - dll_name;
+		std::uint32_t const dll_name_len = static_cast<std::uint32_t>(it - dll_name);
 		VERIFY(dll_name_len > 0);
 		VERIFY(is_ascii(dll_name, static_cast<int>(dll_name_len)));
 		ret.m_dlls[i].m_dll_name = mm.m_strs.add_string(dll_name, dll_name_len, mm.m_alc);
@@ -452,7 +452,7 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 			import_lookup_entry_pe32 const* const import_lookup_table = reinterpret_cast<import_lookup_entry_pe32 const*>(file_data + import_lookup_table_dsk);
 			auto const it = std::find_if(import_lookup_table, import_lookup_table + import_lookup_table_count_max + 1, [](import_lookup_entry_pe32 const& e){ return e.m_value == 0u; });
 			VERIFY(it != import_lookup_table + import_lookup_table_count_max + 1);
-			std::uint32_t const import_lookup_table_count = it - import_lookup_table;
+			std::uint32_t const import_lookup_table_count = static_cast<std::uint32_t>(it - import_lookup_table);
 			ret.m_dlls[i].m_entries.resize(import_lookup_table_count);
 			for(std::uint32_t j = 0; j != import_lookup_table_count; ++j)
 			{
@@ -482,7 +482,7 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 					std::uint32_t const import_name_len_max = std::min<std::uint32_t>(32 * 1024, hint_name_section.m_raw_ptr + hint_name_section.m_raw_size - hint_name_disk_offset - sizeof(import_hint_name::m_hint));
 					auto const it = std::find(name, name + import_name_len_max + 1, '\0');
 					VERIFY(it != name + import_name_len_max + 1);
-					std::uint32_t const import_name_len = it - name;
+					std::uint32_t const import_name_len = static_cast<std::uint32_t>(it - name);
 					VERIFY(import_name_len > 0);
 					VERIFY(is_ascii(name, import_name_len));
 					ret.m_dlls[i].m_entries[j].m_is_ordinal = false;
@@ -498,7 +498,7 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 			import_lookup_entry_pe32_plus const* const import_lookup_table = reinterpret_cast<import_lookup_entry_pe32_plus const*>(file_data + import_lookup_table_dsk);
 			auto const it = std::find_if(import_lookup_table, import_lookup_table + import_lookup_table_count_max + 1, [](import_lookup_entry_pe32_plus const& e){ return e.m_value == 0ull; });
 			VERIFY(it != import_lookup_table + import_lookup_table_count_max + 1);
-			std::uint32_t const import_lookup_table_count = it - import_lookup_table;
+			std::uint32_t const import_lookup_table_count = static_cast<std::uint32_t>(it - import_lookup_table);
 			ret.m_dlls[i].m_entries.resize(import_lookup_table_count);
 			for(std::uint32_t j = 0; j != import_lookup_table_count; ++j)
 			{
@@ -528,7 +528,7 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 					std::uint32_t const import_name_len_max = std::min<std::uint32_t>(32 * 1024, hint_name_section.m_raw_ptr + hint_name_section.m_raw_size - hint_name_disk_offset - sizeof(import_hint_name::m_hint));
 					auto const it = std::find(name, name + import_name_len_max + 1, '\0');
 					VERIFY(it != name + import_name_len_max + 1);
-					std::uint32_t const import_name_len = it - name;
+					std::uint32_t const import_name_len = static_cast<std::uint32_t>(it - name);
 					VERIFY(import_name_len > 0);
 					VERIFY(is_ascii(name, import_name_len));
 					ret.m_dlls[i].m_entries[j].m_is_ordinal = false;
