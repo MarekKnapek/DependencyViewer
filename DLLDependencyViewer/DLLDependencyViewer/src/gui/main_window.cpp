@@ -370,35 +370,39 @@ void main_window::on_tree_notify(NMHDR& nmhdr)
 	else if(nmhdr.code == TVN_SELCHANGEDW)
 	{
 		NMTREEVIEWW& nm = reinterpret_cast<NMTREEVIEWW&>(nmhdr);
-		LRESULT const redr_off_1 = SendMessageW(m_import_list, WM_SETREDRAW, FALSE, 0);
-		LRESULT const deleted_1 = SendMessageW(m_import_list, LVM_DELETEALLITEMS, 0, 0);
-		HTREEITEM const parent = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(nm.itemNew.hItem)));
-		if(parent)
 		{
-			TVITEMEXW ti;
-			ti.hItem = parent;
-			ti.mask = TVIF_PARAM;
-			LRESULT const got = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-			file_info const& parent_fi = *reinterpret_cast<file_info*>(ti.lParam);
-			file_info const& fi = *reinterpret_cast<file_info*>(nm.itemNew.lParam);
-			int const idx = static_cast<int>(&fi - parent_fi.m_sub_file_infos.data());
-			LRESULT const set_size = SendMessageW(m_import_list, LVM_SETITEMCOUNT, parent_fi.m_import_table.m_dlls[idx].m_entries.size(), 0);
+			LRESULT const redr_off_1 = SendMessageW(m_import_list, WM_SETREDRAW, FALSE, 0);
+			LRESULT const deleted_1 = SendMessageW(m_import_list, LVM_DELETEALLITEMS, 0, 0);
+			HTREEITEM const parent = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(nm.itemNew.hItem)));
+			if(parent)
+			{
+				TVITEMEXW ti;
+				ti.hItem = parent;
+				ti.mask = TVIF_PARAM;
+				LRESULT const got = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
+				file_info const& parent_fi = *reinterpret_cast<file_info*>(ti.lParam);
+				file_info const& fi = *reinterpret_cast<file_info*>(nm.itemNew.lParam);
+				int const idx = static_cast<int>(&fi - parent_fi.m_sub_file_infos.data());
+				LRESULT const set_size = SendMessageW(m_import_list, LVM_SETITEMCOUNT, parent_fi.m_import_table.m_dlls[idx].m_entries.size(), 0);
+			}
+			for(int i = 0; i != static_cast<int>(std::size(s_import_headers)); ++i)
+			{
+				LRESULT const auto_sized = SendMessageW(m_import_list, LVM_SETCOLUMNWIDTH, i, LVSCW_AUTOSIZE);
+			}
+			LRESULT const redr_on_1 = SendMessageW(m_import_list, WM_SETREDRAW, TRUE, 0);
 		}
-		for(int i = 0; i != static_cast<int>(std::size(s_import_headers)); ++i)
 		{
-			LRESULT const auto_sized = SendMessageW(m_import_list, LVM_SETCOLUMNWIDTH, i, LVSCW_AUTOSIZE);
+			LRESULT const redr_off_2 = SendMessageW(m_export_list, WM_SETREDRAW, FALSE, 0);
+			LRESULT const deleted_2 = SendMessageW(m_export_list, LVM_DELETEALLITEMS, 0, 0);
+			file_info const& tmp_fi = *reinterpret_cast<file_info*>(nm.itemNew.lParam);
+			file_info const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
+			LRESULT const set_size = SendMessageW(m_export_list, LVM_SETITEMCOUNT, fi.m_export_table.m_export_address_table.size(), 0);
+			for(int i = 0; i != static_cast<int>(std::size(s_export_headers)); ++i)
+			{
+				LRESULT const auto_sized = SendMessageW(m_export_list, LVM_SETCOLUMNWIDTH, i, LVSCW_AUTOSIZE);
+			}
+			LRESULT const redr_on_2 = SendMessageW(m_export_list, WM_SETREDRAW, TRUE, 0);
 		}
-		LRESULT const redr_on_1 = SendMessageW(m_import_list, WM_SETREDRAW, TRUE, 0);
-		LRESULT const redr_off_2 = SendMessageW(m_export_list, WM_SETREDRAW, FALSE, 0);
-		LRESULT const deleted_2 = SendMessageW(m_export_list, LVM_DELETEALLITEMS, 0, 0);
-		file_info const& tmp_fi = *reinterpret_cast<file_info*>(nm.itemNew.lParam);
-		file_info const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
-		LRESULT const set_size = SendMessageW(m_export_list, LVM_SETITEMCOUNT, fi.m_export_table.m_export_address_table.size(), 0);
-		for(int i = 0; i != static_cast<int>(std::size(s_export_headers)); ++i)
-		{
-			LRESULT const auto_sized = SendMessageW(m_export_list, LVM_SETCOLUMNWIDTH, i, LVSCW_AUTOSIZE);
-		}
-		LRESULT const redr_on_2 = SendMessageW(m_export_list, WM_SETREDRAW, TRUE, 0);
 	}
 }
 
