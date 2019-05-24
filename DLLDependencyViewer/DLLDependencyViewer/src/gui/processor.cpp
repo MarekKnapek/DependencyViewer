@@ -23,7 +23,7 @@ struct processor
 	main_type* m_mo;
 	std::wstring const* m_main_file_path;
 	std::queue<file_info*> m_queue;
-	std::unordered_map<string const*, file_info*, string_hash, string_equal> m_map;
+	std::unordered_map<string const*, file_info*, string_case_insensitive_hash, string_case_insensitive_equal> m_map;
 };
 
 

@@ -45,6 +45,16 @@ typedef basic_string_hash<wchar_t> wstring_hash;
 
 
 template<typename char_t>
+struct basic_string_case_insensitive_hash
+{
+	std::size_t operator()(basic_string<char_t> const* const& obj) const;
+};
+
+typedef basic_string_case_insensitive_hash<char> string_case_insensitive_hash;
+typedef basic_string_case_insensitive_hash<wchar_t> wstring_case_insensitive_hash;
+
+
+template<typename char_t>
 struct basic_string_equal
 {
 	bool operator()(basic_string<char_t> const* const& a, basic_string<char_t> const* const& b) const;
@@ -52,6 +62,16 @@ struct basic_string_equal
 
 typedef basic_string_equal<char> string_equal;
 typedef basic_string_equal<wchar_t> wstring_equal;
+
+
+template<typename char_t>
+struct basic_string_case_insensitive_equal
+{
+	bool operator()(basic_string<char_t> const* const& a, basic_string<char_t> const* const& b) const;
+};
+
+typedef basic_string_case_insensitive_equal<char> string_case_insensitive_equal;
+typedef basic_string_case_insensitive_equal<wchar_t> wstring_case_insensitive_equal;
 
 
 template<typename char_t>

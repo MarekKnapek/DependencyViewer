@@ -8,8 +8,6 @@
 #include <utility>
 
 
-std::size_t fnv1a_hash(void const* const& ptr, int const& len)
-{
 #ifdef _M_IX86
 # define FNV1_OFFSET 2166136261uLL
 # define FNV1_PRIME 16777619uLL
@@ -21,25 +19,56 @@ std::size_t fnv1a_hash(void const* const& ptr, int const& len)
 #  error Unknown architecture.
 # endif
 #endif
-	std::size_t hash = static_cast<std::size_t>(FNV1_OFFSET);
+
+
+void fnv1a_hash_init(std::size_t& state)
+{
+	state = FNV1_OFFSET;
+}
+
+void fnv1a_hash_process(std::size_t& state, void const* const& ptr, int const& len)
+{
 	for(int i = 0; i != len; ++i)
 	{
-		hash ^= static_cast<std::uint8_t const*>(ptr)[i];
-		hash *= static_cast<std::size_t>(FNV1_PRIME);
+		state ^= static_cast<std::uint8_t const*>(ptr)[i];
+		state *= static_cast<std::size_t>(FNV1_PRIME);
 	}
-	return hash;
+}
+
+std::size_t fnv1a_hash_finish(std::size_t& state)
+{
+	return state;
 }
 
 
 template<typename char_t>
 std::size_t basic_string_hash<char_t>::operator()(basic_string<char_t> const* const& obj) const
 {
-	//return std::hash<std::wstring_view>()(std::wstring_view(obj.m_str, obj.m_len));
-	return fnv1a_hash(obj->m_str, obj->m_len * sizeof(char_t));
+	std::size_t hash;
+	fnv1a_hash_init(hash);
+	fnv1a_hash_process(hash, obj->m_str, obj->m_len * sizeof(char_t));
+	return fnv1a_hash_finish(hash);
 }
 
 template struct basic_string_hash<char>;
 template struct basic_string_hash<wchar_t>;
+
+
+template<typename char_t>
+std::size_t basic_string_case_insensitive_hash<char_t>::operator()(basic_string<char_t> const* const& obj) const
+{
+	std::size_t hash;
+	fnv1a_hash_init(hash);
+	for(int i = 0; i != obj->m_len; ++i)
+	{
+		char_t const ch = (obj->m_str[i] | 0b0010'0000);
+		fnv1a_hash_process(hash, &ch, 1 * sizeof(char_t));
+	}
+	return fnv1a_hash_finish(hash);
+}
+
+template struct basic_string_case_insensitive_hash<char>;
+template struct basic_string_case_insensitive_hash<wchar_t>;
 
 
 template<typename char_t>
@@ -63,6 +92,36 @@ bool basic_string_equal<char_t>::operator()(basic_string<char_t> const* const& a
 
 template struct basic_string_equal<char>;
 template struct basic_string_equal<wchar_t>;
+
+
+template<typename char_t>
+bool basic_string_case_insensitive_equal<char_t>::operator()(basic_string<char_t> const* const& a, basic_string<char_t> const* const& b) const
+{
+	if(a == b)
+	{
+		return true;
+	}
+	if(a->m_str == b->m_str)
+	{
+		assert(a->m_len == b->m_len);
+		return true;
+	}
+	if(a->m_len != b->m_len)
+	{
+		return false;
+	}
+	for(int i = 0; i != a->m_len; ++i)
+	{
+		if((a->m_str[i] | 0b0010'0000) != (b->m_str[i] | 0b0010'0000))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+template struct basic_string_case_insensitive_equal<char>;
+template struct basic_string_case_insensitive_equal<wchar_t>;
 
 
 template<typename char_t>
