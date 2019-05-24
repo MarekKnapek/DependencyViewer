@@ -430,41 +430,27 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 		auto const dll_name_sct_dsk = convert_rva_to_disk_ptr(dll_name_rva, hi);
 		section_header const& dll_name_sct = *dll_name_sct_dsk.first;
 		std::uint32_t const dll_name_dsk = dll_name_sct_dsk.second;
-		std::uint32_t dll_name_len = 0xFFFFFFFF;
+		char const* const dll_name = reinterpret_cast<char const*>(file_data + dll_name_dsk);
 		// 32k DLL name should be enough for everybody.
 		std::uint32_t const dll_name_len_max = std::min<std::uint32_t>(32 * 1024, dll_name_sct.m_raw_ptr + dll_name_sct.m_raw_size - dll_name_dsk);
-		for(std::uint32_t i = 0; i != dll_name_len_max; ++i)
-		{
-			if(reinterpret_cast<char const*>(file_data + dll_name_dsk)[i] == '\0')
-			{
-				dll_name_len = i;
-				break;
-			}
-		}
-		VERIFY(dll_name_len != 0xFFFFFFFF && dll_name_len > 0);
-		char const* const dll_name = reinterpret_cast<char const*>(file_data + dll_name_dsk);
+		auto const it = std::find(dll_name, dll_name + dll_name_len_max + 1, '\0');
+		VERIFY(it != dll_name + dll_name_len_max + 1);
+		std::uint32_t const dll_name_len = it - dll_name;
+		VERIFY(dll_name_len > 0);
 		VERIFY(is_ascii(dll_name, static_cast<int>(dll_name_len)));
 		ret.m_dlls[i].m_dll_name = mm.m_strs.add_string(dll_name, dll_name_len, mm.m_alc);
 		std::uint32_t const import_table_rva = i < import_directory_table_count ? (import_directory_table[i].m_import_lookup_table != 0 ? import_directory_table[i].m_import_lookup_table : import_directory_table[i].m_import_adress_table) : delay_import_directory_table[i - import_directory_table_count].m_delay_import_name_table;
 		auto const import_lookup_table_sct_dsk = convert_rva_to_disk_ptr(import_table_rva, hi);
 		section_header const& import_lookup_table_sct = *import_lookup_table_sct_dsk.first;
 		std::uint32_t const import_lookup_table_dsk = import_lookup_table_sct_dsk.second;
-		std::uint32_t import_lookup_table_count = 0xFFFFFFFF;
 		if(hi.m_is_pe32)
 		{
 			// 64k imports per DLL should be enough for everybody.
-			std::uint32_t const import_lookup_table_max_count = std::min<std::uint32_t>(64 * 1024, (import_lookup_table_sct.m_raw_ptr + import_lookup_table_sct.m_raw_size - import_lookup_table_dsk) / sizeof(import_lookup_entry_pe32));
+			std::uint32_t const import_lookup_table_count_max = std::min<std::uint32_t>(64 * 1024, (import_lookup_table_sct.m_raw_ptr + import_lookup_table_sct.m_raw_size - import_lookup_table_dsk) / sizeof(import_lookup_entry_pe32));
 			import_lookup_entry_pe32 const* const import_lookup_table = reinterpret_cast<import_lookup_entry_pe32 const*>(file_data + import_lookup_table_dsk);
-			for(std::uint32_t i = 0; i != import_lookup_table_max_count; ++i)
-			{
-				import_lookup_entry_pe32 const& import_entry = import_lookup_table[i];
-				if(import_entry.m_value == 0u)
-				{
-					import_lookup_table_count = i;
-					break;
-				}
-			}
-			VERIFY(import_lookup_table_count != 0xFFFFFFFF);
+			auto const it = std::find_if(import_lookup_table, import_lookup_table + import_lookup_table_count_max + 1, [](import_lookup_entry_pe32 const& e){ return e.m_value == 0u; });
+			VERIFY(it != import_lookup_table + import_lookup_table_count_max + 1);
+			std::uint32_t const import_lookup_table_count = it - import_lookup_table;
 			ret.m_dlls[i].m_entries.resize(import_lookup_table_count);
 			for(std::uint32_t j = 0; j != import_lookup_table_count; ++j)
 			{
@@ -490,18 +476,12 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 					import_hint_name const& hint_name = *reinterpret_cast<import_hint_name const*>(file_data + hint_name_disk_offset);
 					std::uint16_t const hint = hint_name.m_hint;
 					char const* const name = hint_name.m_name;
-					std::uint32_t import_name_len = 0xFFFFFFFF;
 					// 32k import name length should be enough for everybody.
 					std::uint32_t const import_name_len_max = std::min<std::uint32_t>(32 * 1024, hint_name_section.m_raw_ptr + hint_name_section.m_raw_size - hint_name_disk_offset - sizeof(import_hint_name::m_hint));
-					for(std::uint32_t i = 0; i != import_name_len_max; ++i)
-					{
-						if(name[i] == '\0')
-						{
-							import_name_len = i;
-							break;
-						}
-					}
-					VERIFY(import_name_len != 0xFFFFFFFF && import_name_len > 0);
+					auto const it = std::find(name, name + import_name_len_max + 1, '\0');
+					VERIFY(it != name + import_name_len_max + 1);
+					std::uint32_t const import_name_len = it - name;
+					VERIFY(import_name_len > 0);
 					VERIFY(is_ascii(name, import_name_len));
 					ret.m_dlls[i].m_entries[j].m_is_ordinal = false;
 					ret.m_dlls[i].m_entries[j].m_ordinal_or_hint = hint;
@@ -512,18 +492,11 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 		else
 		{
 			// 64k imports per DLL should be enough for everybody.
-			std::uint32_t const import_lookup_table_max_count = std::min<std::uint32_t>(64 * 1024, (import_lookup_table_sct.m_raw_ptr + import_lookup_table_sct.m_raw_size - import_lookup_table_dsk) / sizeof(import_lookup_entry_pe32_plus));
+			std::uint32_t const import_lookup_table_count_max = std::min<std::uint32_t>(64 * 1024, (import_lookup_table_sct.m_raw_ptr + import_lookup_table_sct.m_raw_size - import_lookup_table_dsk) / sizeof(import_lookup_entry_pe32_plus));
 			import_lookup_entry_pe32_plus const* const import_lookup_table = reinterpret_cast<import_lookup_entry_pe32_plus const*>(file_data + import_lookup_table_dsk);
-			for(std::uint32_t i = 0; i != import_lookup_table_max_count; ++i)
-			{
-				import_lookup_entry_pe32_plus const& import_entry = import_lookup_table[i];
-				if(import_entry.m_value == 0ull)
-				{
-					import_lookup_table_count = i;
-					break;
-				}
-			}
-			VERIFY(import_lookup_table_count != 0xFFFFFFFF);
+			auto const it = std::find_if(import_lookup_table, import_lookup_table + import_lookup_table_count_max + 1, [](import_lookup_entry_pe32_plus const& e){ return e.m_value == 0ull; });
+			VERIFY(it != import_lookup_table + import_lookup_table_count_max + 1);
+			std::uint32_t const import_lookup_table_count = it - import_lookup_table;
 			ret.m_dlls[i].m_entries.resize(import_lookup_table_count);
 			for(std::uint32_t j = 0; j != import_lookup_table_count; ++j)
 			{
@@ -549,18 +522,12 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 					import_hint_name const& hint_name = *reinterpret_cast<import_hint_name const*>(file_data + hint_name_disk_offset);
 					std::uint16_t const hint = hint_name.m_hint;
 					char const* const name = hint_name.m_name;
-					std::uint32_t import_name_len = 0xFFFFFFFF;
 					// 32k import name length should be enough for everybody.
 					std::uint32_t const import_name_len_max = std::min<std::uint32_t>(32 * 1024, hint_name_section.m_raw_ptr + hint_name_section.m_raw_size - hint_name_disk_offset - sizeof(import_hint_name::m_hint));
-					for(std::uint32_t i = 0; i != import_name_len_max; ++i)
-					{
-						if(name[i] == '\0')
-						{
-							import_name_len = i;
-							break;
-						}
-					}
-					VERIFY(import_name_len != 0xFFFFFFFF && import_name_len > 0);
+					auto const it = std::find(name, name + import_name_len_max + 1, '\0');
+					VERIFY(it != name + import_name_len_max + 1);
+					std::uint32_t const import_name_len = it - name;
+					VERIFY(import_name_len > 0);
 					VERIFY(is_ascii(name, import_name_len));
 					ret.m_dlls[i].m_entries[j].m_is_ordinal = false;
 					ret.m_dlls[i].m_entries[j].m_ordinal_or_hint = hint;
