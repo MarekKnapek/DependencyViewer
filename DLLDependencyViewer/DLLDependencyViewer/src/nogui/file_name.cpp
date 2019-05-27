@@ -58,7 +58,12 @@ wstring const* file_name_raii::get_correct_file_name(wchar_t const* const& file_
 		throw s_file_name_err;
 	}
 	int const output_len = static_cast<int>(*reinterpret_cast<std::uint32_t const*>(reinterpret_cast<char const*>(output.bstrVal) - 4));
-	wstring const* const ret = us.add_string(output.bstrVal, output_len, alc);
+	if(output_len % 2 != 0)
+	{
+		throw s_file_name_err;
+	}
+	wstring const* const ret = us.add_string(output.bstrVal, output_len / 2, alc);
 	SysFreeString(output.bstrVal);
+	SysFreeString(input_1.bstrVal);
 	return ret;
 }
