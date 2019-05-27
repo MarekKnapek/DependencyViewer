@@ -17,7 +17,7 @@ struct pe_header_info
 	std::uint32_t m_file_size;
 	std::uint16_t m_pe_header_start;
 	bool m_is_pe32;
-	std::uint32_t m_image_base;
+	std::uint64_t m_image_base;
 	std::uint32_t m_data_directory_count;
 	std::uint32_t m_data_directory_start;
 	std::uint32_t m_section_count;
