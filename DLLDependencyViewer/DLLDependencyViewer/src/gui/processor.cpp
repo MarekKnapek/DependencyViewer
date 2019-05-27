@@ -6,6 +6,7 @@
 #include "../nogui/utils.h"
 #include "../nogui/unicode.h"
 #include "../nogui/unique_strings.h"
+#include "../nogui/file_name.h"
 
 #include <cassert>
 #include <algorithm>
@@ -24,6 +25,7 @@ struct processor
 	std::wstring const* m_main_file_path;
 	std::queue<file_info*> m_queue;
 	std::unordered_map<string const*, file_info*, string_case_insensitive_hash, string_case_insensitive_equal> m_map;
+	file_name_raii* m_fnraii;
 };
 
 
@@ -40,9 +42,11 @@ wstring const* get_not_found_string()
 main_type process(std::wstring const& main_file_path)
 {
 	main_type mo;
+	file_name_raii fnraii;
 	processor prcsr;
 	prcsr.m_mo = &mo;
 	prcsr.m_main_file_path = &main_file_path;
+	prcsr.m_fnraii = &fnraii;
 
 	file_info& fi = mo.m_fi;
 	fi.m_orig_instance = nullptr;
@@ -92,13 +96,21 @@ void process_e(processor& prcsr, file_info& fi, string const* const& dll_name)
 	searcher sch;
 	sch.m_mo = prcsr.m_mo;
 	sch.m_main_file_path = prcsr.m_main_file_path;
-	wstring const* const file_path = search(sch, dll_name);
-	if(!file_path)
+	search(sch, dll_name);
+	if(sch.m_mo->m_tmpw.empty())
 	{
 		fi.m_file_path = &s_not_found_wstr;
 		return;
 	}
-	fi.m_file_path = file_path;
+	wstring const* const wstr = prcsr.m_fnraii->get_correct_file_name(sch.m_mo->m_tmpw.c_str(), static_cast<int>(sch.m_mo->m_tmpw.size()), prcsr.m_mo->m_mm.m_wstrs, prcsr.m_mo->m_mm.m_alc);
+	if(wstr)
+	{
+		fi.m_file_path = wstr;
+	}
+	else
+	{
+		fi.m_file_path = prcsr.m_mo->m_mm.m_wstrs.add_string(sch.m_mo->m_tmpw.c_str(), static_cast<int>(sch.m_mo->m_tmpw.size()), prcsr.m_mo->m_mm.m_alc);
+	}
 
 	memory_mapped_file const mmf = memory_mapped_file(fi.m_file_path->m_str);
 	pe_header_info const hi = pe_process_header(mmf.begin(), mmf.size());

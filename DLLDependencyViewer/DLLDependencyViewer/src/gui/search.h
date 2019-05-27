@@ -20,4 +20,4 @@ struct searcher
 	std::wstring const* m_main_file_path;
 };
 
-wstring const* search(searcher& sch, string const* const& dll_name);
+void search(searcher& sch, string const* const& dll_name);

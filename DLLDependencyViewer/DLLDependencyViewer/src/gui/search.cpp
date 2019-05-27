@@ -13,7 +13,7 @@
 namespace fs = std::experimental::filesystem;
 
 
-wstring const* search(searcher& sch, string const* const& dll_name)
+void search(searcher& sch, string const* const& dll_name)
 {
 	// Standard Search Order for Desktop Applications
 	// - SafeDllSearchMode is enabled
@@ -35,7 +35,7 @@ wstring const* search(searcher& sch, string const* const& dll_name)
 	if(fs::exists(tmpp))
 	{
 		tmpw = tmpp.wstring();
-		return sch.m_mo->m_mm.m_wstrs.add_string(tmpw.c_str(), static_cast<int>(tmpw.size()), sch.m_mo->m_mm.m_alc);
+		return;
 	}
 
 	std::array<wchar_t, 32 * 1024> buff;
@@ -45,7 +45,7 @@ wstring const* search(searcher& sch, string const* const& dll_name)
 	if(fs::exists(tmpp))
 	{
 		tmpw = tmpp.wstring();
-		return sch.m_mo->m_mm.m_wstrs.add_string(tmpw.c_str(), static_cast<int>(tmpw.size()), sch.m_mo->m_mm.m_alc);
+		return;
 	}
 
 	// TODO: 16 bit system.
@@ -56,7 +56,7 @@ wstring const* search(searcher& sch, string const* const& dll_name)
 	if(fs::exists(tmpp))
 	{
 		tmpw = tmpp.wstring();
-		return sch.m_mo->m_mm.m_wstrs.add_string(tmpw.c_str(), static_cast<int>(tmpw.size()), sch.m_mo->m_mm.m_alc);
+		return;
 	}
 
 	// TODO: Current directory.
@@ -76,7 +76,7 @@ wstring const* search(searcher& sch, string const* const& dll_name)
 				if(fs::exists(tmpp))
 				{
 					tmpw = tmpp.wstring();
-					return sch.m_mo->m_mm.m_wstrs.add_string(tmpw.c_str(), static_cast<int>(tmpw.size()), sch.m_mo->m_mm.m_alc);
+					return;
 				}
 				break;
 			}
@@ -87,12 +87,12 @@ wstring const* search(searcher& sch, string const* const& dll_name)
 				if(fs::exists(tmpp))
 				{
 					tmpw = tmpp.wstring();
-					return sch.m_mo->m_mm.m_wstrs.add_string(tmpw.c_str(), static_cast<int>(tmpw.size()), sch.m_mo->m_mm.m_alc);
+					return;
 				}
 				last = idx + 1;
 			}
 		}
 	}
 
-	return nullptr;
+	tmpw.clear();
 }
