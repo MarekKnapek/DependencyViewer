@@ -8,6 +8,8 @@
 #include <cstdint>
 #include <cassert>
 
+#include <windows.h>
+
 
 struct dos_header
 {
@@ -280,6 +282,7 @@ static constexpr wchar_t const s_bad_format[] = L"Bad format.";
 
 
 #define VERIFY(X) do{ if(!(X)){ throw s_bad_format; } }while(false)
+#define WARN(X) do{ if(!(X)){ OutputDebugStringW(L"Warning: " L ## #X L"\x0D\x0A"); } }while(false)
 
 
 pe_header_info pe_process_header(void const* const fd, int const fs)
@@ -322,7 +325,7 @@ pe_header_info pe_process_header(void const* const fd, int const fs)
 	coff_optional_header_pe32_plus const& coff_hdr_opt_pe32_plus = *reinterpret_cast<coff_optional_header_pe32_plus const*>(file_data + dos_hdr.m_pe_offset + sizeof(coff_header));
 	VERIFY(((is_pe32 ? coff_hdr_opt_pe32.m_windows.m_image_base : coff_hdr_opt_pe32_plus.m_windows.m_image_base) % (64 * 1024)) == 0);
 	VERIFY(((is_pe32 ? coff_hdr_opt_pe32.m_windows.m_section_alignment : coff_hdr_opt_pe32_plus.m_windows.m_section_alignment) % (is_pe32 ? coff_hdr_opt_pe32.m_windows.m_file_alignment : coff_hdr_opt_pe32_plus.m_windows.m_file_alignment)) == 0);
-	VERIFY(((is_pe32 ? coff_hdr_opt_pe32.m_windows.m_file_alignment : coff_hdr_opt_pe32_plus.m_windows.m_file_alignment) % (512)) == 0);
+	WARN(((is_pe32 ? coff_hdr_opt_pe32.m_windows.m_file_alignment : coff_hdr_opt_pe32_plus.m_windows.m_file_alignment) % (512)) == 0);
 	VERIFY(((is_pe32 ? coff_hdr_opt_pe32.m_windows.m_file_alignment : coff_hdr_opt_pe32_plus.m_windows.m_file_alignment) % (128 * 1024)) != 0);
 	VERIFY(((is_pe32 ? coff_hdr_opt_pe32.m_windows.m_section_alignment : coff_hdr_opt_pe32_plus.m_windows.m_section_alignment) >= 4 * 1024) || ((is_pe32 ? coff_hdr_opt_pe32.m_windows.m_file_alignment : coff_hdr_opt_pe32_plus.m_windows.m_file_alignment) == (is_pe32 ? coff_hdr_opt_pe32.m_windows.m_section_alignment : coff_hdr_opt_pe32_plus.m_windows.m_section_alignment)));
 	VERIFY((is_pe32 ? coff_hdr_opt_pe32.m_windows.m_win32version : coff_hdr_opt_pe32_plus.m_windows.m_win32version) == 0);
@@ -361,7 +364,7 @@ pe_header_info pe_process_header(void const* const fd, int const fs)
 		VERIFY(sct_hdr.m_virtual_address >= prev_va + prev_size);
 		prev_va = sct_hdr.m_virtual_address;
 		prev_size = sct_hdr.m_virtual_size;
-		VERIFY((sct_hdr.m_raw_size % (is_pe32 ? coff_hdr_opt_pe32.m_windows.m_file_alignment : coff_hdr_opt_pe32_plus.m_windows.m_file_alignment)) == 0);
+		WARN((sct_hdr.m_raw_size % (is_pe32 ? coff_hdr_opt_pe32.m_windows.m_file_alignment : coff_hdr_opt_pe32_plus.m_windows.m_file_alignment)) == 0);
 		VERIFY((sct_hdr.m_raw_ptr % (is_pe32 ? coff_hdr_opt_pe32.m_windows.m_file_alignment : coff_hdr_opt_pe32_plus.m_windows.m_file_alignment)) == 0);
 	}
 
