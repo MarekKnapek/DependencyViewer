@@ -290,29 +290,30 @@ pe_header_info pe_process_header(void const* const fd, int const fs)
 	char const* const file_data = static_cast<char const*>(fd);
 	std::uint32_t const file_size = static_cast<std::uint32_t>(fs);
 
-	static constexpr uint16_t const s_mz_signature = 0x5a4d; // MZ
+	static constexpr std::uint16_t const s_mz_signature = 0x5a4d; // MZ
 	VERIFY(file_size >= sizeof(dos_header));
 	dos_header const& dos_hdr = *reinterpret_cast<dos_header const*>(file_data);
 	VERIFY(dos_hdr.m_signature == s_mz_signature);
 
 	static constexpr std::uint32_t const s_pe_signature_len = 4;
-	static constexpr uint32_t const s_pe_signature = 0x00004550; // PE\0\0
+	static constexpr std::uint32_t const s_pe_signature = 0x00004550; // PE\0\0
 	VERIFY(file_size >= dos_hdr.m_pe_offset + s_pe_signature_len);
 	std::uint32_t const& pe_signature = *reinterpret_cast<std::uint32_t const*>(file_data + dos_hdr.m_pe_offset);
 	VERIFY(pe_signature == s_pe_signature);
 
-	static constexpr uint16_t const s_machine_type_386 = 0x014c;
-	static constexpr uint16_t const s_machine_type_ia64 = 0x0200;
-	static constexpr uint16_t const s_machine_type_amd64 = 0x8664;
-	static constexpr uint16_t const s_max_coff_header_sections = 96;
+	static constexpr std::uint16_t const s_machine_type_386 = 0x014c;
+	static constexpr std::uint16_t const s_machine_type_arm_nt = 0x01c4;
+	static constexpr std::uint16_t const s_machine_type_ia64 = 0x0200;
+	static constexpr std::uint16_t const s_machine_type_amd64 = 0x8664;
+	static constexpr std::uint16_t const s_max_coff_header_sections = 96;
 	VERIFY(file_size >= dos_hdr.m_pe_offset + s_pe_signature_len + sizeof(coff_header));
 	coff_header const& coff_hdr = *reinterpret_cast<coff_header const*>(file_data + dos_hdr.m_pe_offset);
-	VERIFY(coff_hdr.m_machine == s_machine_type_386 || coff_hdr.m_machine == s_machine_type_ia64 || coff_hdr.m_machine == s_machine_type_amd64);
+	VERIFY(coff_hdr.m_machine == s_machine_type_386 || coff_hdr.m_machine == s_machine_type_arm_nt || coff_hdr.m_machine == s_machine_type_ia64 || coff_hdr.m_machine == s_machine_type_amd64);
 	VERIFY(coff_hdr.m_section_count <= s_max_coff_header_sections);
 
 	static constexpr int const s_coff_optional_header_signature_len = 2;
-	static constexpr uint16_t const s_coff_optional_type_pe32 = 0x010b;
-	static constexpr uint16_t const s_coff_optional_type_pe32_plus = 0x020b;
+	static constexpr std::uint16_t const s_coff_optional_type_pe32 = 0x010b;
+	static constexpr std::uint16_t const s_coff_optional_type_pe32_plus = 0x020b;
 	VERIFY(coff_hdr.m_optional_header_size >= s_coff_optional_header_signature_len);
 	VERIFY(file_size >= dos_hdr.m_pe_offset + s_pe_signature_len + sizeof(coff_header) + s_coff_optional_header_signature_len);
 	std::uint16_t const& coff_optional_header_signature = *reinterpret_cast<std::uint16_t const*>(file_data + dos_hdr.m_pe_offset + sizeof(coff_header));
@@ -329,7 +330,7 @@ pe_header_info pe_process_header(void const* const fd, int const fs)
 	VERIFY(((is_pe32 ? coff_hdr_opt_pe32.m_windows.m_file_alignment : coff_hdr_opt_pe32_plus.m_windows.m_file_alignment) % (128 * 1024)) != 0);
 	VERIFY(((is_pe32 ? coff_hdr_opt_pe32.m_windows.m_section_alignment : coff_hdr_opt_pe32_plus.m_windows.m_section_alignment) >= 4 * 1024) || ((is_pe32 ? coff_hdr_opt_pe32.m_windows.m_file_alignment : coff_hdr_opt_pe32_plus.m_windows.m_file_alignment) == (is_pe32 ? coff_hdr_opt_pe32.m_windows.m_section_alignment : coff_hdr_opt_pe32_plus.m_windows.m_section_alignment)));
 	VERIFY((is_pe32 ? coff_hdr_opt_pe32.m_windows.m_win32version : coff_hdr_opt_pe32_plus.m_windows.m_win32version) == 0);
-	VERIFY(((is_pe32 ? coff_hdr_opt_pe32.m_windows.m_image_size : coff_hdr_opt_pe32_plus.m_windows.m_image_size) % (is_pe32 ? coff_hdr_opt_pe32.m_windows.m_section_alignment : coff_hdr_opt_pe32_plus.m_windows.m_section_alignment)) == 0);
+	WARN(((is_pe32 ? coff_hdr_opt_pe32.m_windows.m_image_size : coff_hdr_opt_pe32_plus.m_windows.m_image_size) % (is_pe32 ? coff_hdr_opt_pe32.m_windows.m_section_alignment : coff_hdr_opt_pe32_plus.m_windows.m_section_alignment)) == 0);
 	VERIFY(((is_pe32 ? coff_hdr_opt_pe32.m_windows.m_headers_size : coff_hdr_opt_pe32_plus.m_windows.m_headers_size) % (is_pe32 ? coff_hdr_opt_pe32.m_windows.m_file_alignment : coff_hdr_opt_pe32_plus.m_windows.m_file_alignment)) == 0);
 	VERIFY((is_pe32 ? coff_hdr_opt_pe32.m_windows.m_loader_flags : coff_hdr_opt_pe32_plus.m_windows.m_loader_flags) == 0);
 
