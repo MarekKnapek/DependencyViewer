@@ -572,7 +572,6 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 	VERIFY(export_dir.m_export_address_count <= 0xFFFF);
 	VERIFY(export_dir.m_ordinal_base + export_dir.m_export_address_count <= 0xFFFF);
 	VERIFY(export_dir.m_names_count <= export_dir.m_export_address_count);
-	VERIFY((export_dir.m_export_name_table_rva == 0 && export_dir.m_ordinal_table_rva == 0) || (export_dir.m_export_name_table_rva != 0 && export_dir.m_ordinal_table_rva != 0));
 	if(export_dir.m_export_address_count == 0)
 	{
 		return ret;
