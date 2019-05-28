@@ -341,8 +341,6 @@ pe_header_info pe_process_header(void const* const fd, int const fs)
 	VERIFY(coff_hdr.m_optional_header_size == (is_pe32 ? sizeof(coff_optional_header_pe32) : sizeof(coff_optional_header_pe32_plus)) + sizeof(std::array<data_directory, 16>));
 	VERIFY(file_size >= dos_hdr.m_pe_offset + sizeof(coff_header) + (is_pe32 ? sizeof(coff_optional_header_pe32) : sizeof(coff_optional_header_pe32_plus)) + sizeof(std::array<data_directory, 16>));
 	std::array<data_directory, 16> const& data_directories = *reinterpret_cast<std::array<data_directory, 16> const*>(file_data + dos_hdr.m_pe_offset + sizeof(coff_header) + (is_pe32 ? sizeof(coff_optional_header_pe32) : sizeof(coff_optional_header_pe32_plus)));
-	VERIFY(data_directories[static_cast<int>(data_directory_type::architecture)].m_rva  == 0);
-	VERIFY(data_directories[static_cast<int>(data_directory_type::architecture)].m_size == 0);
 	VERIFY(data_directories[static_cast<int>(data_directory_type::global_ptr)].m_size == 0);
 	VERIFY(data_directories[static_cast<int>(data_directory_type::reserved)].m_rva == 0);
 	VERIFY(data_directories[static_cast<int>(data_directory_type::reserved)].m_size == 0);
