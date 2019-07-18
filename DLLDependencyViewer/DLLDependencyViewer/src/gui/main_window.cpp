@@ -21,7 +21,7 @@
 static constexpr wchar_t const s_window_class_name[] = L"main_window";
 static constexpr wchar_t const s_window_title[] = L"DLLDependencyViewer";
 static constexpr wchar_t const s_menu_file[] = L"&File";
-static constexpr wchar_t const s_menu_open[] = L"&Open";
+static constexpr wchar_t const s_menu_open[] = L"&Open...";
 static constexpr wchar_t const s_menu_exit[] = L"E&xit";
 static constexpr wchar_t const s_open_file_dialog_file_name_filter[] = L"Executable files and libraries (*.exe;*.dll;*.ocx)\0*.exe;*.dll;*.ocx\0All files\0*.*\0";
 static constexpr wchar_t const s_msg_error[] = L"DLLDependencyViewer error.";
@@ -36,11 +36,13 @@ static constexpr wchar_t const s_export_type_true[] = L"address";
 static constexpr wchar_t const s_export_type_false[] = L"forwarder";
 static constexpr wchar_t const s_export_hint_na[] = L"N/A";
 static constexpr wchar_t const s_export_name_na[] = L"N/A";
-static constexpr int s_menu_open_id = 2000;
-static constexpr int s_menu_exit_id = 2001;
-static constexpr int s_tree_id = 1000;
-static constexpr int s_import_list = 1001;
-static constexpr int s_export_list = 1002;
+static constexpr int const s_menu_open_id = 2000;
+static constexpr int const s_menu_exit_id = 2001;
+static constexpr int const s_tree_id = 1000;
+static constexpr int const s_import_list = 1001;
+static constexpr int const s_export_list = 1002;
+static constexpr int const s_toolbar_open = 3000;
+static constexpr int const s_toolbar_full_paths = 3004;
 
 
 enum class e_import_column
@@ -84,6 +86,7 @@ void main_window::register_class()
 
 main_window::main_window() :
 	m_hwnd(CreateWindowExW(0, reinterpret_cast<wchar_t const*>(m_s_class), s_window_title, WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, nullptr, create_menu(), get_instance(), nullptr)),
+	m_toolbar(create_toolbar(m_hwnd)),
 	m_splitter_hor(m_hwnd),
 	m_tree(CreateWindowExW(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE, WC_TREEVIEWW, nullptr, WS_VISIBLE | WS_CHILD, 0, 0, 0, 0, m_splitter_hor.get_hwnd(), reinterpret_cast<HMENU>(static_cast<std::uintptr_t>(s_tree_id)), get_instance(), nullptr)),
 	m_splitter_ver(m_splitter_hor.get_hwnd()),
@@ -91,7 +94,8 @@ main_window::main_window() :
 	m_export_list(CreateWindowExW(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE, WC_LISTVIEWW, nullptr, WS_VISIBLE | WS_CHILD | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA, 0, 0, 0, 0, m_splitter_ver.get_hwnd(), reinterpret_cast<HMENU>(static_cast<std::uintptr_t>(s_export_list)), get_instance(), nullptr)),
 	m_tmp_strings(),
 	m_tmp_string_idx(),
-	m_mo()
+	m_mo(),
+	m_full_paths(false)
 {
 	LONG_PTR const set = SetWindowLongPtrW(m_hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
 	DragAcceptFiles(m_hwnd, TRUE);
@@ -164,6 +168,35 @@ HMENU main_window::create_menu()
 	return menu_bar;
 }
 
+HWND main_window::create_toolbar(HWND const& parent)
+{
+	HWND const toolbar = CreateWindowExW(0, TOOLBARCLASSNAMEW, nullptr, WS_CHILD | TBSTYLE_WRAPABLE, 0, 0, 0, 0, parent, nullptr, get_instance(), nullptr);
+	LRESULT const size_sent = SendMessageW(toolbar, TB_BUTTONSTRUCTSIZE, sizeof(TBBUTTON), 0);
+	TBADDBITMAP button_bitmap;
+	button_bitmap.hInst = get_instance();
+	button_bitmap.nID = s_res_icons_toolbar;
+	LRESULT const bitmap_added = SendMessageW(toolbar, TB_ADDBITMAP, 2, reinterpret_cast<LPARAM>(&button_bitmap));
+	assert(bitmap_added != -1);
+	TBBUTTON buttons[2]{};
+	buttons[0].iBitmap = s_res_icon_open;
+	buttons[0].idCommand = s_toolbar_open;
+	buttons[0].fsState = TBSTATE_ENABLED;
+	buttons[0].fsStyle = BTNS_BUTTON;
+	buttons[0].dwData = 0;
+	buttons[0].iString = 0;
+	buttons[1].iBitmap = s_res_icon_full_paths;
+	buttons[1].idCommand = s_toolbar_full_paths;
+	buttons[1].fsState = TBSTATE_ENABLED;
+	buttons[1].fsStyle = BTNS_BUTTON;
+	buttons[1].dwData = 0;
+	buttons[1].iString = 0;
+	LRESULT const buttons_added = SendMessageW(toolbar, TB_ADDBUTTONSW, 2, reinterpret_cast<LPARAM>(&buttons));
+	assert(buttons_added == TRUE);
+	LRESULT const sized = SendMessage(toolbar, TB_AUTOSIZE, 0, 0); 
+	BOOL const shown = ShowWindow(toolbar, TRUE);
+	return toolbar;
+}
+
 LRESULT CALLBACK main_window::class_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	if(LONG_PTR const ptr = GetWindowLongPtrW(hwnd, GWLP_USERDATA))
@@ -224,7 +257,11 @@ LRESULT main_window::on_wm_size(WPARAM wparam, LPARAM lparam)
 {
 	int const w = LOWORD(lparam);
 	int const h = HIWORD(lparam);
-	BOOL const moved = MoveWindow(m_splitter_hor.get_hwnd(), 0, 0, w, h, TRUE);
+	RECT toolbar_rect;
+	BOOL const got_toolbar_rect = GetClientRect(m_toolbar, &toolbar_rect);
+	assert(toolbar_rect.left == 0);
+	assert(toolbar_rect.top == 0);
+	BOOL const moved = MoveWindow(m_splitter_hor.get_hwnd(), 0, 0 + toolbar_rect.bottom, w, h - toolbar_rect.bottom, TRUE);
 	return DefWindowProcW(m_hwnd, WM_SIZE, wparam, lparam);
 }
 
@@ -641,6 +678,10 @@ LRESULT main_window::on_wm_command(WPARAM wparam, LPARAM lparam)
 	{
 		return on_menu(wparam, lparam);
 	}
+	else if(reinterpret_cast<HWND>(lparam) == m_toolbar)
+	{
+		return on_toolbar(wparam, lparam);
+	}
 	return DefWindowProcW(m_hwnd, WM_COMMAND, wparam, lparam);
 }
 
@@ -679,7 +720,54 @@ LRESULT main_window::on_menu(WPARAM wparam, LPARAM lparam)
 	return DefWindowProcW(m_hwnd, WM_COMMAND, wparam, lparam);
 }
 
+LRESULT main_window::on_toolbar(WPARAM wparam, LPARAM lparam)
+{
+	assert(reinterpret_cast<HWND>(lparam) == m_toolbar);
+	int const control_id = LOWORD(wparam);
+	switch(control_id)
+	{
+		case s_toolbar_open:
+		{
+			on_toolbar_open();
+		}
+		break;
+		case s_toolbar_full_paths:
+		{
+			on_toolbar_full_paths();
+		}
+		break;
+		default:
+		{
+			assert(false);
+		}
+		break;
+	}
+	return DefWindowProcW(m_hwnd, WM_COMMAND, wparam, lparam);
+}
+
 void main_window::on_menu_open()
+{
+	open();
+}
+
+void main_window::on_menu_exit()
+{
+	PostQuitMessage(EXIT_SUCCESS);
+}
+
+void main_window::on_toolbar_open()
+{
+	open();
+}
+
+void main_window::on_toolbar_full_paths()
+{
+	m_full_paths = !m_full_paths;
+	LRESULT const state_set = SendMessageW(m_toolbar, TB_SETSTATE, s_toolbar_full_paths, (m_full_paths ? TBSTATE_PRESSED : 0) | TBSTATE_ENABLED);
+	assert(state_set == TRUE);
+}
+
+void main_window::open()
 {
 	wchar_t buff[32 * 1024];
 	buff[0] = L'\0';
@@ -716,11 +804,6 @@ void main_window::on_menu_open()
 	}
 
 	open_file(buff);
-}
-
-void main_window::on_menu_exit()
-{
-	PostQuitMessage(EXIT_SUCCESS);
 }
 
 void main_window::open_file(wchar_t const* const file_path)

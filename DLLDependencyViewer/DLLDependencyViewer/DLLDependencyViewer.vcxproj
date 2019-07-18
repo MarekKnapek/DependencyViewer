@@ -190,6 +190,7 @@
     <ResourceCompile Include="src\res\resources.rc" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="src\res\icons_toolbar.bmp" />
     <Image Include="src\res\icons_tree.bmp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -41,3 +41,10 @@
 #define s_res_icon_duplicate_delay_64 27
 #define s_res_icon_warning_delay_64 28
 #define s_res_icon_warning_duplicate_delay_64 29
+
+
+
+#define s_res_icons_toolbar 3
+
+#define s_res_icon_open 0
+#define s_res_icon_full_paths 4
