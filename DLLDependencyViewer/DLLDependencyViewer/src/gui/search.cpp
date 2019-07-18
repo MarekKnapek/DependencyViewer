@@ -94,5 +94,13 @@ void search(searcher& sch, string const* const& dll_name)
 		}
 	}
 
+	wchar_t* part;
+	DWORD len = SearchPathW(nullptr, tmpw.c_str(), nullptr, buff.size(), buff.data(), &part);
+	if(len != 0)
+	{
+		tmpw.assign(buff.data(), buff.data() + len);
+		return;
+	}
+
 	tmpw.clear();
 }
