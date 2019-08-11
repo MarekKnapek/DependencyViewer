@@ -409,36 +409,27 @@ void main_window::on_tree_getdispinfow(NMHDR& nmhdr)
 	}
 	if((di.item.mask & TVIF_TEXT) != 0)
 	{
-		if(fi.m_file_path == get_not_found_string())
+		bool const long_name = m_full_paths && fi.m_file_path != get_not_found_string();
+		if(long_name)
 		{
-			assert(parent_fi);
-			int const idx = static_cast<int>(&tmp_fi - parent_fi->m_sub_file_infos.data());
-			string const* const my_name = parent_fi->m_import_table.m_dlls[idx].m_dll_name;
-			m_mo.m_tmpw.resize(my_name->m_len);
-			std::transform(my_name->m_str, my_name->m_str + my_name->m_len, m_mo.m_tmpw.begin(), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
-			std::wstring& tmp = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-			tmp.clear();
-			tmp.append(m_mo.m_tmpw).append(L" (").append(fi.m_file_path->m_str).append(L")");
-			di.item.pszText = const_cast<wchar_t*>(tmp.c_str());
+			di.item.pszText = const_cast<wchar_t*>(fi.m_file_path->m_str);
 		}
 		else
 		{
-			std::wstring& tmp = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
 			if(parent_fi)
 			{
 				int const idx = static_cast<int>(&tmp_fi - parent_fi->m_sub_file_infos.data());
-				string const* const my_name = parent_fi->m_import_table.m_dlls[idx].m_dll_name;
-				m_mo.m_tmpw.resize(my_name->m_len);
-				std::transform(my_name->m_str, my_name->m_str + my_name->m_len, m_mo.m_tmpw.begin(), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
-				tmp.clear();
-				tmp.append(m_mo.m_tmpw).append(L" (").append(fi.m_file_path->m_str).append(L")");
+				string const& my_name = *parent_fi->m_import_table.m_dlls[idx].m_dll_name;
+				std::wstring& tmp = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
+				tmp.resize(my_name.m_len);
+				std::transform(my_name.m_str, my_name.m_str + my_name.m_len, tmp.begin(), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
+				di.item.pszText = const_cast<wchar_t*>(tmp.c_str());
 			}
 			else
 			{
-				tmp.clear();
-				tmp.append(find_file_name(fi.m_file_path->m_str, fi.m_file_path->m_len)).append(L" (").append(fi.m_file_path->m_str).append(L")");
+				wchar_t const* const file_name = find_file_name(fi.m_file_path->m_str, fi.m_file_path->m_len);
+				di.item.pszText = const_cast<wchar_t*>(file_name);
 			}
-			di.item.pszText = const_cast<wchar_t*>(tmp.c_str());
 		}
 	}
 	if((di.item.mask & (TVIF_IMAGE | TVIF_SELECTEDIMAGE)) != 0)
@@ -861,6 +852,9 @@ void main_window::on_toolbar_full_paths()
 	m_full_paths = !m_full_paths;
 	LRESULT const state_set = SendMessageW(m_toolbar, TB_SETSTATE, s_toolbar_full_paths, (m_full_paths ? TBSTATE_PRESSED : 0) | TBSTATE_ENABLED);
 	assert(state_set == TRUE);
+
+	BOOL const tree_invalidated = InvalidateRect(m_tree, nullptr, TRUE);
+	assert(tree_invalidated != 0);
 }
 
 void main_window::open()
