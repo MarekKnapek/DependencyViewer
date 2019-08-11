@@ -46,6 +46,8 @@ static constexpr int const s_toolbar_open = 3000;
 static constexpr int const s_toolbar_full_paths = 3004;
 
 
+static int g_import_type_column_max_width = 0;
+static int g_export_type_column_max_width = 0;
 static int g_twobyte_column_max_width = 0;
 
 
@@ -447,6 +449,9 @@ void main_window::on_tree_notify(NMHDR& nmhdr)
 			{
 				LRESULT const auto_sized = SendMessageW(m_import_list, LVM_SETCOLUMNWIDTH, i, LVSCW_AUTOSIZE);
 			}
+			int const import_type_column_max_width = get_import_type_column_max_width();
+			LRESULT const type_sized = SendMessageW(m_import_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_import_column::e_type), import_type_column_max_width);
+			assert(type_sized == TRUE);
 			int const twobyte_column_max_width = get_twobyte_column_max_width();
 			LRESULT const ordinal_sized = SendMessageW(m_import_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_import_column::e_ordinal), twobyte_column_max_width);
 			assert(ordinal_sized == TRUE);
@@ -464,6 +469,9 @@ void main_window::on_tree_notify(NMHDR& nmhdr)
 			{
 				LRESULT const auto_sized = SendMessageW(m_export_list, LVM_SETCOLUMNWIDTH, i, LVSCW_AUTOSIZE);
 			}
+			int const export_type_column_max_width = get_export_type_column_max_width();
+			LRESULT const type_sized = SendMessageW(m_export_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_export_column::e_type), export_type_column_max_width);
+			assert(type_sized == TRUE);
 			int const twobyte_column_max_width = get_twobyte_column_max_width();
 			LRESULT const ordinal_sized = SendMessageW(m_export_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_export_column::e_ordinal), twobyte_column_max_width);
 			assert(ordinal_sized == TRUE);
@@ -941,6 +949,58 @@ void main_window::refresh_view_recursive(file_info& parent_fi, HTREEITEM const& 
 	}
 }
 
+int main_window::get_import_type_column_max_width()
+{
+	if(g_import_type_column_max_width != 0)
+	{
+		return g_import_type_column_max_width;
+	}
+
+	HDC const dc = GetDC(m_import_list);
+	assert(dc != NULL);
+	smart_dc sdc(m_import_list, dc);
+
+	int maximum = 0;
+	SIZE size;
+
+	BOOL const got1 = GetTextExtentPointW(dc, s_import_type_true, static_cast<int>(std::size(s_import_type_true)) - 1, &size);
+	assert(got1 != 0);
+	maximum = (std::max)(maximum, static_cast<int>(size.cx));
+
+	BOOL const got2 = GetTextExtentPointW(dc, s_import_type_false, static_cast<int>(std::size(s_import_type_false)) - 1, &size);
+	assert(got2 != 0);
+	maximum = (std::max)(maximum, static_cast<int>(size.cx));
+
+	g_import_type_column_max_width = maximum;
+	return maximum;
+}
+
+int main_window::get_export_type_column_max_width()
+{
+	if(g_export_type_column_max_width != 0)
+	{
+		return g_export_type_column_max_width;
+	}
+
+	HDC const dc = GetDC(m_export_list);
+	assert(dc != NULL);
+	smart_dc sdc(m_export_list, dc);
+
+	int maximum = 0;
+	SIZE size;
+
+	BOOL const got1 = GetTextExtentPointW(dc, s_export_type_true, static_cast<int>(std::size(s_export_type_true)) - 1, &size);
+	assert(got1 != 0);
+	maximum = (std::max)(maximum, static_cast<int>(size.cx));
+
+	BOOL const got2 = GetTextExtentPointW(dc, s_export_type_false, static_cast<int>(std::size(s_export_type_false)) - 1, &size);
+	assert(got2 != 0);
+	maximum = (std::max)(maximum, static_cast<int>(size.cx));
+
+	g_export_type_column_max_width = maximum;
+	return maximum;
+}
+
 int main_window::get_twobyte_column_max_width()
 {
 	static constexpr std::uint16_t const s_twobytes[] =
@@ -972,9 +1032,9 @@ int main_window::get_twobyte_column_max_width()
 		return g_twobyte_column_max_width;
 	}
 
-	HDC const dc = GetDC(m_export_list);
+	HDC const dc = GetDC(m_import_list);
 	assert(dc != NULL);
-	smart_dc sdc(m_export_list, dc);
+	smart_dc sdc(m_import_list, dc);
 
 	int maximum = 0;
 	for(auto const& twobyte : s_twobytes)
