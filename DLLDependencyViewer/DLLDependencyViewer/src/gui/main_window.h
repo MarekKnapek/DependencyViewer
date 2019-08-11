@@ -46,6 +46,7 @@ private:
 	void on_tree_selchangedw(NMHDR& nmhdr);
 	void on_tree_dblclk(NMHDR& nmhdr);
 	void on_import_notify(NMHDR& nmhdr);
+	void on_import_getdispinfow(NMHDR& nmhdr);
 	void on_export_notify(NMHDR& nmhdr);
 	void on_menu_open();
 	void on_menu_exit();

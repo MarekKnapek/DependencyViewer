@@ -596,115 +596,120 @@ void main_window::on_import_notify(NMHDR& nmhdr)
 {
 	if(nmhdr.code == LVN_GETDISPINFOW)
 	{
-		NMLVDISPINFOW& nm = reinterpret_cast<NMLVDISPINFOW&>(nmhdr);
-		if((nm.item.mask | LVIF_TEXT) != 0)
+		on_import_getdispinfow(nmhdr);
+	}
+}
+
+void main_window::on_import_getdispinfow(NMHDR& nmhdr)
+{
+	NMLVDISPINFOW& nm = reinterpret_cast<NMLVDISPINFOW&>(nmhdr);
+	if((nm.item.mask | LVIF_TEXT) != 0)
+	{
+		TVITEMEXW ti;
+		HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(&ti)));
+		if(!selected)
 		{
-			TVITEMEXW ti;
-			HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(&ti)));
-			if(!selected)
+			return;
+		}
+		HTREEITEM const parent = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(selected)));
+		if(!parent)
+		{
+			return;
+		}
+		ti.hItem = parent;
+		ti.mask = TVIF_PARAM;
+		LRESULT const got_parent = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
+		file_info const& parent_fi = *reinterpret_cast<file_info*>(ti.lParam);
+		ti.hItem = selected;
+		ti.mask = TVIF_PARAM;
+		LRESULT const got_selected = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
+		file_info const& fi = *reinterpret_cast<file_info*>(ti.lParam);
+		int const idx = static_cast<int>(&fi - parent_fi.m_sub_file_infos.data());
+		int const row = nm.item.iItem;
+		int const col = nm.item.iSubItem;
+		pe_import_entry const& import_entry = parent_fi.m_import_table.m_dlls[idx].m_entries[row];
+		e_import_column const ecol = static_cast<e_import_column>(col);
+		switch(ecol)
+		{
+			case e_import_column::e_type:
 			{
-				return;
-			}
-			HTREEITEM const parent = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(selected)));
-			if(!parent)
-			{
-				return;
-			}
-			ti.hItem = parent;
-			ti.mask = TVIF_PARAM;
-			LRESULT const got_parent = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-			file_info const& parent_fi = *reinterpret_cast<file_info*>(ti.lParam);
-			ti.hItem = selected;
-			ti.mask = TVIF_PARAM;
-			LRESULT const got_selected = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-			file_info const& fi = *reinterpret_cast<file_info*>(ti.lParam);
-			int const idx = static_cast<int>(&fi - parent_fi.m_sub_file_infos.data());
-			int const row = nm.item.iItem;
-			int const col = nm.item.iSubItem;
-			pe_import_entry const& import_entry = parent_fi.m_import_table.m_dlls[idx].m_entries[row];
-			e_import_column const ecol = static_cast<e_import_column>(col);
-			switch(ecol)
-			{
-				case e_import_column::e_type:
+				if(import_entry.m_is_ordinal)
 				{
-					if(import_entry.m_is_ordinal)
-					{
-						nm.item.pszText = const_cast<wchar_t*>(s_import_type_true);
-					}
-					else
-					{
-						nm.item.pszText = const_cast<wchar_t*>(s_import_type_false);
-					}
+					nm.item.pszText = const_cast<wchar_t*>(s_import_type_true);
 				}
-				break;
-				case e_import_column::e_ordinal:
+				else
 				{
-					if(import_entry.m_is_ordinal)
+					nm.item.pszText = const_cast<wchar_t*>(s_import_type_false);
+				}
+			}
+			break;
+			case e_import_column::e_ordinal:
+			{
+				if(import_entry.m_is_ordinal)
+				{
+					static_assert(sizeof(std::uint16_t) == sizeof(unsigned short int), "");
+					std::array<wchar_t, 32> buff;
+					int const formatted = std::swprintf(buff.data(), buff.size(), L"%hu (0x%04hx)", static_cast<unsigned short int>(import_entry.m_ordinal_or_hint), static_cast<unsigned short int>(import_entry.m_ordinal_or_hint));
+					std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
+					tmpstr.assign(buff.data(), buff.data() + formatted);
+					nm.item.pszText = const_cast<wchar_t*>(tmpstr.c_str());
+				}
+				else
+				{
+					nm.item.pszText = const_cast<wchar_t*>(s_import_ordinal_na);
+				}
+			}
+			break;
+			case e_import_column::e_hint:
+			{
+				if(import_entry.m_is_ordinal)
+				{
+					nm.item.pszText = const_cast<wchar_t*>(s_import_hint_na);
+				}
+				else
+				{
+					static_assert(sizeof(std::uint16_t) == sizeof(unsigned short int), "");
+					std::array<wchar_t, 32> buff;
+					int const formatted = std::swprintf(buff.data(), buff.size(), L"%hu (0x%04hx)", static_cast<unsigned short int>(import_entry.m_ordinal_or_hint), static_cast<unsigned short int>(import_entry.m_ordinal_or_hint));
+					std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
+					tmpstr.assign(buff.data(), buff.data() + formatted);
+					nm.item.pszText = const_cast<wchar_t*>(tmpstr.c_str());
+				}
+			}
+			break;
+			case e_import_column::e_name:
+			{
+				if(import_entry.m_is_ordinal)
+				{
+					std::uint16_t const& ordinal = import_entry.m_ordinal_or_hint;
+					auto const it = std::lower_bound(fi.m_export_table.m_export_address_table.cbegin(), fi.m_export_table.m_export_address_table.cend(), ordinal, [](pe_export_address_entry const& e, std::uint16_t const& v){ return e.m_ordinal < v; });
+					if(it != fi.m_export_table.m_export_address_table.cend() && it->m_ordinal == ordinal && it->m_name)
 					{
-						static_assert(sizeof(std::uint16_t) == sizeof(unsigned short int), "");
-						std::array<wchar_t, 32> buff;
-						int const formatted = std::swprintf(buff.data(), buff.size(), L"%hu (0x%04hx)", static_cast<unsigned short int>(import_entry.m_ordinal_or_hint), static_cast<unsigned short int>(import_entry.m_ordinal_or_hint));
+						pe_export_address_entry const& found = *it;
 						std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-						tmpstr.assign(buff.data(), buff.data() + formatted);
+						tmpstr.resize(found.m_name->m_len);
+						std::transform(cbegin(found.m_name), cend(found.m_name), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
 						nm.item.pszText = const_cast<wchar_t*>(tmpstr.c_str());
 					}
 					else
 					{
-						nm.item.pszText = const_cast<wchar_t*>(s_import_ordinal_na);
+						nm.item.pszText = const_cast<wchar_t*>(s_import_name_na);
 					}
 				}
-				break;
-				case e_import_column::e_hint:
+				else
 				{
-					if(import_entry.m_is_ordinal)
-					{
-						nm.item.pszText = const_cast<wchar_t*>(s_import_hint_na);
-					}
-					else
-					{
-						static_assert(sizeof(std::uint16_t) == sizeof(unsigned short int), "");
-						std::array<wchar_t, 32> buff;
-						int const formatted = std::swprintf(buff.data(), buff.size(), L"%hu (0x%04hx)", static_cast<unsigned short int>(import_entry.m_ordinal_or_hint), static_cast<unsigned short int>(import_entry.m_ordinal_or_hint));
-						std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-						tmpstr.assign(buff.data(), buff.data() + formatted);
-						nm.item.pszText = const_cast<wchar_t*>(tmpstr.c_str());
-					}
+					std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
+					tmpstr.resize(import_entry.m_name->m_len);
+					std::transform(cbegin(import_entry.m_name), cend(import_entry.m_name), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
+					nm.item.pszText = const_cast<wchar_t*>(tmpstr.c_str());
 				}
-				break;
-				case e_import_column::e_name:
-				{
-					if(import_entry.m_is_ordinal)
-					{
-						std::uint16_t const& ordinal = import_entry.m_ordinal_or_hint;
-						auto const it = std::lower_bound(fi.m_export_table.m_export_address_table.cbegin(), fi.m_export_table.m_export_address_table.cend(), ordinal, [](pe_export_address_entry const& e, std::uint16_t const& v){ return e.m_ordinal < v; });
-						if(it != fi.m_export_table.m_export_address_table.cend() && it->m_ordinal == ordinal && it->m_name)
-						{
-							pe_export_address_entry const& found = *it;
-							std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-							tmpstr.resize(found.m_name->m_len);
-							std::transform(cbegin(found.m_name), cend(found.m_name), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
-							nm.item.pszText = const_cast<wchar_t*>(tmpstr.c_str());
-						}
-						else
-						{
-							nm.item.pszText = const_cast<wchar_t*>(s_import_name_na);
-						}
-					}
-					else
-					{
-						std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-						tmpstr.resize(import_entry.m_name->m_len);
-						std::transform(cbegin(import_entry.m_name), cend(import_entry.m_name), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
-						nm.item.pszText = const_cast<wchar_t*>(tmpstr.c_str());
-					}
-				}
-				break;
-				default:
-				{
-					assert(false);
-				}
-				break;
 			}
+			break;
+			default:
+			{
+				assert(false);
+			}
+			break;
 		}
 	}
 }
