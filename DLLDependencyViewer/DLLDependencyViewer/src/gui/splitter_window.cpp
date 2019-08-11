@@ -26,12 +26,12 @@ void splitter_window<orientation>::register_class()
 
 	ATOM const klass = RegisterClassExW(&wc);
 
-	m_s_class = klass;
+	g_class = klass;
 }
 
 template<splitter_window_orientation orientation>
 splitter_window<orientation>::splitter_window(HWND const parent) :
-	m_hwnd(CreateWindowExW(0, reinterpret_cast<wchar_t const*>(m_s_class), nullptr, WS_CLIPCHILDREN | WS_VISIBLE | WS_CHILD, 0, 0, 0, 0, parent, nullptr, get_instance(), nullptr)),
+	m_hwnd(CreateWindowExW(0, reinterpret_cast<wchar_t const*>(g_class), nullptr, WS_CLIPCHILDREN | WS_VISIBLE | WS_CHILD, 0, 0, 0, 0, parent, nullptr, get_instance(), nullptr)),
 	m_first(),
 	m_second(),
 	m_position(0.50f),
@@ -226,7 +226,7 @@ template<> wchar_t const* const splitter_window<splitter_window_orientation::hor
 template<> wchar_t const* const splitter_window<splitter_window_orientation::vertical>::s_cursor_id = IDC_SIZENS;
 
 template<splitter_window_orientation orientation>
-ATOM splitter_window<orientation>::m_s_class;
+ATOM splitter_window<orientation>::g_class = 0;
 
 template splitter_window<splitter_window_orientation::horizontal>;
 template splitter_window<splitter_window_orientation::vertical>;

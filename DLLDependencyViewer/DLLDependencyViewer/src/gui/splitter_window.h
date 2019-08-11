@@ -41,7 +41,7 @@ private:
 	static wchar_t const s_window_class_name[];
 	static wchar_t const* const s_cursor_id;
 private:
-	static ATOM m_s_class;
+	static ATOM g_class;
 private:
 	HWND m_hwnd;
 	HWND m_first;
