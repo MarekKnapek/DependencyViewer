@@ -472,6 +472,28 @@ void main_window::on_tree_notify(NMHDR& nmhdr)
 			LRESULT const redr_on_2 = SendMessageW(m_export_list, WM_SETREDRAW, TRUE, 0);
 		}
 	}
+	else if(nmhdr.code == NM_DBLCLK)
+	{
+		LPARAM const got_selected = SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_CARET, 0);
+		if(got_selected != 0)
+		{
+			HTREEITEM const selected = reinterpret_cast<HTREEITEM>(got_selected);
+			TVITEMEXW ti;
+			ti.hItem = selected;
+			ti.mask = TVIF_PARAM;
+			LRESULT const got = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
+			assert(got == TRUE);
+			assert(ti.lParam);
+			file_info const& fi = *reinterpret_cast<file_info*>(ti.lParam);
+			if(fi.m_orig_instance)
+			{
+				HTREEITEM const orig_tree_item = static_cast<HTREEITEM>(fi.m_orig_instance->m_tree_item);
+				assert(orig_tree_item);
+				LRESULT const selected = SendMessageW(m_tree, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(orig_tree_item));
+				assert(selected == TRUE);
+			}
+		}
+	}
 }
 
 void main_window::on_import_notify(NMHDR& nmhdr)
@@ -847,6 +869,8 @@ void main_window::refresh(main_type&& mo)
 
 	m_mo = std::move(mo);
 
+	assert(m_mo.m_fi.m_sub_file_infos.size() == 1);
+	file_info& fi = m_mo.m_fi.m_sub_file_infos[0];
 	TVINSERTSTRUCTW tvi;
 	tvi.hParent = TVI_ROOT;
 	tvi.hInsertAfter = TVI_ROOT;
@@ -859,14 +883,15 @@ void main_window::refresh(main_type&& mo)
 	tvi.itemex.iImage = I_IMAGECALLBACK;
 	tvi.itemex.iSelectedImage = I_IMAGECALLBACK;
 	tvi.itemex.cChildren = 0;
-	tvi.itemex.lParam = reinterpret_cast<LPARAM>(&m_mo.m_fi.m_sub_file_infos[0]);
+	tvi.itemex.lParam = reinterpret_cast<LPARAM>(&fi);
 	tvi.itemex.iIntegral = 0;
 	tvi.itemex.uStateEx = 0;
 	tvi.itemex.hwnd = nullptr;
 	tvi.itemex.iExpandedImage = 0;
 	tvi.itemex.iReserved = 0;
 	HTREEITEM const hroot = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_INSERTITEMW, 0, reinterpret_cast<LPARAM>(&tvi)));
-	refresh_view_recursive(m_mo.m_fi.m_sub_file_infos[0], hroot);
+	fi.m_tree_item = hroot;
+	refresh_view_recursive(fi, hroot);
 	LRESULT const expanded = SendMessageW(m_tree, TVM_EXPAND, TVE_EXPAND, reinterpret_cast<LPARAM>(hroot));
 	LRESULT const selected = SendMessageW(m_tree, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(hroot));
 
@@ -875,9 +900,9 @@ void main_window::refresh(main_type&& mo)
 	LRESULT const redr_on_3 = SendMessageW(m_export_list, WM_SETREDRAW, TRUE, 0);
 }
 
-void main_window::refresh_view_recursive(file_info const& parent_fi, HTREEITEM const& parent_ti)
+void main_window::refresh_view_recursive(file_info& parent_fi, HTREEITEM const& parent_ti)
 {
-	for(auto const& fi : parent_fi.m_sub_file_infos)
+	for(auto& fi : parent_fi.m_sub_file_infos)
 	{
 		TVINSERTSTRUCTW tvi;
 		tvi.hParent = parent_ti;
@@ -898,6 +923,7 @@ void main_window::refresh_view_recursive(file_info const& parent_fi, HTREEITEM c
 		tvi.itemex.iExpandedImage = 0;
 		tvi.itemex.iReserved = 0;
 		HTREEITEM const ti = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_INSERTITEMW, 0, reinterpret_cast<LPARAM>(&tvi)));
+		fi.m_tree_item = ti;
 		refresh_view_recursive(fi, ti);
 	}
 }

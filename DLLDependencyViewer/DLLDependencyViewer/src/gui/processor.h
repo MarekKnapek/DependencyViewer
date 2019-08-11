@@ -18,6 +18,7 @@ namespace fs = std::experimental::filesystem;
 
 struct file_info
 {
+	void* m_tree_item;
 	file_info const* m_orig_instance;
 	wstring const* m_file_path;
 	bool m_is_32_bit;
