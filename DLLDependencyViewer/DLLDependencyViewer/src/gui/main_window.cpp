@@ -69,6 +69,19 @@ enum class e_export_column
 };
 
 
+struct drop_deleter
+{
+	void operator()(void* const& obj) const;
+};
+using smart_drop = std::unique_ptr<void, drop_deleter>;
+
+
+void drop_deleter::operator()(void* const& obj) const
+{
+	DragFinish(reinterpret_cast<HDROP>(obj));
+}
+
+
 void main_window::register_class()
 {
 	WNDCLASSEXW wc;
@@ -304,9 +317,10 @@ LRESULT main_window::on_wm_command(WPARAM wparam, LPARAM lparam)
 
 LRESULT main_window::on_wm_dropfiles(WPARAM wparam, LPARAM lparam)
 {
+	static_assert(sizeof(WPARAM) == sizeof(HDROP), "");
+	static_assert(sizeof(HDROP) == sizeof(void*), "");
 	HDROP const hdrop = reinterpret_cast<HDROP>(wparam);
-	struct drop_deleter{ void operator()(void* const& obj){ DragFinish(reinterpret_cast<HDROP>(obj)); } };
-	std::unique_ptr<void, drop_deleter> const sp_drop(hdrop);
+	smart_drop sp_drop(hdrop);
 	UINT const queried_1 = DragQueryFileW(hdrop, 0xFFFFFFFF, nullptr, 0);
 	if(queried_1 != 1)
 	{
