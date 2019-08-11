@@ -366,11 +366,11 @@ void main_window::on_tree_notify(NMHDR& nmhdr)
 {
 	if(nmhdr.code == TVN_GETDISPINFOW)
 	{
-		on_tree_display(nmhdr);
+		on_tree_getdispinfow(nmhdr);
 	}
 	else if(nmhdr.code == TVN_SELCHANGEDW)
 	{
-		on_tree_selected(nmhdr);
+		on_tree_selchangedw(nmhdr);
 	}
 	else if(nmhdr.code == NM_DBLCLK)
 	{
@@ -378,7 +378,7 @@ void main_window::on_tree_notify(NMHDR& nmhdr)
 	}
 }
 
-void main_window::on_tree_display(NMHDR& nmhdr)
+void main_window::on_tree_getdispinfow(NMHDR& nmhdr)
 {
 	NMTVDISPINFOW& di = reinterpret_cast<NMTVDISPINFOW&>(nmhdr);
 	file_info const& tmp_fi = *reinterpret_cast<file_info*>(di.item.lParam);
@@ -515,7 +515,7 @@ void main_window::on_tree_display(NMHDR& nmhdr)
 	}
 }
 
-void main_window::on_tree_selected(NMHDR& nmhdr)
+void main_window::on_tree_selchangedw(NMHDR& nmhdr)
 {
 	NMTREEVIEWW& nm = reinterpret_cast<NMTREEVIEWW&>(nmhdr);
 	{
