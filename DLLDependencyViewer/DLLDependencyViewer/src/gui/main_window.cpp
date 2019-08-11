@@ -374,25 +374,7 @@ void main_window::on_tree_notify(NMHDR& nmhdr)
 	}
 	else if(nmhdr.code == NM_DBLCLK)
 	{
-		LPARAM const got_selected = SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_CARET, 0);
-		if(got_selected != 0)
-		{
-			HTREEITEM const selected = reinterpret_cast<HTREEITEM>(got_selected);
-			TVITEMEXW ti;
-			ti.hItem = selected;
-			ti.mask = TVIF_PARAM;
-			LRESULT const got = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-			assert(got == TRUE);
-			assert(ti.lParam);
-			file_info const& fi = *reinterpret_cast<file_info*>(ti.lParam);
-			if(fi.m_orig_instance)
-			{
-				HTREEITEM const orig_tree_item = static_cast<HTREEITEM>(fi.m_orig_instance->m_tree_item);
-				assert(orig_tree_item);
-				LRESULT const selected = SendMessageW(m_tree, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(orig_tree_item));
-				assert(selected == TRUE);
-			}
-		}
+		on_tree_dblclk(nmhdr);
 	}
 }
 
@@ -584,6 +566,29 @@ void main_window::on_tree_selected(NMHDR& nmhdr)
 		LRESULT const hint_sized = SendMessageW(m_export_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_export_column::e_hint), twobyte_column_max_width);
 		assert(hint_sized == TRUE);
 		LRESULT const redr_on_2 = SendMessageW(m_export_list, WM_SETREDRAW, TRUE, 0);
+	}
+}
+
+void main_window::on_tree_dblclk(NMHDR& nmhdr)
+{
+	LPARAM const got_selected = SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_CARET, 0);
+	if(got_selected != 0)
+	{
+		HTREEITEM const selected = reinterpret_cast<HTREEITEM>(got_selected);
+		TVITEMEXW ti;
+		ti.hItem = selected;
+		ti.mask = TVIF_PARAM;
+		LRESULT const got = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
+		assert(got == TRUE);
+		assert(ti.lParam);
+		file_info const& fi = *reinterpret_cast<file_info*>(ti.lParam);
+		if(fi.m_orig_instance)
+		{
+			HTREEITEM const orig_tree_item = static_cast<HTREEITEM>(fi.m_orig_instance->m_tree_item);
+			assert(orig_tree_item);
+			LRESULT const selected = SendMessageW(m_tree, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(orig_tree_item));
+			assert(selected == TRUE);
+		}
 	}
 }
 

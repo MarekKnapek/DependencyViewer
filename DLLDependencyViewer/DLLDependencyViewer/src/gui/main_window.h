@@ -44,6 +44,7 @@ private:
 	void on_tree_notify(NMHDR& nmhdr);
 	void on_tree_display(NMHDR& nmhdr);
 	void on_tree_selected(NMHDR& nmhdr);
+	void on_tree_dblclk(NMHDR& nmhdr);
 	void on_import_notify(NMHDR& nmhdr);
 	void on_export_notify(NMHDR& nmhdr);
 	void on_menu_open();
