@@ -718,106 +718,111 @@ void main_window::on_export_notify(NMHDR& nmhdr)
 {
 	if(nmhdr.code == LVN_GETDISPINFOW)
 	{
-		NMLVDISPINFOW& nm = reinterpret_cast<NMLVDISPINFOW&>(nmhdr);
-		if((nm.item.mask | LVIF_TEXT) != 0)
+		on_export_getdispinfow(nmhdr);
+	}
+}
+
+void main_window::on_export_getdispinfow(NMHDR& nmhdr)
+{
+	NMLVDISPINFOW& nm = reinterpret_cast<NMLVDISPINFOW&>(nmhdr);
+	if((nm.item.mask | LVIF_TEXT) != 0)
+	{
+		TVITEMEXW ti;
+		HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(&ti)));
+		if(!selected)
 		{
-			TVITEMEXW ti;
-			HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(&ti)));
-			if(!selected)
+			return;
+		}
+		ti.hItem = selected;
+		ti.mask = TVIF_PARAM;
+		LRESULT const got_selected = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
+		file_info const& fi_tmp = *reinterpret_cast<file_info*>(ti.lParam);
+		file_info const& fi = fi_tmp.m_orig_instance ? *fi_tmp.m_orig_instance : fi_tmp;
+		int const row = nm.item.iItem;
+		int const col = nm.item.iSubItem;
+		pe_export_address_entry const& export_entry = fi.m_export_table.m_export_address_table[row];
+		e_export_column const ecol = static_cast<e_export_column>(col);
+		switch(ecol)
+		{
+			case e_export_column::e_type:
 			{
-				return;
-			}
-			ti.hItem = selected;
-			ti.mask = TVIF_PARAM;
-			LRESULT const got_selected = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-			file_info const& fi_tmp = *reinterpret_cast<file_info*>(ti.lParam);
-			file_info const& fi = fi_tmp.m_orig_instance ? *fi_tmp.m_orig_instance : fi_tmp;
-			int const row = nm.item.iItem;
-			int const col = nm.item.iSubItem;
-			pe_export_address_entry const& export_entry = fi.m_export_table.m_export_address_table[row];
-			e_export_column const ecol = static_cast<e_export_column>(col);
-			switch(ecol)
-			{
-				case e_export_column::e_type:
+				if(export_entry.m_is_rva)
 				{
-					if(export_entry.m_is_rva)
-					{
-						nm.item.pszText = const_cast<wchar_t*>(s_export_type_true);
-					}
-					else
-					{
-						nm.item.pszText = const_cast<wchar_t*>(s_export_type_false);
-					}
+					nm.item.pszText = const_cast<wchar_t*>(s_export_type_true);
 				}
-				break;
-				case e_export_column::e_ordinal:
+				else
+				{
+					nm.item.pszText = const_cast<wchar_t*>(s_export_type_false);
+				}
+			}
+			break;
+			case e_export_column::e_ordinal:
+			{
+				static_assert(sizeof(std::uint16_t) == sizeof(unsigned short int), "");
+				std::array<wchar_t, 32> buff;
+				int const formatted = std::swprintf(buff.data(), buff.size(), L"%hu (0x%04hx)", static_cast<unsigned short int>(export_entry.m_ordinal), static_cast<unsigned short int>(export_entry.m_ordinal));
+				std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
+				tmpstr.assign(buff.data(), buff.data() + formatted);
+				nm.item.pszText = const_cast<wchar_t*>(tmpstr.c_str());
+			}
+			break;
+			case e_export_column::e_hint:
+			{
+				if(!export_entry.m_name)
+				{
+					nm.item.pszText = const_cast<wchar_t*>(s_export_hint_na);
+				}
+				else
 				{
 					static_assert(sizeof(std::uint16_t) == sizeof(unsigned short int), "");
 					std::array<wchar_t, 32> buff;
-					int const formatted = std::swprintf(buff.data(), buff.size(), L"%hu (0x%04hx)", static_cast<unsigned short int>(export_entry.m_ordinal), static_cast<unsigned short int>(export_entry.m_ordinal));
+					int const formatted = std::swprintf(buff.data(), buff.size(), L"%hu (0x%04hx)", static_cast<unsigned short int>(export_entry.m_hint), static_cast<unsigned short int>(export_entry.m_hint));
 					std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
 					tmpstr.assign(buff.data(), buff.data() + formatted);
 					nm.item.pszText = const_cast<wchar_t*>(tmpstr.c_str());
 				}
-				break;
-				case e_export_column::e_hint:
-				{
-					if(!export_entry.m_name)
-					{
-						nm.item.pszText = const_cast<wchar_t*>(s_export_hint_na);
-					}
-					else
-					{
-						static_assert(sizeof(std::uint16_t) == sizeof(unsigned short int), "");
-						std::array<wchar_t, 32> buff;
-						int const formatted = std::swprintf(buff.data(), buff.size(), L"%hu (0x%04hx)", static_cast<unsigned short int>(export_entry.m_hint), static_cast<unsigned short int>(export_entry.m_hint));
-						std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-						tmpstr.assign(buff.data(), buff.data() + formatted);
-						nm.item.pszText = const_cast<wchar_t*>(tmpstr.c_str());
-					}
-				}
-				break;
-				case e_export_column::e_name:
-				{
-					if(!export_entry.m_name)
-					{
-						nm.item.pszText = const_cast<wchar_t*>(s_export_name_na);
-					}
-					else
-					{
-						std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-						tmpstr.resize(export_entry.m_name->m_len);
-						std::transform(cbegin(export_entry.m_name), cend(export_entry.m_name), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
-						nm.item.pszText = const_cast<wchar_t*>(tmpstr.c_str());
-					}
-				}
-				break;
-				case e_export_column::e_entry_point:
-				{
-					if(export_entry.m_is_rva)
-					{
-						static_assert(sizeof(std::uint32_t) == sizeof(unsigned int), "");
-						std::array<wchar_t, 32> buff;
-						int const formatted = std::swprintf(buff.data(), buff.size(), L"0x%08x", static_cast<unsigned int>(export_entry.m_rva));
-						std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-						tmpstr.assign(buff.data(), buff.data() + formatted);
-						nm.item.pszText = const_cast<wchar_t*>(tmpstr.c_str());
-					}
-					else
-					{
-						std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-						tmpstr.resize(export_entry.m_forwarder->m_len);
-						std::transform(cbegin(export_entry.m_forwarder), cend(export_entry.m_forwarder), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
-						nm.item.pszText = const_cast<wchar_t*>(tmpstr.c_str());
-					}
-				}
-				break;
-				default:
-				{
-					assert(false);
-				}
-				break;
 			}
+			break;
+			case e_export_column::e_name:
+			{
+				if(!export_entry.m_name)
+				{
+					nm.item.pszText = const_cast<wchar_t*>(s_export_name_na);
+				}
+				else
+				{
+					std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
+					tmpstr.resize(export_entry.m_name->m_len);
+					std::transform(cbegin(export_entry.m_name), cend(export_entry.m_name), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
+					nm.item.pszText = const_cast<wchar_t*>(tmpstr.c_str());
+				}
+			}
+			break;
+			case e_export_column::e_entry_point:
+			{
+				if(export_entry.m_is_rva)
+				{
+					static_assert(sizeof(std::uint32_t) == sizeof(unsigned int), "");
+					std::array<wchar_t, 32> buff;
+					int const formatted = std::swprintf(buff.data(), buff.size(), L"0x%08x", static_cast<unsigned int>(export_entry.m_rva));
+					std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
+					tmpstr.assign(buff.data(), buff.data() + formatted);
+					nm.item.pszText = const_cast<wchar_t*>(tmpstr.c_str());
+				}
+				else
+				{
+					std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
+					tmpstr.resize(export_entry.m_forwarder->m_len);
+					std::transform(cbegin(export_entry.m_forwarder), cend(export_entry.m_forwarder), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
+					nm.item.pszText = const_cast<wchar_t*>(tmpstr.c_str());
+				}
+			}
+			break;
+			default:
+			{
+				assert(false);
+			}
+			break;
 		}
 	}
 }

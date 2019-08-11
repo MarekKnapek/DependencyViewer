@@ -48,6 +48,7 @@ private:
 	void on_import_notify(NMHDR& nmhdr);
 	void on_import_getdispinfow(NMHDR& nmhdr);
 	void on_export_notify(NMHDR& nmhdr);
+	void on_export_getdispinfow(NMHDR& nmhdr);
 	void on_menu_open();
 	void on_menu_exit();
 	void on_toolbar_open();
