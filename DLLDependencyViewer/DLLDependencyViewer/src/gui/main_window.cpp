@@ -211,7 +211,7 @@ HWND main_window::create_toolbar(HWND const& parent)
 	buttons[1].iString = 0;
 	LRESULT const buttons_added = SendMessageW(toolbar, TB_ADDBUTTONSW, 2, reinterpret_cast<LPARAM>(&buttons));
 	assert(buttons_added == TRUE);
-	LRESULT const sized = SendMessage(toolbar, TB_AUTOSIZE, 0, 0); 
+	SendMessage(toolbar, TB_AUTOSIZE, 0, 0); 
 	BOOL const shown = ShowWindow(toolbar, TRUE);
 	return toolbar;
 }
@@ -276,6 +276,7 @@ LRESULT main_window::on_wm_size(WPARAM wparam, LPARAM lparam)
 {
 	int const w = LOWORD(lparam);
 	int const h = HIWORD(lparam);
+	SendMessage(m_toolbar, TB_AUTOSIZE, 0, 0);
 	RECT toolbar_rect;
 	BOOL const got_toolbar_rect = GetClientRect(m_toolbar, &toolbar_rect);
 	assert(toolbar_rect.left == 0);
