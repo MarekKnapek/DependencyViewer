@@ -52,6 +52,7 @@ private:
 	void open_file(wchar_t const* const file_path);
 	void refresh(main_type&& mo);
 	void refresh_view_recursive(file_info const& parent_fi, HTREEITEM const& parent_ti);
+	int get_twobyte_column_max_width();
 private:
 	static ATOM m_s_class;
 private:

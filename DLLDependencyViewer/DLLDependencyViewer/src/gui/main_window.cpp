@@ -1,6 +1,7 @@
 #include "main_window.h"
 
 #include "main.h"
+#include "smart_dc.h"
 
 #include "../nogui/memory_mapped_file.h"
 #include "../nogui/pe.h"
@@ -43,6 +44,9 @@ static constexpr int const s_import_list = 1001;
 static constexpr int const s_export_list = 1002;
 static constexpr int const s_toolbar_open = 3000;
 static constexpr int const s_toolbar_full_paths = 3004;
+
+
+static int g_twobyte_column_max_width = 0;
 
 
 enum class e_import_column
@@ -443,6 +447,11 @@ void main_window::on_tree_notify(NMHDR& nmhdr)
 			{
 				LRESULT const auto_sized = SendMessageW(m_import_list, LVM_SETCOLUMNWIDTH, i, LVSCW_AUTOSIZE);
 			}
+			int const twobyte_column_max_width = get_twobyte_column_max_width();
+			LRESULT const ordinal_sized = SendMessageW(m_import_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_import_column::e_ordinal), twobyte_column_max_width);
+			assert(ordinal_sized == TRUE);
+			LRESULT const hint_sized = SendMessageW(m_import_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_import_column::e_hint), twobyte_column_max_width);
+			assert(hint_sized == TRUE);
 			LRESULT const redr_on_1 = SendMessageW(m_import_list, WM_SETREDRAW, TRUE, 0);
 		}
 		{
@@ -455,6 +464,11 @@ void main_window::on_tree_notify(NMHDR& nmhdr)
 			{
 				LRESULT const auto_sized = SendMessageW(m_export_list, LVM_SETCOLUMNWIDTH, i, LVSCW_AUTOSIZE);
 			}
+			int const twobyte_column_max_width = get_twobyte_column_max_width();
+			LRESULT const ordinal_sized = SendMessageW(m_export_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_export_column::e_ordinal), twobyte_column_max_width);
+			assert(ordinal_sized == TRUE);
+			LRESULT const hint_sized = SendMessageW(m_export_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_export_column::e_hint), twobyte_column_max_width);
+			assert(hint_sized == TRUE);
 			LRESULT const redr_on_2 = SendMessageW(m_export_list, WM_SETREDRAW, TRUE, 0);
 		}
 	}
@@ -886,6 +900,61 @@ void main_window::refresh_view_recursive(file_info const& parent_fi, HTREEITEM c
 		HTREEITEM const ti = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_INSERTITEMW, 0, reinterpret_cast<LPARAM>(&tvi)));
 		refresh_view_recursive(fi, ti);
 	}
+}
+
+int main_window::get_twobyte_column_max_width()
+{
+	static constexpr std::uint16_t const s_twobytes[] =
+	{
+		11111,
+		22222,
+		33333,
+		44444,
+		55555,
+		0x1111,
+		0x2222,
+		0x3333,
+		0x4444,
+		0x5555,
+		0x6666,
+		0x7777,
+		0x8888,
+		0x9999,
+		0xAAAA,
+		0xBBBB,
+		0xCCCC,
+		0xDDDD,
+		0xEEEE,
+		0xFFFF,
+	};
+
+	if(g_twobyte_column_max_width != 0)
+	{
+		return g_twobyte_column_max_width;
+	}
+
+	HDC const dc = GetDC(m_export_list);
+	assert(dc != NULL);
+	smart_dc sdc(m_export_list, dc);
+
+	int maximum = 0;
+	for(auto const& twobyte : s_twobytes)
+	{
+		static_assert(sizeof(std::uint16_t) == sizeof(unsigned short int), "");
+		std::array<wchar_t, 15> buff;
+		auto const n = static_cast<unsigned short int>(twobyte);
+		int const printed = std::swprintf(buff.data(), buff.size(), L"%hu (0x%04hx)", n, n);
+		assert(printed >= 0);
+
+		SIZE size;
+		BOOL const got = GetTextExtentPointW(dc, buff.data(), printed, &size);
+		assert(got != 0);
+
+		maximum = (std::max)(maximum, static_cast<int>(size.cx));
+	}
+
+	g_twobyte_column_max_width = maximum;
+	return maximum;
 }
 
 ATOM main_window::m_s_class;
