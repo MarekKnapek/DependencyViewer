@@ -289,6 +289,79 @@ LRESULT main_window::on_wm_notify(WPARAM wparam, LPARAM lparam)
 	return DefWindowProcW(m_hwnd, WM_NOTIFY, wparam, lparam);
 }
 
+LRESULT main_window::on_wm_command(WPARAM wparam, LPARAM lparam)
+{
+	if(HIWORD(wparam) == 0 && lparam == 0)
+	{
+		return on_menu(wparam, lparam);
+	}
+	else if(reinterpret_cast<HWND>(lparam) == m_toolbar)
+	{
+		return on_toolbar(wparam, lparam);
+	}
+	return DefWindowProcW(m_hwnd, WM_COMMAND, wparam, lparam);
+}
+
+LRESULT main_window::on_wm_dropfiles(WPARAM wparam, LPARAM lparam)
+{
+	HDROP const hdrop = reinterpret_cast<HDROP>(wparam);
+	struct drop_deleter{ void operator()(void* const& obj){ DragFinish(reinterpret_cast<HDROP>(obj)); } };
+	std::unique_ptr<void, drop_deleter> const sp_drop(hdrop);
+	UINT const queried_1 = DragQueryFileW(hdrop, 0xFFFFFFFF, nullptr, 0);
+	if(queried_1 != 1)
+	{
+		return DefWindowProcW(m_hwnd, WM_DROPFILES, wparam, lparam);
+	}
+	std::array<wchar_t, 32 * 1024> buff;
+	UINT const queried_2 = DragQueryFileW(hdrop, 0, buff.data(), static_cast<int>(buff.size()));
+	open_file(buff.data());
+	return DefWindowProcW(m_hwnd, WM_DROPFILES, wparam, lparam);
+}
+
+LRESULT main_window::on_menu(WPARAM wparam, LPARAM lparam)
+{
+	int const menu_id = LOWORD(wparam);
+	switch(menu_id)
+	{
+		case s_menu_open_id:
+		{
+			on_menu_open();
+		}
+		break;
+		case s_menu_exit_id:
+		{
+			on_menu_exit();
+		}
+		break;
+	}
+	return DefWindowProcW(m_hwnd, WM_COMMAND, wparam, lparam);
+}
+
+LRESULT main_window::on_toolbar(WPARAM wparam, LPARAM lparam)
+{
+	assert(reinterpret_cast<HWND>(lparam) == m_toolbar);
+	int const control_id = LOWORD(wparam);
+	switch(control_id)
+	{
+		case s_toolbar_open:
+		{
+			on_toolbar_open();
+		}
+		break;
+		case s_toolbar_full_paths:
+		{
+			on_toolbar_full_paths();
+		}
+		break;
+		default:
+		{
+			assert(false);
+		}
+		break;
+	}
+	return DefWindowProcW(m_hwnd, WM_COMMAND, wparam, lparam);
+}
+
 void main_window::on_tree_notify(NMHDR& nmhdr)
 {
 	if(nmhdr.code == TVN_GETDISPINFOW)
@@ -727,79 +800,6 @@ void main_window::on_export_notify(NMHDR& nmhdr)
 			}
 		}
 	}
-}
-
-LRESULT main_window::on_wm_command(WPARAM wparam, LPARAM lparam)
-{
-	if(HIWORD(wparam) == 0 && lparam == 0)
-	{
-		return on_menu(wparam, lparam);
-	}
-	else if(reinterpret_cast<HWND>(lparam) == m_toolbar)
-	{
-		return on_toolbar(wparam, lparam);
-	}
-	return DefWindowProcW(m_hwnd, WM_COMMAND, wparam, lparam);
-}
-
-LRESULT main_window::on_wm_dropfiles(WPARAM wparam, LPARAM lparam)
-{
-	HDROP const hdrop = reinterpret_cast<HDROP>(wparam);
-	struct drop_deleter{ void operator()(void* const& obj){ DragFinish(reinterpret_cast<HDROP>(obj)); } };
-	std::unique_ptr<void, drop_deleter> const sp_drop(hdrop);
-	UINT const queried_1 = DragQueryFileW(hdrop, 0xFFFFFFFF, nullptr, 0);
-	if(queried_1 != 1)
-	{
-		return DefWindowProcW(m_hwnd, WM_DROPFILES, wparam, lparam);
-	}
-	std::array<wchar_t, 32 * 1024> buff;
-	UINT const queried_2 = DragQueryFileW(hdrop, 0, buff.data(), static_cast<int>(buff.size()));
-	open_file(buff.data());
-	return DefWindowProcW(m_hwnd, WM_DROPFILES, wparam, lparam);
-}
-
-LRESULT main_window::on_menu(WPARAM wparam, LPARAM lparam)
-{
-	int const menu_id = LOWORD(wparam);
-	switch(menu_id)
-	{
-		case s_menu_open_id:
-		{
-			on_menu_open();
-		}
-		break;
-		case s_menu_exit_id:
-		{
-			on_menu_exit();
-		}
-		break;
-	}
-	return DefWindowProcW(m_hwnd, WM_COMMAND, wparam, lparam);
-}
-
-LRESULT main_window::on_toolbar(WPARAM wparam, LPARAM lparam)
-{
-	assert(reinterpret_cast<HWND>(lparam) == m_toolbar);
-	int const control_id = LOWORD(wparam);
-	switch(control_id)
-	{
-		case s_toolbar_open:
-		{
-			on_toolbar_open();
-		}
-		break;
-		case s_toolbar_full_paths:
-		{
-			on_toolbar_full_paths();
-		}
-		break;
-		default:
-		{
-			assert(false);
-		}
-		break;
-	}
-	return DefWindowProcW(m_hwnd, WM_COMMAND, wparam, lparam);
 }
 
 void main_window::on_menu_open()

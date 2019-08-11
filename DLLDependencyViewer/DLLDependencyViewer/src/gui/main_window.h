@@ -37,13 +37,13 @@ private:
 	LRESULT on_wm_destroy(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_size(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_notify(WPARAM wparam, LPARAM lparam);
-	void on_tree_notify(NMHDR& nmhdr);
-	void on_import_notify(NMHDR& nmhdr);
-	void on_export_notify(NMHDR& nmhdr);
 	LRESULT on_wm_command(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_dropfiles(WPARAM wparam, LPARAM lparam);
 	LRESULT on_menu(WPARAM wparam, LPARAM lparam);
 	LRESULT on_toolbar(WPARAM wparam, LPARAM lparam);
+	void on_tree_notify(NMHDR& nmhdr);
+	void on_import_notify(NMHDR& nmhdr);
+	void on_export_notify(NMHDR& nmhdr);
 	void on_menu_open();
 	void on_menu_exit();
 	void on_toolbar_open();
