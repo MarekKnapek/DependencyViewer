@@ -85,11 +85,11 @@ void main_window::register_class()
 
 	ATOM const klass = RegisterClassExW(&wc);
 
-	m_s_class = klass;
+	g_class = klass;
 }
 
 main_window::main_window() :
-	m_hwnd(CreateWindowExW(0, reinterpret_cast<wchar_t const*>(m_s_class), s_window_title, WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, nullptr, create_menu(), get_instance(), nullptr)),
+	m_hwnd(CreateWindowExW(0, reinterpret_cast<wchar_t const*>(g_class), s_window_title, WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, nullptr, create_menu(), get_instance(), nullptr)),
 	m_toolbar(create_toolbar(m_hwnd)),
 	m_splitter_hor(m_hwnd),
 	m_tree(CreateWindowExW(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE, WC_TREEVIEWW, nullptr, WS_VISIBLE | WS_CHILD, 0, 0, 0, 0, m_splitter_hor.get_hwnd(), reinterpret_cast<HMENU>(static_cast<std::uintptr_t>(s_tree_id)), get_instance(), nullptr)),
@@ -957,4 +957,4 @@ int main_window::get_twobyte_column_max_width()
 	return maximum;
 }
 
-ATOM main_window::m_s_class;
+ATOM main_window::g_class = 0;

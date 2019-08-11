@@ -54,7 +54,7 @@ private:
 	void refresh_view_recursive(file_info const& parent_fi, HTREEITEM const& parent_ti);
 	int get_twobyte_column_max_width();
 private:
-	static ATOM m_s_class;
+	static ATOM g_class;
 private:
 	HWND m_hwnd;
 	HWND m_toolbar;
