@@ -54,6 +54,9 @@
     <ClCompile Include="src\nogui\file_name.cpp">
       <Filter>src\nogui</Filter>
     </ClCompile>
+    <ClCompile Include="src\gui\smart_dc.cpp">
+      <Filter>src\gui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\gui\main_window.h">
@@ -97,6 +100,9 @@
     </ClInclude>
     <ClInclude Include="src\nogui\file_name.h">
       <Filter>src\nogui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gui\smart_dc.h">
+      <Filter>src\gui</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
