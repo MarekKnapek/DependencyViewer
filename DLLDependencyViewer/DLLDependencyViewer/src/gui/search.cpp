@@ -28,9 +28,19 @@ void search(searcher& sch, string const* const& dll_name)
 	std::wstring& tmpw = sch.m_mo->m_tmpw;
 	fs::path& tmpp = sch.m_mo->m_tmpp;
 
-	tmpp = *sch.m_main_file_path;
+	std::array<wchar_t, 32 * 1024> buff;
 	tmpw.resize(dll_name->m_len);
 	std::transform(dll_name->m_str, dll_name->m_str + dll_name->m_len, tmpw.begin(), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
+
+	wchar_t* part;
+	DWORD const len = SearchPathW(nullptr, tmpw.c_str(), nullptr, static_cast<DWORD>(buff.size()), buff.data(), &part);
+	if(len != 0)
+	{
+		tmpw.assign(buff.data(), buff.data() + len);
+		return;
+	}
+
+	tmpp = *sch.m_main_file_path;
 	tmpp.replace_filename(tmpw);
 	if(fs::exists(tmpp))
 	{
@@ -38,7 +48,6 @@ void search(searcher& sch, string const* const& dll_name)
 		return;
 	}
 
-	std::array<wchar_t, 32 * 1024> buff;
 	UINT const got_sys = GetSystemDirectoryW(buff.data(), static_cast<UINT>(buff.size()));
 	tmpp.assign(buff.data(), buff.data() + got_sys);
 	tmpp.append(tmpw);
@@ -92,14 +101,6 @@ void search(searcher& sch, string const* const& dll_name)
 				last = idx + 1;
 			}
 		}
-	}
-
-	wchar_t* part;
-	DWORD len = SearchPathW(nullptr, tmpw.c_str(), nullptr, static_cast<DWORD>(buff.size()), buff.data(), &part);
-	if(len != 0)
-	{
-		tmpw.assign(buff.data(), buff.data() + len);
-		return;
 	}
 
 	tmpw.clear();
