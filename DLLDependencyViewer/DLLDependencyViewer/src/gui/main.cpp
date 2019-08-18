@@ -2,6 +2,7 @@
 
 #include "main_window.h"
 #include "splitter_window.h"
+#include "test.h"
 
 #include "..\nogui\activation_context.h"
 
@@ -26,6 +27,7 @@ static HINSTANCE g_instance;
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
+	test();
 	g_instance = hInstance;
 	InitCommonControls();
 	splitter_window_hor::register_class();

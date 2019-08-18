@@ -166,6 +166,7 @@
     <ClCompile Include="src\gui\search.cpp" />
     <ClCompile Include="src\gui\smart_dc.cpp" />
     <ClCompile Include="src\gui\splitter_window.cpp" />
+    <ClCompile Include="src\gui\test.cpp" />
     <ClCompile Include="src\nogui\activation_context.cpp" />
     <ClCompile Include="src\nogui\allocator.cpp" />
     <ClCompile Include="src\nogui\file_name.cpp" />
@@ -216,6 +217,7 @@
     <ClInclude Include="src\gui\search.h" />
     <ClInclude Include="src\gui\smart_dc.h" />
     <ClInclude Include="src\gui\splitter_window.h" />
+    <ClInclude Include="src\gui\test.h" />
     <ClInclude Include="src\nogui\activation_context.h" />
     <ClInclude Include="src\nogui\allocator.h" />
     <ClInclude Include="src\nogui\file_name.h" />
