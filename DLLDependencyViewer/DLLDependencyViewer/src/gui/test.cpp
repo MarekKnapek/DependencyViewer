@@ -47,8 +47,16 @@ void test()
 		{
 			continue;
 		}
-		auto const& len = fs::file_size(p);
-		if(len < 2)
+		std::uintmax_t len;
+		try
+		{
+			len = fs::file_size(p);
+			if(len < 2)
+			{
+				continue;
+			}
+		}
+		catch(fs::filesystem_error const&)
 		{
 			continue;
 		}
