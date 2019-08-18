@@ -25,6 +25,7 @@ struct file_info
 	pe_import_table_info m_import_table;
 	pe_export_table_info m_export_table;
 	file_infos m_sub_file_infos;
+	pe_resources_table_info m_resources_table;
 };
 
 struct main_type

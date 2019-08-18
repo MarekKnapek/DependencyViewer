@@ -9,7 +9,9 @@
 
 struct section_header;
 class memory_manager;
-template<typename> struct basic_string; typedef basic_string<char> string;
+template<typename> struct basic_string;
+typedef basic_string<char> string;
+typedef basic_string<wchar_t> wstring;
 
 struct pe_header_info
 {
@@ -58,9 +60,35 @@ struct pe_export_table_info
 	std::vector<pe_export_address_entry> m_export_address_table;
 };
 
+struct pe_resource_string_or_id
+{
+	bool m_is_string;
+	union
+	{
+		wstring const* m_string;
+		std::uint16_t m_id;
+	};
+};
+
+struct pe_resource
+{
+	pe_resource_string_or_id m_type;
+	pe_resource_string_or_id m_name;
+	pe_resource_string_or_id m_lang;
+	char const* m_data;
+	std::uint32_t m_size;
+	std::uint32_t m_code_page;
+};
+
+struct pe_resources_table_info
+{
+	std::vector<pe_resource> m_resources;
+};
+
 
 pe_header_info pe_process_header(void const* const file_data, int const file_size);
 pe_import_table_info pe_process_import_table(void const* const file_data, int const file_size, pe_header_info const& hi, memory_manager& mm);
 pe_export_table_info pe_process_export_table(void const* const file_data, int const file_size, pe_header_info const& hi, memory_manager& mm);
+pe_resources_table_info pe_process_resource_table(void const* const file_data, int const file_size, pe_header_info const& hi, memory_manager& mm);
 
 std::pair<section_header const*, std::uint32_t> convert_rva_to_disk_ptr(std::uint32_t const rva, pe_header_info const& hi, section_header const* const section = nullptr);

@@ -117,4 +117,5 @@ void process_e(processor& prcsr, file_info& fi, string const* const& dll_name)
 	fi.m_is_32_bit = hi.m_is_pe32;
 	fi.m_import_table = pe_process_import_table(mmf.begin(), mmf.size(), hi, prcsr.m_mo->m_mm);
 	fi.m_export_table = pe_process_export_table(mmf.begin(), mmf.size(), hi, prcsr.m_mo->m_mm);
+	fi.m_resources_table = pe_process_resource_table(mmf.begin(), mmf.size(), hi, prcsr.m_mo->m_mm);
 }
