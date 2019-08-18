@@ -96,10 +96,43 @@ void test()
 		pe_import_table_info it;
 		pe_export_table_info et;
 		pe_resources_table_info rs;
-		try{ hi = pe_process_header(mmf.begin(), mmf.size()); } catch(wchar_t const*) { continue; }
-		try{ it = pe_process_import_table(mmf.begin(), mmf.size(), hi, mm); } catch(wchar_t const*) { }
-		try{ et = pe_process_export_table(mmf.begin(), mmf.size(), hi, mm); } catch(wchar_t const*) { }
-		try{ rs = pe_process_resource_table(mmf.begin(), mmf.size(), hi, mm); } catch(wchar_t const*) { }
+		try
+		{
+			hi = pe_process_header(mmf.begin(), mmf.size());
+		}
+		catch(wchar_t const* const&)
+		{
+			OutputDebugStringW(p.c_str());
+			OutputDebugStringW(L"\n");
+			continue;
+		}
+		try
+		{
+			it = pe_process_import_table(mmf.begin(), mmf.size(), hi, mm);
+		}
+		catch(wchar_t const* const&)
+		{
+			OutputDebugStringW(p.c_str());
+			OutputDebugStringW(L"\n");
+		}
+		try
+		{
+			et = pe_process_export_table(mmf.begin(), mmf.size(), hi, mm);
+		}
+		catch(wchar_t const* const&)
+		{
+			OutputDebugStringW(p.c_str());
+			OutputDebugStringW(L"\n");
+		}
+		try
+		{
+			rs = pe_process_resource_table(mmf.begin(), mmf.size(), hi, mm);
+		}
+		catch(wchar_t const* const&)
+		{
+			OutputDebugStringW(p.c_str());
+			OutputDebugStringW(L"\n");
+		}
 	}
 }
 
