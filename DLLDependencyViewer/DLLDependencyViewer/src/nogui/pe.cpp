@@ -370,6 +370,7 @@ pe_header_info pe_process_header(void const* const fd, int const fs)
 	static constexpr std::uint16_t const s_machine_type_thumb = 0x01c2;
 	static constexpr std::uint16_t const s_machine_type_armnt = 0x01c4;
 	static constexpr std::uint16_t const s_machine_type_ia64 = 0x0200;
+	static constexpr std::uint16_t const s_machine_type_mips16 = 0x0266;
 	static constexpr std::uint16_t const s_machine_type_mips_fpu = 0x0366;
 	static constexpr std::uint16_t const s_machine_type_amd64 = 0x8664;
 	static constexpr std::uint16_t const s_machine_type_arm64 = 0xaa64;
@@ -385,6 +386,7 @@ pe_header_info pe_process_header(void const* const fd, int const fs)
 		coff_hdr.m_machine == s_machine_type_thumb ||
 		coff_hdr.m_machine == s_machine_type_armnt ||
 		coff_hdr.m_machine == s_machine_type_ia64 ||
+		coff_hdr.m_machine == s_machine_type_mips16 ||
 		coff_hdr.m_machine == s_machine_type_mips_fpu ||
 		coff_hdr.m_machine == s_machine_type_amd64 ||
 		coff_hdr.m_machine == s_machine_type_arm64
