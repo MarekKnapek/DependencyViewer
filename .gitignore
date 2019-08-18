@@ -1,11 +1,12 @@
 /DLLDependencyViewer/.vs
 /DLLDependencyViewer/Debug/
-/DLLDependencyViewer/Release/
-/DLLDependencyViewer/x64/Debug/
-/DLLDependencyViewer/x64/Release/
+/DLLDependencyViewer/DLLDependencyViewer.VC.db
+/DLLDependencyViewer/DLLDependencyViewer.VC.VC.opendb
 /DLLDependencyViewer/DLLDependencyViewer/Debug/
+/DLLDependencyViewer/DLLDependencyViewer/DLLDependencyViewer.vcxproj.user
 /DLLDependencyViewer/DLLDependencyViewer/Release/
 /DLLDependencyViewer/DLLDependencyViewer/x64/Debug/
 /DLLDependencyViewer/DLLDependencyViewer/x64/Release/
-/DLLDependencyViewer/DLLDependencyViewer.VC.VC.opendb
-/DLLDependencyViewer/DLLDependencyViewer.VC.db
+/DLLDependencyViewer/Release/
+/DLLDependencyViewer/x64/Debug/
+/DLLDependencyViewer/x64/Release/
