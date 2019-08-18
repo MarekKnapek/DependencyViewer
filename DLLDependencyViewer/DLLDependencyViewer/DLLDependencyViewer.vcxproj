@@ -164,6 +164,7 @@
     <ClCompile Include="src\gui\splitter_window.cpp" />
     <ClCompile Include="src\nogui\allocator.cpp" />
     <ClCompile Include="src\nogui\file_name.cpp" />
+    <ClCompile Include="src\nogui\file_system.cpp" />
     <ClCompile Include="src\nogui\memory_manager.cpp" />
     <ClCompile Include="src\nogui\memory_mapped_file.cpp" />
     <ClCompile Include="src\nogui\pe.cpp" />
@@ -212,6 +213,7 @@
     <ClInclude Include="src\gui\splitter_window.h" />
     <ClInclude Include="src\nogui\allocator.h" />
     <ClInclude Include="src\nogui\file_name.h" />
+    <ClInclude Include="src\nogui\file_system.h" />
     <ClInclude Include="src\nogui\memory_manager.h" />
     <ClInclude Include="src\nogui\memory_mapped_file.h" />
     <ClInclude Include="src\nogui\pe.h" />
