@@ -13,6 +13,18 @@
     <Filter Include="src\res">
       <UniqueIdentifier>{369ddc17-bf29-4cf8-88e7-a5a98b3df90d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\3rd_party">
+      <UniqueIdentifier>{fd962db3-816e-40ae-9447-a3a7946f2176}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\3rd_party\processhacker">
+      <UniqueIdentifier>{3ee5dad0-f74c-4322-bf15-dea43980b466}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\3rd_party\processhacker\phnt">
+      <UniqueIdentifier>{bfd27b5b-40ad-40f6-938f-e5f2ca317ffb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\3rd_party\processhacker\phnt\include">
+      <UniqueIdentifier>{78391b4c-4898-4d71-828a-2ee6db8e3920}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\main.cpp">
@@ -103,6 +115,99 @@
     </ClInclude>
     <ClInclude Include="src\gui\smart_dc.h">
       <Filter>src\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntdbg.h">
+      <Filter>src\3rd_party\processhacker\phnt\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntexapi.h">
+      <Filter>src\3rd_party\processhacker\phnt\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntgdi.h">
+      <Filter>src\3rd_party\processhacker\phnt\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntioapi.h">
+      <Filter>src\3rd_party\processhacker\phnt\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntkeapi.h">
+      <Filter>src\3rd_party\processhacker\phnt\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntldr.h">
+      <Filter>src\3rd_party\processhacker\phnt\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntlpcapi.h">
+      <Filter>src\3rd_party\processhacker\phnt\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntmisc.h">
+      <Filter>src\3rd_party\processhacker\phnt\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntmmapi.h">
+      <Filter>src\3rd_party\processhacker\phnt\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntnls.h">
+      <Filter>src\3rd_party\processhacker\phnt\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntobapi.h">
+      <Filter>src\3rd_party\processhacker\phnt\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntpebteb.h">
+      <Filter>src\3rd_party\processhacker\phnt\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntpfapi.h">
+      <Filter>src\3rd_party\processhacker\phnt\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntpnpapi.h">
+      <Filter>src\3rd_party\processhacker\phnt\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntpoapi.h">
+      <Filter>src\3rd_party\processhacker\phnt\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntpsapi.h">
+      <Filter>src\3rd_party\processhacker\phnt\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntregapi.h">
+      <Filter>src\3rd_party\processhacker\phnt\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntrtl.h">
+      <Filter>src\3rd_party\processhacker\phnt\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntsam.h">
+      <Filter>src\3rd_party\processhacker\phnt\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntseapi.h">
+      <Filter>src\3rd_party\processhacker\phnt\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntsmss.h">
+      <Filter>src\3rd_party\processhacker\phnt\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\nttmapi.h">
+      <Filter>src\3rd_party\processhacker\phnt\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\nttp.h">
+      <Filter>src\3rd_party\processhacker\phnt\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntwow64.h">
+      <Filter>src\3rd_party\processhacker\phnt\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntxcapi.h">
+      <Filter>src\3rd_party\processhacker\phnt\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntzwapi.h">
+      <Filter>src\3rd_party\processhacker\phnt\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\phnt.h">
+      <Filter>src\3rd_party\processhacker\phnt\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\phnt_ntdef.h">
+      <Filter>src\3rd_party\processhacker\phnt\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\phnt_windows.h">
+      <Filter>src\3rd_party\processhacker\phnt\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\subprocesstag.h">
+      <Filter>src\3rd_party\processhacker\phnt\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\winsta.h">
+      <Filter>src\3rd_party\processhacker\phnt\include</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

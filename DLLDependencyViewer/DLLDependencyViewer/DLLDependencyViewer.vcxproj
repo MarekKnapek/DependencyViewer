@@ -172,6 +172,37 @@
     <ClCompile Include="src\nogui\utils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntdbg.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntexapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntgdi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntioapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntkeapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntldr.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntlpcapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntmisc.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntmmapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntnls.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntobapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntpebteb.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntpfapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntpnpapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntpoapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntpsapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntregapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntrtl.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntsam.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntseapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntsmss.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\nttmapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\nttp.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntwow64.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntxcapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntzwapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\phnt.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\phnt_ntdef.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\phnt_windows.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\subprocesstag.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\include\winsta.h" />
     <ClInclude Include="src\gui\main.h" />
     <ClInclude Include="src\gui\main_window.h" />
     <ClInclude Include="src\gui\processor.h" />
