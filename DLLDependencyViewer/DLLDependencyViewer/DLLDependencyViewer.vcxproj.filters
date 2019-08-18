@@ -25,6 +25,9 @@
     <Filter Include="src\3rd_party\processhacker\phnt\include">
       <UniqueIdentifier>{78391b4c-4898-4d71-828a-2ee6db8e3920}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\3rd_party\windows">
+      <UniqueIdentifier>{56513838-18a5-44f2-9436-7de629dc0d1a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\main.cpp">
@@ -208,6 +211,9 @@
     </ClInclude>
     <ClInclude Include="src\3rd_party\processhacker\phnt\include\winsta.h">
       <Filter>src\3rd_party\processhacker\phnt\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rd_party\windows\sxstypes.h">
+      <Filter>src\3rd_party\windows</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

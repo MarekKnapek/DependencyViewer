@@ -203,6 +203,7 @@
     <ClInclude Include="src\3rd_party\processhacker\phnt\include\phnt_windows.h" />
     <ClInclude Include="src\3rd_party\processhacker\phnt\include\subprocesstag.h" />
     <ClInclude Include="src\3rd_party\processhacker\phnt\include\winsta.h" />
+    <ClInclude Include="src\3rd_party\windows\sxstypes.h" />
     <ClInclude Include="src\gui\main.h" />
     <ClInclude Include="src\gui\main_window.h" />
     <ClInclude Include="src\gui\processor.h" />
