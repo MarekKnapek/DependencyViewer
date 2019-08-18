@@ -339,7 +339,7 @@ struct pe_resource_name_string_or_id_internal
 static constexpr wchar_t const s_bad_format[] = L"Bad format.";
 
 
-#define VERIFY(X) do{ if(!(X)){ throw s_bad_format; } }while(false)
+#define VERIFY(X) do{ if(!(X)){ OutputDebugStringW(L"Error: " L ## #X L"\x0D\x0A"); throw s_bad_format; } }while(false)
 #define WARN(X) do{ if(!(X)){ OutputDebugStringW(L"Warning: " L ## #X L"\x0D\x0A"); } }while(false)
 
 
