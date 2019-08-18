@@ -910,6 +910,11 @@ std::pair<section_header const*, std::uint32_t> convert_rva_to_disk_ptr(std::uin
 				section = ss;
 				break;
 			}
+			else if(rva >= ss->m_virtual_address && rva >= ss->m_virtual_address + ss->m_raw_size && rva < ss->m_virtual_address + ss->m_virtual_size)
+			{
+				// Object is located inside region which is not stored on disk, but only in memory, it is initialized to zero at load-time.
+				VERIFY(false);
+			}
 		}
 		VERIFY(section);
 	}
