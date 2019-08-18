@@ -414,7 +414,7 @@ pe_header_info pe_process_header(void const* const fd, int const fs)
 	VERIFY((is_pe32 ? coff_hdr_opt_pe32.m_windows.m_win32version : coff_hdr_opt_pe32_plus.m_windows.m_win32version) == 0);
 	/*WARN(((is_pe32 ? coff_hdr_opt_pe32.m_windows.m_image_size : coff_hdr_opt_pe32_plus.m_windows.m_image_size) % (is_pe32 ? coff_hdr_opt_pe32.m_windows.m_section_alignment : coff_hdr_opt_pe32_plus.m_windows.m_section_alignment)) == 0);*/
 	WARN(((is_pe32 ? coff_hdr_opt_pe32.m_windows.m_headers_size : coff_hdr_opt_pe32_plus.m_windows.m_headers_size) % (is_pe32 ? coff_hdr_opt_pe32.m_windows.m_file_alignment : coff_hdr_opt_pe32_plus.m_windows.m_file_alignment)) == 0);
-	VERIFY((is_pe32 ? coff_hdr_opt_pe32.m_windows.m_loader_flags : coff_hdr_opt_pe32_plus.m_windows.m_loader_flags) == 0);
+	WARN((is_pe32 ? coff_hdr_opt_pe32.m_windows.m_loader_flags : coff_hdr_opt_pe32_plus.m_windows.m_loader_flags) == 0);
 
 	coff_entie_header_pe32 const& coff_entire_hdr = *reinterpret_cast<coff_entie_header_pe32 const*>(file_data + dos_hdr.m_pe_offset);
 	coff_entie_header_pe32_plus const& coff_entire_hdr_plus = *reinterpret_cast<coff_entie_header_pe32_plus const*>(file_data + dos_hdr.m_pe_offset);
