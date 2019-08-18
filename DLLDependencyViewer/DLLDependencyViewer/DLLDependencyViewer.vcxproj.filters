@@ -75,6 +75,9 @@
     <ClCompile Include="src\nogui\file_system.cpp">
       <Filter>src\nogui</Filter>
     </ClCompile>
+    <ClCompile Include="src\nogui\activation_context.cpp">
+      <Filter>src\nogui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\gui\main_window.h">
@@ -219,6 +222,9 @@
       <Filter>src\3rd_party\windows</Filter>
     </ClInclude>
     <ClInclude Include="src\nogui\file_system.h">
+      <Filter>src\nogui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nogui\activation_context.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
   </ItemGroup>

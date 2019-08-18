@@ -3,6 +3,8 @@
 #include "main_window.h"
 #include "splitter_window.h"
 
+#include "..\nogui\activation_context.h"
+
 #include <cassert>
 
 #include <commctrl.h>
@@ -51,6 +53,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 		BOOL const translated = TranslateMessage(&msg);
 		LRESULT const dispatched = DispatchMessageW(&msg);
 	}
+	activation_context::free_system_default_manifests();
 	return ret;
 }
 
