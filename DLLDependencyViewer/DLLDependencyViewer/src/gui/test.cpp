@@ -84,10 +84,14 @@ void test()
 			continue;
 		}
 		memory_manager mm;
-		auto const& hi = pe_process_header(mmf.begin(), mmf.size());
-		auto const& it = pe_process_import_table(mmf.begin(), mmf.size(), hi, mm);
-		auto const& et = pe_process_export_table(mmf.begin(), mmf.size(), hi, mm);
-		auto const& rs = pe_process_resource_table(mmf.begin(), mmf.size(), hi, mm);
+		pe_header_info hi;
+		pe_import_table_info it;
+		pe_export_table_info et;
+		pe_resources_table_info rs;
+		try{ hi = pe_process_header(mmf.begin(), mmf.size()); } catch(wchar_t const*) { continue; }
+		try{ it = pe_process_import_table(mmf.begin(), mmf.size(), hi, mm); } catch(wchar_t const*) { }
+		try{ et = pe_process_export_table(mmf.begin(), mmf.size(), hi, mm); } catch(wchar_t const*) { }
+		try{ rs = pe_process_resource_table(mmf.begin(), mmf.size(), hi, mm); } catch(wchar_t const*) { }
 	}
 }
 
