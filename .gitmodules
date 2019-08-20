@@ -1,3 +1,0 @@
-[submodule "DLLDependencyViewer/DLLDependencyViewer/src/3rd_party/processhacker/phnt"]
-	path = DLLDependencyViewer/DLLDependencyViewer/src/3rd_party/processhacker/phnt
-	url = https://github.com/MarekKnapek/phnt.git
