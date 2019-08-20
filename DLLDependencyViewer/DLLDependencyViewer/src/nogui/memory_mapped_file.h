@@ -1,15 +1,9 @@
 #pragma once
 
 
+#include "smart_handle.h"
+
 #include <memory>
-
-
-struct close_handle_deleter
-{
-public:
-	void operator()(void* const ptr) const;
-};
-typedef std::unique_ptr<void, close_handle_deleter> smart_handle;
 
 
 struct mapped_view_deleter

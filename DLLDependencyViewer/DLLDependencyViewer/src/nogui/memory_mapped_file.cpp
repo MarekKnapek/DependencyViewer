@@ -15,13 +15,6 @@ static constexpr wchar_t const s_mmf_mapping[] = L"Failed to create file mapping
 static constexpr wchar_t const s_mmf_view[] = L"Failed to create file view.";
 
 
-void close_handle_deleter::operator()(void* const ptr) const
-{
-	BOOL const closed = CloseHandle(ptr);
-	assert(closed != 0);
-}
-
-
 void mapped_view_deleter::operator()(void const* const ptr) const
 {
 	BOOL const unmapped = UnmapViewOfFile(ptr);
