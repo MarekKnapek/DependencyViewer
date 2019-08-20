@@ -26,6 +26,7 @@ struct file_info
 	pe_export_table_info m_export_table;
 	file_infos m_sub_file_infos;
 	pe_resources_table_info m_resources_table;
+	string const* m_manifest;
 };
 
 struct main_type

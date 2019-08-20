@@ -31,6 +31,7 @@ struct processor
 
 void process_r(processor& prcsr);
 void process_e(processor& prcsr, file_info& fi, string const* const& dll_name);
+std::pair<char const*, int> find_manifest(file_info& fi);
 
 
 wstring const* get_not_found_string()
@@ -118,4 +119,37 @@ void process_e(processor& prcsr, file_info& fi, string const* const& dll_name)
 	fi.m_import_table = pe_process_import_table(mmf.begin(), mmf.size(), hi, prcsr.m_mo->m_mm);
 	fi.m_export_table = pe_process_export_table(mmf.begin(), mmf.size(), hi, prcsr.m_mo->m_mm);
 	fi.m_resources_table = pe_process_resource_table(mmf.begin(), mmf.size(), hi, prcsr.m_mo->m_mm);
+	auto const mm_manifest = find_manifest(fi);
+	if(mm_manifest.first)
+	{
+		fi.m_manifest = prcsr.m_mo->m_mm.m_strs.add_string(mm_manifest.first, mm_manifest.second, prcsr.m_mo->m_mm.m_alc);
+	}
+}
+
+std::pair<char const*, int> find_manifest(file_info& fi)
+{
+	for(auto&& e : fi.m_resources_table.m_resources)
+	{
+		if(!e.m_type.m_is_string)
+		{
+			static_assert(sizeof(RT_MANIFEST) == sizeof(void*), "");
+			if(e.m_type.m_id == static_cast<std::uint16_t>(reinterpret_cast<std::uintptr_t>(RT_MANIFEST)))
+			{
+				if(!e.m_name.m_is_string)
+				{
+					if(e.m_name.m_id == 1 || e.m_name.m_id == 2)
+					{
+						// Will get first manifest ID 1 or ID 2.
+						// Sadly, we don't distinguish between DLLs and EXEs.
+						// Also, we don't care about language, but we probably should.
+						if(e.m_size < 2'147'483'647)
+						{
+							return {e.m_data, e.m_size};
+						}
+					}
+				}
+			}
+		}
+	}
+	return {};
 }
