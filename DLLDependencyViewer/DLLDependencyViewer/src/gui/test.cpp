@@ -47,16 +47,31 @@ void test()
 		{
 			continue;
 		}
-		std::uintmax_t len;
-		try
+		int len;
 		{
-			len = fs::file_size(p);
-			if(len < 2)
+			HANDLE const file = CreateFileW(p.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+			if(file == INVALID_HANDLE_VALUE)
 			{
 				continue;
 			}
+			smart_handle sp_file(file);
+			LARGE_INTEGER file_size;
+			BOOL const got_size = GetFileSizeEx(file, &file_size);
+			if(got_size == 0)
+			{
+				continue;
+			}
+			if(file_size.HighPart != 0)
+			{
+				continue;
+			}
+			if(file_size.LowPart >= 2'147'483'647)
+			{
+				continue;
+			}
+			len = static_cast<int>(file_size.LowPart);
 		}
-		catch(fs::filesystem_error const&)
+		if(len < 2)
 		{
 			continue;
 		}
