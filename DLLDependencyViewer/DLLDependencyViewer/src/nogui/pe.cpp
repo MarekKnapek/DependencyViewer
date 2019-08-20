@@ -837,7 +837,7 @@ void pe_process_resource_table(void const* const fd, int const fs, pe_header_inf
 				VERIFY(file_size >= data_dsk + resource_leaf_data.m_size);
 				VERIFY(data_sct.m_raw_size >= resource_leaf_data.m_size);
 				char const* const res_data = file_data + data_dsk;
-				(*visitor)(self, type_string, name_string, lang_string, nullptr, resource_leaf_data.m_size, resource_leaf_data.m_code_page);
+				(*visitor)(self, type_string, name_string, lang_string, res_data, resource_leaf_data.m_size, resource_leaf_data.m_code_page);
 			}
 		}
 	}
@@ -876,7 +876,7 @@ void resource_visitor_2
 	resource.m_type = convert_pe_string_to_string(type_string, mm);
 	resource.m_name = convert_pe_string_to_string(name_string, mm);
 	resource.m_lang = convert_pe_string_to_string(lang_string, mm);
-	resource.m_data = nullptr;
+	resource.m_data = res_data;
 	resource.m_size = res_data_size;
 	resource.m_code_page = code_page;
 	ret.m_resources.push_back(resource);
