@@ -90,7 +90,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <MinimalRebuild>false</MinimalRebuild>
-      <AdditionalIncludeDirectories>src\3rd_party\processhacker\phnt\include;src\3rd_party\windows</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src\3rd_party\processhacker\phnt;src\3rd_party\windows</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -107,7 +107,7 @@
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <MinimalRebuild>false</MinimalRebuild>
-      <AdditionalIncludeDirectories>src\3rd_party\processhacker\phnt\include;src\3rd_party\windows</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src\3rd_party\processhacker\phnt;src\3rd_party\windows</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -126,7 +126,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>src\3rd_party\processhacker\phnt\include;src\3rd_party\windows</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src\3rd_party\processhacker\phnt;src\3rd_party\windows</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -148,7 +148,7 @@
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>src\3rd_party\processhacker\phnt\include;src\3rd_party\windows</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src\3rd_party\processhacker\phnt;src\3rd_party\windows</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -180,37 +180,37 @@
     <ClCompile Include="src\nogui\utils.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntdbg.h" />
-    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntexapi.h" />
-    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntgdi.h" />
-    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntioapi.h" />
-    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntkeapi.h" />
-    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntldr.h" />
-    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntlpcapi.h" />
-    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntmisc.h" />
-    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntmmapi.h" />
-    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntnls.h" />
-    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntobapi.h" />
-    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntpebteb.h" />
-    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntpfapi.h" />
-    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntpnpapi.h" />
-    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntpoapi.h" />
-    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntpsapi.h" />
-    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntregapi.h" />
-    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntrtl.h" />
-    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntsam.h" />
-    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntseapi.h" />
-    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntsmss.h" />
-    <ClInclude Include="src\3rd_party\processhacker\phnt\include\nttmapi.h" />
-    <ClInclude Include="src\3rd_party\processhacker\phnt\include\nttp.h" />
-    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntwow64.h" />
-    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntxcapi.h" />
-    <ClInclude Include="src\3rd_party\processhacker\phnt\include\ntzwapi.h" />
-    <ClInclude Include="src\3rd_party\processhacker\phnt\include\phnt.h" />
-    <ClInclude Include="src\3rd_party\processhacker\phnt\include\phnt_ntdef.h" />
-    <ClInclude Include="src\3rd_party\processhacker\phnt\include\phnt_windows.h" />
-    <ClInclude Include="src\3rd_party\processhacker\phnt\include\subprocesstag.h" />
-    <ClInclude Include="src\3rd_party\processhacker\phnt\include\winsta.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntdbg.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntexapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntgdi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntioapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntkeapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntldr.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntlpcapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntmisc.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntmmapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntnls.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntobapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntpebteb.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntpfapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntpnpapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntpoapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntpsapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntregapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntrtl.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntsam.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntseapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntsmss.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\nttmapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\nttp.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntwow64.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntxcapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntzwapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\phnt.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\phnt_ntdef.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\phnt_windows.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\subprocesstag.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\winsta.h" />
     <ClInclude Include="src\3rd_party\windows\sxstypes.h" />
     <ClInclude Include="src\gui\main.h" />
     <ClInclude Include="src\gui\main_window.h" />
