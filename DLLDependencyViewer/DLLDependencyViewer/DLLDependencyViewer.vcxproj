@@ -123,6 +123,84 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntdbg.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntexapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntgdi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntioapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntkeapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntldr.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntlpcapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntmisc.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntmmapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntnls.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntobapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntpebteb.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntpfapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntpnpapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntpoapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntpsapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntregapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntrtl.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntsam.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntseapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntsmss.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\nttmapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\nttp.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntwow64.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntxcapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\ntzwapi.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\phnt.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\phnt_ntdef.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\phnt_windows.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\subprocesstag.h" />
+    <ClInclude Include="src\3rd_party\processhacker\phnt\winsta.h" />
+    <ClInclude Include="src\3rd_party\windows\sxstypes.h" />
+    <ClInclude Include="src\gui\main.h" />
+    <ClInclude Include="src\gui\main_window.h" />
+    <ClInclude Include="src\gui\processor.h" />
+    <ClInclude Include="src\gui\search.h" />
+    <ClInclude Include="src\gui\smart_dc.h" />
+    <ClInclude Include="src\gui\splitter_window.h" />
+    <ClInclude Include="src\gui\test.h" />
+    <ClInclude Include="src\nogui\activation_context.h" />
+    <ClInclude Include="src\nogui\allocator.h" />
+    <ClInclude Include="src\nogui\file_name.h" />
+    <ClInclude Include="src\nogui\file_system.h" />
+    <ClInclude Include="src\nogui\memory_manager.h" />
+    <ClInclude Include="src\nogui\memory_mapped_file.h" />
+    <ClInclude Include="src\nogui\pe.h" />
+    <ClInclude Include="src\nogui\smart_handle.h" />
+    <ClInclude Include="src\nogui\unicode.h" />
+    <ClInclude Include="src\nogui\unique_strings.h" />
+    <ClInclude Include="src\nogui\utils.h" />
+    <ClInclude Include="src\res\resources.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\gui\main.cpp" />
+    <ClCompile Include="src\gui\main_window.cpp" />
+    <ClCompile Include="src\gui\processor.cpp" />
+    <ClCompile Include="src\gui\search.cpp" />
+    <ClCompile Include="src\gui\smart_dc.cpp" />
+    <ClCompile Include="src\gui\splitter_window.cpp" />
+    <ClCompile Include="src\gui\test.cpp" />
+    <ClCompile Include="src\nogui\activation_context.cpp" />
+    <ClCompile Include="src\nogui\allocator.cpp" />
+    <ClCompile Include="src\nogui\file_name.cpp" />
+    <ClCompile Include="src\nogui\file_system.cpp" />
+    <ClCompile Include="src\nogui\memory_manager.cpp" />
+    <ClCompile Include="src\nogui\memory_mapped_file.cpp" />
+    <ClCompile Include="src\nogui\pe.cpp" />
+    <ClCompile Include="src\nogui\smart_handle.cpp" />
+    <ClCompile Include="src\nogui\unicode.cpp" />
+    <ClCompile Include="src\nogui\unique_strings.cpp" />
+    <ClCompile Include="src\nogui\utils.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="src\res\icons_toolbar.bmp" />
+    <Image Include="src\res\icons_tree.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="src\res\resources.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
