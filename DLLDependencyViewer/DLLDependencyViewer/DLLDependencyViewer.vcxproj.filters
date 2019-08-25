@@ -262,4 +262,12 @@
       <Filter>src\res</Filter>
     </ResourceCompile>
   </ItemGroup>
+  <ItemGroup>
+    <Xml Include="src\gui\manifest.amd64.xml">
+      <Filter>src\gui</Filter>
+    </Xml>
+    <Xml Include="src\gui\manifest.x86.xml">
+      <Filter>src\gui</Filter>
+    </Xml>
+  </ItemGroup>
 </Project>
