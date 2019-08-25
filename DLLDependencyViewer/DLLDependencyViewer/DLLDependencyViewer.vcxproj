@@ -194,6 +194,7 @@
     <ClInclude Include="src\gui\test.h" />
     <ClInclude Include="src\nogui\activation_context.h" />
     <ClInclude Include="src\nogui\allocator.h" />
+    <ClInclude Include="src\nogui\assert.h" />
     <ClInclude Include="src\nogui\file_name.h" />
     <ClInclude Include="src\nogui\file_system.h" />
     <ClInclude Include="src\nogui\memory_manager.h" />
