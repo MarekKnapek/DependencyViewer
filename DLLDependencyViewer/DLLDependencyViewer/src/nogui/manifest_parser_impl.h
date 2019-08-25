@@ -29,6 +29,7 @@ private:
 private:
 	IXmlReader& get_xml_reader() const;
 	bool find_element(wchar_t const* const& element_to_find, int const& element_to_find_len, wchar_t const* const& xmlns_to_find, int const& xmlns_to_find_len);
+	bool go_out_of_current_node();
 private:
 	manifest_parser& m_parent;
 	manifest_data m_ret;

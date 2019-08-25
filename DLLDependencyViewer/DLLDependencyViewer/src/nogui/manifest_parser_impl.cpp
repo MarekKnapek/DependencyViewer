@@ -108,10 +108,14 @@ bool manifest_parser::manifest_parser_impl::parse_3()
 	WARN_M_R(found, L"Failed to find at least one dependentAssembly element.", false);
 	bool const parsed_4 = parse_4();
 	WARN_M_R(parsed_4, L"Failed to parse_4.", false);
+	bool const closed = go_out_of_current_node();
+	WARN_M_R(closed, L"Failed to go_out_of_current_node.", false);
 	while(find_element(s_sxs_manifest_element_dependent_assembly, s_sxs_manifest_element_dependent_assembly_len, s_sxs_manifest_namespace_v1, s_sxs_manifest_namespace_v1_len))
 	{
 		bool const parsed_4 = parse_4();
 		WARN_M_R(parsed_4, L"Failed to parse_4.", false);
+		bool const closed = go_out_of_current_node();
+		WARN_M_R(closed, L"Failed to go_out_of_current_node.", false);
 	}
 	return true;
 }
@@ -123,6 +127,8 @@ bool manifest_parser::manifest_parser_impl::parse_4()
 	m_ret.m_dependencies.push_back({});
 	bool const parsed_5 = parse_5();
 	WARN_M_R(parsed_5, L"Failed to parse_5.", false);
+	bool const closed = go_out_of_current_node();
+	WARN_M_R(closed, L"Failed to go_out_of_current_node.", false);
 	return true;
 }
 
@@ -141,6 +147,8 @@ bool manifest_parser::manifest_parser_impl::parse_5()
 		HRESULT const next = xml_reader.MoveToNextAttribute();
 		WARN_M_R((next == S_OK && i != attr_count - 1) || (next == S_FALSE && i == attr_count - 1), L"Failed to IXmlReader::MoveToNextAttribute.", false);
 	}
+	HRESULT const moved_back = xml_reader.MoveToElement();
+	WARN_M_R(moved_back == S_OK, L"Failed to IXmlReader::MoveToElement.", false);
 	return true;
 }
 
@@ -334,5 +342,38 @@ bool manifest_parser::manifest_parser_impl::find_element(wchar_t const* const& e
 		return true;
 	}
 	assert(false);
+	return false;
+}
+
+bool manifest_parser::manifest_parser_impl::go_out_of_current_node()
+{
+	IXmlReader& xml_reader = get_xml_reader();
+	if(xml_reader.IsEmptyElement() == TRUE)
+	{
+		return true;
+	}
+	int depth = 0;
+	for(;;)
+	{
+		XmlNodeType node_type;
+		HRESULT const read = xml_reader.Read(&node_type);
+		WARN_M_R(read == S_OK, L"Failed to IXmlReader::Read.", false);
+		if(node_type == XmlNodeType_EndElement)
+		{
+			if(depth == 0)
+			{
+				return true;
+			}
+			--depth;
+		}
+		else if(node_type == XmlNodeType_Element)
+		{
+			bool const is_empty = xml_reader.IsEmptyElement() == TRUE;
+			if(!is_empty)
+			{
+				++depth;
+			}
+		}
+	}
 	return false;
 }
