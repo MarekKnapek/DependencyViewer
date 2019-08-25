@@ -183,6 +183,9 @@
     <ClInclude Include="src\nogui\smart_library.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
+    <ClInclude Include="src\nogui\smart_com_interface.h">
+      <Filter>src\nogui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\main.cpp">
@@ -240,6 +243,9 @@
       <Filter>src\nogui</Filter>
     </ClCompile>
     <ClCompile Include="src\nogui\smart_library.cpp">
+      <Filter>src\nogui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nogui\smart_com_interface.cpp">
       <Filter>src\nogui</Filter>
     </ClCompile>
   </ItemGroup>
