@@ -2,19 +2,21 @@
 
 #include "search.h"
 
+#include "../nogui/file_name.h"
+#include "../nogui/manifest_parser.h"
 #include "../nogui/memory_mapped_file.h"
-#include "../nogui/utils.h"
 #include "../nogui/unicode.h"
 #include "../nogui/unique_strings.h"
-#include "../nogui/file_name.h"
+#include "../nogui/utils.h"
 
-#include <cassert>
 #include <algorithm>
+#include <cassert>
+#include <iterator>
 #include <queue>
 #include <unordered_map>
-#include <iterator>
 
 
+static constexpr int const s_very_big_int = 2'147'483'647;
 static constexpr wchar_t const s_not_found_path[] = L"* not found *";
 static constexpr wstring const s_not_found_wstr = wstring{static_cast<wchar_t const*>(s_not_found_path), static_cast<int>(std::size(s_not_found_path)) - 1};
 
@@ -26,12 +28,14 @@ struct processor
 	std::queue<file_info*> m_queue;
 	std::unordered_map<string const*, file_info*, string_case_insensitive_hash, string_case_insensitive_equal> m_map;
 	file_name* m_file_name;
+	manifest_parser* m_manifest_parser;
 };
 
 
 void process_r(processor& prcsr);
 void process_e(processor& prcsr, file_info& fi, string const* const& dll_name);
-std::pair<char const*, int> find_manifest(file_info& fi);
+manifest_data process_manifest(processor& prcsr, file_info const& fi);
+std::pair<char const*, int> find_manifest(file_info const& fi);
 
 
 wstring const* get_not_found_string()
@@ -44,10 +48,12 @@ main_type process(std::wstring const& main_file_path)
 {
 	main_type mo;
 	file_name fn;
+	manifest_parser mp(mo.m_mm);
 	processor prcsr;
 	prcsr.m_mo = &mo;
 	prcsr.m_main_file_path = &main_file_path;
 	prcsr.m_file_name = &fn;
+	prcsr.m_manifest_parser = &mp;
 
 	file_info& fi = mo.m_fi;
 	fi.m_orig_instance = nullptr;
@@ -119,14 +125,20 @@ void process_e(processor& prcsr, file_info& fi, string const* const& dll_name)
 	fi.m_import_table = pe_process_import_table(mmf.begin(), mmf.size(), hi, prcsr.m_mo->m_mm);
 	fi.m_export_table = pe_process_export_table(mmf.begin(), mmf.size(), hi, prcsr.m_mo->m_mm);
 	fi.m_resources_table = pe_process_resource_table(mmf.begin(), mmf.size(), hi, prcsr.m_mo->m_mm);
-	auto const mm_manifest = find_manifest(fi);
-	if(mm_manifest.first)
-	{
-		fi.m_manifest = prcsr.m_mo->m_mm.m_strs.add_string(mm_manifest.first, mm_manifest.second, prcsr.m_mo->m_mm.m_alc);
-	}
+	fi.m_manifest_data = process_manifest(prcsr, fi);
 }
 
-std::pair<char const*, int> find_manifest(file_info& fi)
+manifest_data process_manifest(processor& prcsr, file_info const& fi)
+{
+	auto const manifest = find_manifest(fi);
+	if(!manifest.first)
+	{
+		return {};
+	}
+	return prcsr.m_manifest_parser->parse(manifest.first, manifest.second);
+}
+
+std::pair<char const*, int> find_manifest(file_info const& fi)
 {
 	for(auto&& e : fi.m_resources_table.m_resources)
 	{
@@ -142,7 +154,7 @@ std::pair<char const*, int> find_manifest(file_info& fi)
 						// Will get first manifest ID 1 or ID 2.
 						// Sadly, we don't distinguish between DLLs and EXEs.
 						// Also, we don't care about language, but we probably should.
-						if(e.m_size < 2'147'483'647)
+						if(e.m_size < s_very_big_int)
 						{
 							return {e.m_data, e.m_size};
 						}

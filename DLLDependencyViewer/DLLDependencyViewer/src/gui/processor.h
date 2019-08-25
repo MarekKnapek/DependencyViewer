@@ -3,6 +3,7 @@
 
 #include "../nogui/pe.h"
 #include "../nogui/memory_manager.h"
+#include "../nogui/manifest_parser.h"
 
 #include <string>
 #include <vector>
@@ -26,7 +27,7 @@ struct file_info
 	pe_export_table_info m_export_table;
 	file_infos m_sub_file_infos;
 	pe_resources_table_info m_resources_table;
-	string const* m_manifest;
+	manifest_data m_manifest_data;
 };
 
 struct main_type
