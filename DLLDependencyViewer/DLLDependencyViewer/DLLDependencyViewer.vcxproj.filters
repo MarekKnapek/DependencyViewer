@@ -150,9 +150,6 @@
     <ClInclude Include="src\nogui\allocator.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
-    <ClInclude Include="src\nogui\file_name.h">
-      <Filter>src\nogui</Filter>
-    </ClInclude>
     <ClInclude Include="src\nogui\file_system.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
@@ -195,6 +192,9 @@
     <ClInclude Include="src\nogui\manifest_parser_impl.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
+    <ClInclude Include="src\nogui\file_name.h">
+      <Filter>src\nogui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\main.cpp">
@@ -222,9 +222,6 @@
       <Filter>src\nogui</Filter>
     </ClCompile>
     <ClCompile Include="src\nogui\allocator.cpp">
-      <Filter>src\nogui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\nogui\file_name.cpp">
       <Filter>src\nogui</Filter>
     </ClCompile>
     <ClCompile Include="src\nogui\file_system.cpp">
@@ -261,6 +258,9 @@
       <Filter>src\nogui</Filter>
     </ClCompile>
     <ClCompile Include="src\nogui\manifest_parser_impl.cpp">
+      <Filter>src\nogui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nogui\file_name.cpp">
       <Filter>src\nogui</Filter>
     </ClCompile>
   </ItemGroup>

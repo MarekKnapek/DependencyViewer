@@ -4,7 +4,7 @@
 static constexpr wchar_t const s_file_name_err[] = L"Error.";
 
 
-file_name_raii::file_name_raii()
+file_name::file_name()
 {
 	HRESULT const com_inited = OleInitialize(nullptr);
 	if(!(com_inited == S_OK || com_inited == S_FALSE))
@@ -30,13 +30,13 @@ file_name_raii::file_name_raii()
 	}
 }
 
-file_name_raii::~file_name_raii()
+file_name::~file_name()
 {
 	(*m_object->lpVtbl->Release)(m_object);
 	OleUninitialize();
 }
 
-wstring const* file_name_raii::get_correct_file_name(wchar_t const* const& file_name, int const& file_name_len, wunique_strings& us, allocator& alc)
+wstring const* file_name::get_correct_file_name(wchar_t const* const& file_name, int const& file_name_len, wunique_strings& us, allocator& alc)
 {
 	VARIANT input_1;
 	input_1.vt = VT_BSTR;

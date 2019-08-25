@@ -25,7 +25,7 @@ struct processor
 	std::wstring const* m_main_file_path;
 	std::queue<file_info*> m_queue;
 	std::unordered_map<string const*, file_info*, string_case_insensitive_hash, string_case_insensitive_equal> m_map;
-	file_name_raii* m_fnraii;
+	file_name* m_file_name;
 };
 
 
@@ -43,11 +43,11 @@ wstring const* get_not_found_string()
 main_type process(std::wstring const& main_file_path)
 {
 	main_type mo;
-	file_name_raii fnraii;
+	file_name fn;
 	processor prcsr;
 	prcsr.m_mo = &mo;
 	prcsr.m_main_file_path = &main_file_path;
-	prcsr.m_fnraii = &fnraii;
+	prcsr.m_file_name = &fn;
 
 	file_info& fi = mo.m_fi;
 	fi.m_orig_instance = nullptr;
@@ -103,7 +103,7 @@ void process_e(processor& prcsr, file_info& fi, string const* const& dll_name)
 		fi.m_file_path = &s_not_found_wstr;
 		return;
 	}
-	wstring const* const wstr = prcsr.m_fnraii->get_correct_file_name(sch.m_mo->m_tmpw.c_str(), static_cast<int>(sch.m_mo->m_tmpw.size()), prcsr.m_mo->m_mm.m_wstrs, prcsr.m_mo->m_mm.m_alc);
+	wstring const* const wstr = prcsr.m_file_name->get_correct_file_name(sch.m_mo->m_tmpw.c_str(), static_cast<int>(sch.m_mo->m_tmpw.size()), prcsr.m_mo->m_mm.m_wstrs, prcsr.m_mo->m_mm.m_alc);
 	if(wstr)
 	{
 		fi.m_file_path = wstr;

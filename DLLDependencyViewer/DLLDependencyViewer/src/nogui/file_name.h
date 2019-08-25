@@ -11,11 +11,11 @@
 #include <objbase.h>
 
 
-class file_name_raii
+class file_name
 {
 public:
-	file_name_raii();
-	~file_name_raii();
+	file_name();
+	~file_name();
 public:
 	wstring const* get_correct_file_name(wchar_t const* const& file_name, int const& file_name_len, wunique_strings& us, allocator& alc);
 public:
