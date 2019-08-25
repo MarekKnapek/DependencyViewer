@@ -186,6 +186,7 @@
     <ClInclude Include="src\nogui\memory_mapped_file.h" />
     <ClInclude Include="src\nogui\pe.h" />
     <ClInclude Include="src\nogui\smart_handle.h" />
+    <ClInclude Include="src\nogui\smart_library.h" />
     <ClInclude Include="src\nogui\unicode.h" />
     <ClInclude Include="src\nogui\unique_strings.h" />
     <ClInclude Include="src\nogui\utils.h" />
@@ -207,6 +208,7 @@
     <ClCompile Include="src\nogui\memory_mapped_file.cpp" />
     <ClCompile Include="src\nogui\pe.cpp" />
     <ClCompile Include="src\nogui\smart_handle.cpp" />
+    <ClCompile Include="src\nogui\smart_library.cpp" />
     <ClCompile Include="src\nogui\unicode.cpp" />
     <ClCompile Include="src\nogui\unique_strings.cpp" />
     <ClCompile Include="src\nogui\utils.cpp" />
