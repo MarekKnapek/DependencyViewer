@@ -7,13 +7,13 @@
 #include <xmllite.h>
 
 
-class manifest_parser::manifest_parser_impl
+class manifest_parser_impl
 {
 public:
 	manifest_parser_impl(manifest_parser& parent);
 	~manifest_parser_impl();
 	manifest_data parse(char const* const& data, int const& len);
-private:
+public:
 	bool parse_1();
 	bool parse_2();
 	bool parse_3();

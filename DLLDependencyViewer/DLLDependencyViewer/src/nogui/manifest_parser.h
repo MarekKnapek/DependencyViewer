@@ -8,6 +8,9 @@
 #include <windows.h>
 
 
+class manifest_parser_impl;
+
+
 enum class manifest_dependency_architecture
 {
 	x86,
@@ -39,6 +42,6 @@ public:
 public:
 	manifest_data parse(char const* const& data, int const& len);
 private:
-	class manifest_parser_impl;
 	memory_manager& m_mm;
+	friend manifest_parser_impl;
 };
