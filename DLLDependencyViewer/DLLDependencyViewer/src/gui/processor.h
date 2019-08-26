@@ -40,5 +40,4 @@ struct main_type
 };
 
 wstring const* get_not_found_string();
-
 main_type process(std::wstring const& main_file_path);

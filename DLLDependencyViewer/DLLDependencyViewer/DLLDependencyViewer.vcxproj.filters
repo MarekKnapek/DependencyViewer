@@ -195,6 +195,9 @@
     <ClInclude Include="src\nogui\file_name.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
+    <ClInclude Include="src\gui\processor_impl.h">
+      <Filter>src\gui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\main.cpp">
@@ -262,6 +265,9 @@
     </ClCompile>
     <ClCompile Include="src\nogui\file_name.cpp">
       <Filter>src\nogui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gui\processor_impl.cpp">
+      <Filter>src\gui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
