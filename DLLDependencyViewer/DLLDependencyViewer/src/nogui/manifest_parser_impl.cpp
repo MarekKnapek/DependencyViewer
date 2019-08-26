@@ -58,16 +58,12 @@ manifest_parser::manifest_parser_impl::~manifest_parser_impl()
 
 manifest_data manifest_parser::manifest_parser_impl::parse(char const* const& data, int const& len)
 {
-	using sh_create_mem_stream_t = decltype(&SHCreateMemStream);
-	sh_create_mem_stream_t const sh_create_mem_stream = reinterpret_cast<sh_create_mem_stream_t>(m_parent.m_sh_create_mem_stream);
-	IStream* const stream = (*sh_create_mem_stream)(reinterpret_cast<BYTE const*>(data), static_cast<UINT>(len));
+	IStream* const stream = SHCreateMemStream(reinterpret_cast<BYTE const*>(data), static_cast<UINT>(len));
 	WARN_M_R(stream, L"Failed to SHCreateMemStream.", {});
 	m_stream.reset(stream);
 
-	using create_xml_reader_t = decltype(&CreateXmlReader);
-	create_xml_reader_t const create_xml_reader = reinterpret_cast<create_xml_reader_t>(m_parent.m_create_xml_reader);
 	IXmlReader* xml_reader;
-	HRESULT const xml_reader_created = (*create_xml_reader)(__uuidof(IXmlReader), reinterpret_cast<void**>(&xml_reader), nullptr);
+	HRESULT const xml_reader_created = CreateXmlReader(__uuidof(IXmlReader), reinterpret_cast<void**>(&xml_reader), nullptr);
 	WARN_M_R(xml_reader_created == S_OK && xml_reader, L"Failed to CreateXmlReader.", {});
 	m_xml_reader.reset(xml_reader);
 

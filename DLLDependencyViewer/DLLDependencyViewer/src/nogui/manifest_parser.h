@@ -41,8 +41,4 @@ public:
 private:
 	class manifest_parser_impl;
 	memory_manager& m_mm;
-	smart_library m_xmllite;
-	function_ptr_t m_create_xml_reader;
-	smart_library m_shlwapi;
-	function_ptr_t m_sh_create_mem_stream;
 };
