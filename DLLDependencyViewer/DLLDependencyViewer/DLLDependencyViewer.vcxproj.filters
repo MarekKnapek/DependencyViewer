@@ -25,6 +25,9 @@
     <Filter Include="src\res">
       <UniqueIdentifier>{2bce8931-1dcd-4cac-907c-f4244d1aa022}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\nogui\pe">
+      <UniqueIdentifier>{b714708a-3617-446b-9b1f-e8211d3d9160}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\3rd_party\processhacker\phnt\ntdbg.h">
@@ -198,6 +201,24 @@
     <ClInclude Include="src\gui\processor_impl.h">
       <Filter>src\gui</Filter>
     </ClInclude>
+    <ClInclude Include="src\nogui\pe\mz.h">
+      <Filter>src\nogui\pe</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nogui\pe\coff.h">
+      <Filter>src\nogui\pe</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nogui\pe\coff_optional_standard.h">
+      <Filter>src\nogui\pe</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nogui\pe\coff_optional_windows.h">
+      <Filter>src\nogui\pe</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nogui\pe\coff_full.h">
+      <Filter>src\nogui\pe</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nogui\pe\pe_test.h">
+      <Filter>src\nogui\pe</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\main.cpp">
@@ -268,6 +289,27 @@
     </ClCompile>
     <ClCompile Include="src\gui\processor_impl.cpp">
       <Filter>src\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nogui\pe\mz.cpp">
+      <Filter>src\nogui\pe</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nogui\pe\coff.cpp">
+      <Filter>src\nogui\pe</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nogui\assert.cpp">
+      <Filter>src\nogui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nogui\pe\coff_optional_standard.cpp">
+      <Filter>src\nogui\pe</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nogui\pe\coff_optional_windows.cpp">
+      <Filter>src\nogui\pe</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nogui\pe\coff_full.cpp">
+      <Filter>src\nogui\pe</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nogui\pe\pe_test.cpp">
+      <Filter>src\nogui\pe</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
