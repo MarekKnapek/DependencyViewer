@@ -110,6 +110,11 @@ void test()
 		}
 		/**/
 		bool const pe_parsed = pe_test(mmf.begin(), mmf.size());
+		if(!pe_parsed)
+		{
+			OutputDebugStringW(p.c_str());
+			OutputDebugStringW(L"\n");
+		}
 		continue;
 		/**/
 		memory_manager mm;
