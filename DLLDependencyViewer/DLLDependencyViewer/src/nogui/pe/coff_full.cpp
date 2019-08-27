@@ -35,5 +35,9 @@ bool pe_parse_coff_full_32_64(void const* const& fd, int const& file_size, coff_
 	WARN_M(dir_cnt < static_cast<std::uint32_t>(e_directory_table::reserved) || (directories[static_cast<int>(e_directory_table::reserved)].m_va == 0 && directories[static_cast<int>(e_directory_table::reserved)].m_size == 0), L"Reserved, must be zero.");
 	WARN_M_R(file_size >= dosheader.m_pe_offset + (is_32 ? sizeof(coff_full_32) : sizeof(coff_full_64)) + dir_cnt * sizeof(data_directory) + coff_hdr->m_section_count * sizeof(section_header), L"File too small to contain all section headers.", false);
 	section_header const* const sections = reinterpret_cast<section_header const*>(file_data + dosheader.m_pe_offset + (is_32 ? sizeof(coff_full_32) : sizeof(coff_full_64)) + dir_cnt * sizeof(data_directory));
+	for(std::uint16_t i = 1; i < coff_hdr->m_section_count; ++i)
+	{
+		WARN_M_R(sections[i].m_virtual_address > sections[i - 1].m_virtual_address, L"VAs for sections must be assigned by the linker so that they are in ascending order.", false);
+	}
 	return true;
 }
