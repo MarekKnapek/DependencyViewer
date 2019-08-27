@@ -47,7 +47,7 @@ struct coff_optional_header_standard_32_64
 	union
 	{
 		coff_optional_header_standard_32 m_32;
-		coff_optional_header_standard_32 m_64;
+		coff_optional_header_standard_64 m_64;
 	};
 };
 

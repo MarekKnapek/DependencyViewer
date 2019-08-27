@@ -79,7 +79,7 @@ e_pe_parse_coff_optional_header_windows_32_64 pe_parse_coff_optional_header_wind
 	coff_header const& coff_hdr = *reinterpret_cast<coff_header const*>(file_data + dosheader.m_pe_offset);
 	coff_optional_header_standard_32_64 const& coff_opt_std = *reinterpret_cast<coff_optional_header_standard_32_64 const*>(file_data + dosheader.m_pe_offset + sizeof(coff_header));
 	bool const is_32 = coff_opt_std.m_32.m_signature == s_coff_optional_sig_32;
-	WARN_M_R(coff_hdr.m_optional_header_size >= sizeof(coff_optional_header_windows_32_64), L"COFF header contains too small size of coff_optional_header_windows_32_64.", e_pe_parse_coff_optional_header_windows_32_64::coff_has_wrong_optional);
+	WARN_M_R(coff_hdr.m_optional_header_size >= sizeof(coff_optional_header_standard_32_64) + sizeof(coff_optional_header_windows_32_64), L"COFF header contains too small size of coff_optional_header_windows_32_64.", e_pe_parse_coff_optional_header_windows_32_64::coff_has_wrong_optional);
 	WARN_M_R(file_size >= static_cast<int>(dosheader.m_pe_offset + sizeof(coff_header) + sizeof(coff_optional_header_standard_32_64) + sizeof(coff_optional_header_windows_32_64)), L"File is too small to contain coff_optional_header_windows_32_64.", e_pe_parse_coff_optional_header_windows_32_64::file_too_small);
 	hd = reinterpret_cast<coff_optional_header_windows_32_64 const*>(file_data + dosheader.m_pe_offset + sizeof(coff_header) + (is_32 ? sizeof(coff_optional_header_standard_32) : sizeof(coff_optional_header_standard_64)));
 	coff_optional_header_windows_32_64 const& header = *hd;
