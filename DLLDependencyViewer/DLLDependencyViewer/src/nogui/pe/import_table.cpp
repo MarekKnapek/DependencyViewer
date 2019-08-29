@@ -22,7 +22,13 @@ bool pe_parse_import_directory_table(void const* const& fd, int const& file_size
 	WARN_M_R(static_cast<int>(e_directory_table::import_table) < dir_tbl_cnt, L"Import table is not present.", false);
 	data_directory const* const dir_tbl = reinterpret_cast<data_directory const*>(file_data + dos_hdr.m_pe_offset + (is_32 ? sizeof(coff_full_32) : sizeof(coff_full_64)));
 	data_directory const& imp_tbl = dir_tbl[static_cast<int>(e_directory_table::import_table)];
-	WARN_M_R(imp_tbl.m_va != 0 && imp_tbl.m_size != 0, L"Import table is empty.", false);
+	if(imp_tbl.m_va == 0 || imp_tbl.m_size == 0)
+	{
+		idt.m_table = nullptr;
+		idt.m_size = 0;
+		idt.m_sct = nullptr;
+		return true;
+	}
 	section_header const* sct;
 	std::uint32_t const imp_dir_tbl_raw = pe_find_object_in_raw(file_data, file_size, imp_tbl.m_va, imp_tbl.m_size, sct);
 	WARN_M_R(imp_dir_tbl_raw != 0, L"Import directory table not found in any section.", false);

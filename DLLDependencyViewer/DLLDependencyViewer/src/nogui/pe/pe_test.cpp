@@ -19,8 +19,8 @@ bool pe_test(void const* const& fd, int const& file_size)
 
 	import_directory_table idt;
 	bool const import_table_parsed = pe_parse_import_directory_table(file_data, file_size, idt);
-	WARN_M(import_table_parsed, L"Import table not found.");
-	if(import_table_parsed)
+	WARN_M_R(import_table_parsed, L"Failed to parse import table.", false);
+	if(idt.m_table != nullptr && idt.m_size != 0 && idt.m_sct != nullptr)
 	{
 		if(is_32)
 		{
