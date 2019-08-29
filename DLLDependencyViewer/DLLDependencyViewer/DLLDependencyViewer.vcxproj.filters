@@ -219,6 +219,12 @@
     <ClInclude Include="src\nogui\pe\pe_test.h">
       <Filter>src\nogui\pe</Filter>
     </ClInclude>
+    <ClInclude Include="src\nogui\pe\import_table.h">
+      <Filter>src\nogui\pe</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nogui\pe\pe_util.h">
+      <Filter>src\nogui\pe</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\main.cpp">
@@ -309,6 +315,12 @@
       <Filter>src\nogui\pe</Filter>
     </ClCompile>
     <ClCompile Include="src\nogui\pe\pe_test.cpp">
+      <Filter>src\nogui\pe</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nogui\pe\import_table.cpp">
+      <Filter>src\nogui\pe</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nogui\pe\pe_util.cpp">
       <Filter>src\nogui\pe</Filter>
     </ClCompile>
   </ItemGroup>

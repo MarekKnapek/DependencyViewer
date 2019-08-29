@@ -207,8 +207,10 @@
     <ClInclude Include="src\nogui\pe\coff_full.h" />
     <ClInclude Include="src\nogui\pe\coff_optional_standard.h" />
     <ClInclude Include="src\nogui\pe\coff_optional_windows.h" />
+    <ClInclude Include="src\nogui\pe\import_table.h" />
     <ClInclude Include="src\nogui\pe\mz.h" />
     <ClInclude Include="src\nogui\pe\pe_test.h" />
+    <ClInclude Include="src\nogui\pe\pe_util.h" />
     <ClInclude Include="src\nogui\smart_com_interface.h" />
     <ClInclude Include="src\nogui\smart_handle.h" />
     <ClInclude Include="src\nogui\smart_library.h" />
@@ -240,8 +242,10 @@
     <ClCompile Include="src\nogui\pe\coff_full.cpp" />
     <ClCompile Include="src\nogui\pe\coff_optional_standard.cpp" />
     <ClCompile Include="src\nogui\pe\coff_optional_windows.cpp" />
+    <ClCompile Include="src\nogui\pe\import_table.cpp" />
     <ClCompile Include="src\nogui\pe\mz.cpp" />
     <ClCompile Include="src\nogui\pe\pe_test.cpp" />
+    <ClCompile Include="src\nogui\pe\pe_util.cpp" />
     <ClCompile Include="src\nogui\smart_com_interface.cpp" />
     <ClCompile Include="src\nogui\smart_handle.cpp" />
     <ClCompile Include="src\nogui\smart_library.cpp" />
