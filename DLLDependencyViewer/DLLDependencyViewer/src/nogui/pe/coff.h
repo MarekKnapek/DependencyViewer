@@ -4,7 +4,7 @@
 #include <cstdint>
 
 
-enum class e_pe_parse_coff_header
+enum class pe_e_parse_coff_header
 {
 	ok,
 	file_too_small,
@@ -14,7 +14,7 @@ enum class e_pe_parse_coff_header
 };
 
 
-struct coff_header
+struct pe_coff_header
 {
 	std::uint32_t m_signature;
 	std::uint16_t m_machine;
@@ -25,8 +25,8 @@ struct coff_header
 	std::uint16_t m_optional_header_size;
 	std::uint16_t m_characteristics;
 };
-static_assert(sizeof(coff_header) == 24, "");
-static_assert(sizeof(coff_header) == 0x18, "");
+static_assert(sizeof(pe_coff_header) == 24, "");
+static_assert(sizeof(pe_coff_header) == 0x18, "");
 
 
-e_pe_parse_coff_header pe_parse_coff_header(void const* const& file_data, int const& file_size, coff_header const*& header);
+pe_e_parse_coff_header pe_parse_coff_header(void const* const& file_data, int const& file_size, pe_coff_header const*& header);

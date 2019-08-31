@@ -83,15 +83,15 @@ static constexpr std::uint16_t s_image_file_up_system_only         	= 0x4000; //
 static constexpr std::uint16_t s_image_file_bytes_reversed_hi      	= 0x8000; // IMAGE_FILE_BYTES_REVERSED_HI      	Big endian: the MSB precedes the LSB in memory. This flag is deprecated and should be zero.
 
 
-e_pe_parse_coff_header pe_parse_coff_header(void const* const& fd, int const& file_size, coff_header const*& hd)
+pe_e_parse_coff_header pe_parse_coff_header(void const* const& fd, int const& file_size, pe_coff_header const*& hd)
 {
 	char const* const file_data = static_cast<char const*>(fd);
-	dos_header const& dosheader = *reinterpret_cast<dos_header const*>(file_data + 0);
-	WARN_M_R(file_size >= static_cast<int>(dosheader.m_pe_offset + sizeof(coff_header)), L"File is too small to contain coff_header.", e_pe_parse_coff_header::file_too_small);
-	hd = reinterpret_cast<coff_header const*>(file_data + dosheader.m_pe_offset);
-	coff_header const& header = *hd;
-	WARN_M_R(header.m_signature == s_coff_signature, L"COFF signature not found.", e_pe_parse_coff_header::file_not_coff);
-	WARN_M_R(std::find(std::cbegin(s_image_file_machines), std::cend(s_image_file_machines), header.m_machine) != std::end(s_image_file_machines), L"Unknown machine type.", e_pe_parse_coff_header::unknown_machine_type);
-	WARN_M_R(header.m_section_count <= s_max_coff_header_sections, L"Too many sections.", e_pe_parse_coff_header::too_many_sections);
-	return e_pe_parse_coff_header::ok;
+	pe_dos_header const& dosheader = *reinterpret_cast<pe_dos_header const*>(file_data + 0);
+	WARN_M_R(file_size >= static_cast<int>(dosheader.m_pe_offset + sizeof(pe_coff_header)), L"File is too small to contain coff_header.", pe_e_parse_coff_header::file_too_small);
+	hd = reinterpret_cast<pe_coff_header const*>(file_data + dosheader.m_pe_offset);
+	pe_coff_header const& header = *hd;
+	WARN_M_R(header.m_signature == s_coff_signature, L"COFF signature not found.", pe_e_parse_coff_header::file_not_coff);
+	WARN_M_R(std::find(std::cbegin(s_image_file_machines), std::cend(s_image_file_machines), header.m_machine) != std::end(s_image_file_machines), L"Unknown machine type.", pe_e_parse_coff_header::unknown_machine_type);
+	WARN_M_R(header.m_section_count <= s_max_coff_header_sections, L"Too many sections.", pe_e_parse_coff_header::too_many_sections);
+	return pe_e_parse_coff_header::ok;
 }

@@ -4,7 +4,7 @@
 #include <cstdint>
 
 
-enum class e_pe_parse_coff_optional_header_windows_32_64
+enum class pe_e_parse_coff_optional_header_windows_32_64
 {
 	ok,
 	coff_has_wrong_optional,
@@ -12,7 +12,7 @@ enum class e_pe_parse_coff_optional_header_windows_32_64
 };
 
 
-struct coff_optional_header_windows_32
+struct pe_coff_optional_header_windows_32
 {
 	std::uint32_t m_image_base;
 	std::uint32_t m_section_alignment;
@@ -36,10 +36,10 @@ struct coff_optional_header_windows_32
 	std::uint32_t m_loader_flags;
 	std::uint32_t m_data_directory_count;
 };
-static_assert(sizeof(coff_optional_header_windows_32) == 68, "");
-static_assert(sizeof(coff_optional_header_windows_32) == 0x44, "");
+static_assert(sizeof(pe_coff_optional_header_windows_32) == 68, "");
+static_assert(sizeof(pe_coff_optional_header_windows_32) == 0x44, "");
 
-struct coff_optional_header_windows_64
+struct pe_coff_optional_header_windows_64
 {
 	std::uint64_t m_image_base;
 	std::uint32_t m_section_alignment;
@@ -63,17 +63,17 @@ struct coff_optional_header_windows_64
 	std::uint32_t m_loader_flags;
 	std::uint32_t m_data_directory_count;
 };
-static_assert(sizeof(coff_optional_header_windows_64) == 88, "");
-static_assert(sizeof(coff_optional_header_windows_64) == 0x58, "");
+static_assert(sizeof(pe_coff_optional_header_windows_64) == 88, "");
+static_assert(sizeof(pe_coff_optional_header_windows_64) == 0x58, "");
 
-struct coff_optional_header_windows_32_64
+struct pe_coff_optional_header_windows_32_64
 {
 	union
 	{
-		coff_optional_header_windows_32 m_32;
-		coff_optional_header_windows_64 m_64;
+		pe_coff_optional_header_windows_32 m_32;
+		pe_coff_optional_header_windows_64 m_64;
 	};
 };
 
 
-e_pe_parse_coff_optional_header_windows_32_64 pe_parse_coff_optional_header_windows_32_64(void const* const& file_data, int const& file_size, coff_optional_header_windows_32_64 const*& header);
+pe_e_parse_coff_optional_header_windows_32_64 pe_parse_coff_optional_header_windows_32_64(void const* const& file_data, int const& file_size, pe_coff_optional_header_windows_32_64 const*& header);

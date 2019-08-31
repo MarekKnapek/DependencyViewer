@@ -4,7 +4,7 @@
 #include <cstdint>
 
 
-enum class e_pe_parse_mz_header
+enum class pe_e_parse_mz_header
 {
 	ok,
 	file_too_small,
@@ -12,7 +12,7 @@ enum class e_pe_parse_mz_header
 };
 
 
-struct dos_header
+struct pe_dos_header
 {
 	std::uint16_t m_signature;
 	std::uint16_t m_last_size;
@@ -34,8 +34,8 @@ struct dos_header
 	std::uint16_t m_reserved_2[10];
 	std::uint16_t m_pe_offset;
 };
-static_assert(sizeof(dos_header) == 62, "");
-static_assert(sizeof(dos_header) == 0x3e, "");
+static_assert(sizeof(pe_dos_header) == 62, "");
+static_assert(sizeof(pe_dos_header) == 0x3e, "");
 
 
-e_pe_parse_mz_header pe_parse_mz_header(void const* const& file_data, int const& file_size, dos_header const*& header);
+pe_e_parse_mz_header pe_parse_mz_header(void const* const& file_data, int const& file_size, pe_dos_header const*& header);
