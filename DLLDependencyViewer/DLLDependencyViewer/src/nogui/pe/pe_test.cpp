@@ -17,7 +17,7 @@ bool pe_test(void const* const& fd, int const& file_size)
 	WARN_M_R(coff_parsed, L"Failed to pe_parse_coff_full_32_64.", false);
 	bool const is_32 = coff_hdr->m_32.m_standard.m_signature == s_pe_coff_optional_sig_32;
 
-	import_directory_table idt;
+	pe_import_directory_table idt;
 	bool const import_table_parsed = pe_parse_import_directory_table(file_data, file_size, idt);
 	WARN_M_R(import_table_parsed, L"Failed to parse import table.", false);
 	if(idt.m_table != nullptr && idt.m_size != 0 && idt.m_sct != nullptr)

@@ -17,7 +17,7 @@ struct pe_import_directory_entry
 static_assert(sizeof(pe_import_directory_entry) == 20, "");
 static_assert(sizeof(pe_import_directory_entry) == 0x14, "");
 
-struct import_directory_table
+struct pe_import_directory_table
 {
 	pe_import_directory_entry const* m_table;
 	int m_size;
@@ -60,10 +60,10 @@ struct pe_hint_name
 };
 
 
-bool pe_parse_import_directory_table(void const* const& file_data, int const& file_size, import_directory_table& idt);
-bool pe_parse_import_dll_name(void const* const& file_data, int const& file_size, import_directory_table const& idt, int const& idx, pe_string& str);
-bool pe_parse_import_lookup_table_32(void const* const& file_data, int const& file_size, import_directory_table const& idt, int const& idx, pe_import_lookup_table_32& ilt);
-bool pe_parse_import_lookup_table_64(void const* const& file_data, int const& file_size, import_directory_table const& idt, int const& idx, pe_import_lookup_table_64& ilt);
+bool pe_parse_import_directory_table(void const* const& file_data, int const& file_size, pe_import_directory_table& idt);
+bool pe_parse_import_dll_name(void const* const& file_data, int const& file_size, pe_import_directory_table const& idt, int const& idx, pe_string& str);
+bool pe_parse_import_lookup_table_32(void const* const& file_data, int const& file_size, pe_import_directory_table const& idt, int const& idx, pe_import_lookup_table_32& ilt);
+bool pe_parse_import_lookup_table_64(void const* const& file_data, int const& file_size, pe_import_directory_table const& idt, int const& idx, pe_import_lookup_table_64& ilt);
 bool pe_parse_import_lookup_entry_32(void const* const& file_data, int const& file_size, pe_import_lookup_table_32 const& ilt, int const& idx, bool& is_ordinal);
 bool pe_parse_import_lookup_entry_64(void const* const& file_data, int const& file_size, pe_import_lookup_table_64 const& ilt, int const& idx, bool& is_ordinal);
 bool pe_parse_import_lookup_entry_ordinal_32(void const* const& file_data, int const& file_size, pe_import_lookup_table_32 const& ilt, int const& idx, std::uint16_t& ordinal);
