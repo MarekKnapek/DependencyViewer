@@ -16,9 +16,8 @@ std::uint32_t pe_find_object_in_raw(void const* const& fd, int const& file_size,
 	for(std::uint32_t i = 0; i != sect_tbl_cnt; ++i)
 	{
 		pe_section_header const& sect = sect_tbl[i];
-		if(obj_va >= sect.m_virtual_address && obj_va < sect.m_virtual_address + sect.m_virtual_size)
+		if(obj_va >= sect.m_virtual_address && obj_va < sect.m_virtual_address + sect.m_raw_size)
 		{
-			WARN_M_R(obj_va + obj_size <= sect.m_virtual_address + sect.m_virtual_size, L"Object does not fit in section virtual size.", 0);
 			std::uint32_t const offset_iniside_sect = obj_va - sect.m_virtual_address;
 			std::uint32_t const obj_raw = sect.m_raw_ptr + offset_iniside_sect;
 			WARN_M_R(obj_raw + obj_size <= sect.m_raw_ptr + sect.m_raw_size, L"Object does not fin in section raw size.", 0);

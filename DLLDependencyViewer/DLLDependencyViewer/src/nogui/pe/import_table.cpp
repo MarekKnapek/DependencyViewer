@@ -90,7 +90,7 @@ bool pe_parse_import_lookup_table_32(void const* const& fd, int const& file_size
 	pe_import_directory_entry const& imp_dir = idt.m_table[idx];
 	std::uint32_t const iat_rva = imp_dir.m_import_lookup_table != 0 ? imp_dir.m_import_lookup_table : imp_dir.m_import_adress_table;
 	WARN_M_R(iat_rva != 0, L"Import directory has no import lookup table or import address table.", false);
-	WARN_M_R(iat_rva >= idt.m_sct->m_virtual_address && iat_rva < idt.m_sct->m_virtual_address + idt.m_sct->m_virtual_size, L"Import address table shall be in the same section as import directory table.", false); // Not sure about this.
+	WARN_M_R(iat_rva >= idt.m_sct->m_virtual_address && iat_rva < idt.m_sct->m_virtual_address + idt.m_sct->m_raw_size, L"Import address table shall be in the same section as import directory table.", false); // Not sure about this.
 	std::uint32_t const iat_raw = idt.m_sct->m_raw_ptr + (iat_rva - idt.m_sct->m_virtual_address);
 	pe_import_lookup_entry_32 const* const iat = reinterpret_cast<pe_import_lookup_entry_32 const*>(file_data + iat_raw);
 	std::uint32_t const iat_cnt_max = pe_min(64u * 1024u, idt.m_sct->m_raw_ptr + idt.m_sct->m_raw_size - iat_raw);
@@ -116,7 +116,7 @@ bool pe_parse_import_lookup_table_64(void const* const& fd, int const& file_size
 	pe_import_directory_entry const& imp_dir = idt.m_table[idx];
 	std::uint32_t const iat_rva = imp_dir.m_import_lookup_table != 0 ? imp_dir.m_import_lookup_table : imp_dir.m_import_adress_table;
 	WARN_M_R(iat_rva != 0, L"Import directory has no import lookup table or import address table.", false);
-	WARN_M_R(iat_rva >= idt.m_sct->m_virtual_address && iat_rva < idt.m_sct->m_virtual_address + idt.m_sct->m_virtual_size, L"Import address table shall be in the same section as import directory table.", false); // Not sure about this.
+	WARN_M_R(iat_rva >= idt.m_sct->m_virtual_address && iat_rva < idt.m_sct->m_virtual_address + idt.m_sct->m_raw_size, L"Import address table shall be in the same section as import directory table.", false); // Not sure about this.
 	std::uint32_t const iat_raw = idt.m_sct->m_raw_ptr + (iat_rva - idt.m_sct->m_virtual_address);
 	pe_import_lookup_entry_64 const* const iat = reinterpret_cast<pe_import_lookup_entry_64 const*>(file_data + iat_raw);
 	std::uint32_t const iat_cnt_max = pe_min(64u * 1024u, idt.m_sct->m_raw_ptr + idt.m_sct->m_raw_size - iat_raw);
@@ -186,7 +186,7 @@ bool pe_parse_import_lookup_entry_hint_name_64(void const* const& fd, int const&
 bool pe_parse_import_lookup_entry_hint_name_impl(void const* const& fd, int const& file_size, pe_section_header const& sct, std::uint32_t const& hint_name_rva, pe_hint_name& hntnm)
 {
 	char const* const file_data = static_cast<char const*>(fd);
-	WARN_M_R(hint_name_rva >= sct.m_virtual_address && hint_name_rva < sct.m_virtual_address + sct.m_virtual_size, L"Hint/Name shall be in the same section as import lookup table.", false); // Not sure about this.
+	WARN_M_R(hint_name_rva >= sct.m_virtual_address && hint_name_rva < sct.m_virtual_address + sct.m_raw_size, L"Hint/Name shall be in the same section as import lookup table.", false); // Not sure about this.
 	std::uint32_t const hint_name_raw = sct.m_raw_ptr + (hint_name_rva - sct.m_virtual_address);
 	std::uint16_t const& hint = *reinterpret_cast<std::uint16_t const*>(file_data + hint_name_raw);
 	char const* const name = file_data + hint_name_raw + sizeof(std::uint16_t);
