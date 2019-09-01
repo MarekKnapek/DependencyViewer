@@ -100,7 +100,7 @@ bool pe_test(void const* const& fd, int const& file_size)
 			bool is_ordinal;
 			std::uint16_t ordinal;
 			pe_hint_name hint_name;
-			bool const dlia_parsed = pe_parse_delay_import_address(file_data, file_size, dliat, j, is_ordinal, ordinal, hint_name);
+			bool const dlia_parsed = pe_parse_delay_import_address(file_data, file_size, dlit.m_table[i], dliat, j, is_ordinal, ordinal, hint_name);
 			WARN_M_R(dlia_parsed, L"Failed to parse delay load address import.", false);
 		}
 	}

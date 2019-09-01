@@ -265,7 +265,7 @@ bool pe_parse_delay_import_dll_name(void const* const& fd, int const& file_size,
 	WARN_M_R(dld.m_name != 0, L"Delay import directory has no DLL name.", false);
 	bool const delay_ver_2 = (dld.m_attributes & 1u) != 0;
 	bool const is_32 = coff_hdr.m_32.m_standard.m_signature == s_pe_coff_optional_sig_32;
-	WARN_M_R(is_32 ? true : coff_hdr.m_64.m_windows.m_image_base < 0x00000000ffffffffull, L"Image base is damn too high.", false);
+	WARN_M_R(is_32 ? true : delay_ver_2 || coff_hdr.m_64.m_windows.m_image_base < 0x00000000ffffffffull, L"Image base is damn too high.", false);
 	std::uint32_t const delay_dll_name_rva = delay_ver_2 ? dld.m_name : dld.m_name - (is_32 ? coff_hdr.m_32.m_windows.m_image_base : static_cast<std::uint32_t>(coff_hdr.m_64.m_windows.m_image_base));
 	pe_section_header const* sct;
 	std::uint32_t const dll_name_raw = pe_find_object_in_raw(file_data, file_size, delay_dll_name_rva, 2, sct);
@@ -333,7 +333,7 @@ bool pe_parse_delay_import_address_table(void const* const& fd, int const& file_
 	return true;
 }
 
-bool pe_parse_delay_import_address(void const* const& fd, int const& file_size, pe_delay_load_import_address_table const& dliat_in, int const& idx, bool& is_ordinal_out, std::uint16_t& ordinal_out, pe_hint_name& hint_name_out)
+bool pe_parse_delay_import_address(void const* const& fd, int const& file_size, pe_delay_load_directory_entry const& dld, pe_delay_load_import_address_table const& dliat_in, int const& idx, bool& is_ordinal_out, std::uint16_t& ordinal_out, pe_hint_name& hint_name_out)
 {
 	char const* const file_data = static_cast<char const*>(fd);
 	pe_dos_header const& dos_hdr = *reinterpret_cast<pe_dos_header const*>(file_data + 0);
@@ -353,7 +353,8 @@ bool pe_parse_delay_import_address(void const* const& fd, int const& file_size, 
 		}
 		else
 		{
-			std::uint32_t const hint_name_rva = dlia.m_value & 0x7fffffff;
+			bool const delay_ver_2 = (dld.m_attributes & 1u) != 0;
+			std::uint32_t const hint_name_rva = (dlia.m_value & 0x7fffffff) - (delay_ver_2 ? 0 : coff_hdr.m_32.m_windows.m_image_base);
 			pe_section_header const* sct;
 			std::uint32_t const hint_name_raw = pe_find_object_in_raw(file_data, file_size, hint_name_rva, sizeof(std::uint16_t) + 2, sct);
 			WARN_M_R(hint_name_raw != 0, L"Could not parse delay import address name.", false);
@@ -391,7 +392,8 @@ bool pe_parse_delay_import_address(void const* const& fd, int const& file_size, 
 		else
 		{
 			WARN_M_R((dlia.m_value & 0x7fffffff80000000ull) == 0, L"Bits 62-31 must be 0.", false);
-			std::uint32_t const hint_name_rva = dlia.m_value & 0x000000007fffffffull;
+			bool const delay_ver_2 = (dld.m_attributes & 1u) != 0;
+			std::uint32_t const hint_name_rva = (dlia.m_value & 0x000000007fffffffull) - (delay_ver_2 ? 0 : static_cast<std::uint32_t>(coff_hdr.m_64.m_windows.m_image_base));
 			pe_section_header const* sct;
 			std::uint32_t const hint_name_raw = pe_find_object_in_raw(file_data, file_size, hint_name_rva, sizeof(std::uint16_t) + 2, sct);
 			WARN_M_R(hint_name_raw != 0, L"Could not parse delay import address name.", false);
