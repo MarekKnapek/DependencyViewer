@@ -171,7 +171,7 @@ bool pe_parse_import_lookup_entry_hint_name_32(void const* const& fd, int const&
 	char const* const file_data = static_cast<char const*>(fd);
 	pe_import_lookup_entry_32 const& ile = ilt.m_table[idx];
 	std::uint32_t const hint_name_rva = ile.m_value & 0x7fffffff;
-	return pe_parse_import_lookup_entry_hint_name(file_data, file_size, *ilt.m_sct, hint_name_rva, hntnm);
+	return pe_parse_import_lookup_entry_hint_name_impl(file_data, file_size, *ilt.m_sct, hint_name_rva, hntnm);
 }
 
 bool pe_parse_import_lookup_entry_hint_name_64(void const* const& fd, int const& file_size, pe_import_lookup_table_64 const& ilt, int const& idx, pe_hint_name& hntnm)
@@ -180,10 +180,10 @@ bool pe_parse_import_lookup_entry_hint_name_64(void const* const& fd, int const&
 	pe_import_lookup_entry_64 const& ile = ilt.m_table[idx];
 	WARN_M_R((ile.m_value & 0x7FFFFFFF80000000ull) == 0, L"Bits 62-31 must be 0.", false);
 	std::uint32_t const hint_name_rva = ile.m_value & 0x000000007fffffffull;
-	return pe_parse_import_lookup_entry_hint_name(file_data, file_size, *ilt.m_sct, hint_name_rva, hntnm);
+	return pe_parse_import_lookup_entry_hint_name_impl(file_data, file_size, *ilt.m_sct, hint_name_rva, hntnm);
 }
 
-bool pe_parse_import_lookup_entry_hint_name(void const* const& fd, int const& file_size, pe_section_header const& sct, std::uint32_t const& hint_name_rva, pe_hint_name& hntnm)
+bool pe_parse_import_lookup_entry_hint_name_impl(void const* const& fd, int const& file_size, pe_section_header const& sct, std::uint32_t const& hint_name_rva, pe_hint_name& hntnm)
 {
 	char const* const file_data = static_cast<char const*>(fd);
 	WARN_M_R(hint_name_rva >= sct.m_virtual_address && hint_name_rva < sct.m_virtual_address + sct.m_virtual_size, L"Hint/Name shall be in the same section as import lookup table.", false); // Not sure about this.

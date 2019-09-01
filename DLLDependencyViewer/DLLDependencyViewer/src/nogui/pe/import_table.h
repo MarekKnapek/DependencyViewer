@@ -70,4 +70,4 @@ bool pe_parse_import_lookup_entry_ordinal_32(void const* const& file_data, int c
 bool pe_parse_import_lookup_entry_ordinal_64(void const* const& file_data, int const& file_size, pe_import_lookup_table_64 const& ilt, int const& idx, std::uint16_t& ordinal);
 bool pe_parse_import_lookup_entry_hint_name_32(void const* const& file_data, int const& file_size, pe_import_lookup_table_32 const& ilt, int const& idx, pe_hint_name& hntnm);
 bool pe_parse_import_lookup_entry_hint_name_64(void const* const& file_data, int const& file_size, pe_import_lookup_table_64 const& ilt, int const& idx, pe_hint_name& hntnm);
-bool pe_parse_import_lookup_entry_hint_name(void const* const& file_data, int const& file_size, pe_section_header const& sct, std::uint32_t const& hint_name_rva, pe_hint_name& hntnm);
+bool pe_parse_import_lookup_entry_hint_name_impl(void const* const& file_data, int const& file_size, pe_section_header const& sct, std::uint32_t const& hint_name_rva, pe_hint_name& hntnm);
