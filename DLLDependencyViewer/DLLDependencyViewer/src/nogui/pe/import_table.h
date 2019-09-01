@@ -59,23 +59,23 @@ struct pe_hint_name
 	pe_string m_name;
 };
 
-struct pe_delay_load_directory_entry
+struct pe_delay_load_descriptor
 {
 	std::uint32_t m_attributes;
-	std::uint32_t m_name;
-	std::uint32_t m_module_handle;
-	std::uint32_t m_delay_import_address_table;
-	std::uint32_t m_delay_import_name_table;
-	std::uint32_t m_bound_delay_import_table;
-	std::uint32_t m_unload_delay_import_table;
-	std::uint32_t m_timestamp;
+	std::uint32_t m_dll_name_rva;
+	std::uint32_t m_module_handle_rva;
+	std::uint32_t m_import_address_table_rva;
+	std::uint32_t m_import_name_table_rva;
+	std::uint32_t m_bound_import_address_table_rva;
+	std::uint32_t m_unload_information_table_rva;
+	std::uint32_t m_time_date_stamp;
 };
-static_assert(sizeof(pe_delay_load_directory_entry) == 32, "");
-static_assert(sizeof(pe_delay_load_directory_entry) == 0x20, "");
+static_assert(sizeof(pe_delay_load_descriptor) == 32, "");
+static_assert(sizeof(pe_delay_load_descriptor) == 0x20, "");
 
 struct pe_delay_import_table
 {
-	pe_delay_load_directory_entry const* m_table;
+	pe_delay_load_descriptor const* m_table;
 	int m_size;
 	pe_section_header const* m_sct;
 };
@@ -99,6 +99,6 @@ bool pe_parse_import_lookup_entry_hint_name_32(void const* const& file_data, int
 bool pe_parse_import_lookup_entry_hint_name_64(void const* const& file_data, int const& file_size, pe_import_lookup_table_64 const& ilt, int const& idx, pe_hint_name& hntnm);
 bool pe_parse_import_lookup_entry_hint_name_impl(void const* const& file_data, int const& file_size, std::uint32_t const& hint_name_rva, pe_hint_name& hntnm);
 bool pe_parse_delay_import_table(void const* const& file_data, int const& file_size, pe_delay_import_table& dlit);
-bool pe_parse_delay_import_dll_name(void const* const& file_data, int const& file_size, pe_delay_load_directory_entry const& dld, pe_string& str);
-bool pe_parse_delay_import_address_table(void const* const& file_data, int const& file_size, pe_delay_load_directory_entry const& dld, pe_delay_load_import_address_table& dliat_out);
-bool pe_parse_delay_import_address(void const* const& file_data, int const& file_size, pe_delay_load_directory_entry const& dld, pe_delay_load_import_address_table const& dliat_in, int const& idx, bool& is_ordinal_out, std::uint16_t& ordinal_out, pe_hint_name& hint_name_out);
+bool pe_parse_delay_import_dll_name(void const* const& file_data, int const& file_size, pe_delay_load_descriptor const& dld, pe_string& str);
+bool pe_parse_delay_import_address_table(void const* const& file_data, int const& file_size, pe_delay_load_descriptor const& dld, pe_delay_load_import_address_table& dliat_out);
+bool pe_parse_delay_import_address(void const* const& file_data, int const& file_size, pe_delay_load_descriptor const& dld, pe_delay_load_import_address_table const& dliat_in, int const& idx, bool& is_ordinal_out, std::uint16_t& ordinal_out, pe_hint_name& hint_name_out);
