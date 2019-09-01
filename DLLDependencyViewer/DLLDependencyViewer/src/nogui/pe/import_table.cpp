@@ -257,32 +257,17 @@ bool pe_parse_delay_import_descriptor(void const* const& fd, int const& file_siz
 	return true;
 }
 
-bool pe_parse_delay_import_dll_name_32(void const* const& fd, int const& file_size, pe_delay_import_descriptor const& did, int const& idx, pe_string& str)
+bool pe_parse_delay_import_dll_name(void const* const& fd, int const& file_size, pe_delay_import_descriptor const& did, int const& idx, pe_string& str)
 {
 	char const* const file_data = static_cast<char const*>(fd);
 	pe_dos_header const& dos_hdr = *reinterpret_cast<pe_dos_header const*>(file_data + 0);
 	pe_coff_full_32_64 const& coff_hdr = *reinterpret_cast<pe_coff_full_32_64 const*>(file_data + dos_hdr.m_pe_offset);
 	pe_delay_load_directory_entry const& dimp = did.m_table[idx];
 	WARN_M_R(dimp.m_name != 0, L"Delay import directory has no DLL name.", false);
-	std::uint32_t const dll_name_rva = (dimp.m_attributes & 1u) != 0 ? dimp.m_name : dimp.m_name - coff_hdr.m_32.m_windows.m_image_base;
-	return pe_parse_delay_import_dll_name_impl(file_data, file_size, dll_name_rva, str);
-}
-
-bool pe_parse_delay_import_dll_name_64(void const* const& fd, int const& file_size, pe_delay_import_descriptor const& did, int const& idx, pe_string& str)
-{
-	char const* const file_data = static_cast<char const*>(fd);
-	pe_dos_header const& dos_hdr = *reinterpret_cast<pe_dos_header const*>(file_data + 0);
-	pe_coff_full_32_64 const& coff_hdr = *reinterpret_cast<pe_coff_full_32_64 const*>(file_data + dos_hdr.m_pe_offset);
-	pe_delay_load_directory_entry const& dimp = did.m_table[idx];
-	WARN_M_R(dimp.m_name != 0, L"Delay import directory has no DLL name.", false);
-	WARN_M_R(coff_hdr.m_64.m_windows.m_image_base < dimp.m_name, L"Image base is too damn high.", false);
-	std::uint32_t const dll_name_rva = (dimp.m_attributes & 1u) != 0 ? dimp.m_name : dimp.m_name - static_cast<std::uint32_t>(coff_hdr.m_64.m_windows.m_image_base);
-	return pe_parse_delay_import_dll_name_impl(file_data, file_size, dll_name_rva, str);
-}
-
-bool pe_parse_delay_import_dll_name_impl(void const* const& fd, int const& file_size, std::uint32_t const& delay_dll_name_rva, pe_string& str)
-{
-	char const* const file_data = static_cast<char const*>(fd);
+	bool const delay_ver_2 = (dimp.m_attributes & 1u) != 0;
+	bool const is_32 = coff_hdr.m_32.m_standard.m_signature == s_pe_coff_optional_sig_32;
+	WARN_M_R(is_32 ? true : coff_hdr.m_64.m_windows.m_image_base < 0x00000000ffffffffull, L"Image base is damn too high.", false);
+	std::uint32_t const delay_dll_name_rva = delay_ver_2 ? dimp.m_name : dimp.m_name - (is_32 ? coff_hdr.m_32.m_windows.m_image_base : static_cast<std::uint32_t>(coff_hdr.m_64.m_windows.m_image_base));
 	pe_section_header const* sct;
 	std::uint32_t const dll_name_raw = pe_find_object_in_raw(file_data, file_size, delay_dll_name_rva, 2, sct);
 	WARN_M_R(dll_name_raw != 0, L"Delay import directory DLL name not found in any section.", false);
