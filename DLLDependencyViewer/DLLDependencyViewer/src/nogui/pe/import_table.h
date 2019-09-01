@@ -59,6 +59,27 @@ struct pe_hint_name
 	pe_string m_name;
 };
 
+struct pe_delay_load_directory_entry
+{
+	std::uint32_t m_attributes;
+	std::uint32_t m_name;
+	std::uint32_t m_module_handle;
+	std::uint32_t m_delay_import_address_table;
+	std::uint32_t m_delay_import_name_table;
+	std::uint32_t m_bound_delay_import_table;
+	std::uint32_t m_unload_delay_import_table;
+	std::uint32_t m_timestamp;
+};
+static_assert(sizeof(pe_delay_load_directory_entry) == 32, "");
+static_assert(sizeof(pe_delay_load_directory_entry) == 0x20, "");
+
+struct pe_delay_import_descriptor
+{
+	pe_delay_load_directory_entry const* m_table;
+	int m_size;
+	pe_section_header const* m_sct;
+};
+
 
 bool pe_parse_import_directory_table(void const* const& file_data, int const& file_size, pe_import_directory_table& idt);
 bool pe_parse_import_dll_name(void const* const& file_data, int const& file_size, pe_import_directory_table const& idt, int const& idx, pe_string& str);
@@ -71,3 +92,4 @@ bool pe_parse_import_lookup_entry_ordinal_64(void const* const& file_data, int c
 bool pe_parse_import_lookup_entry_hint_name_32(void const* const& file_data, int const& file_size, pe_import_lookup_table_32 const& ilt, int const& idx, pe_hint_name& hntnm);
 bool pe_parse_import_lookup_entry_hint_name_64(void const* const& file_data, int const& file_size, pe_import_lookup_table_64 const& ilt, int const& idx, pe_hint_name& hntnm);
 bool pe_parse_import_lookup_entry_hint_name_impl(void const* const& file_data, int const& file_size, pe_section_header const& sct, std::uint32_t const& hint_name_rva, pe_hint_name& hntnm);
+bool pe_parse_delay_import_descriptor(void const* const& file_data, int const& file_size, pe_delay_import_descriptor& did);

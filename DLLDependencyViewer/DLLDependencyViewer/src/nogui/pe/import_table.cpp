@@ -39,13 +39,13 @@ bool pe_parse_import_directory_table(void const* const& fd, int const& file_size
 	{
 		pe_import_directory_entry const& imp_dir =imp_dir_tbl[i];
 		if
-			(
-				imp_dir.m_import_lookup_table == 0 &&
-				imp_dir.m_date_time == 0 &&
-				imp_dir.m_forwarder_chain == 0 &&
-				imp_dir.m_name == 0 &&
-				imp_dir.m_import_adress_table == 0
-			)
+		(
+			imp_dir.m_import_lookup_table == 0 &&
+			imp_dir.m_date_time == 0 &&
+			imp_dir.m_forwarder_chain == 0 &&
+			imp_dir.m_name == 0 &&
+			imp_dir.m_import_adress_table == 0
+		)
 		{
 			imp_dir_tbl_cnt = i;
 			break;
@@ -205,5 +205,54 @@ bool pe_parse_import_lookup_entry_hint_name_impl(void const* const& fd, int cons
 	hntnm.m_hint = hint;
 	hntnm.m_name.m_str = name;
 	hntnm.m_name.m_len = static_cast<int>(name_len);
+	return true;
+}
+
+bool pe_parse_delay_import_descriptor(void const* const& fd, int const& file_size, pe_delay_import_descriptor& did)
+{
+	char const* const file_data = static_cast<char const*>(fd);
+	pe_dos_header const& dos_hdr = *reinterpret_cast<pe_dos_header const*>(file_data + 0);
+	pe_coff_full_32_64 const& coff_hdr = *reinterpret_cast<pe_coff_full_32_64 const*>(file_data + dos_hdr.m_pe_offset);
+	bool const is_32 = coff_hdr.m_32.m_standard.m_signature == s_pe_coff_optional_sig_32;
+	std::uint32_t const dir_tbl_cnt = is_32 ? coff_hdr.m_32.m_windows.m_data_directory_count : coff_hdr.m_64.m_windows.m_data_directory_count;
+	WARN_M_R(static_cast<int>(pe_e_directory_table::delay_import_descriptor) < dir_tbl_cnt, L"Delay import table is not present.", false);
+	pe_data_directory const* const dir_tbl = reinterpret_cast<pe_data_directory const*>(file_data + dos_hdr.m_pe_offset + (is_32 ? sizeof(pe_coff_full_32) : sizeof(pe_coff_full_64)));
+	pe_data_directory const& dimp_tbl = dir_tbl[static_cast<int>(pe_e_directory_table::delay_import_descriptor)];
+	if(dimp_tbl.m_va == 0 || dimp_tbl.m_size == 0)
+	{
+		did.m_table = nullptr;
+		did.m_size = 0;
+		did.m_sct = nullptr;
+		return true;
+	}
+	pe_section_header const* sct;
+	std::uint32_t const dimp_dir_tbl_raw = pe_find_object_in_raw(file_data, file_size, dimp_tbl.m_va, dimp_tbl.m_size, sct);
+	WARN_M_R(dimp_dir_tbl_raw != 0, L"Delay import directory table not found in any section.", false);
+	std::uint32_t const dimp_dir_tbl_cnt_max = dimp_tbl.m_size / sizeof(pe_delay_load_directory_entry);
+	std::uint32_t dimp_dir_tbl_cnt = 0xffffffff;
+	pe_delay_load_directory_entry const* const dimp_dir_tbl = reinterpret_cast<pe_delay_load_directory_entry const*>(file_data + dimp_dir_tbl_raw);
+	for(std::uint32_t i = 0; i != dimp_dir_tbl_cnt_max; ++i)
+	{
+		pe_delay_load_directory_entry const& dimp_dir = dimp_dir_tbl[i];
+		if
+		(
+			dimp_dir.m_attributes == 0 &&
+			dimp_dir.m_name == 0 &&
+			dimp_dir.m_module_handle == 0 &&
+			dimp_dir.m_delay_import_address_table == 0 &&
+			dimp_dir.m_delay_import_name_table == 0 &&
+			dimp_dir.m_bound_delay_import_table == 0 &&
+			dimp_dir.m_unload_delay_import_table == 0 &&
+			dimp_dir.m_timestamp == 0
+		)
+		{
+			dimp_dir_tbl_cnt = i;
+			break;
+		}
+	}
+	WARN_M_R(dimp_dir_tbl_cnt != 0xffffffff, L"Could not found delay import directory table size.", false);
+	did.m_table = dimp_dir_tbl;
+	did.m_size = static_cast<int>(dimp_dir_tbl_cnt);
+	did.m_sct = sct;
 	return true;
 }
