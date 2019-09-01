@@ -77,7 +77,7 @@ bool pe_parse_import_dll_name(void const* const& fd, int const& file_size, pe_im
 			break;
 		}
 	}
-	WARN_M_R(dll_name_len != 0xffffffff, L"Could not find import directory DLL name length.", false);
+	WARN_M_R(dll_name_len != 0 && dll_name_len != 0xffffffff, L"Could not find import directory DLL name length.", false);
 	WARN_M_R(pe_is_ascii(dll_name, dll_name_len), L"DLL name shall be ASCII.", false);
 	str.m_str = dll_name;
 	str.m_len = dll_name_len;
@@ -297,7 +297,7 @@ bool pe_parse_delay_import_dll_name_impl(void const* const& fd, int const& file_
 			break;
 		}
 	}
-	WARN_M_R(dll_name_len != 0xffffffff, L"Could not find delay import directory DLL name length.", false);
+	WARN_M_R(dll_name_len != 0 && dll_name_len != 0xffffffff, L"Could not find delay import directory DLL name length.", false);
 	WARN_M_R(pe_is_ascii(dll_name, dll_name_len), L"Delay DLL name shall be ASCII.", false);
 	str.m_str = dll_name;
 	str.m_len = dll_name_len;
