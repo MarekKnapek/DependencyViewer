@@ -256,3 +256,50 @@ bool pe_parse_delay_import_descriptor(void const* const& fd, int const& file_siz
 	did.m_sct = sct;
 	return true;
 }
+
+bool pe_parse_delay_import_dll_name_32(void const* const& fd, int const& file_size, pe_delay_import_descriptor const& did, int const& idx, pe_string& str)
+{
+	char const* const file_data = static_cast<char const*>(fd);
+	pe_dos_header const& dos_hdr = *reinterpret_cast<pe_dos_header const*>(file_data + 0);
+	pe_coff_full_32_64 const& coff_hdr = *reinterpret_cast<pe_coff_full_32_64 const*>(file_data + dos_hdr.m_pe_offset);
+	pe_delay_load_directory_entry const& dimp = did.m_table[idx];
+	WARN_M_R(dimp.m_name != 0, L"Delay import directory has no DLL name.", false);
+	std::uint32_t const dll_name_rva = (dimp.m_attributes & 1u) != 0 ? dimp.m_name : dimp.m_name - coff_hdr.m_32.m_windows.m_image_base;
+	return pe_parse_delay_import_dll_name_impl(file_data, file_size, dll_name_rva, str);
+}
+
+bool pe_parse_delay_import_dll_name_64(void const* const& fd, int const& file_size, pe_delay_import_descriptor const& did, int const& idx, pe_string& str)
+{
+	char const* const file_data = static_cast<char const*>(fd);
+	pe_dos_header const& dos_hdr = *reinterpret_cast<pe_dos_header const*>(file_data + 0);
+	pe_coff_full_32_64 const& coff_hdr = *reinterpret_cast<pe_coff_full_32_64 const*>(file_data + dos_hdr.m_pe_offset);
+	pe_delay_load_directory_entry const& dimp = did.m_table[idx];
+	WARN_M_R(dimp.m_name != 0, L"Delay import directory has no DLL name.", false);
+	WARN_M_R(coff_hdr.m_64.m_windows.m_image_base < dimp.m_name, L"Image base is too damn high.", false);
+	std::uint32_t const dll_name_rva = (dimp.m_attributes & 1u) != 0 ? dimp.m_name : dimp.m_name - static_cast<std::uint32_t>(coff_hdr.m_64.m_windows.m_image_base);
+	return pe_parse_delay_import_dll_name_impl(file_data, file_size, dll_name_rva, str);
+}
+
+bool pe_parse_delay_import_dll_name_impl(void const* const& fd, int const& file_size, std::uint32_t const& delay_dll_name_rva, pe_string& str)
+{
+	char const* const file_data = static_cast<char const*>(fd);
+	pe_section_header const* sct;
+	std::uint32_t const dll_name_raw = pe_find_object_in_raw(file_data, file_size, delay_dll_name_rva, 2, sct);
+	WARN_M_R(dll_name_raw != 0, L"Delay import directory DLL name not found in any section.", false);
+	char const* const dll_name = file_data + dll_name_raw;
+	std::uint32_t const dll_name_len_max = pe_min(256u, sct->m_raw_ptr + sct->m_raw_size - dll_name_raw);
+	std::uint32_t dll_name_len = 0xffffffff;
+	for(std::uint32_t i = 0; i != dll_name_len_max; ++i)
+	{
+		if(file_data[dll_name_raw + i] == '\0')
+		{
+			dll_name_len = i;
+			break;
+		}
+	}
+	WARN_M_R(dll_name_len != 0xffffffff, L"Could not find delay import directory DLL name length.", false);
+	WARN_M_R(pe_is_ascii(dll_name, dll_name_len), L"Delay DLL name shall be ASCII.", false);
+	str.m_str = dll_name;
+	str.m_len = dll_name_len;
+	return true;
+}
