@@ -39,5 +39,13 @@ bool pe_parse_coff_full_32_64(void const* const& fd, int const& file_size, pe_co
 	{
 		WARN_M_R(sections[i].m_virtual_address > sections[i - 1].m_virtual_address, L"VAs for sections must be assigned by the linker so that they are in ascending order.", false);
 	}
+	for(std::uint16_t i = 0; i != coff_hdr->m_section_count; ++i)
+	{
+		WARN_M_R(sections[i].m_raw_ptr < 0x7fffffff, L"Section too far away.", false);
+		WARN_M_R(sections[i].m_raw_size < 0x7fffffff, L"Section too big.", false);
+		WARN_M_R(sections[i].m_raw_size <= 0x7fffffff - sections[i].m_raw_ptr, L"Overflow.", false);
+		WARN_M_R(file_size >= static_cast<int>(sections[i].m_raw_ptr), L"File too small to contain section.", false);
+		WARN_M_R(file_size >= static_cast<int>(sections[i].m_raw_ptr) + static_cast<int>(sections[i].m_raw_size), L"File too small to contain section.", false);
+	}
 	return true;
 }
