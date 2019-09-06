@@ -16,14 +16,19 @@ struct pe_import_directory_entry
 };
 static_assert(sizeof(pe_import_directory_entry) == 20, "");
 static_assert(sizeof(pe_import_directory_entry) == 0x14, "");
+bool operator==(pe_import_directory_entry const& a, pe_import_directory_entry const& b);
 
 struct pe_import_directory_table
 {
 	pe_import_directory_entry const* m_table;
-	int m_size;
-	pe_section_header const* m_sct;
+	int m_count;
 };
 
+struct pe_import_address_table
+{
+	std::uint32_t m_raw;
+	int m_count;
+};
 
 struct pe_import_lookup_entry_32
 {
@@ -31,6 +36,7 @@ struct pe_import_lookup_entry_32
 };
 static_assert(sizeof(pe_import_lookup_entry_32) == 4, "");
 static_assert(sizeof(pe_import_lookup_entry_32) == 0x4, "");
+bool operator==(pe_import_lookup_entry_32 const& a, pe_import_lookup_entry_32 const& b);
 
 struct pe_import_lookup_entry_64
 {
@@ -38,20 +44,7 @@ struct pe_import_lookup_entry_64
 };
 static_assert(sizeof(pe_import_lookup_entry_64) == 8, "");
 static_assert(sizeof(pe_import_lookup_entry_64) == 0x8, "");
-
-struct pe_import_lookup_table_32
-{
-	pe_import_lookup_entry_32 const* m_table;
-	int m_size;
-	pe_section_header const* m_sct;
-};
-
-struct pe_import_lookup_table_64
-{
-	pe_import_lookup_entry_64 const* m_table;
-	int m_size;
-	pe_section_header const* m_sct;
-};
+bool operator==(pe_import_lookup_entry_64 const& a, pe_import_lookup_entry_64 const& b);
 
 struct pe_hint_name
 {
@@ -72,12 +65,12 @@ struct pe_delay_load_descriptor
 };
 static_assert(sizeof(pe_delay_load_descriptor) == 32, "");
 static_assert(sizeof(pe_delay_load_descriptor) == 0x20, "");
+bool operator==(pe_delay_load_descriptor const& a, pe_delay_load_descriptor const& b);
 
 struct pe_delay_import_table
 {
 	pe_delay_load_descriptor const* m_table;
-	int m_size;
-	pe_section_header const* m_sct;
+	int m_count;
 };
 
 struct pe_delay_load_import_address_table
@@ -87,17 +80,11 @@ struct pe_delay_load_import_address_table
 };
 
 
-bool pe_parse_import_directory_table(void const* const& file_data, int const& file_size, pe_import_directory_table& idt);
-bool pe_parse_import_dll_name(void const* const& file_data, int const& file_size, pe_import_directory_table const& idt, int const& idx, pe_string& str);
-bool pe_parse_import_lookup_table_32(void const* const& file_data, int const& file_size, pe_import_directory_table const& idt, int const& idx, pe_import_lookup_table_32& ilt);
-bool pe_parse_import_lookup_table_64(void const* const& file_data, int const& file_size, pe_import_directory_table const& idt, int const& idx, pe_import_lookup_table_64& ilt);
-bool pe_parse_import_lookup_entry_32(void const* const& file_data, int const& file_size, pe_import_lookup_table_32 const& ilt, int const& idx, bool& is_ordinal);
-bool pe_parse_import_lookup_entry_64(void const* const& file_data, int const& file_size, pe_import_lookup_table_64 const& ilt, int const& idx, bool& is_ordinal);
-bool pe_parse_import_lookup_entry_ordinal_32(void const* const& file_data, int const& file_size, pe_import_lookup_table_32 const& ilt, int const& idx, std::uint16_t& ordinal);
-bool pe_parse_import_lookup_entry_ordinal_64(void const* const& file_data, int const& file_size, pe_import_lookup_table_64 const& ilt, int const& idx, std::uint16_t& ordinal);
-bool pe_parse_import_lookup_entry_hint_name_32(void const* const& file_data, int const& file_size, pe_import_lookup_table_32 const& ilt, int const& idx, pe_hint_name& hntnm);
-bool pe_parse_import_lookup_entry_hint_name_64(void const* const& file_data, int const& file_size, pe_import_lookup_table_64 const& ilt, int const& idx, pe_hint_name& hntnm);
-bool pe_parse_import_lookup_entry_hint_name_impl(void const* const& file_data, int const& file_size, std::uint32_t const& hint_name_rva, pe_hint_name& hntnm);
+bool pe_parse_import_table(void const* const& file_data, int const& file_size, pe_import_directory_table& idt);
+bool pe_parse_import_dll_name(void const* const& file_data, int const& file_size, pe_import_directory_entry const& ide, pe_string& str);
+bool pe_parse_import_address_table(void const* const& file_data, int const& file_size, pe_import_directory_entry const& ide, pe_import_address_table& iat);
+bool pe_parse_import_address(void const* const& file_data, int const& file_size, pe_import_address_table const& iat_in, int const& idx, bool& is_ordinal_out, std::uint16_t& ordinal_out, pe_hint_name& hint_name_out);
+
 bool pe_parse_delay_import_table(void const* const& file_data, int const& file_size, pe_delay_import_table& dlit);
 bool pe_parse_delay_import_dll_name(void const* const& file_data, int const& file_size, pe_delay_load_descriptor const& dld, pe_string& str);
 bool pe_parse_delay_import_address_table(void const* const& file_data, int const& file_size, pe_delay_load_descriptor const& dld, pe_delay_load_import_address_table& dliat_out);
