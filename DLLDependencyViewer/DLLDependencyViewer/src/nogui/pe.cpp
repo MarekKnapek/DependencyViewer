@@ -180,13 +180,6 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 	{
 		char const* const file_data = static_cast<char const*>(fd);
 		int const file_size = static_cast<int>(fs);
-		pe_dos_header const* dos_hdr;
-		pe_coff_full_32_64 const* coff_hdr;
-		pe_e_parse_mz_header const dos_parsed = pe_parse_mz_header(file_data, file_size, dos_hdr);
-		WARN_M_R(dos_parsed == pe_e_parse_mz_header::ok, L"Failed to pe_parse_mz_header.", false);
-		bool const coff_parsed = pe_parse_coff_full_32_64(file_data, file_size, coff_hdr);
-		WARN_M_R(coff_parsed, L"Failed to pe_parse_coff_full_32_64.", false);
-		bool const is_32 = coff_hdr->m_32.m_standard.m_signature == s_pe_coff_optional_sig_32;
 
 		pe_import_directory_table idt;
 		bool const import_descriptor_parsed = pe_parse_import_table(file_data, file_size, idt);
