@@ -1,10 +1,12 @@
 #include "pe.h"
 
+#include "assert.h"
 #include "memory_manager.h"
 #include "unicode.h"
 
 #include "pe/mz.h"
 #include "pe/coff_full.h"
+#include "pe/import_table.h"
 
 #include <algorithm>
 #include <array>
@@ -57,53 +59,6 @@ struct section_header
 };
 static_assert(sizeof(section_header) == 40, "");
 static_assert(sizeof(section_header) == 0x28, "");
-
-struct import_directory_entry
-{
-	std::uint32_t m_import_lookup_table;
-	std::uint32_t m_date_time;
-	std::uint32_t m_forwarder_chain;
-	std::uint32_t m_name;
-	std::uint32_t m_import_adress_table;
-};
-static_assert(sizeof(import_directory_entry) == 20, "");
-static_assert(sizeof(import_directory_entry) == 0x14, "");
-
-struct import_lookup_entry_pe32
-{
-	std::uint32_t m_value;
-};
-static_assert(sizeof(import_lookup_entry_pe32) == 4, "");
-static_assert(sizeof(import_lookup_entry_pe32) == 0x4, "");
-
-struct import_lookup_entry_pe32_plus
-{
-	std::uint64_t m_value;
-};
-static_assert(sizeof(import_lookup_entry_pe32_plus) == 8, "");
-static_assert(sizeof(import_lookup_entry_pe32_plus) == 0x8, "");
-
-struct import_hint_name
-{
-	std::uint16_t m_hint;
-	char m_name[2];
-};
-static_assert(sizeof(import_hint_name) == 4, "");
-static_assert(sizeof(import_hint_name) == 0x4, "");
-
-struct delay_load_directory_entry
-{
-	std::uint32_t m_attributes;
-	std::uint32_t m_name;
-	std::uint32_t m_module_handle;
-	std::uint32_t m_delay_import_address_table;
-	std::uint32_t m_delay_import_name_table;
-	std::uint32_t m_bound_delay_import_table;
-	std::uint32_t m_unload_delay_import_table;
-	std::uint32_t m_timestamp;
-};
-static_assert(sizeof(delay_load_directory_entry) == 32, "");
-static_assert(sizeof(delay_load_directory_entry) == 0x20, "");
 
 struct export_directory
 {
@@ -220,166 +175,91 @@ pe_header_info pe_process_header(void const* const fd, int const file_size)
 
 pe_import_table_info pe_process_import_table(void const* const fd, int const fs, pe_header_info const& hi, memory_manager& mm)
 {
-	char const* const file_data = static_cast<char const*>(fd);
-	std::uint32_t const file_size = static_cast<std::uint32_t>(fs);
 	pe_import_table_info ret;
-
-	data_directory const* const dta_dir_table = reinterpret_cast<data_directory const*>(file_data + hi.m_data_directory_start);
-
-	std::uint32_t const import_table_rva = dta_dir_table[static_cast<int>(data_directory_type::import_table)].m_rva;
-	std::uint32_t const import_table_size = dta_dir_table[static_cast<int>(data_directory_type::import_table)].m_size;
-	import_directory_entry const* import_directory_table = nullptr;
-	std::uint32_t import_directory_table_count = 0;
-	if(import_table_size != 0)
+	auto const fn = [&]() -> bool
 	{
-		auto const import_table_section_and_offset = convert_rva_to_disk_ptr(import_table_rva, hi);
-		section_header const& import_table_section = *import_table_section_and_offset.first;
-		std::uint32_t const& import_table_offset = import_table_section_and_offset.second;
-		VERIFY(import_table_section.m_raw_ptr + import_table_section.m_raw_size >= import_table_offset + import_table_size);
-		// 32k DLLs should be enough for everybody.
-		std::uint32_t const import_table_max_count = std::min<std::uint32_t>(32 * 1024, import_table_size / sizeof(import_directory_entry));
-		import_directory_table = reinterpret_cast<import_directory_entry const*>(file_data + import_table_offset);
-		auto const it = std::find_if(import_directory_table, import_directory_table + import_table_max_count + 1, [](import_directory_entry const& e){ return e.m_import_lookup_table == 0 && e.m_date_time == 0 && e.m_forwarder_chain == 0 && e.m_name == 0 && e.m_import_adress_table == 0; });
-		VERIFY(it != import_directory_table + import_table_max_count + 1);
-		import_directory_table_count = static_cast<std::uint32_t>(it - import_directory_table);
-	}
+		char const* const file_data = static_cast<char const*>(fd);
+		int const file_size = static_cast<int>(fs);
+		pe_dos_header const* dos_hdr;
+		pe_coff_full_32_64 const* coff_hdr;
+		pe_e_parse_mz_header const dos_parsed = pe_parse_mz_header(file_data, file_size, dos_hdr);
+		WARN_M_R(dos_parsed == pe_e_parse_mz_header::ok, L"Failed to pe_parse_mz_header.", false);
+		bool const coff_parsed = pe_parse_coff_full_32_64(file_data, file_size, coff_hdr);
+		WARN_M_R(coff_parsed, L"Failed to pe_parse_coff_full_32_64.", false);
+		bool const is_32 = coff_hdr->m_32.m_standard.m_signature == s_pe_coff_optional_sig_32;
 
-	std::uint32_t const delay_import_table_rva = dta_dir_table[static_cast<int>(data_directory_type::delay_import_descriptor)].m_rva;
-	std::uint32_t const delay_import_table_size = dta_dir_table[static_cast<int>(data_directory_type::delay_import_descriptor)].m_size;
-	delay_load_directory_entry const* delay_import_directory_table = nullptr;
-	std::uint32_t delay_import_directory_table_count = 0;
-	if(delay_import_table_size != 0)
-	{
-		auto const delay_import_table_section_and_offset = convert_rva_to_disk_ptr(delay_import_table_rva, hi);
-		section_header const& delay_import_table_section = *delay_import_table_section_and_offset.first;
-		std::uint32_t const& delay_import_table_offset = delay_import_table_section_and_offset.second;
-		VERIFY(delay_import_table_section.m_raw_ptr + delay_import_table_section.m_raw_size >= delay_import_table_offset + delay_import_table_size);
-		// 32k DLLs should be enough for everybody.
-		std::uint32_t const delay_import_table_max_count = std::min<std::uint32_t>(32 * 1024, delay_import_table_size / sizeof(delay_load_directory_entry));
-		delay_import_directory_table = reinterpret_cast<delay_load_directory_entry const*>(file_data + delay_import_table_offset);
-		auto const it = std::find_if(delay_import_directory_table, delay_import_directory_table + delay_import_table_max_count + 1, [](delay_load_directory_entry const& e){ return e.m_attributes == 0 && e.m_name == 0 && e.m_module_handle == 0 && e.m_delay_import_address_table == 0 && e.m_delay_import_name_table == 0 && e.m_bound_delay_import_table == 0 && e.m_unload_delay_import_table == 0 && e.m_timestamp == 0; });
-		VERIFY(it != delay_import_directory_table + delay_import_table_max_count + 1);
-		delay_import_directory_table_count = static_cast<std::uint32_t>(it - delay_import_directory_table);
-	}
-
-	ret.m_dlls.resize(import_directory_table_count + delay_import_directory_table_count);
-	ret.m_nondelay_imports_count = import_directory_table_count;
-
-	for(std::uint32_t i = 0; i != import_directory_table_count + delay_import_directory_table_count; ++i)
-	{
-		VERIFY(i < import_directory_table_count ? true : ((delay_import_directory_table->m_attributes & 1u) != 0 ? true : (hi.m_image_base <= 0xFFFFFFFFull)));
-		std::uint32_t const dll_name_rva = i < import_directory_table_count ? import_directory_table[i].m_name : ((delay_import_directory_table->m_attributes & 1u) != 0 ? delay_import_directory_table[i - import_directory_table_count].m_name : (delay_import_directory_table[i - import_directory_table_count].m_name - static_cast<std::uint32_t>(hi.m_image_base)));
-		auto const dll_name_sct_dsk = convert_rva_to_disk_ptr(dll_name_rva, hi);
-		section_header const& dll_name_sct = *dll_name_sct_dsk.first;
-		std::uint32_t const& dll_name_dsk = dll_name_sct_dsk.second;
-		char const* const dll_name = reinterpret_cast<char const*>(file_data + dll_name_dsk);
-		// 32k DLL name should be enough for everybody.
-		std::uint32_t const dll_name_len_max = std::min<std::uint32_t>(32 * 1024, dll_name_sct.m_raw_ptr + dll_name_sct.m_raw_size - dll_name_dsk);
-		auto const it = std::find(dll_name, dll_name + dll_name_len_max + 1, '\0');
-		VERIFY(it != dll_name + dll_name_len_max + 1);
-		std::uint32_t const dll_name_len = static_cast<std::uint32_t>(it - dll_name);
-		VERIFY(dll_name_len > 0);
-		VERIFY(is_ascii(dll_name, static_cast<int>(dll_name_len)));
-		ret.m_dlls[i].m_dll_name = mm.m_strs.add_string(dll_name, dll_name_len, mm.m_alc);
-		VERIFY(i < import_directory_table_count ? true : ((delay_import_directory_table->m_attributes & 1u) != 0 ? true : (hi.m_image_base <= 0xFFFFFFFFull)));
-		std::uint32_t const import_table_rva = i < import_directory_table_count ? (import_directory_table[i].m_import_lookup_table != 0 ? import_directory_table[i].m_import_lookup_table : import_directory_table[i].m_import_adress_table) : ((delay_import_directory_table->m_attributes & 1u) != 0 ? delay_import_directory_table[i - import_directory_table_count].m_delay_import_name_table : (delay_import_directory_table[i - import_directory_table_count].m_delay_import_name_table - static_cast<std::uint32_t>(hi.m_image_base)));
-		auto const import_lookup_table_sct_dsk = convert_rva_to_disk_ptr(import_table_rva, hi);
-		section_header const& import_lookup_table_sct = *import_lookup_table_sct_dsk.first;
-		std::uint32_t const& import_lookup_table_dsk = import_lookup_table_sct_dsk.second;
-		if(hi.m_is_pe32)
+		pe_import_directory_table idt;
+		bool const import_descriptor_parsed = pe_parse_import_table(file_data, file_size, idt);
+		WARN_M_R(import_descriptor_parsed, L"Failed to parse import descriptor", false);
+		pe_delay_import_table dlit;
+		bool const delay_descriptor_parsed = pe_parse_delay_import_table(file_data, file_size, dlit);
+		WARN_M_R(delay_descriptor_parsed, L"Failed to parse delay import descriptor", false);
+		ret.m_dlls.resize(idt.m_count + dlit.m_count);
+		ret.m_nondelay_imports_count = idt.m_count;
+		int ii = 0;
+		for(int i = 0; i != idt.m_count; ++i, ++ii)
 		{
-			// 64k imports per DLL should be enough for everybody.
-			std::uint32_t const import_lookup_table_count_max = std::min<std::uint32_t>(64 * 1024, (import_lookup_table_sct.m_raw_ptr + import_lookup_table_sct.m_raw_size - import_lookup_table_dsk) / sizeof(import_lookup_entry_pe32));
-			import_lookup_entry_pe32 const* const import_lookup_table = reinterpret_cast<import_lookup_entry_pe32 const*>(file_data + import_lookup_table_dsk);
-			auto const it = std::find_if(import_lookup_table, import_lookup_table + import_lookup_table_count_max + 1, [](import_lookup_entry_pe32 const& e){ return e.m_value == 0u; });
-			VERIFY(it != import_lookup_table + import_lookup_table_count_max + 1);
-			std::uint32_t const import_lookup_table_count = static_cast<std::uint32_t>(it - import_lookup_table);
-			ret.m_dlls[i].m_entries.resize(import_lookup_table_count);
-			for(std::uint32_t j = 0; j != import_lookup_table_count; ++j)
+			pe_string dll;
+			bool const dll_parsed = pe_parse_import_dll_name(file_data, file_size, idt.m_table[i], dll);
+			WARN_M_R(dll_parsed, L"Failed to parse import DLL name.", false);
+			pe_import_address_table iat;
+			bool const iat_parsed = pe_parse_import_address_table(file_data, file_size, idt.m_table[i], iat);
+			WARN_M_R(iat_parsed, L"Failed to parse import address table.", false);
+			ret.m_dlls[ii].m_dll_name = mm.m_strs.add_string(dll.m_str, dll.m_len, mm.m_alc);
+			ret.m_dlls[ii].m_entries.resize(iat.m_count);
+			for(int j = 0; j != iat.m_count; ++j)
 			{
-				import_lookup_entry_pe32 const& import_entry = import_lookup_table[j];
-				bool const is_ordinal = (import_entry.m_value & 0x80000000u) == 0x80000000u;
+				bool is_ordinal;
+				std::uint16_t ordinal;
+				pe_hint_name hint_name;
+				bool const ia_parsed = pe_parse_import_address(file_data, file_size, iat, j, is_ordinal, ordinal, hint_name);
+				WARN_M_R(ia_parsed, L"Failed to parse address import.", false);
+				ret.m_dlls[ii].m_entries[j].m_is_ordinal = is_ordinal;
 				if(is_ordinal)
 				{
-					VERIFY((import_entry.m_value & 0x7FFF0000u) == 0u);
-					std::uint16_t const import_ordinal = import_entry.m_value & 0x0000FFFFu;
-					ret.m_dlls[i].m_entries[j].m_is_ordinal = true;
-					ret.m_dlls[i].m_entries[j].m_ordinal_or_hint = import_ordinal;
-					ret.m_dlls[i].m_entries[j].m_name = nullptr;
+					ret.m_dlls[ii].m_entries[j].m_ordinal_or_hint = ordinal;
 				}
 				else
 				{
-					VERIFY((import_entry.m_value & 0x80000000u) == 0u);
-					std::uint32_t const hint_name_offset = import_entry.m_value &~ 0x80000000u;
-					VERIFY((i >= import_directory_table_count && (delay_import_directory_table->m_attributes & 1u) == 0) ? (hi.m_image_base <= 0xFFFFFFFFull) : true);
-					auto const hint_name_sect_off = convert_rva_to_disk_ptr((i >= import_directory_table_count && (delay_import_directory_table->m_attributes & 1u) == 0) ? hint_name_offset - static_cast<std::uint32_t>(hi.m_image_base) : hint_name_offset, hi);
-					section_header const& hint_name_section = *hint_name_sect_off.first;
-					std::uint32_t const& hint_name_disk_offset = hint_name_sect_off.second;
-					VERIFY(file_size >= hint_name_disk_offset + sizeof(import_hint_name));
-					VERIFY(hint_name_section.m_raw_size >= sizeof(import_hint_name));
-					import_hint_name const& hint_name = *reinterpret_cast<import_hint_name const*>(file_data + hint_name_disk_offset);
-					std::uint16_t const hint = hint_name.m_hint;
-					char const* const name = hint_name.m_name;
-					// 32k import name length should be enough for everybody.
-					std::uint32_t const import_name_len_max = std::min<std::uint32_t>(32 * 1024, hint_name_section.m_raw_ptr + hint_name_section.m_raw_size - hint_name_disk_offset - sizeof(import_hint_name::m_hint));
-					auto const it = std::find(name, name + import_name_len_max + 1, '\0');
-					VERIFY(it != name + import_name_len_max + 1);
-					std::uint32_t const import_name_len = static_cast<std::uint32_t>(it - name);
-					VERIFY(import_name_len > 0);
-					VERIFY(is_ascii(name, import_name_len));
-					ret.m_dlls[i].m_entries[j].m_is_ordinal = false;
-					ret.m_dlls[i].m_entries[j].m_ordinal_or_hint = hint;
-					ret.m_dlls[i].m_entries[j].m_name = mm.m_strs.add_string(name, import_name_len, mm.m_alc);
+					ret.m_dlls[ii].m_entries[j].m_ordinal_or_hint = hint_name.m_hint;
+					ret.m_dlls[ii].m_entries[j].m_name = mm.m_strs.add_string(hint_name.m_name.m_str, hint_name.m_name.m_len, mm.m_alc);
 				}
 			}
 		}
-		else
+		for(int i = 0; i != dlit.m_count; ++i, ++ii)
 		{
-			// 64k imports per DLL should be enough for everybody.
-			std::uint32_t const import_lookup_table_count_max = std::min<std::uint32_t>(64 * 1024, (import_lookup_table_sct.m_raw_ptr + import_lookup_table_sct.m_raw_size - import_lookup_table_dsk) / sizeof(import_lookup_entry_pe32_plus));
-			import_lookup_entry_pe32_plus const* const import_lookup_table = reinterpret_cast<import_lookup_entry_pe32_plus const*>(file_data + import_lookup_table_dsk);
-			auto const it = std::find_if(import_lookup_table, import_lookup_table + import_lookup_table_count_max + 1, [](import_lookup_entry_pe32_plus const& e){ return e.m_value == 0ull; });
-			VERIFY(it != import_lookup_table + import_lookup_table_count_max + 1);
-			std::uint32_t const import_lookup_table_count = static_cast<std::uint32_t>(it - import_lookup_table);
-			ret.m_dlls[i].m_entries.resize(import_lookup_table_count);
-			for(std::uint32_t j = 0; j != import_lookup_table_count; ++j)
+			pe_string dldll;
+			bool const dldll_parsed = pe_parse_delay_import_dll_name(file_data, file_size, dlit.m_table[i], dldll);
+			WARN_M_R(dldll_parsed, L"Failed to parse delay load DLL name.", false);
+			pe_delay_load_import_address_table dliat;
+			bool const dliat_parsed = pe_parse_delay_import_address_table(file_data, file_size, dlit.m_table[i], dliat);
+			WARN_M_R(dliat_parsed, L"Failed to parse delay load import address table.", false);
+			ret.m_dlls[ii].m_dll_name = mm.m_strs.add_string(dldll.m_str, dldll.m_len, mm.m_alc);
+			ret.m_dlls[ii].m_entries.resize(dliat.m_count);
+			for(int j = 0; j != dliat.m_count; ++j)
 			{
-				import_lookup_entry_pe32_plus const& import_entry = import_lookup_table[j];
-				bool const is_ordinal = (import_entry.m_value & 0x8000000000000000ull) == 0x8000000000000000ull;
+				bool is_ordinal;
+				std::uint16_t ordinal;
+				pe_hint_name hint_name;
+				bool const dlia_parsed = pe_parse_delay_import_address(file_data, file_size, dlit.m_table[i], dliat, j, is_ordinal, ordinal, hint_name);
+				WARN_M_R(dlia_parsed, L"Failed to parse delay load address import.", false);
+				ret.m_dlls[ii].m_entries[j].m_is_ordinal = is_ordinal;
 				if(is_ordinal)
 				{
-					VERIFY((import_entry.m_value & 0x7FFFFFFFFFFF0000ull) == 0ull);
-					std::uint16_t const import_ordinal = import_entry.m_value & 0x000000000000FFFFull;
-					ret.m_dlls[i].m_entries[j].m_is_ordinal = true;
-					ret.m_dlls[i].m_entries[j].m_ordinal_or_hint = import_ordinal;
-					ret.m_dlls[i].m_entries[j].m_name = nullptr;
+					ret.m_dlls[ii].m_entries[j].m_ordinal_or_hint = ordinal;
 				}
 				else
 				{
-					VERIFY((import_entry.m_value & 0x7FFFFFFF00000000ull) == 0ull);
-					std::uint32_t const hint_name_offset = import_entry.m_value &~ 0xFFFFFFFF80000000ull;
-					VERIFY((i >= import_directory_table_count && (delay_import_directory_table->m_attributes & 1u) == 0) ? (hi.m_image_base <= 0xFFFFFFFFull) : true);
-					auto const hint_name_sect_off = convert_rva_to_disk_ptr((i >= import_directory_table_count && (delay_import_directory_table->m_attributes & 1u) == 0) ? hint_name_offset - static_cast<std::uint32_t>(hi.m_image_base) : hint_name_offset, hi);
-					section_header const& hint_name_section = *hint_name_sect_off.first;
-					std::uint32_t const& hint_name_disk_offset = hint_name_sect_off.second;
-					VERIFY(file_size >= hint_name_disk_offset + sizeof(import_hint_name));
-					VERIFY(hint_name_section.m_raw_size >= sizeof(import_hint_name));
-					import_hint_name const& hint_name = *reinterpret_cast<import_hint_name const*>(file_data + hint_name_disk_offset);
-					std::uint16_t const hint = hint_name.m_hint;
-					char const* const name = hint_name.m_name;
-					// 32k import name length should be enough for everybody.
-					std::uint32_t const import_name_len_max = std::min<std::uint32_t>(32 * 1024, hint_name_section.m_raw_ptr + hint_name_section.m_raw_size - hint_name_disk_offset - sizeof(import_hint_name::m_hint));
-					auto const it = std::find(name, name + import_name_len_max + 1, '\0');
-					VERIFY(it != name + import_name_len_max + 1);
-					std::uint32_t const import_name_len = static_cast<std::uint32_t>(it - name);
-					VERIFY(import_name_len > 0);
-					VERIFY(is_ascii(name, import_name_len));
-					ret.m_dlls[i].m_entries[j].m_is_ordinal = false;
-					ret.m_dlls[i].m_entries[j].m_ordinal_or_hint = hint;
-					ret.m_dlls[i].m_entries[j].m_name = mm.m_strs.add_string(name, import_name_len, mm.m_alc);
+					ret.m_dlls[ii].m_entries[j].m_ordinal_or_hint = hint_name.m_hint;
+					ret.m_dlls[ii].m_entries[j].m_name = mm.m_strs.add_string(hint_name.m_name.m_str, hint_name.m_name.m_len, mm.m_alc);
 				}
 			}
 		}
+		return true;
+	};
+	if(!fn())
+	{
+		VERIFY(false);
 	}
 	return ret;
 }
