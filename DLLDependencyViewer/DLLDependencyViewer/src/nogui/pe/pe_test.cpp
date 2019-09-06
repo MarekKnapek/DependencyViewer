@@ -28,8 +28,8 @@ bool pe_test(void const* const& fd, int const& file_size)
 	WARN_M_R(import_descriptor_parsed, L"Failed to parse import descriptor", false);
 	for(int i = 0; i != idt.m_count; ++i)
 	{
-		pe_string dldll;
-		bool const dll_parsed = pe_parse_import_dll_name(file_data, file_size, idt.m_table[i], dldll);
+		pe_string dll;
+		bool const dll_parsed = pe_parse_import_dll_name(file_data, file_size, idt.m_table[i], dll);
 		WARN_M_R(dll_parsed, L"Failed to parse import DLL name.", false);
 		pe_import_address_table iat;
 		bool const iat_parsed = pe_parse_import_address_table(file_data, file_size, idt.m_table[i], iat);
