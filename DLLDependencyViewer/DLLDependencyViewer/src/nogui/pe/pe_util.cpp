@@ -3,6 +3,8 @@
 #include "mz.h"
 #include "../assert.h"
 
+#include <algorithm>
+
 
 std::uint32_t pe_find_object_in_raw(void const* const& fd, int const& file_size, std::uint32_t const& obj_va, std::uint32_t const& obj_size, pe_section_header const*& sct)
 {
@@ -30,12 +32,5 @@ std::uint32_t pe_find_object_in_raw(void const* const& fd, int const& file_size,
 
 bool pe_is_ascii(char const* const& str, int const& len)
 {
-	for(int i = 0; i != len; ++i)
-	{
-		if(!(str[i] >= 32 && str[i] <= 126))
-		{
-			return false;
-		}
-	}
-	return true;
+	return std::all_of(str, str + len, [](char const& e){ return e >= 32 && e <= 126; });
 }
