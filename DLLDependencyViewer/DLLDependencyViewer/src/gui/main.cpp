@@ -29,6 +29,17 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 	for(;;)
 	{
 		MSG msg;
+		while(PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE) != 0)
+		{
+			if(msg.message == WM_QUIT)
+			{
+				ret = static_cast<int>(msg.wParam);
+				goto message_loop_end;
+			}
+			BOOL const translated = TranslateMessage(&msg);
+			LRESULT const dispatched = DispatchMessageW(&msg);
+		}
+		mw.on_idle();
 		BOOL const got_msg = GetMessageW(&msg, nullptr, 0, 0);
 		if(got_msg == 0)
 		{
@@ -44,6 +55,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 		BOOL const translated = TranslateMessage(&msg);
 		LRESULT const dispatched = DispatchMessageW(&msg);
 	}
+	message_loop_end:;
 	activation_context::free_system_default_manifests();
 	return ret;
 }
