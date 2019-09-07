@@ -7,13 +7,6 @@
 #include <algorithm>
 
 
-template<typename T>
-auto pe_min(T const& a, T const& b)
-{
-	return b < a ? b : a;
-}
-
-
 bool operator==(pe_import_directory_entry const& a, pe_import_directory_entry const& b)
 {
 	return
@@ -72,7 +65,7 @@ bool pe_parse_import_table(void const* const& fd, int const& file_size, pe_impor
 	pe_section_header const* sct;
 	std::uint32_t const imp_dir_tbl_raw = pe_find_object_in_raw(file_data, file_size, imp_tbl.m_va, imp_tbl.m_size, sct);
 	WARN_M_R(imp_dir_tbl_raw != 0, L"Import directory table not found in any section.", false);
-	std::uint32_t const imp_dir_tbl_cnt_max = pe_min(1u * 1024u * 1024u, imp_tbl.m_size / static_cast<int>(sizeof(pe_import_directory_entry)));
+	std::uint32_t const imp_dir_tbl_cnt_max = std::min(1u * 1024u * 1024u, imp_tbl.m_size / static_cast<int>(sizeof(pe_import_directory_entry)));
 	pe_import_directory_entry const* const d_tbl = reinterpret_cast<pe_import_directory_entry const*>(file_data + imp_dir_tbl_raw);
 	pe_import_directory_entry const* const d_tbl_end_max = d_tbl + imp_dir_tbl_cnt_max;
 	auto const it = std::find(d_tbl, d_tbl_end_max, pe_import_directory_entry{});
@@ -92,7 +85,7 @@ bool pe_parse_import_dll_name(void const* const& fd, int const& file_size, pe_im
 	pe_section_header const* sct;
 	std::uint32_t const dll_name_raw = pe_find_object_in_raw(file_data, file_size, ide.m_name, 2, sct);
 	WARN_M_R(dll_name_raw != 0, L"Import DLL name not found in any section.", false);
-	std::uint32_t const dll_name_len_max = pe_min(256u, sct->m_raw_ptr + sct->m_raw_size - dll_name_raw);
+	std::uint32_t const dll_name_len_max = std::min(256u, sct->m_raw_ptr + sct->m_raw_size - dll_name_raw);
 	char const* const dll_name = reinterpret_cast<char const*>(file_data + dll_name_raw);
 	char const* const dll_name_end_max = dll_name + dll_name_len_max;
 	auto const it = std::find(dll_name, dll_name_end_max, '\0');
@@ -117,7 +110,7 @@ bool pe_parse_import_address_table(void const* const& fd, int const& file_size, 
 	WARN_M_R(iat_raw != 0, L"Could not find import address table in any section.", false);
 	if(is_32)
 	{
-		std::uint32_t const iat_cnt_max = pe_min(64u * 1024u, (sct->m_raw_ptr + sct->m_raw_size - iat_raw) / static_cast<int>(sizeof(pe_import_lookup_entry_32)));
+		std::uint32_t const iat_cnt_max = std::min(64u * 1024u, (sct->m_raw_ptr + sct->m_raw_size - iat_raw) / static_cast<int>(sizeof(pe_import_lookup_entry_32)));
 		pe_import_lookup_entry_32 const* const iat = reinterpret_cast<pe_import_lookup_entry_32 const*>(file_data + iat_raw);
 		pe_import_lookup_entry_32 const* const iat_end_max = iat + iat_cnt_max;
 		auto const it = std::find(iat, iat_end_max, pe_import_lookup_entry_32{});
@@ -129,7 +122,7 @@ bool pe_parse_import_address_table(void const* const& fd, int const& file_size, 
 	}
 	else
 	{
-		std::uint32_t const iat_cnt_max = pe_min(64u * 1024u, (sct->m_raw_ptr + sct->m_raw_size - iat_raw) / static_cast<int>(sizeof(pe_import_lookup_entry_64)));
+		std::uint32_t const iat_cnt_max = std::min(64u * 1024u, (sct->m_raw_ptr + sct->m_raw_size - iat_raw) / static_cast<int>(sizeof(pe_import_lookup_entry_64)));
 		pe_import_lookup_entry_64 const* const iat = reinterpret_cast<pe_import_lookup_entry_64 const*>(file_data + iat_raw);
 		pe_import_lookup_entry_64 const* const iat_end_max = iat + iat_cnt_max;
 		auto const it = std::find(iat, iat_end_max, pe_import_lookup_entry_64{});
@@ -167,7 +160,7 @@ bool pe_parse_import_address(void const* const& fd, int const& file_size, pe_imp
 			std::uint32_t const hint_name_raw = pe_find_object_in_raw(file_data, file_size, hint_name_rva, sizeof(std::uint16_t) + 2 * sizeof(char), sct);
 			WARN_M_R(hint_name_raw != 0, L"Could not parse import address name.", false);
 			std::uint16_t const hint = *reinterpret_cast<std::uint16_t const*>(file_data + hint_name_raw + 0);
-			std::uint32_t const name_len_max = pe_min(64u * 1024u, (sct->m_raw_ptr + sct->m_raw_size - (hint_name_raw + static_cast<int>(sizeof(std::uint16_t)))) / static_cast<int>(sizeof(char)));
+			std::uint32_t const name_len_max = std::min(64u * 1024u, (sct->m_raw_ptr + sct->m_raw_size - (hint_name_raw + static_cast<int>(sizeof(std::uint16_t)))) / static_cast<int>(sizeof(char)));
 			char const* const name = reinterpret_cast<char const*>(file_data + hint_name_raw + sizeof(std::uint16_t));
 			char const* const name_end_max = name + name_len_max;
 			auto const it = std::find(name, name_end_max, '\0');
@@ -202,7 +195,7 @@ bool pe_parse_import_address(void const* const& fd, int const& file_size, pe_imp
 			std::uint32_t const hint_name_raw = pe_find_object_in_raw(file_data, file_size, hint_name_rva, sizeof(std::uint16_t) + 2 * sizeof(char), sct);
 			WARN_M_R(hint_name_raw != 0, L"Could not parse import address name.", false);
 			std::uint16_t const hint = *reinterpret_cast<std::uint16_t const*>(file_data + hint_name_raw + 0);
-			std::uint32_t const name_len_max = pe_min(64u * 1024u, (sct->m_raw_ptr + sct->m_raw_size - (hint_name_raw + static_cast<int>(sizeof(std::uint16_t)))) / static_cast<int>(sizeof(char)));
+			std::uint32_t const name_len_max = std::min(64u * 1024u, (sct->m_raw_ptr + sct->m_raw_size - (hint_name_raw + static_cast<int>(sizeof(std::uint16_t)))) / static_cast<int>(sizeof(char)));
 			char const* const name = reinterpret_cast<char const*>(file_data + hint_name_raw + sizeof(std::uint16_t));
 			char const* const name_end_max = name + name_len_max;
 			auto const it = std::find(name, name_end_max, '\0');
@@ -242,7 +235,7 @@ bool pe_parse_delay_import_table(void const* const& fd, int const& file_size, pe
 	pe_section_header const* sct;
 	std::uint32_t const dimp_dir_tbl_raw = pe_find_object_in_raw(file_data, file_size, dimp_tbl.m_va, dimp_tbl.m_size, sct);
 	WARN_M_R(dimp_dir_tbl_raw != 0, L"Delay import directory table not found in any section.", false);
-	std::uint32_t const dimp_dir_tbl_cnt_max = pe_min(1u * 1024u * 1024u, dimp_tbl.m_size / static_cast<int>(sizeof(pe_delay_load_descriptor)));
+	std::uint32_t const dimp_dir_tbl_cnt_max = std::min(1u * 1024u * 1024u, dimp_tbl.m_size / static_cast<int>(sizeof(pe_delay_load_descriptor)));
 	pe_delay_load_descriptor const* const dld_tbl = reinterpret_cast<pe_delay_load_descriptor const*>(file_data + dimp_dir_tbl_raw);
 	pe_delay_load_descriptor const* const dld_tbl_end_max = dld_tbl + dimp_dir_tbl_cnt_max;
 	auto const it = std::find(dld_tbl, dld_tbl_end_max, pe_delay_load_descriptor{});
@@ -266,7 +259,7 @@ bool pe_parse_delay_import_dll_name(void const* const& fd, int const& file_size,
 	pe_section_header const* sct;
 	std::uint32_t const dll_name_raw = pe_find_object_in_raw(file_data, file_size, delay_dll_name_rva, 2, sct);
 	WARN_M_R(dll_name_raw != 0, L"Delay import DLL name not found in any section.", false);
-	std::uint32_t const dll_name_len_max = pe_min(256u, sct->m_raw_ptr + sct->m_raw_size - dll_name_raw);
+	std::uint32_t const dll_name_len_max = std::min(256u, sct->m_raw_ptr + sct->m_raw_size - dll_name_raw);
 	char const* const dll_name = reinterpret_cast<char const*>(file_data + dll_name_raw);
 	char const* const dll_name_end_max = dll_name + dll_name_len_max;
 	auto const it = std::find(dll_name, dll_name_end_max, '\0');
@@ -292,7 +285,7 @@ bool pe_parse_delay_import_address_table(void const* const& fd, int const& file_
 	WARN_M_R(dliat_raw != 0, L"Could not find delay load import address table in any section.", false);
 	if(is_32)
 	{
-		std::uint32_t const dliat_cnt_max = pe_min(64u * 1024u, (sct->m_raw_ptr + sct->m_raw_size - dliat_raw) / static_cast<int>(sizeof(pe_import_lookup_entry_32)));
+		std::uint32_t const dliat_cnt_max = std::min(64u * 1024u, (sct->m_raw_ptr + sct->m_raw_size - dliat_raw) / static_cast<int>(sizeof(pe_import_lookup_entry_32)));
 		pe_import_lookup_entry_32 const* const dliat = reinterpret_cast<pe_import_lookup_entry_32 const*>(file_data + dliat_raw);
 		pe_import_lookup_entry_32 const* const dliat_end_max = dliat + dliat_cnt_max;
 		auto const it = std::find(dliat, dliat_end_max, pe_import_lookup_entry_32{});
@@ -304,7 +297,7 @@ bool pe_parse_delay_import_address_table(void const* const& fd, int const& file_
 	}
 	else
 	{
-		std::uint32_t const dliat_cnt_max = pe_min(64u * 1024u, (sct->m_raw_ptr + sct->m_raw_size - dliat_raw) / static_cast<int>(sizeof(pe_import_lookup_entry_64)));
+		std::uint32_t const dliat_cnt_max = std::min(64u * 1024u, (sct->m_raw_ptr + sct->m_raw_size - dliat_raw) / static_cast<int>(sizeof(pe_import_lookup_entry_64)));
 		pe_import_lookup_entry_64 const* const dliat = reinterpret_cast<pe_import_lookup_entry_64 const*>(file_data + dliat_raw);
 		pe_import_lookup_entry_64 const* const dliat_end_max = dliat + dliat_cnt_max;
 		auto const it = std::find(dliat, dliat_end_max, pe_import_lookup_entry_64{});
@@ -343,7 +336,7 @@ bool pe_parse_delay_import_address(void const* const& fd, int const& file_size, 
 			std::uint32_t const hint_name_raw = pe_find_object_in_raw(file_data, file_size, hint_name_rva, sizeof(std::uint16_t) + 2 * sizeof(char), sct);
 			WARN_M_R(hint_name_raw != 0, L"Could not parse delay import address name.", false);
 			std::uint16_t const hint = *reinterpret_cast<std::uint16_t const*>(file_data + hint_name_raw + 0);
-			std::uint32_t const name_len_max = pe_min(64u * 1024u, (sct->m_raw_ptr + sct->m_raw_size - (hint_name_raw + static_cast<int>(sizeof(std::uint16_t)))) / static_cast<int>(sizeof(char)));
+			std::uint32_t const name_len_max = std::min(64u * 1024u, (sct->m_raw_ptr + sct->m_raw_size - (hint_name_raw + static_cast<int>(sizeof(std::uint16_t)))) / static_cast<int>(sizeof(char)));
 			char const* const name = reinterpret_cast<char const*>(file_data + hint_name_raw + sizeof(std::uint16_t));
 			char const* const name_end_max = name + name_len_max;
 			auto const it = std::find(name, name_end_max, '\0');
@@ -379,7 +372,7 @@ bool pe_parse_delay_import_address(void const* const& fd, int const& file_size, 
 			std::uint32_t const hint_name_raw = pe_find_object_in_raw(file_data, file_size, hint_name_rva, sizeof(std::uint16_t) + 2, sct);
 			WARN_M_R(hint_name_raw != 0, L"Could not parse delay import address name.", false);
 			std::uint16_t const hint = *reinterpret_cast<std::uint16_t const*>(file_data + hint_name_raw + 0);
-			std::uint32_t const name_len_max = pe_min(64u * 1024u, (sct->m_raw_ptr + sct->m_raw_size - (hint_name_raw + static_cast<int>(sizeof(std::uint16_t)))) / static_cast<int>(sizeof(char)));
+			std::uint32_t const name_len_max = std::min(64u * 1024u, (sct->m_raw_ptr + sct->m_raw_size - (hint_name_raw + static_cast<int>(sizeof(std::uint16_t)))) / static_cast<int>(sizeof(char)));
 			char const* const name = reinterpret_cast<char const*>(file_data + hint_name_raw + sizeof(std::uint16_t));
 			char const* const name_end_max = name + name_len_max;
 			auto const it = std::find(name, name_end_max, '\0');
