@@ -177,6 +177,10 @@ HWND main_window::get_hwnd() const
 	return m_hwnd;
 }
 
+void main_window::on_idle()
+{
+}
+
 HMENU main_window::create_menu()
 {
 	HMENU const menu_bar = CreateMenu();

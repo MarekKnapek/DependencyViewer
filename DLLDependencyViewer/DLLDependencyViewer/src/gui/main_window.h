@@ -28,6 +28,7 @@ public:
 	~main_window();
 public:
 	HWND get_hwnd() const;
+	void on_idle();
 private:
 	static HMENU create_menu();
 	static HWND create_toolbar(HWND const& parent);
