@@ -5,15 +5,16 @@
 
 #include "../nogui/memory_mapped_file.h"
 #include "../nogui/pe.h"
+#include "../nogui/smart_local_free.h"
 #include "../nogui/utils.h"
 
 #include "../res/resources.h"
 
 #include <cassert>
-#include <cstdlib>
-#include <cstdint>
-#include <iterator>
 #include <cassert>
+#include <cstdint>
+#include <cstdlib>
+#include <iterator>
 
 #include <commctrl.h>
 #include <shellapi.h>
@@ -167,6 +168,8 @@ main_window::main_window() :
 	RECT r;
 	BOOL const got_rect = GetClientRect(m_hwnd, &r);
 	LRESULT const moved = on_wm_size(0, ((static_cast<unsigned>(r.bottom) & 0xFFFFu) << 16) | (static_cast<unsigned>(r.right) & 0xFFFFu));
+
+	m_on_idle_funcs.push(std::make_pair([](void* const param) -> void { assert(param); main_window& self = *static_cast<main_window*>(param); self.process_command_line(); }, this));
 }
 
 main_window::~main_window()
@@ -1103,5 +1106,17 @@ int main_window::get_twobyte_column_max_width()
 	return maximum;
 }
 
+void main_window::process_command_line()
+{
+	wchar_t const* const cmd_line = GetCommandLineW();
+	int argc;
+	wchar_t** const argv = CommandLineToArgvW(cmd_line, &argc);
+	smart_local_free const sp_argv(reinterpret_cast<void*>(argv));
+	if(argc != 2)
+	{
+		return;
+	}
+	open_file(argv[1]);
+}
 
 ATOM main_window::g_class = 0;

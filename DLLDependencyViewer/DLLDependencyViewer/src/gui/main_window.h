@@ -63,6 +63,7 @@ private:
 	int get_import_type_column_max_width();
 	int get_export_type_column_max_width();
 	int get_twobyte_column_max_width();
+	void process_command_line();
 private:
 	static ATOM g_class;
 private:
