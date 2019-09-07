@@ -9,12 +9,7 @@
 
 bool operator==(pe_import_directory_entry const& a, pe_import_directory_entry const& b)
 {
-	return
-		a.m_import_lookup_table == b.m_import_lookup_table &&
-		a.m_date_time == b.m_date_time &&
-		a.m_forwarder_chain == b.m_forwarder_chain &&
-		a.m_name == b.m_name &&
-		a.m_import_adress_table == b.m_import_adress_table;
+	return std::memcmp(&a, &b, sizeof(a)) == 0;
 }
 
 bool operator==(pe_import_lookup_entry_32 const& a, pe_import_lookup_entry_32 const& b)
@@ -29,15 +24,7 @@ bool operator==(pe_import_lookup_entry_64 const& a, pe_import_lookup_entry_64 co
 
 bool operator==(pe_delay_load_descriptor const& a, pe_delay_load_descriptor const& b)
 {
-	return
-		a.m_attributes == b.m_attributes &&
-		a.m_dll_name_rva == b.m_dll_name_rva &&
-		a.m_module_handle_rva == b.m_module_handle_rva &&
-		a.m_import_address_table_rva == b.m_import_address_table_rva &&
-		a.m_import_name_table_rva == b.m_import_name_table_rva &&
-		a.m_bound_import_address_table_rva == b.m_bound_import_address_table_rva &&
-		a.m_unload_information_table_rva == b.m_unload_information_table_rva &&
-		a.m_time_date_stamp == b.m_time_date_stamp;
+	return std::memcmp(&a, &b, sizeof(a)) == 0;
 }
 
 
