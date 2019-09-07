@@ -4,6 +4,7 @@
 #include "../nogui/memory_mapped_file.h"
 #include "../nogui/pe.h"
 #include "../nogui/pe/pe_test.h"
+#include "../nogui/smart_local_free.h"
 
 #include <cassert>
 #include <cwchar>
@@ -21,18 +22,12 @@ static constexpr wchar_t const s_cmd_arg_test[] = L"/test";
 namespace fs = std::experimental::filesystem;
 
 
-struct local_free_deleter
-{
-	void operator()(HLOCAL const& ptr) const;
-};
-
-
 void test()
 {
 	wchar_t const* const cmd_line = GetCommandLineW();
 	int argc;
 	wchar_t** const argv = CommandLineToArgvW(cmd_line, &argc);
-	std::unique_ptr<void, local_free_deleter> sp_argv(reinterpret_cast<void*>(argv));
+	smart_local_free const sp_argv(reinterpret_cast<void*>(argv));
 	if(argc != 3)
 	{
 		return;
@@ -160,11 +155,4 @@ void test()
 			OutputDebugStringW(L"\n");
 		}
 	}
-}
-
-
-void local_free_deleter::operator()(HLOCAL const& ptr) const
-{
-	HLOCAL const freed = LocalFree(ptr);
-	assert(freed == nullptr);
 }
