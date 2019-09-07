@@ -111,6 +111,7 @@ main_window::main_window() :
 	m_splitter_ver(m_splitter_hor.get_hwnd()),
 	m_import_list(CreateWindowExW(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE, WC_LISTVIEWW, nullptr, WS_VISIBLE | WS_CHILD | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA, 0, 0, 0, 0, m_splitter_ver.get_hwnd(), reinterpret_cast<HMENU>(static_cast<std::uintptr_t>(s_import_list)), get_instance(), nullptr)),
 	m_export_list(CreateWindowExW(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE, WC_LISTVIEWW, nullptr, WS_VISIBLE | WS_CHILD | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA, 0, 0, 0, 0, m_splitter_ver.get_hwnd(), reinterpret_cast<HMENU>(static_cast<std::uintptr_t>(s_export_list)), get_instance(), nullptr)),
+	m_on_idle_funcs(),
 	m_tmp_strings(),
 	m_tmp_string_idx(),
 	m_mo(),
@@ -179,6 +180,14 @@ HWND main_window::get_hwnd() const
 
 void main_window::on_idle()
 {
+	while(!m_on_idle_funcs.empty())
+	{
+		auto const func_param = std::move(m_on_idle_funcs.front());
+		m_on_idle_funcs.pop();
+		auto const& func = func_param.first;
+		auto const& param = func_param.second;
+		(*func)(param);
+	}
 }
 
 HMENU main_window::create_menu()
@@ -215,7 +224,7 @@ HWND main_window::create_toolbar(HWND const& parent)
 	buttons[1].iString = 0;
 	LRESULT const buttons_added = SendMessageW(toolbar, TB_ADDBUTTONSW, 2, reinterpret_cast<LPARAM>(&buttons));
 	assert(buttons_added == TRUE);
-	SendMessage(toolbar, TB_AUTOSIZE, 0, 0); 
+	SendMessage(toolbar, TB_AUTOSIZE, 0, 0);
 	BOOL const shown = ShowWindow(toolbar, TRUE);
 	return toolbar;
 }
@@ -1093,5 +1102,6 @@ int main_window::get_twobyte_column_max_width()
 	g_twobyte_column_max_width = maximum;
 	return maximum;
 }
+
 
 ATOM main_window::g_class = 0;

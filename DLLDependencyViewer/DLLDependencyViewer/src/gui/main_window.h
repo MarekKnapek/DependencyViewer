@@ -7,7 +7,9 @@
 #include "../nogui/pe.h"
 
 #include <array>
+#include <queue>
 #include <string>
+#include <utility>
 
 #include <windows.h>
 
@@ -71,6 +73,7 @@ private:
 	splitter_window_ver m_splitter_ver;
 	HWND m_import_list;
 	HWND m_export_list;
+	std::queue<std::pair<void(*)(void*), void*>> m_on_idle_funcs;
 private:
 	std::array<std::wstring, 16> m_tmp_strings;
 	unsigned m_tmp_string_idx;
