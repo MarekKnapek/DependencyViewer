@@ -169,7 +169,14 @@ main_window::main_window() :
 	BOOL const got_rect = GetClientRect(m_hwnd, &r);
 	LRESULT const moved = on_wm_size(0, ((static_cast<unsigned>(r.bottom) & 0xFFFFu) << 16) | (static_cast<unsigned>(r.right) & 0xFFFFu));
 
-	m_on_idle_funcs.push(std::make_pair([](void* const param) -> void { assert(param); main_window& self = *static_cast<main_window*>(param); self.process_command_line(); }, this));
+	auto const process_cmd_line_func = [](void* const param) -> void
+	{
+		assert(param);
+		main_window& self = *static_cast<main_window*>(param);
+		self.process_command_line();
+	};
+	auto const process_cmd_line_param = this;
+	add_on_idle_task(process_cmd_line_func, process_cmd_line_param);
 }
 
 main_window::~main_window()
@@ -273,6 +280,11 @@ LRESULT main_window::on_message(UINT msg, WPARAM wparam, LPARAM lparam)
 			return on_wm_dropfiles(wparam, lparam);
 		}
 		break;
+		case WM_main_window_PROCESS_ON_IDLE:
+		{
+			return on_wm_main_window_process_on_idle(wparam, lparam);
+		}
+		break;
 	}
 	LRESULT const ret = DefWindowProcW(m_hwnd, msg, wparam, lparam);
 	return ret;
@@ -347,6 +359,12 @@ LRESULT main_window::on_wm_dropfiles(WPARAM wparam, LPARAM lparam)
 	UINT const queried_2 = DragQueryFileW(hdrop, 0, buff.data(), static_cast<int>(buff.size()));
 	open_file(buff.data());
 	return DefWindowProcW(m_hwnd, WM_DROPFILES, wparam, lparam);
+}
+
+LRESULT main_window::on_wm_main_window_process_on_idle(WPARAM wparam, LPARAM lparam)
+{
+	on_idle();
+	return DefWindowProcW(m_hwnd, WM_main_window_PROCESS_ON_IDLE, wparam, lparam);
 }
 
 LRESULT main_window::on_menu(WPARAM wparam, LPARAM lparam)
@@ -1104,6 +1122,13 @@ int main_window::get_twobyte_column_max_width()
 
 	g_twobyte_column_max_width = maximum;
 	return maximum;
+}
+
+void main_window::add_on_idle_task(void(* const func)(void*), void* const param)
+{
+	m_on_idle_funcs.push({func, param});
+	BOOL const posted = PostMessageW(m_hwnd, WM_main_window_PROCESS_ON_IDLE, 0, 0);
+	assert(posted != 0);
 }
 
 void main_window::process_command_line()

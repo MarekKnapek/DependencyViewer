@@ -17,6 +17,9 @@
 struct _TREEITEM; typedef struct _TREEITEM* HTREEITEM;
 
 
+#define WM_main_window_PROCESS_ON_IDLE (WM_USER + 0)
+
+
 class main_window
 {
 public:
@@ -42,6 +45,7 @@ private:
 	LRESULT on_wm_notify(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_command(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_dropfiles(WPARAM wparam, LPARAM lparam);
+	LRESULT on_wm_main_window_process_on_idle(WPARAM wparam, LPARAM lparam);
 	LRESULT on_menu(WPARAM wparam, LPARAM lparam);
 	LRESULT on_toolbar(WPARAM wparam, LPARAM lparam);
 	void on_tree_notify(NMHDR& nmhdr);
@@ -63,6 +67,7 @@ private:
 	int get_import_type_column_max_width();
 	int get_export_type_column_max_width();
 	int get_twobyte_column_max_width();
+	void add_on_idle_task(void(* const func)(void*), void* const param);
 	void process_command_line();
 private:
 	static ATOM g_class;
