@@ -169,10 +169,7 @@ main_window::main_window() :
 	BOOL const got_rect = GetClientRect(m_hwnd, &r);
 	LRESULT const moved = on_wm_size(0, ((static_cast<unsigned>(r.bottom) & 0xFFFFu) << 16) | (static_cast<unsigned>(r.right) & 0xFFFFu));
 
-	auto const process_cmd_line_task = [](main_window& self, idle_task_param_t const param) -> void
-	{
-		self.process_command_line();
-	};
+	auto const process_cmd_line_task = [](main_window& self, idle_task_param_t const param) -> void { self.process_command_line(); };
 	add_idle_task(process_cmd_line_task, nullptr);
 }
 
