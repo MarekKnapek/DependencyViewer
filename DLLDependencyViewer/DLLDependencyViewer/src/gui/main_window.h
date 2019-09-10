@@ -14,10 +14,15 @@
 #include <windows.h>
 
 
-struct _TREEITEM; typedef struct _TREEITEM* HTREEITEM;
+struct _TREEITEM;
+typedef struct _TREEITEM* HTREEITEM;
+class main_window;
+typedef void* idle_task_param_t;
+typedef void(* idle_task_t)(main_window&, idle_task_param_t const);
 
 
-#define WM_main_window_PROCESS_ON_IDLE (WM_USER + 0)
+#define wm_main_window_add_idle_task (WM_USER + 0)
+#define wm_main_window_process_on_idle (WM_USER + 1)
 
 
 class main_window
@@ -33,7 +38,6 @@ public:
 	~main_window();
 public:
 	HWND get_hwnd() const;
-	void on_idle();
 private:
 	static HMENU create_menu();
 	static HWND create_toolbar(HWND const& parent);
@@ -45,6 +49,7 @@ private:
 	LRESULT on_wm_notify(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_command(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_dropfiles(WPARAM wparam, LPARAM lparam);
+	LRESULT on_wm_main_window_add_idle_task(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_main_window_process_on_idle(WPARAM wparam, LPARAM lparam);
 	LRESULT on_menu(WPARAM wparam, LPARAM lparam);
 	LRESULT on_toolbar(WPARAM wparam, LPARAM lparam);
@@ -67,7 +72,8 @@ private:
 	int get_import_type_column_max_width();
 	int get_export_type_column_max_width();
 	int get_twobyte_column_max_width();
-	void add_on_idle_task(void(* const func)(void*), void* const param);
+	void add_idle_task(idle_task_t const task, idle_task_param_t const param);
+	void on_idle();
 	void process_command_line();
 private:
 	static ATOM g_class;
@@ -79,7 +85,7 @@ private:
 	splitter_window_ver m_splitter_ver;
 	HWND m_import_list;
 	HWND m_export_list;
-	std::queue<std::pair<void(*)(void*), void*>> m_on_idle_funcs;
+	std::queue<std::pair<idle_task_t, idle_task_param_t>> m_idle_tasks;
 private:
 	std::array<std::wstring, 16> m_tmp_strings;
 	unsigned m_tmp_string_idx;

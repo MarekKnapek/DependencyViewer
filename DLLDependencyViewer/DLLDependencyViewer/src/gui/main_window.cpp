@@ -112,7 +112,7 @@ main_window::main_window() :
 	m_splitter_ver(m_splitter_hor.get_hwnd()),
 	m_import_list(CreateWindowExW(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE, WC_LISTVIEWW, nullptr, WS_VISIBLE | WS_CHILD | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA, 0, 0, 0, 0, m_splitter_ver.get_hwnd(), reinterpret_cast<HMENU>(static_cast<std::uintptr_t>(s_import_list)), get_instance(), nullptr)),
 	m_export_list(CreateWindowExW(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE, WC_LISTVIEWW, nullptr, WS_VISIBLE | WS_CHILD | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA, 0, 0, 0, 0, m_splitter_ver.get_hwnd(), reinterpret_cast<HMENU>(static_cast<std::uintptr_t>(s_export_list)), get_instance(), nullptr)),
-	m_on_idle_funcs(),
+	m_idle_tasks(),
 	m_tmp_strings(),
 	m_tmp_string_idx(),
 	m_mo(),
@@ -169,14 +169,11 @@ main_window::main_window() :
 	BOOL const got_rect = GetClientRect(m_hwnd, &r);
 	LRESULT const moved = on_wm_size(0, ((static_cast<unsigned>(r.bottom) & 0xFFFFu) << 16) | (static_cast<unsigned>(r.right) & 0xFFFFu));
 
-	auto const process_cmd_line_func = [](void* const param) -> void
+	auto const process_cmd_line_task = [](main_window& self, idle_task_param_t const param) -> void
 	{
-		assert(param);
-		main_window& self = *static_cast<main_window*>(param);
 		self.process_command_line();
 	};
-	auto const process_cmd_line_param = this;
-	add_on_idle_task(process_cmd_line_func, process_cmd_line_param);
+	add_idle_task(process_cmd_line_task, nullptr);
 }
 
 main_window::~main_window()
@@ -186,18 +183,6 @@ main_window::~main_window()
 HWND main_window::get_hwnd() const
 {
 	return m_hwnd;
-}
-
-void main_window::on_idle()
-{
-	while(!m_on_idle_funcs.empty())
-	{
-		auto const func_param = std::move(m_on_idle_funcs.front());
-		m_on_idle_funcs.pop();
-		auto const& func = func_param.first;
-		auto const& param = func_param.second;
-		(*func)(param);
-	}
 }
 
 HMENU main_window::create_menu()
@@ -280,7 +265,12 @@ LRESULT main_window::on_message(UINT msg, WPARAM wparam, LPARAM lparam)
 			return on_wm_dropfiles(wparam, lparam);
 		}
 		break;
-		case WM_main_window_PROCESS_ON_IDLE:
+		case wm_main_window_add_idle_task:
+		{
+			return on_wm_main_window_add_idle_task(wparam, lparam);
+		}
+		break;
+		case wm_main_window_process_on_idle:
 		{
 			return on_wm_main_window_process_on_idle(wparam, lparam);
 		}
@@ -361,10 +351,20 @@ LRESULT main_window::on_wm_dropfiles(WPARAM wparam, LPARAM lparam)
 	return DefWindowProcW(m_hwnd, WM_DROPFILES, wparam, lparam);
 }
 
+LRESULT main_window::on_wm_main_window_add_idle_task(WPARAM wparam, LPARAM lparam)
+{
+	static_assert(sizeof(WPARAM) == sizeof(idle_task_t), "");
+	static_assert(sizeof(LPARAM) == sizeof(idle_task_param_t), "");
+	idle_task_t const task = reinterpret_cast<idle_task_t>(wparam);
+	idle_task_param_t const param = reinterpret_cast<idle_task_param_t>(lparam);
+	add_idle_task(task, param);
+	return DefWindowProcW(m_hwnd, wm_main_window_add_idle_task, wparam, lparam);
+}
+
 LRESULT main_window::on_wm_main_window_process_on_idle(WPARAM wparam, LPARAM lparam)
 {
 	on_idle();
-	return DefWindowProcW(m_hwnd, WM_main_window_PROCESS_ON_IDLE, wparam, lparam);
+	return DefWindowProcW(m_hwnd, wm_main_window_process_on_idle, wparam, lparam);
 }
 
 LRESULT main_window::on_menu(WPARAM wparam, LPARAM lparam)
@@ -1124,11 +1124,29 @@ int main_window::get_twobyte_column_max_width()
 	return maximum;
 }
 
-void main_window::add_on_idle_task(void(* const func)(void*), void* const param)
+void main_window::add_idle_task(idle_task_t const task, idle_task_param_t const param)
 {
-	m_on_idle_funcs.push({func, param});
-	BOOL const posted = PostMessageW(m_hwnd, WM_main_window_PROCESS_ON_IDLE, 0, 0);
+	m_idle_tasks.push({task, param});
+	BOOL const posted = PostMessageW(m_hwnd, wm_main_window_process_on_idle, 0, 0);
 	assert(posted != 0);
+}
+
+void main_window::on_idle()
+{
+	if(m_idle_tasks.empty())
+	{
+		return;
+	}
+	auto const task_with_param = m_idle_tasks.front();
+	m_idle_tasks.pop();
+	auto const& task = task_with_param.first;
+	auto const& param = task_with_param.second;
+	(*task)(*this, param);
+	if(!m_idle_tasks.empty())
+	{
+		BOOL const posted = PostMessageW(m_hwnd, wm_main_window_process_on_idle, 0, 0);
+		assert(posted != 0);
+	}
 }
 
 void main_window::process_command_line()

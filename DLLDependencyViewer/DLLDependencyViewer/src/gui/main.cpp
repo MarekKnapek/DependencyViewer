@@ -4,7 +4,7 @@
 #include "splitter_window.h"
 #include "test.h"
 
-#include "..\nogui\activation_context.h"
+#include "../nogui/activation_context.h"
 
 #include <cassert>
 
@@ -39,7 +39,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 			BOOL const translated = TranslateMessage(&msg);
 			LRESULT const dispatched = DispatchMessageW(&msg);
 		}
-		mw.on_idle();
+		LRESULT const sent = SendMessageW(mw.get_hwnd(), wm_main_window_process_on_idle, 0, 0);
 		BOOL const got_msg = GetMessageW(&msg, nullptr, 0, 0);
 		if(got_msg == 0)
 		{
