@@ -1226,6 +1226,12 @@ void dbg_task_callback_1(get_symbols_from_addresses_task_t* const task)
 	LRESULT const sent = SendMessageW(reinterpret_cast<HWND>(task->m_hwnd), wm_main_window_take_finished_dbg_task, 0, reinterpret_cast<LPARAM>(task));
 }
 
+void dbg_task_callback_2(get_symbols_from_addresses_task_t* const task)
+{
+	assert(task);
+	std::unique_ptr<get_symbols_from_addresses_task_t> sp_task(task);
+}
+
 void main_window::request_symbol_traslation(file_info& fi)
 {
 	auto const fn_is_unnamed = [](pe_export_address_entry const& e){ return e.m_is_rva && !e.m_name; };
@@ -1255,6 +1261,28 @@ void main_window::request_symbol_traslation(file_info& fi)
 	get_symbols_from_addresses_task_t* const task_ptr = task.release();
 	m_symbol_tasks.push_back(task_ptr);
 	dbg_get_symbols_from_addresses(task_ptr);
+}
+
+void main_window::request_cancellation_of_all_dbg_tasks()
+{
+	if(m_symbol_tasks.empty())
+	{
+		return;
+	}
+	std::for_each(m_symbol_tasks.begin(), m_symbol_tasks.end(), [](auto const& e){ e->m_canceled.store(true); });
+	for(auto it = m_symbol_tasks.begin(); it != m_symbol_tasks.end(); )
+	{
+		get_symbols_from_addresses_task_t::callback_function_t expected = &dbg_task_callback_1;
+		bool const b = (*it)->m_callback_function.compare_exchange_strong(expected, &dbg_task_callback_2);
+		if(b)
+		{
+			it = m_symbol_tasks.erase(it);
+		}
+		else
+		{
+			++it;
+		}
+	}
 }
 
 void main_window::process_finished_dbg_task(get_symbols_from_addresses_task_t* const task)

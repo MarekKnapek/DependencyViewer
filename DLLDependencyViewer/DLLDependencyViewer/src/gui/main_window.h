@@ -89,6 +89,7 @@ private:
 	void on_idle();
 	void process_command_line();
 	void request_symbol_traslation(file_info& fi);
+	void request_cancellation_of_all_dbg_tasks();
 	void process_finished_dbg_task(get_symbols_from_addresses_task_t* const task);
 private:
 	static ATOM g_class;
