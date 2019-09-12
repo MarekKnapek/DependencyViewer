@@ -800,14 +800,7 @@ void main_window::on_export_getdispinfow(NMHDR& nmhdr)
 		{
 			case e_export_column::e_type:
 			{
-				if(export_entry.m_is_rva)
-				{
-					nm.item.pszText = const_cast<wchar_t*>(s_export_type_true);
-				}
-				else
-				{
-					nm.item.pszText = const_cast<wchar_t*>(s_export_type_false);
-				}
+				nm.item.pszText = const_cast<wchar_t*>(on_export_get_col_type(export_entry));
 			}
 			break;
 			case e_export_column::e_ordinal:
@@ -878,6 +871,18 @@ void main_window::on_export_getdispinfow(NMHDR& nmhdr)
 			}
 			break;
 		}
+	}
+}
+
+wchar_t const* main_window::on_export_get_col_type(pe_export_address_entry const& export_entry)
+{
+	if(export_entry.m_is_rva)
+	{
+		return const_cast<wchar_t*>(s_export_type_true);
+	}
+	else
+	{
+		return const_cast<wchar_t*>(s_export_type_false);
 	}
 }
 
