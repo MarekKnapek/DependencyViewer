@@ -234,6 +234,9 @@
     <ClInclude Include="src\nogui\smart_reg_key.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
+    <ClInclude Include="src\nogui\thread_worker.h">
+      <Filter>src\nogui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\main.cpp">
@@ -336,6 +339,9 @@
       <Filter>src\nogui</Filter>
     </ClCompile>
     <ClCompile Include="src\nogui\smart_reg_key.cpp">
+      <Filter>src\nogui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nogui\thread_worker.cpp">
       <Filter>src\nogui</Filter>
     </ClCompile>
   </ItemGroup>
