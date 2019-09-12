@@ -751,8 +751,7 @@ wchar_t const* main_window::on_import_get_col_name(pe_import_entry const& import
 		auto const it = std::lower_bound(fi.m_export_table.m_export_address_table.cbegin(), fi.m_export_table.m_export_address_table.cend(), ordinal, [](pe_export_address_entry const& e, std::uint16_t const& v){ return e.m_ordinal < v; });
 		if(it != fi.m_export_table.m_export_address_table.cend() && it->m_ordinal == ordinal)
 		{
-			//return on_export_get_col_name(*it);
-			return L"";
+			return on_export_get_col_name(*it);
 		}
 		else
 		{
@@ -815,17 +814,7 @@ void main_window::on_export_getdispinfow(NMHDR& nmhdr)
 			break;
 			case e_export_column::e_name:
 			{
-				if(!export_entry.m_name)
-				{
-					nm.item.pszText = const_cast<wchar_t*>(s_export_name_na);
-				}
-				else
-				{
-					std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-					tmpstr.resize(export_entry.m_name->m_len);
-					std::transform(cbegin(export_entry.m_name), cend(export_entry.m_name), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
-					nm.item.pszText = const_cast<wchar_t*>(tmpstr.c_str());
-				}
+				nm.item.pszText = const_cast<wchar_t*>(on_export_get_col_name(export_entry));
 			}
 			break;
 			case e_export_column::e_entry_point:
@@ -892,6 +881,21 @@ wchar_t const* main_window::on_export_get_col_hint(pe_export_address_entry const
 		int const formatted = std::swprintf(buff.data(), buff.size(), L"%hu (0x%04hx)", static_cast<unsigned short int>(export_entry.m_hint), static_cast<unsigned short int>(export_entry.m_hint));
 		std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
 		tmpstr.assign(buff.data(), buff.data() + formatted);
+		return tmpstr.c_str();
+	}
+}
+
+wchar_t const* main_window::on_export_get_col_name(pe_export_address_entry const& export_entry)
+{
+	if(!export_entry.m_name)
+	{
+		return s_export_name_na;
+	}
+	else
+	{
+		std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
+		tmpstr.resize(export_entry.m_name->m_len);
+		std::transform(cbegin(export_entry.m_name), cend(export_entry.m_name), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
 		return tmpstr.c_str();
 	}
 }
