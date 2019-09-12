@@ -1327,6 +1327,10 @@ void main_window::process_finished_dbg_task(get_symbols_from_addresses_task_t* c
 			task->m_export_entries[i]->m_debug_name = &s_export_name_debug_na;
 		}
 	}
+	BOOL const import_invalidated = InvalidateRect(m_import_list, nullptr, TRUE);
+	assert(import_invalidated != 0);
+	BOOL const export_invalidated = InvalidateRect(m_export_list, nullptr, TRUE);
+	assert(export_invalidated != 0);
 }
 
 ATOM main_window::g_class = 0;
