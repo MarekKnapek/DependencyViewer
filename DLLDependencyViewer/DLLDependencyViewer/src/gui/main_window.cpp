@@ -685,30 +685,7 @@ void main_window::on_import_getdispinfow(NMHDR& nmhdr)
 			break;
 			case e_import_column::e_name:
 			{
-				if(import_entry.m_is_ordinal)
-				{
-					std::uint16_t const& ordinal = import_entry.m_ordinal_or_hint;
-					auto const it = std::lower_bound(fi.m_export_table.m_export_address_table.cbegin(), fi.m_export_table.m_export_address_table.cend(), ordinal, [](pe_export_address_entry const& e, std::uint16_t const& v){ return e.m_ordinal < v; });
-					if(it != fi.m_export_table.m_export_address_table.cend() && it->m_ordinal == ordinal && it->m_name)
-					{
-						pe_export_address_entry const& found = *it;
-						std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-						tmpstr.resize(found.m_name->m_len);
-						std::transform(cbegin(found.m_name), cend(found.m_name), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
-						nm.item.pszText = const_cast<wchar_t*>(tmpstr.c_str());
-					}
-					else
-					{
-						nm.item.pszText = const_cast<wchar_t*>(s_import_name_na);
-					}
-				}
-				else
-				{
-					std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-					tmpstr.resize(import_entry.m_name->m_len);
-					std::transform(cbegin(import_entry.m_name), cend(import_entry.m_name), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
-					nm.item.pszText = const_cast<wchar_t*>(tmpstr.c_str());
-				}
+				nm.item.pszText = const_cast<wchar_t*>(on_import_get_col_name(import_entry, fi));
 			}
 			break;
 			default:
@@ -762,6 +739,31 @@ wchar_t const* main_window::on_import_get_col_hint(pe_import_entry const& import
 		int const formatted = std::swprintf(buff.data(), buff.size(), L"%hu (0x%04hx)", static_cast<unsigned short int>(import_entry.m_ordinal_or_hint), static_cast<unsigned short int>(import_entry.m_ordinal_or_hint));
 		std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
 		tmpstr.assign(buff.data(), buff.data() + formatted);
+		return tmpstr.c_str();
+	}
+}
+
+wchar_t const* main_window::on_import_get_col_name(pe_import_entry const& import_entry, file_info const& fi)
+{
+	if(import_entry.m_is_ordinal)
+	{
+		std::uint16_t const& ordinal = import_entry.m_ordinal_or_hint;
+		auto const it = std::lower_bound(fi.m_export_table.m_export_address_table.cbegin(), fi.m_export_table.m_export_address_table.cend(), ordinal, [](pe_export_address_entry const& e, std::uint16_t const& v){ return e.m_ordinal < v; });
+		if(it != fi.m_export_table.m_export_address_table.cend() && it->m_ordinal == ordinal)
+		{
+			//return on_export_get_col_name(*it);
+			return L"";
+		}
+		else
+		{
+			return s_import_name_na;
+		}
+	}
+	else
+	{
+		std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
+		tmpstr.resize(import_entry.m_name->m_len);
+		std::transform(cbegin(import_entry.m_name), cend(import_entry.m_name), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
 		return tmpstr.c_str();
 	}
 }
