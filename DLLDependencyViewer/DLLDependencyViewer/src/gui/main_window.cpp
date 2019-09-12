@@ -1054,6 +1054,7 @@ void main_window::refresh_view_recursive(file_info& parent_fi, HTREEITEM const& 
 		tvi.itemex.iReserved = 0;
 		HTREEITEM const ti = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_INSERTITEMW, 0, reinterpret_cast<LPARAM>(&tvi)));
 		fi.m_tree_item = ti;
+		request_symbol_traslation(fi);
 		refresh_view_recursive(fi, ti);
 	}
 }
