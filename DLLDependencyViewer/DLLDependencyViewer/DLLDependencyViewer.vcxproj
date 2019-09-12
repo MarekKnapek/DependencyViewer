@@ -197,6 +197,7 @@
     <ClInclude Include="src\nogui\allocator.h" />
     <ClInclude Include="src\nogui\assert.h" />
     <ClInclude Include="src\nogui\dbghelp.h" />
+    <ClInclude Include="src\nogui\dbg_provider.h" />
     <ClInclude Include="src\nogui\file_name.h" />
     <ClInclude Include="src\nogui\file_system.h" />
     <ClInclude Include="src\nogui\manifest_parser.h" />
@@ -237,6 +238,7 @@
     <ClCompile Include="src\nogui\allocator.cpp" />
     <ClCompile Include="src\nogui\assert.cpp" />
     <ClCompile Include="src\nogui\dbghelp.cpp" />
+    <ClCompile Include="src\nogui\dbg_provider.cpp" />
     <ClCompile Include="src\nogui\file_name.cpp" />
     <ClCompile Include="src\nogui\file_system.cpp" />
     <ClCompile Include="src\nogui\manifest_parser.cpp" />

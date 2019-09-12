@@ -240,6 +240,9 @@
     <ClInclude Include="src\nogui\dbghelp.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
+    <ClInclude Include="src\nogui\dbg_provider.h">
+      <Filter>src\nogui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\main.cpp">
@@ -348,6 +351,9 @@
       <Filter>src\nogui</Filter>
     </ClCompile>
     <ClCompile Include="src\nogui\dbghelp.cpp">
+      <Filter>src\nogui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nogui\dbg_provider.cpp">
       <Filter>src\nogui</Filter>
     </ClCompile>
   </ItemGroup>
