@@ -181,6 +181,7 @@ main_window::main_window() :
 main_window::~main_window()
 {
 	assert(m_idle_tasks.empty());
+	assert(m_symbol_tasks.empty());
 }
 
 HWND main_window::get_hwnd() const
@@ -322,7 +323,8 @@ LRESULT main_window::on_wm_size(WPARAM wparam, LPARAM lparam)
 
 LRESULT main_window::on_wm_close(WPARAM wparam, LPARAM lparam)
 {
-	if(!m_idle_tasks.empty())
+	request_cancellation_of_all_dbg_tasks();
+	if(!m_idle_tasks.empty() || !m_symbol_tasks.empty())
 	{
 		MessageBoxW(m_hwnd, L"Please wait for background tasks to finish.", L"Could not close.", MB_OK);
 		return 0;
@@ -1025,6 +1027,7 @@ void main_window::open_file(wchar_t const* const file_path)
 
 void main_window::refresh(main_type&& mo)
 {
+	request_cancellation_of_all_dbg_tasks();
 	m_mo = std::move(mo);
 
 	LRESULT const redr_off_1 = SendMessageW(m_tree, WM_SETREDRAW, FALSE, 0);
