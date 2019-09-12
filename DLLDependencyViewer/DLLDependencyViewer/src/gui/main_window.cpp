@@ -41,6 +41,7 @@ static constexpr wchar_t const s_export_type_true[] = L"address";
 static constexpr wchar_t const s_export_type_false[] = L"forwarder";
 static constexpr wchar_t const s_export_hint_na[] = L"N/A";
 static constexpr wchar_t const s_export_name_na[] = L"N/A";
+static constexpr wchar_t const s_export_name_processing[] = L"Processing...";
 static constexpr wstring const s_export_name_debug_na = {s_export_name_na, static_cast<int>(std::size(s_export_name_na)) - 1};
 static constexpr int const s_menu_open_id = 2000;
 static constexpr int const s_menu_exit_id = 2001;
@@ -913,16 +914,30 @@ wchar_t const* main_window::on_export_get_col_hint(pe_export_address_entry const
 
 wchar_t const* main_window::on_export_get_col_name(pe_export_address_entry const& export_entry)
 {
-	if(!export_entry.m_name)
-	{
-		return s_export_name_na;
-	}
-	else
+	if(export_entry.m_name)
 	{
 		std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
 		tmpstr.resize(export_entry.m_name->m_len);
 		std::transform(cbegin(export_entry.m_name), cend(export_entry.m_name), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
 		return tmpstr.c_str();
+	}
+	else
+	{
+		if(export_entry.m_is_rva)
+		{
+			if(export_entry.m_debug_name)
+			{
+				return export_entry.m_debug_name->m_str;
+			}
+			else
+			{
+				return s_export_name_processing;
+			}
+		}
+		else
+		{
+			return s_export_name_na;
+		}
 	}
 }
 
