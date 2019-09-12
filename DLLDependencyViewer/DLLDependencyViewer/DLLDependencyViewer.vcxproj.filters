@@ -228,6 +228,9 @@
     <ClInclude Include="src\nogui\smart_local_free.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
+    <ClInclude Include="src\nogui\scope_exit.h">
+      <Filter>src\nogui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\main.cpp">

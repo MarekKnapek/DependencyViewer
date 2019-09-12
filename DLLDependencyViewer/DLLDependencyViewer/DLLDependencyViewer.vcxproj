@@ -211,6 +211,7 @@
     <ClInclude Include="src\nogui\pe\mz.h" />
     <ClInclude Include="src\nogui\pe\pe_test.h" />
     <ClInclude Include="src\nogui\pe\pe_util.h" />
+    <ClInclude Include="src\nogui\scope_exit.h" />
     <ClInclude Include="src\nogui\smart_com_interface.h" />
     <ClInclude Include="src\nogui\smart_handle.h" />
     <ClInclude Include="src\nogui\smart_library.h" />
