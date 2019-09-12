@@ -278,9 +278,13 @@ LRESULT main_window::on_message(UINT msg, WPARAM wparam, LPARAM lparam)
 			return on_wm_main_window_process_on_idle(wparam, lparam);
 		}
 		break;
+		default:
+		{
+			return DefWindowProcW(m_hwnd, msg, wparam, lparam);
+		}
+		break;
 	}
-	LRESULT const ret = DefWindowProcW(m_hwnd, msg, wparam, lparam);
-	return ret;
+	assert(false);
 }
 
 LRESULT main_window::on_wm_destroy(WPARAM wparam, LPARAM lparam)
