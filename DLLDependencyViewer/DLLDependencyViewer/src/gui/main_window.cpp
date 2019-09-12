@@ -3,6 +3,8 @@
 #include "main.h"
 #include "smart_dc.h"
 
+#include "../nogui/dbg.h"
+#include "../nogui/dbg_provider.h"
 #include "../nogui/memory_mapped_file.h"
 #include "../nogui/pe.h"
 #include "../nogui/smart_local_free.h"
@@ -113,6 +115,7 @@ main_window::main_window() :
 	m_import_list(CreateWindowExW(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE, WC_LISTVIEWW, nullptr, WS_VISIBLE | WS_CHILD | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA, 0, 0, 0, 0, m_splitter_ver.get_hwnd(), reinterpret_cast<HMENU>(static_cast<std::uintptr_t>(s_import_list)), get_instance(), nullptr)),
 	m_export_list(CreateWindowExW(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE, WC_LISTVIEWW, nullptr, WS_VISIBLE | WS_CHILD | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA, 0, 0, 0, 0, m_splitter_ver.get_hwnd(), reinterpret_cast<HMENU>(static_cast<std::uintptr_t>(s_export_list)), get_instance(), nullptr)),
 	m_idle_tasks(),
+	m_symbol_tasks(),
 	m_tmp_strings(),
 	m_tmp_string_idx(),
 	m_mo(),
@@ -1198,6 +1201,42 @@ void main_window::process_command_line()
 		return;
 	}
 	open_file(argv[1]);
+}
+
+void dbg_task_callback_1(get_symbols_from_addresses_task_t* const task)
+{
+	assert(task);
+}
+
+void main_window::request_symbol_traslation(file_info& fi)
+{
+	auto const fn_is_unnamed = [](pe_export_address_entry const& e){ return e.m_is_rva && !e.m_name; };
+	int const n = static_cast<int>(std::count_if(fi.m_export_table.m_export_address_table.cbegin(), fi.m_export_table.m_export_address_table.cend(), fn_is_unnamed));
+	if(n == 0)
+	{
+		return;
+	}
+	auto task = std::make_unique<get_symbols_from_addresses_task_t>();
+	task->m_canceled.store(false);
+	task->m_module_path = fi.m_file_path;
+	task->m_addresses.resize(n);
+	task->m_export_entries.resize(n);
+	int i = 0;
+	for(auto& e : fi.m_export_table.m_export_address_table)
+	{
+		if(!fn_is_unnamed(e))
+		{
+			continue;
+		}
+		task->m_addresses[i] = e.m_rva;
+		task->m_export_entries[i] = &e;
+		++i;
+	}
+	task->m_callback_function.store(&dbg_task_callback_1);
+	task->m_hwnd = reinterpret_cast<void*>(m_hwnd);
+	get_symbols_from_addresses_task_t* const task_ptr = task.release();
+	m_symbol_tasks.push_back(task_ptr);
+	dbg_get_symbols_from_addresses(task_ptr);
 }
 
 ATOM main_window::g_class = 0;

@@ -19,6 +19,7 @@ typedef struct _TREEITEM* HTREEITEM;
 class main_window;
 typedef void* idle_task_param_t;
 typedef void(* idle_task_t)(main_window&, idle_task_param_t const);
+struct get_symbols_from_addresses_task_t;
 
 
 #define wm_main_window_add_idle_task (WM_USER + 0)
@@ -85,6 +86,7 @@ private:
 	void add_idle_task(idle_task_t const task, idle_task_param_t const param);
 	void on_idle();
 	void process_command_line();
+	void request_symbol_traslation(file_info& fi);
 private:
 	static ATOM g_class;
 private:
@@ -96,6 +98,7 @@ private:
 	HWND m_import_list;
 	HWND m_export_list;
 	std::queue<std::pair<idle_task_t, idle_task_param_t>> m_idle_tasks;
+	std::deque<get_symbols_from_addresses_task_t*> m_symbol_tasks;
 private:
 	std::array<std::wstring, 16> m_tmp_strings;
 	unsigned m_tmp_string_idx;
