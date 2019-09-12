@@ -819,22 +819,7 @@ void main_window::on_export_getdispinfow(NMHDR& nmhdr)
 			break;
 			case e_export_column::e_entry_point:
 			{
-				if(export_entry.m_is_rva)
-				{
-					static_assert(sizeof(std::uint32_t) == sizeof(unsigned int), "");
-					std::array<wchar_t, 32> buff;
-					int const formatted = std::swprintf(buff.data(), buff.size(), L"0x%08x", static_cast<unsigned int>(export_entry.m_rva));
-					std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-					tmpstr.assign(buff.data(), buff.data() + formatted);
-					nm.item.pszText = const_cast<wchar_t*>(tmpstr.c_str());
-				}
-				else
-				{
-					std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-					tmpstr.resize(export_entry.m_forwarder->m_len);
-					std::transform(cbegin(export_entry.m_forwarder), cend(export_entry.m_forwarder), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
-					nm.item.pszText = const_cast<wchar_t*>(tmpstr.c_str());
-				}
+				nm.item.pszText = const_cast<wchar_t*>(on_export_get_col_address(export_entry));
 			}
 			break;
 			default:
@@ -896,6 +881,26 @@ wchar_t const* main_window::on_export_get_col_name(pe_export_address_entry const
 		std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
 		tmpstr.resize(export_entry.m_name->m_len);
 		std::transform(cbegin(export_entry.m_name), cend(export_entry.m_name), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
+		return tmpstr.c_str();
+	}
+}
+
+wchar_t const* main_window::on_export_get_col_address(pe_export_address_entry const& export_entry)
+{
+	if(export_entry.m_is_rva)
+	{
+		static_assert(sizeof(std::uint32_t) == sizeof(unsigned int), "");
+		std::array<wchar_t, 32> buff;
+		int const formatted = std::swprintf(buff.data(), buff.size(), L"0x%08x", static_cast<unsigned int>(export_entry.m_rva));
+		std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
+		tmpstr.assign(buff.data(), buff.data() + formatted);
+		return tmpstr.c_str();
+	}
+	else
+	{
+		std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
+		tmpstr.resize(export_entry.m_forwarder->m_len);
+		std::transform(cbegin(export_entry.m_forwarder), cend(export_entry.m_forwarder), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
 		return tmpstr.c_str();
 	}
 }
