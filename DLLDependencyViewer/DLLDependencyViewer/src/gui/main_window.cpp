@@ -41,6 +41,7 @@ static constexpr wchar_t const s_export_type_true[] = L"address";
 static constexpr wchar_t const s_export_type_false[] = L"forwarder";
 static constexpr wchar_t const s_export_hint_na[] = L"N/A";
 static constexpr wchar_t const s_export_name_na[] = L"N/A";
+static constexpr wstring const s_export_name_debug_na = {s_export_name_na, static_cast<int>(std::size(s_export_name_na)) - 1};
 static constexpr int const s_menu_open_id = 2000;
 static constexpr int const s_menu_exit_id = 2001;
 static constexpr int const s_tree_id = 1000;
@@ -397,8 +398,8 @@ LRESULT main_window::on_wm_main_window_take_finished_dbg_task(WPARAM wparam, LPA
 {
 	assert(lparam != 0);
 	get_symbols_from_addresses_task_t* const task = reinterpret_cast<get_symbols_from_addresses_task_t*>(lparam);
-	auto const fn_process_dbg_task = [](main_window& self, idle_task_param_t const param) -> void { self.process_finished_dbg_task(reinterpret_cast<get_symbols_from_addresses_task_t*>(param)); };
-	add_idle_task(fn_process_dbg_task, task);
+	auto const fn_process_finished_dbg_task = [](main_window& self, idle_task_param_t const param) -> void { self.process_finished_dbg_task(reinterpret_cast<get_symbols_from_addresses_task_t*>(param)); };
+	add_idle_task(fn_process_finished_dbg_task, task);
 	return DefWindowProcW(m_hwnd, wm_main_window_take_finished_dbg_task, wparam, lparam);
 }
 
@@ -1259,7 +1260,27 @@ void main_window::request_symbol_traslation(file_info& fi)
 void main_window::process_finished_dbg_task(get_symbols_from_addresses_task_t* const task)
 {
 	assert(task);
-	// TODO: Do actual processing.
+	assert(!m_symbol_tasks.empty());
+	assert(task == m_symbol_tasks.front());
+	std::unique_ptr<get_symbols_from_addresses_task_t> sp_task(task);
+	auto const fn_destroy_task = mk::make_scope_exit([&](){ m_symbol_tasks.pop_front(); });
+	if(task->m_canceled.load() == true)
+	{
+		return;
+	}
+	assert(task->m_export_entries.size() == task->m_symbol_names.size());
+	int const n = static_cast<int>(task->m_export_entries.size());
+	for(int i = 0; i != n; ++i)
+	{
+		if(!task->m_symbol_names[i].empty())
+		{
+			task->m_export_entries[i]->m_debug_name = m_mo.m_mm.m_wstrs.add_string(task->m_symbol_names[i].c_str(), static_cast<int>(task->m_symbol_names[i].size()), m_mo.m_mm.m_alc);
+		}
+		else
+		{
+			task->m_export_entries[i]->m_debug_name = &s_export_name_debug_na;
+		}
+	}
 }
 
 ATOM main_window::g_class = 0;

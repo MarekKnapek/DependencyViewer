@@ -53,6 +53,7 @@ struct pe_export_address_entry
 	string const* m_forwarder;
 	std::uint16_t m_hint;
 	string const* m_name;
+	wstring const* m_debug_name;
 };
 
 struct pe_export_table_info
