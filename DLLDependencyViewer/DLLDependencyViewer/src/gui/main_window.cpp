@@ -680,19 +680,7 @@ void main_window::on_import_getdispinfow(NMHDR& nmhdr)
 			break;
 			case e_import_column::e_hint:
 			{
-				if(import_entry.m_is_ordinal)
-				{
-					nm.item.pszText = const_cast<wchar_t*>(s_import_hint_na);
-				}
-				else
-				{
-					static_assert(sizeof(std::uint16_t) == sizeof(unsigned short int), "");
-					std::array<wchar_t, 32> buff;
-					int const formatted = std::swprintf(buff.data(), buff.size(), L"%hu (0x%04hx)", static_cast<unsigned short int>(import_entry.m_ordinal_or_hint), static_cast<unsigned short int>(import_entry.m_ordinal_or_hint));
-					std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-					tmpstr.assign(buff.data(), buff.data() + formatted);
-					nm.item.pszText = const_cast<wchar_t*>(tmpstr.c_str());
-				}
+				nm.item.pszText = const_cast<wchar_t*>(on_import_get_col_hint(import_entry));
 			}
 			break;
 			case e_import_column::e_name:
@@ -758,6 +746,23 @@ wchar_t const* main_window::on_import_get_col_ordinal(pe_import_entry const& imp
 	else
 	{
 		return s_import_ordinal_na;
+	}
+}
+
+wchar_t const* main_window::on_import_get_col_hint(pe_import_entry const& import_entry)
+{
+	if(import_entry.m_is_ordinal)
+	{
+		return s_import_hint_na;
+	}
+	else
+	{
+		static_assert(sizeof(std::uint16_t) == sizeof(unsigned short int), "");
+		std::array<wchar_t, 32> buff;
+		int const formatted = std::swprintf(buff.data(), buff.size(), L"%hu (0x%04hx)", static_cast<unsigned short int>(import_entry.m_ordinal_or_hint), static_cast<unsigned short int>(import_entry.m_ordinal_or_hint));
+		std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
+		tmpstr.assign(buff.data(), buff.data() + formatted);
+		return tmpstr.c_str();
 	}
 }
 
