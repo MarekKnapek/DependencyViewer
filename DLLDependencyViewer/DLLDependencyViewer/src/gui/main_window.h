@@ -67,6 +67,7 @@ private:
 	void on_export_getdispinfow(NMHDR& nmhdr);
 	wchar_t const* on_export_get_col_type(pe_export_address_entry const& export_entry);
 	wchar_t const* on_export_get_col_ordinal(pe_export_address_entry const& export_entry);
+	wchar_t const* on_export_get_col_hint(pe_export_address_entry const& export_entry);
 	void on_menu_open();
 	void on_menu_exit();
 	void on_toolbar_open();

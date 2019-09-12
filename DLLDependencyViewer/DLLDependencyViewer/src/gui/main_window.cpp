@@ -810,19 +810,7 @@ void main_window::on_export_getdispinfow(NMHDR& nmhdr)
 			break;
 			case e_export_column::e_hint:
 			{
-				if(!export_entry.m_name)
-				{
-					nm.item.pszText = const_cast<wchar_t*>(s_export_hint_na);
-				}
-				else
-				{
-					static_assert(sizeof(std::uint16_t) == sizeof(unsigned short int), "");
-					std::array<wchar_t, 32> buff;
-					int const formatted = std::swprintf(buff.data(), buff.size(), L"%hu (0x%04hx)", static_cast<unsigned short int>(export_entry.m_hint), static_cast<unsigned short int>(export_entry.m_hint));
-					std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-					tmpstr.assign(buff.data(), buff.data() + formatted);
-					nm.item.pszText = const_cast<wchar_t*>(tmpstr.c_str());
-				}
+				nm.item.pszText = const_cast<wchar_t*>(on_export_get_col_hint(export_entry));
 			}
 			break;
 			case e_export_column::e_name:
@@ -889,6 +877,23 @@ wchar_t const* main_window::on_export_get_col_ordinal(pe_export_address_entry co
 	std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
 	tmpstr.assign(buff.data(), buff.data() + formatted);
 	return tmpstr.c_str();
+}
+
+wchar_t const* main_window::on_export_get_col_hint(pe_export_address_entry const& export_entry)
+{
+	if(!export_entry.m_name)
+	{
+		return s_export_hint_na;
+	}
+	else
+	{
+		static_assert(sizeof(std::uint16_t) == sizeof(unsigned short int), "");
+		std::array<wchar_t, 32> buff;
+		int const formatted = std::swprintf(buff.data(), buff.size(), L"%hu (0x%04hx)", static_cast<unsigned short int>(export_entry.m_hint), static_cast<unsigned short int>(export_entry.m_hint));
+		std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
+		tmpstr.assign(buff.data(), buff.data() + formatted);
+		return tmpstr.c_str();
+	}
 }
 
 void main_window::on_menu_open()
