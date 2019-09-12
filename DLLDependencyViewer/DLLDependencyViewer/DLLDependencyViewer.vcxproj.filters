@@ -231,6 +231,9 @@
     <ClInclude Include="src\nogui\scope_exit.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
+    <ClInclude Include="src\nogui\smart_reg_key.h">
+      <Filter>src\nogui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\main.cpp">
@@ -330,6 +333,9 @@
       <Filter>src\nogui\pe</Filter>
     </ClCompile>
     <ClCompile Include="src\nogui\smart_local_free.cpp">
+      <Filter>src\nogui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nogui\smart_reg_key.cpp">
       <Filter>src\nogui</Filter>
     </ClCompile>
   </ItemGroup>

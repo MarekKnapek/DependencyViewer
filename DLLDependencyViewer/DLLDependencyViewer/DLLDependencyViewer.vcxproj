@@ -216,6 +216,7 @@
     <ClInclude Include="src\nogui\smart_handle.h" />
     <ClInclude Include="src\nogui\smart_library.h" />
     <ClInclude Include="src\nogui\smart_local_free.h" />
+    <ClInclude Include="src\nogui\smart_reg_key.h" />
     <ClInclude Include="src\nogui\unicode.h" />
     <ClInclude Include="src\nogui\unique_strings.h" />
     <ClInclude Include="src\nogui\utils.h" />
@@ -252,6 +253,7 @@
     <ClCompile Include="src\nogui\smart_handle.cpp" />
     <ClCompile Include="src\nogui\smart_library.cpp" />
     <ClCompile Include="src\nogui\smart_local_free.cpp" />
+    <ClCompile Include="src\nogui\smart_reg_key.cpp" />
     <ClCompile Include="src\nogui\unicode.cpp" />
     <ClCompile Include="src\nogui\unique_strings.cpp" />
     <ClCompile Include="src\nogui\utils.cpp" />
