@@ -5,6 +5,8 @@
 #include "test.h"
 
 #include "../nogui/activation_context.h"
+#include "../nogui/dbg.h"
+#include "../nogui/scope_exit.h"
 
 #include <cassert>
 
@@ -17,6 +19,9 @@ static HINSTANCE g_instance;
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
 	test();
+	dbg_start();
+	auto const fn_dbg_stop = mk::make_scope_exit([](){ dbg_stop(); });
+	auto const fn_clean_actctx = mk::make_scope_exit([](){ activation_context::free_system_default_manifests(); });
 	g_instance = hInstance;
 	InitCommonControls();
 	splitter_window_hor::register_class();
@@ -56,7 +61,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 		LRESULT const dispatched = DispatchMessageW(&msg);
 	}
 	message_loop_end:;
-	activation_context::free_system_default_manifests();
 	return ret;
 }
 
