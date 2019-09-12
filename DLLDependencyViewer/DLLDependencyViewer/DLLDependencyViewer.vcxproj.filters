@@ -237,6 +237,9 @@
     <ClInclude Include="src\nogui\thread_worker.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
+    <ClInclude Include="src\nogui\dbghelp.h">
+      <Filter>src\nogui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\main.cpp">
@@ -342,6 +345,9 @@
       <Filter>src\nogui</Filter>
     </ClCompile>
     <ClCompile Include="src\nogui\thread_worker.cpp">
+      <Filter>src\nogui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nogui\dbghelp.cpp">
       <Filter>src\nogui</Filter>
     </ClCompile>
   </ItemGroup>
