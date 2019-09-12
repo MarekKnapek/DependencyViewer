@@ -945,6 +945,8 @@ void main_window::open_file(wchar_t const* const file_path)
 
 void main_window::refresh(main_type&& mo)
 {
+	m_mo = std::move(mo);
+
 	LRESULT const redr_off_1 = SendMessageW(m_tree, WM_SETREDRAW, FALSE, 0);
 	LRESULT const redr_off_2 = SendMessageW(m_import_list, WM_SETREDRAW, FALSE, 0);
 	LRESULT const redr_off_3 = SendMessageW(m_export_list, WM_SETREDRAW, FALSE, 0);
@@ -953,33 +955,11 @@ void main_window::refresh(main_type&& mo)
 	LRESULT const deleted_2 = SendMessageW(m_import_list, LVM_DELETEALLITEMS, 0, 0);
 	LRESULT const deleted_3 = SendMessageW(m_export_list, LVM_DELETEALLITEMS, 0, 0);
 
-	m_mo = std::move(mo);
-
 	assert(m_mo.m_fi.m_sub_file_infos.size() == 1);
-	file_info& fi = m_mo.m_fi.m_sub_file_infos[0];
-	TVINSERTSTRUCTW tvi;
-	tvi.hParent = TVI_ROOT;
-	tvi.hInsertAfter = TVI_ROOT;
-	tvi.itemex.mask = TVIF_TEXT | TVIF_IMAGE | TVIF_PARAM | TVIF_SELECTEDIMAGE;
-	tvi.itemex.hItem = nullptr;
-	tvi.itemex.state = 0;
-	tvi.itemex.stateMask = 0;
-	tvi.itemex.pszText = LPSTR_TEXTCALLBACKW;
-	tvi.itemex.cchTextMax = 0;
-	tvi.itemex.iImage = I_IMAGECALLBACK;
-	tvi.itemex.iSelectedImage = I_IMAGECALLBACK;
-	tvi.itemex.cChildren = 0;
-	tvi.itemex.lParam = reinterpret_cast<LPARAM>(&fi);
-	tvi.itemex.iIntegral = 0;
-	tvi.itemex.uStateEx = 0;
-	tvi.itemex.hwnd = nullptr;
-	tvi.itemex.iExpandedImage = 0;
-	tvi.itemex.iReserved = 0;
-	HTREEITEM const hroot = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_INSERTITEMW, 0, reinterpret_cast<LPARAM>(&tvi)));
-	fi.m_tree_item = hroot;
-	refresh_view_recursive(fi, hroot);
-	LRESULT const expanded = SendMessageW(m_tree, TVM_EXPAND, TVE_EXPAND, reinterpret_cast<LPARAM>(hroot));
-	LRESULT const selected = SendMessageW(m_tree, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(hroot));
+	refresh_view_recursive(m_mo.m_fi, TVI_ROOT);
+
+	LRESULT const expanded = SendMessageW(m_tree, TVM_EXPAND, TVE_EXPAND, reinterpret_cast<LPARAM>(m_mo.m_fi.m_sub_file_infos[0].m_tree_item));
+	LRESULT const selected = SendMessageW(m_tree, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(m_mo.m_fi.m_sub_file_infos[0].m_tree_item));
 
 	LRESULT const redr_on_1 = SendMessageW(m_tree, WM_SETREDRAW, TRUE, 0);
 	LRESULT const redr_on_2 = SendMessageW(m_import_list, WM_SETREDRAW, TRUE, 0);
