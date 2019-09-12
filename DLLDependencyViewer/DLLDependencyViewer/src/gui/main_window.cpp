@@ -7,6 +7,7 @@
 #include "../nogui/dbg_provider.h"
 #include "../nogui/memory_mapped_file.h"
 #include "../nogui/pe.h"
+#include "../nogui/scope_exit.h"
 #include "../nogui/smart_local_free.h"
 #include "../nogui/utils.h"
 
@@ -281,6 +282,11 @@ LRESULT main_window::on_message(UINT msg, WPARAM wparam, LPARAM lparam)
 			return on_wm_main_window_process_on_idle(wparam, lparam);
 		}
 		break;
+		case wm_main_window_take_finished_dbg_task:
+		{
+			return on_wm_main_window_take_finished_dbg_task(wparam, lparam);
+		}
+		break;
 		default:
 		{
 			return DefWindowProcW(m_hwnd, msg, wparam, lparam);
@@ -385,6 +391,15 @@ LRESULT main_window::on_wm_main_window_process_on_idle(WPARAM wparam, LPARAM lpa
 {
 	on_idle();
 	return DefWindowProcW(m_hwnd, wm_main_window_process_on_idle, wparam, lparam);
+}
+
+LRESULT main_window::on_wm_main_window_take_finished_dbg_task(WPARAM wparam, LPARAM lparam)
+{
+	assert(lparam != 0);
+	get_symbols_from_addresses_task_t* const task = reinterpret_cast<get_symbols_from_addresses_task_t*>(lparam);
+	auto const fn_process_dbg_task = [](main_window& self, idle_task_param_t const param) -> void { self.process_finished_dbg_task(reinterpret_cast<get_symbols_from_addresses_task_t*>(param)); };
+	add_idle_task(fn_process_dbg_task, task);
+	return DefWindowProcW(m_hwnd, wm_main_window_take_finished_dbg_task, wparam, lparam);
 }
 
 LRESULT main_window::on_menu(WPARAM wparam, LPARAM lparam)
@@ -1207,6 +1222,7 @@ void main_window::process_command_line()
 void dbg_task_callback_1(get_symbols_from_addresses_task_t* const task)
 {
 	assert(task);
+	LRESULT const sent = SendMessageW(reinterpret_cast<HWND>(task->m_hwnd), wm_main_window_take_finished_dbg_task, 0, reinterpret_cast<LPARAM>(task));
 }
 
 void main_window::request_symbol_traslation(file_info& fi)
@@ -1238,6 +1254,12 @@ void main_window::request_symbol_traslation(file_info& fi)
 	get_symbols_from_addresses_task_t* const task_ptr = task.release();
 	m_symbol_tasks.push_back(task_ptr);
 	dbg_get_symbols_from_addresses(task_ptr);
+}
+
+void main_window::process_finished_dbg_task(get_symbols_from_addresses_task_t* const task)
+{
+	assert(task);
+	// TODO: Do actual processing.
 }
 
 ATOM main_window::g_class = 0;

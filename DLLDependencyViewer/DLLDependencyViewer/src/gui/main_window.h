@@ -24,6 +24,7 @@ struct get_symbols_from_addresses_task_t;
 
 #define wm_main_window_add_idle_task (WM_USER + 0)
 #define wm_main_window_process_on_idle (WM_USER + 1)
+#define wm_main_window_take_finished_dbg_task (WM_USER + 2)
 
 
 class main_window
@@ -53,6 +54,7 @@ private:
 	LRESULT on_wm_dropfiles(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_main_window_add_idle_task(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_main_window_process_on_idle(WPARAM wparam, LPARAM lparam);
+	LRESULT on_wm_main_window_take_finished_dbg_task(WPARAM wparam, LPARAM lparam);
 	LRESULT on_menu(WPARAM wparam, LPARAM lparam);
 	LRESULT on_toolbar(WPARAM wparam, LPARAM lparam);
 	void on_tree_notify(NMHDR& nmhdr);
@@ -87,6 +89,7 @@ private:
 	void on_idle();
 	void process_command_line();
 	void request_symbol_traslation(file_info& fi);
+	void process_finished_dbg_task(get_symbols_from_addresses_task_t* const task);
 private:
 	static ATOM g_class;
 private:
