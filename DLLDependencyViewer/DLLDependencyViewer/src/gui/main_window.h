@@ -46,6 +46,7 @@ private:
 	LRESULT on_message(UINT msg, WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_destroy(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_size(WPARAM wparam, LPARAM lparam);
+	LRESULT on_wm_close(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_notify(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_command(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_dropfiles(WPARAM wparam, LPARAM lparam);

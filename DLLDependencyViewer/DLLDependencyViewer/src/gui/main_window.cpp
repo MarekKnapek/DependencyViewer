@@ -175,6 +175,7 @@ main_window::main_window() :
 
 main_window::~main_window()
 {
+	assert(m_idle_tasks.empty());
 }
 
 HWND main_window::get_hwnd() const
@@ -247,6 +248,11 @@ LRESULT main_window::on_message(UINT msg, WPARAM wparam, LPARAM lparam)
 			return on_wm_size(wparam, lparam);
 		}
 		break;
+		case WM_CLOSE:
+		{
+			return on_wm_close(wparam, lparam);
+		}
+		break;
 		case WM_NOTIFY:
 		{
 			return on_wm_notify(wparam, lparam);
@@ -298,6 +304,16 @@ LRESULT main_window::on_wm_size(WPARAM wparam, LPARAM lparam)
 	assert(toolbar_rect.top == 0);
 	BOOL const moved = MoveWindow(m_splitter_hor.get_hwnd(), 0, 0 + toolbar_rect.bottom, w, h - toolbar_rect.bottom, TRUE);
 	return DefWindowProcW(m_hwnd, WM_SIZE, wparam, lparam);
+}
+
+LRESULT main_window::on_wm_close(WPARAM wparam, LPARAM lparam)
+{
+	if(!m_idle_tasks.empty())
+	{
+		MessageBoxW(m_hwnd, L"Please wait for background tasks to finish.", L"Could not close.", MB_OK);
+		return 0;
+	}
+	return DefWindowProcW(m_hwnd, WM_CLOSE, wparam, lparam);
 }
 
 LRESULT main_window::on_wm_notify(WPARAM wparam, LPARAM lparam)
