@@ -670,14 +670,7 @@ void main_window::on_import_getdispinfow(NMHDR& nmhdr)
 		{
 			case e_import_column::e_type:
 			{
-				if(import_entry.m_is_ordinal)
-				{
-					nm.item.pszText = const_cast<wchar_t*>(s_import_type_true);
-				}
-				else
-				{
-					nm.item.pszText = const_cast<wchar_t*>(s_import_type_false);
-				}
+				nm.item.pszText = const_cast<wchar_t*>(on_import_get_col_type(import_entry));
 			}
 			break;
 			case e_import_column::e_ordinal:
@@ -748,6 +741,18 @@ void main_window::on_import_getdispinfow(NMHDR& nmhdr)
 			}
 			break;
 		}
+	}
+}
+
+wchar_t const* main_window::on_import_get_col_type(pe_import_entry const& import_entry)
+{
+	if(import_entry.m_is_ordinal)
+	{
+		return s_import_type_true;
+	}
+	else
+	{
+		return s_import_type_false;
 	}
 }
 
