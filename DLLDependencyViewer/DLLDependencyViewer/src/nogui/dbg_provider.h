@@ -27,7 +27,7 @@ struct get_symbols_from_addresses_task_t
 	std::vector<pe_export_address_entry*> m_export_entries;
 	std::vector<std::wstring> m_symbol_names;
 	std::atomic<callback_function_t> m_callback_function;
-	void* m_hwnd;
+	void* m_hwnd = nullptr;
 };
 
 
