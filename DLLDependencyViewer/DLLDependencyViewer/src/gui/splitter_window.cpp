@@ -114,10 +114,11 @@ LRESULT splitter_window<orientation>::on_message(UINT msg, WPARAM wparam, LPARAM
 template<splitter_window_orientation orientation>
 LRESULT splitter_window<orientation>::on_wm_destroy(WPARAM wparam, LPARAM lparam)
 {
+	HWND const old_hwnd = m_hwnd;
 	LONG_PTR const set = SetWindowLongPtrW(m_hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(nullptr));
 	m_hwnd = nullptr;
 
-	return DefWindowProcW(m_hwnd, WM_DESTROY, wparam, lparam);
+	return DefWindowProcW(old_hwnd, WM_DESTROY, wparam, lparam);
 }
 
 template<>
