@@ -323,7 +323,7 @@ bool manifest_parser_impl::find_element(wchar_t const* const& element_to_find, i
 		wchar_t const* xmlns;
 		UINT xmlns_len;
 		HRESULT const got_xmlns = xml_reader.GetNamespaceUri(&xmlns, &xmlns_len);
-		WARN_M_R(got_xmlns == S_OK, L"Failed to IXmlReader::GetNamespaceUri.", false);
+		WARN_M_R(got_xmlns == S_OK && xmlns != nullptr, L"Failed to IXmlReader::GetNamespaceUri.", false);
 		if(xmlns_len != xmlns_to_find_len)
 		{
 			continue;
