@@ -301,12 +301,13 @@ LRESULT main_window::on_message(UINT msg, WPARAM wparam, LPARAM lparam)
 
 LRESULT main_window::on_wm_destroy(WPARAM wparam, LPARAM lparam)
 {
+	HWND const old_hwnd = m_hwnd;
 	LONG_PTR const set = SetWindowLongPtrW(m_hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(nullptr));
 	m_hwnd = nullptr;
 
 	PostQuitMessage(EXIT_SUCCESS);
 
-	return DefWindowProcW(m_hwnd, WM_DESTROY, wparam, lparam);
+	return DefWindowProcW(old_hwnd, WM_DESTROY, wparam, lparam);
 }
 
 LRESULT main_window::on_wm_size(WPARAM wparam, LPARAM lparam)
