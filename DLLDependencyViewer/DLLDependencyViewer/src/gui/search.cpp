@@ -28,7 +28,7 @@ void search(searcher& sch, string const* const& dll_name)
 	std::wstring& tmpw = sch.m_mo->m_tmpw;
 	fs::path& tmpp = sch.m_mo->m_tmpp;
 
-	std::array<wchar_t, 32 * 1024> buff;
+	auto const buff = std::make_unique<std::array<wchar_t, 32 * 1024>>();
 	tmpw.resize(dll_name->m_len);
 	std::transform(dll_name->m_str, dll_name->m_str + dll_name->m_len, tmpw.begin(), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
 
@@ -47,8 +47,8 @@ void search(searcher& sch, string const* const& dll_name)
 	}
 
 	// The system directory. Use the GetSystemDirectory function to get the path of this directory.
-	UINT const got_sys = GetSystemDirectoryW(buff.data(), static_cast<UINT>(buff.size()));
-	tmpp.assign(buff.data(), buff.data() + got_sys);
+	UINT const got_sys = GetSystemDirectoryW(buff->data(), static_cast<UINT>(buff->size()));
+	tmpp.assign(buff->data(), buff->data() + got_sys);
 	tmpp.append(tmpw);
 	if(fs::exists(tmpp))
 	{
@@ -59,8 +59,8 @@ void search(searcher& sch, string const* const& dll_name)
 	// TODO: 16 bit system.
 
 	// The Windows directory. Use the GetWindowsDirectory function to get the path of this directory.
-	UINT const got_win = GetWindowsDirectoryW(buff.data(), static_cast<UINT>(buff.size()));
-	tmpp.assign(buff.data(), buff.data() + got_win);
+	UINT const got_win = GetWindowsDirectoryW(buff->data(), static_cast<UINT>(buff->size()));
+	tmpp.assign(buff->data(), buff->data() + got_win);
 	tmpp.append(tmpw);
 	if(fs::exists(tmpp))
 	{
@@ -71,10 +71,10 @@ void search(searcher& sch, string const* const& dll_name)
 	// TODO: Current directory.
 
 	// The directories that are listed in the PATH environment variable. Note that this does not include the per-application path specified by the App Paths registry key. The App Paths key is not used when computing the DLL search path.
-	DWORD const got_env = GetEnvironmentVariableW(L"PATH", buff.data(), static_cast<DWORD>(buff.size()));
+	DWORD const got_env = GetEnvironmentVariableW(L"PATH", buff->data(), static_cast<DWORD>(buff->size()));
 	if(got_env != 0)
 	{
-		std::wstring const path_env(buff.data(), buff.data() + got_env);
+		std::wstring const path_env(buff->data(), buff->data() + got_env);
 		std::size_t last = 0;
 		for(;;)
 		{
@@ -107,10 +107,10 @@ void search(searcher& sch, string const* const& dll_name)
 	// Last resort: SearchPath.
 	// TODO: Create and activate activation context for each default system manifest.
 	wchar_t* part;
-	DWORD const len = SearchPathW(nullptr, tmpw.c_str(), nullptr, static_cast<DWORD>(buff.size()), buff.data(), &part);
+	DWORD const len = SearchPathW(nullptr, tmpw.c_str(), nullptr, static_cast<DWORD>(buff->size()), buff->data(), &part);
 	if(len != 0)
 	{
-		tmpw.assign(buff.data(), buff.data() + len);
+		tmpw.assign(buff->data(), buff->data() + len);
 		return;
 	}
 
