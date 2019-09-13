@@ -376,9 +376,9 @@ LRESULT main_window::on_wm_dropfiles(WPARAM wparam, LPARAM lparam)
 	{
 		return DefWindowProcW(m_hwnd, WM_DROPFILES, wparam, lparam);
 	}
-	std::array<wchar_t, 32 * 1024> buff;
-	UINT const queried_2 = DragQueryFileW(hdrop, 0, buff.data(), static_cast<int>(buff.size()));
-	open_file(buff.data());
+	auto const buff = std::make_unique<std::array<wchar_t, 32 * 1024>>();
+	UINT const queried_2 = DragQueryFileW(hdrop, 0, buff->data(), static_cast<int>(buff->size()));
+	open_file(buff->data());
 	return DefWindowProcW(m_hwnd, WM_DROPFILES, wparam, lparam);
 }
 
