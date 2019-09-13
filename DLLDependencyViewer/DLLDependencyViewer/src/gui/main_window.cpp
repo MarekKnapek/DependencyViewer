@@ -989,8 +989,8 @@ void main_window::on_toolbar_full_paths()
 
 void main_window::open()
 {
-	wchar_t buff[32 * 1024];
-	buff[0] = L'\0';
+	auto const buff = std::make_unique<std::array<wchar_t, 32 * 1024>>();
+	(*buff)[0] = L'\0';
 
 	OPENFILENAMEW ofn;
 	ofn.lStructSize = sizeof(ofn);
@@ -1000,8 +1000,8 @@ void main_window::open()
 	ofn.lpstrCustomFilter = nullptr;
 	ofn.nMaxCustFilter = 0;
 	ofn.nFilterIndex = 1;
-	ofn.lpstrFile = buff;
-	ofn.nMaxFile = static_cast<int>(std::size(buff));
+	ofn.lpstrFile = buff->data();
+	ofn.nMaxFile = static_cast<int>(buff->size());
 	ofn.lpstrFileTitle = nullptr;
 	ofn.nMaxFileTitle = 0;
 	ofn.lpstrInitialDir = nullptr;
@@ -1023,7 +1023,7 @@ void main_window::open()
 		return;
 	}
 
-	open_file(buff);
+	open_file(buff->data());
 }
 
 void main_window::open_file(wchar_t const* const file_path)
