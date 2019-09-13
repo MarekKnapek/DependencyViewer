@@ -5,7 +5,7 @@
 #include "../nogui/unique_strings.h"
 
 #include <array>
-#include <experimental/filesystem>
+#include <cassert>
 
 #include <windows.h>
 
@@ -60,6 +60,8 @@ void search(searcher& sch, string const* const& dll_name)
 
 	// The Windows directory. Use the GetWindowsDirectory function to get the path of this directory.
 	UINT const got_win = GetWindowsDirectoryW(buff->data(), static_cast<UINT>(buff->size()));
+	assert(got_win != 0);
+	assert(got_win < buff->size());
 	tmpp.assign(buff->data(), buff->data() + got_win);
 	tmpp.append(tmpw);
 	if(fs::exists(tmpp))
