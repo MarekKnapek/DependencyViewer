@@ -35,7 +35,7 @@ struct pe_import_entry
 
 struct pe_import_dll_with_entries
 {
-	string const* m_dll_name;
+	string const* m_dll_name = nullptr;
 	std::vector<pe_import_entry> m_entries;
 };
 
