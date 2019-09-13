@@ -203,7 +203,7 @@ bool manifest_parser_impl::parse_6()
 	wchar_t const* attribute;
 	UINT attribute_len;
 	HRESULT const got_attribute = xml_reader.GetLocalName(&attribute, &attribute_len);
-	WARN_M_R(got_attribute == S_OK, L"Failed to IXmlReader::GetLocalName.", false);
+	WARN_M_R(got_attribute == S_OK && attribute != nullptr, L"Failed to IXmlReader::GetLocalName.", false);
 	bool found = false;
 	for(int i = 0; i != static_cast<int>(std::size(s_assembly_identity_attribute_lens)); ++i)
 	{
