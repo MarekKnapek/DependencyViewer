@@ -71,22 +71,22 @@ void dbghelp::load_dlls()
 	}
 	auto const sp_installed_roots = make_smart_reg_key(installed_roots);
 	static constexpr wchar_t const* const s_values_to_try[] = {s_windows_10_sdk, s_windows_8_1_sdk, s_windows_8_sdk};
-	std::array<wchar_t, 32 * 1024> buff;
+	auto const buff = std::make_unique<std::array<wchar_t, 32 * 1024>>();
 	DWORD size;
 	for(auto const& value_name : s_values_to_try)
 	{
 		DWORD type;
-		size = static_cast<DWORD>(buff.size() * sizeof(wchar_t));
-		LSTATUS const read =  RegGetValueW(installed_roots, L"", value_name, RRF_RT_REG_SZ, &type, &buff, &size);
+		size = static_cast<DWORD>(buff->size() * sizeof(wchar_t));
+		LSTATUS const read =  RegGetValueW(installed_roots, L"", value_name, RRF_RT_REG_SZ, &type, buff->data(), &size);
 		if(read != ERROR_SUCCESS)
 		{
 			continue;
 		}
-		assert(size <= buff.size() * sizeof(wchar_t));
+		assert(size <= buff->size() * sizeof(wchar_t));
 		assert(size >= 2 * sizeof(wchar_t));
 		assert(size % sizeof(wchar_t) == 0);
-		assert(buff[(size / sizeof(wchar_t)) - 1] == L'\0');
-		auto p = std::experimental::filesystem::path(buff.data(), buff.data() + (size / sizeof(wchar_t)) - 1).append(s_debuggers_sub_directory).append(s_dbghelp_file_name);
+		assert((*buff)[(size / sizeof(wchar_t)) - 1] == L'\0');
+		auto p = std::experimental::filesystem::path(buff->data(), buff->data() + (size / sizeof(wchar_t)) - 1).append(s_debuggers_sub_directory).append(s_dbghelp_file_name);
 		m_dbghelp_dll = load_library(p.c_str());
 		if(!m_dbghelp_dll)
 		{
