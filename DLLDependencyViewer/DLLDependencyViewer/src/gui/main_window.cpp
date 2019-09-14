@@ -1261,7 +1261,7 @@ void main_window::request_symbol_traslation(file_info& fi)
 	}
 	auto task = std::make_unique<get_symbols_from_addresses_task_t>();
 	task->m_canceled.store(false);
-	task->m_module_path = fi.m_file_path;
+	task->m_module_path.assign(fi.m_file_path->m_str, fi.m_file_path->m_len);
 	task->m_addresses.resize(n);
 	task->m_export_entries.resize(n);
 	int i = 0;
