@@ -948,7 +948,7 @@ wchar_t const* main_window::on_export_get_col_address(pe_export_address_entry co
 	{
 		static_assert(sizeof(std::uint32_t) == sizeof(unsigned int), "");
 		std::array<wchar_t, 32> buff;
-		int const formatted = std::swprintf(buff.data(), buff.size(), L"0x%08x", static_cast<unsigned int>(export_entry.m_rva));
+		int const formatted = std::swprintf(buff.data(), buff.size(), L"0x%08x", static_cast<unsigned int>(export_entry.rva_or_forwarder.m_rva));
 		std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
 		tmpstr.assign(buff.data(), buff.data() + formatted);
 		return tmpstr.c_str();
@@ -956,8 +956,8 @@ wchar_t const* main_window::on_export_get_col_address(pe_export_address_entry co
 	else
 	{
 		std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-		tmpstr.resize(export_entry.m_forwarder->m_len);
-		std::transform(cbegin(export_entry.m_forwarder), cend(export_entry.m_forwarder), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
+		tmpstr.resize(export_entry.rva_or_forwarder.m_forwarder->m_len);
+		std::transform(cbegin(export_entry.rva_or_forwarder.m_forwarder), cend(export_entry.rva_or_forwarder.m_forwarder), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
 		return tmpstr.c_str();
 	}
 }
@@ -1271,7 +1271,7 @@ void main_window::request_symbol_traslation(file_info& fi)
 		{
 			continue;
 		}
-		task->m_addresses[i] = e.m_rva;
+		task->m_addresses[i] = e.rva_or_forwarder.m_rva;
 		task->m_export_entries[i] = &e;
 		++i;
 	}

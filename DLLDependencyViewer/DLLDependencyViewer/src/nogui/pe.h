@@ -47,13 +47,16 @@ struct pe_import_table_info
 
 struct pe_export_address_entry
 {
-	bool m_is_rva;
-	std::uint32_t m_ordinal;
-	std::uint32_t m_rva;
-	string const* m_forwarder;
-	std::uint16_t m_hint;
 	string const* m_name;
 	wstring const* m_debug_name;
+	union rva_or_forwarder_t
+	{
+		string const* m_forwarder;
+		std::uint32_t m_rva;
+	} rva_or_forwarder;
+	std::uint32_t m_ordinal;
+	std::uint16_t m_hint;
+	bool m_is_rva;
 };
 
 struct pe_export_table_info

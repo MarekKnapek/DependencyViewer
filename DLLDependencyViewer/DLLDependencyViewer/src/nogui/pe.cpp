@@ -360,16 +360,16 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 			VERIFY(is_ascii(forwarder_name, forwarder_name_len));
 			VERIFY(std::find(forwarder_name, forwarder_name_end, '.') != forwarder_name_end);
 			ret.m_export_address_table[j].m_is_rva = false;
+			ret.m_export_address_table[j].rva_or_forwarder.m_forwarder = mm.m_strs.add_string(forwarder_name, forwarder_name_len, mm.m_alc);
 			ret.m_export_address_table[j].m_ordinal = ordinal;
-			ret.m_export_address_table[j].m_rva = 0;
-			ret.m_export_address_table[j].m_forwarder = mm.m_strs.add_string(forwarder_name, forwarder_name_len, mm.m_alc);
+			ret.m_export_address_table[j].m_debug_name = nullptr;
 		}
 		else
 		{
 			ret.m_export_address_table[j].m_is_rva = true;
+			ret.m_export_address_table[j].rva_or_forwarder.m_rva = export_rva;
 			ret.m_export_address_table[j].m_ordinal = ordinal;
-			ret.m_export_address_table[j].m_rva = export_rva;
-			ret.m_export_address_table[j].m_forwarder = nullptr;
+			ret.m_export_address_table[j].m_debug_name = nullptr;
 		}
 		if(export_address_name)
 		{
