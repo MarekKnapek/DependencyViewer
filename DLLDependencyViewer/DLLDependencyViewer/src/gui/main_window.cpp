@@ -116,7 +116,7 @@ void main_window::register_class()
 void main_window::create_accel_table()
 {
 	assert(!g_accel);
-	HACCEL const haccel = CreateAcceleratorTableW(const_cast<ACCEL*>(s_accel_table), std::size(s_accel_table));
+	HACCEL const haccel = CreateAcceleratorTableW(const_cast<ACCEL*>(s_accel_table), static_cast<int>(std::size(s_accel_table)));
 	assert(haccel != nullptr);
 	g_accel = haccel;
 }
