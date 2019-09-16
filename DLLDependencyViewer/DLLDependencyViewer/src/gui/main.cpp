@@ -27,6 +27,8 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	splitter_window_hor::register_class();
 	splitter_window_ver::register_class();
 	main_window::register_class();
+	main_window::create_accel_table();
+	auto const fn_destroy_main_accel_table = mk::make_scope_exit([](){ main_window::destroy_accel_table(); });
 	main_window mw;
 	BOOL const shown = ShowWindow(mw.get_hwnd(), nCmdShow);
 	BOOL const updated = UpdateWindow(mw.get_hwnd());
@@ -41,8 +43,12 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 				ret = static_cast<int>(msg.wParam);
 				goto message_loop_end;
 			}
-			BOOL const translated = TranslateMessage(&msg);
-			LRESULT const dispatched = DispatchMessageW(&msg);
+			int const acc_transated = TranslateAcceleratorW(mw.get_hwnd(), mw.get_accell_table(), &msg);
+			if(acc_transated == 0)
+			{
+				BOOL const translated = TranslateMessage(&msg);
+				LRESULT const dispatched = DispatchMessageW(&msg);
+			}
 		}
 		LRESULT const sent = SendMessageW(mw.get_hwnd(), wm_main_window_process_on_idle, 0, 0);
 		BOOL const got_msg = GetMessageW(&msg, nullptr, 0, 0);
@@ -57,8 +63,12 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 			ret = 1;
 			break;
 		}
-		BOOL const translated = TranslateMessage(&msg);
-		LRESULT const dispatched = DispatchMessageW(&msg);
+		int const acc_transated = TranslateAcceleratorW(mw.get_hwnd(), mw.get_accell_table(), &msg);
+		if(acc_transated == 0)
+		{
+			BOOL const translated = TranslateMessage(&msg);
+			LRESULT const dispatched = DispatchMessageW(&msg);
+		}
 	}
 	message_loop_end:;
 	return ret;

@@ -31,6 +31,9 @@ class main_window
 {
 public:
 	static void register_class();
+	static void create_accel_table();
+	static HACCEL get_accell_table();
+	static void destroy_accel_table();
 public:
 	main_window();
 	main_window(main_window const&) = delete;
@@ -56,6 +59,7 @@ private:
 	LRESULT on_wm_main_window_process_on_idle(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_main_window_take_finished_dbg_task(WPARAM wparam, LPARAM lparam);
 	LRESULT on_menu(WPARAM wparam, LPARAM lparam);
+	LRESULT on_accelerator(WPARAM wparam, LPARAM lparam);
 	LRESULT on_toolbar(WPARAM wparam, LPARAM lparam);
 	void on_tree_notify(NMHDR& nmhdr);
 	void on_tree_getdispinfow(NMHDR& nmhdr);
@@ -76,6 +80,8 @@ private:
 	wchar_t const* on_export_get_col_address(pe_export_address_entry const& export_entry);
 	void on_menu_open();
 	void on_menu_exit();
+	void on_accel_open();
+	void on_accel_exit();
 	void on_toolbar_open();
 	void on_toolbar_full_paths();
 	void open();
@@ -93,6 +99,7 @@ private:
 	void process_finished_dbg_task(get_symbols_from_addresses_task_t* const task);
 private:
 	static ATOM g_class;
+	static HACCEL g_accel;
 private:
 	HWND m_hwnd;
 	HWND m_toolbar;

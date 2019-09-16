@@ -26,8 +26,8 @@
 static constexpr wchar_t const s_window_class_name[] = L"main_window";
 static constexpr wchar_t const s_window_title[] = L"DLLDependencyViewer";
 static constexpr wchar_t const s_menu_file[] = L"&File";
-static constexpr wchar_t const s_menu_open[] = L"&Open...";
-static constexpr wchar_t const s_menu_exit[] = L"E&xit";
+static constexpr wchar_t const s_menu_open[] = L"&Open...\tCtrl+O";
+static constexpr wchar_t const s_menu_exit[] = L"E&xit\tCtrl+W";
 static constexpr wchar_t const s_open_file_dialog_file_name_filter[] = L"Executable files and libraries (*.exe;*.dll;*.ocx)\0*.exe;*.dll;*.ocx\0All files\0*.*\0";
 static constexpr wchar_t const s_msg_error[] = L"DLLDependencyViewer error.";
 static constexpr wchar_t const* const s_import_headers[] = { L"type", L"ordinal", L"hint", L"name" };
@@ -50,6 +50,9 @@ static constexpr int const s_import_list = 1001;
 static constexpr int const s_export_list = 1002;
 static constexpr int const s_toolbar_open = 3000;
 static constexpr int const s_toolbar_full_paths = 3004;
+static constexpr int const s_accel_open = 4001;
+static constexpr int const s_accel_exit = 4002;
+static constexpr ACCEL const s_accel_table[] = {{FVIRTKEY | FCONTROL, 'O', s_accel_open}, {FVIRTKEY | FCONTROL, 'W', s_accel_exit}};
 
 
 static int g_import_type_column_max_width = 0;
@@ -107,6 +110,28 @@ void main_window::register_class()
 	ATOM const klass = RegisterClassExW(&wc);
 
 	g_class = klass;
+}
+
+void main_window::create_accel_table()
+{
+	assert(!g_accel);
+	HACCEL const haccel = CreateAcceleratorTableW(const_cast<ACCEL*>(s_accel_table), std::size(s_accel_table));
+	assert(haccel != nullptr);
+	g_accel = haccel;
+}
+
+HACCEL main_window::get_accell_table()
+{
+	assert(g_accel);
+	return g_accel;
+}
+
+void main_window::destroy_accel_table()
+{
+	assert(g_accel);
+	BOOL const destroyed = DestroyAcceleratorTable(g_accel);
+	assert(destroyed != 0);
+	g_accel = nullptr;
 }
 
 main_window::main_window() :
@@ -358,6 +383,10 @@ LRESULT main_window::on_wm_command(WPARAM wparam, LPARAM lparam)
 	{
 		return on_menu(wparam, lparam);
 	}
+	else if(HIWORD(wparam) == 1 && lparam == 0)
+	{
+		return on_accelerator(wparam, lparam);
+	}
 	else if(reinterpret_cast<HWND>(lparam) == m_toolbar)
 	{
 		return on_toolbar(wparam, lparam);
@@ -420,6 +449,25 @@ LRESULT main_window::on_menu(WPARAM wparam, LPARAM lparam)
 		case s_menu_exit_id:
 		{
 			on_menu_exit();
+		}
+		break;
+	}
+	return DefWindowProcW(m_hwnd, WM_COMMAND, wparam, lparam);
+}
+
+LRESULT main_window::on_accelerator(WPARAM wparam, LPARAM lparam)
+{
+	int const accel_id = LOWORD(wparam);
+	switch(accel_id)
+	{
+		case s_accel_open:
+		{
+			on_accel_open();
+		}
+		break;
+		case s_accel_exit:
+		{
+			on_accel_exit();
 		}
 		break;
 	}
@@ -969,7 +1017,17 @@ void main_window::on_menu_open()
 
 void main_window::on_menu_exit()
 {
-	PostQuitMessage(EXIT_SUCCESS);
+	LRESULT const sent = SendMessageW(m_hwnd, WM_CLOSE, 0, 0);
+}
+
+void main_window::on_accel_open()
+{
+	open();
+}
+
+void main_window::on_accel_exit()
+{
+	LRESULT const sent = SendMessageW(m_hwnd, WM_CLOSE, 0, 0);
 }
 
 void main_window::on_toolbar_open()
@@ -1335,3 +1393,4 @@ void main_window::process_finished_dbg_task(get_symbols_from_addresses_task_t* c
 }
 
 ATOM main_window::g_class = 0;
+HACCEL main_window::g_accel = nullptr;
