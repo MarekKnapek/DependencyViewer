@@ -406,9 +406,14 @@ LRESULT main_window::on_wm_dropfiles(WPARAM wparam, LPARAM lparam)
 	{
 		return DefWindowProcW(m_hwnd, WM_DROPFILES, wparam, lparam);
 	}
-	auto const buff = std::make_unique<std::array<wchar_t, 32 * 1024>>();
+	auto buff = std::make_unique<std::array<wchar_t, 32 * 1024>>();
 	UINT const queried_2 = DragQueryFileW(hdrop, 0, buff->data(), static_cast<int>(buff->size()));
-	open_file(buff->data());
+	add_idle_task([](main_window& self, idle_task_param_t const param)
+	{
+		assert(param);
+		std::unique_ptr<std::array<wchar_t, 32 * 1024>> const buff(reinterpret_cast<std::array<wchar_t, 32 * 1024>*>(param));
+		self.open_file(buff->data());
+	}, buff.release());
 	return DefWindowProcW(m_hwnd, WM_DROPFILES, wparam, lparam);
 }
 
