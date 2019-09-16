@@ -82,12 +82,14 @@ private:
 	void on_menu_exit();
 	void on_accel_open();
 	void on_accel_exit();
+	void on_accel_paths();
 	void on_toolbar_open();
 	void on_toolbar_full_paths();
 	void open();
 	void open_file(wchar_t const* const file_path);
 	void refresh(main_type&& mo);
 	void refresh_view_recursive(file_info& parent_fi, HTREEITEM const& parent_ti);
+	void full_paths();
 	int get_import_type_column_max_width();
 	int get_export_type_column_max_width();
 	int get_twobyte_column_max_width();

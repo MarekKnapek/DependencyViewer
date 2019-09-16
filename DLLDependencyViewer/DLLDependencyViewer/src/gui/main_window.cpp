@@ -52,7 +52,8 @@ static constexpr int const s_toolbar_open = 3000;
 static constexpr int const s_toolbar_full_paths = 3004;
 static constexpr int const s_accel_open = 4001;
 static constexpr int const s_accel_exit = 4002;
-static constexpr ACCEL const s_accel_table[] = {{FVIRTKEY | FCONTROL, 'O', s_accel_open}, {FVIRTKEY | FCONTROL, 'W', s_accel_exit}};
+static constexpr int const s_accel_paths = 4003;
+static constexpr ACCEL const s_accel_table[] = {{FVIRTKEY | FCONTROL, 'O', s_accel_open}, {FVIRTKEY | FCONTROL, 'W', s_accel_exit}, {FVIRTKEY, VK_F9, s_accel_paths}};
 
 
 static int g_import_type_column_max_width = 0;
@@ -468,6 +469,11 @@ LRESULT main_window::on_accelerator(WPARAM wparam, LPARAM lparam)
 		case s_accel_exit:
 		{
 			on_accel_exit();
+		}
+		break;
+		case s_accel_paths:
+		{
+			on_accel_paths();
 		}
 		break;
 	}
@@ -1030,6 +1036,11 @@ void main_window::on_accel_exit()
 	LRESULT const sent = SendMessageW(m_hwnd, WM_CLOSE, 0, 0);
 }
 
+void main_window::on_accel_paths()
+{
+	full_paths();
+}
+
 void main_window::on_toolbar_open()
 {
 	open();
@@ -1037,12 +1048,7 @@ void main_window::on_toolbar_open()
 
 void main_window::on_toolbar_full_paths()
 {
-	m_full_paths = !m_full_paths;
-	LRESULT const state_set = SendMessageW(m_toolbar, TB_SETSTATE, s_toolbar_full_paths, (m_full_paths ? TBSTATE_PRESSED : 0) | TBSTATE_ENABLED);
-	assert(state_set == TRUE);
-
-	BOOL const tree_invalidated = InvalidateRect(m_tree, nullptr, TRUE);
-	assert(tree_invalidated != 0);
+	full_paths();
 }
 
 void main_window::open()
@@ -1150,6 +1156,16 @@ void main_window::refresh_view_recursive(file_info& parent_fi, HTREEITEM const& 
 		request_symbol_traslation(fi);
 		refresh_view_recursive(fi, ti);
 	}
+}
+
+void main_window::full_paths()
+{
+	m_full_paths = !m_full_paths;
+	LRESULT const state_set = SendMessageW(m_toolbar, TB_SETSTATE, s_toolbar_full_paths, (m_full_paths ? TBSTATE_PRESSED : 0) | TBSTATE_ENABLED);
+	assert(state_set == TRUE);
+
+	BOOL const tree_invalidated = InvalidateRect(m_tree, nullptr, TRUE);
+	assert(tree_invalidated != 0);
 }
 
 int main_window::get_import_type_column_max_width()
