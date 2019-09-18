@@ -145,8 +145,12 @@ main_window::main_window() :
 	m_export_list(CreateWindowExW(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE, WC_LISTVIEWW, nullptr, WS_VISIBLE | WS_CHILD | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA, 0, 0, 0, 0, m_splitter_ver.get_hwnd(), reinterpret_cast<HMENU>(static_cast<std::uintptr_t>(s_export_list)), get_instance(), nullptr)),
 	m_idle_tasks(),
 	m_symbol_tasks(),
-	m_tmp_strings(),
-	m_tmp_string_idx(),
+	m_tree_tmp_strings(),
+	m_import_tmp_strings(),
+	m_export_tmp_strings(),
+	m_tree_tmp_string_idx(),
+	m_import_tmp_string_idx(),
+	m_export_tmp_string_idx(),
 	m_mo(),
 	m_full_paths(false)
 {
@@ -556,7 +560,7 @@ void main_window::on_tree_getdispinfow(NMHDR& nmhdr)
 			{
 				int const idx = static_cast<int>(&tmp_fi - parent_fi->m_sub_file_infos.data());
 				string const& my_name = *parent_fi->m_import_table.m_dlls[idx].m_dll_name;
-				std::wstring& tmp = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
+				std::wstring& tmp = m_tree_tmp_strings[m_tree_tmp_string_idx++ % m_tree_tmp_strings.size()];
 				tmp.resize(my_name.m_len);
 				std::transform(my_name.m_str, my_name.m_str + my_name.m_len, tmp.begin(), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
 				di.item.pszText = const_cast<wchar_t*>(tmp.c_str());
@@ -820,7 +824,7 @@ wchar_t const* main_window::on_import_get_col_ordinal(pe_import_entry const& imp
 		static_assert(sizeof(std::uint16_t) == sizeof(unsigned short int), "");
 		std::array<wchar_t, 32> buff;
 		int const formatted = std::swprintf(buff.data(), buff.size(), L"%hu (0x%04hx)", static_cast<unsigned short int>(import_entry.m_ordinal_or_hint), static_cast<unsigned short int>(import_entry.m_ordinal_or_hint));
-		std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
+		std::wstring& tmpstr = m_import_tmp_strings[m_import_tmp_string_idx++ % m_import_tmp_strings.size()];
 		tmpstr.assign(buff.data(), buff.data() + formatted);
 		return tmpstr.c_str();
 	}
@@ -841,7 +845,7 @@ wchar_t const* main_window::on_import_get_col_hint(pe_import_entry const& import
 		static_assert(sizeof(std::uint16_t) == sizeof(unsigned short int), "");
 		std::array<wchar_t, 32> buff;
 		int const formatted = std::swprintf(buff.data(), buff.size(), L"%hu (0x%04hx)", static_cast<unsigned short int>(import_entry.m_ordinal_or_hint), static_cast<unsigned short int>(import_entry.m_ordinal_or_hint));
-		std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
+		std::wstring& tmpstr = m_import_tmp_strings[m_import_tmp_string_idx++ % m_import_tmp_strings.size()];
 		tmpstr.assign(buff.data(), buff.data() + formatted);
 		return tmpstr.c_str();
 	}
@@ -864,7 +868,7 @@ wchar_t const* main_window::on_import_get_col_name(pe_import_entry const& import
 	}
 	else
 	{
-		std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
+		std::wstring& tmpstr = m_import_tmp_strings[m_import_tmp_string_idx++ % m_import_tmp_strings.size()];
 		tmpstr.resize(import_entry.m_name->m_len);
 		std::transform(cbegin(import_entry.m_name), cend(import_entry.m_name), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
 		return tmpstr.c_str();
@@ -952,7 +956,7 @@ wchar_t const* main_window::on_export_get_col_ordinal(pe_export_address_entry co
 	static_assert(sizeof(std::uint16_t) == sizeof(unsigned short int), "");
 	std::array<wchar_t, 32> buff;
 	int const formatted = std::swprintf(buff.data(), buff.size(), L"%hu (0x%04hx)", static_cast<unsigned short int>(export_entry.m_ordinal), static_cast<unsigned short int>(export_entry.m_ordinal));
-	std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
+	std::wstring& tmpstr = m_export_tmp_strings[m_export_tmp_string_idx++ % m_export_tmp_strings.size()];
 	tmpstr.assign(buff.data(), buff.data() + formatted);
 	return tmpstr.c_str();
 }
@@ -968,7 +972,7 @@ wchar_t const* main_window::on_export_get_col_hint(pe_export_address_entry const
 		static_assert(sizeof(std::uint16_t) == sizeof(unsigned short int), "");
 		std::array<wchar_t, 32> buff;
 		int const formatted = std::swprintf(buff.data(), buff.size(), L"%hu (0x%04hx)", static_cast<unsigned short int>(export_entry.m_hint), static_cast<unsigned short int>(export_entry.m_hint));
-		std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
+		std::wstring& tmpstr = m_export_tmp_strings[m_export_tmp_string_idx++ % m_export_tmp_strings.size()];
 		tmpstr.assign(buff.data(), buff.data() + formatted);
 		return tmpstr.c_str();
 	}
@@ -978,7 +982,7 @@ wchar_t const* main_window::on_export_get_col_name(pe_export_address_entry const
 {
 	if(export_entry.m_name)
 	{
-		std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
+		std::wstring& tmpstr = m_export_tmp_strings[m_export_tmp_string_idx++ % m_export_tmp_strings.size()];
 		tmpstr.resize(export_entry.m_name->m_len);
 		std::transform(cbegin(export_entry.m_name), cend(export_entry.m_name), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
 		return tmpstr.c_str();
@@ -1010,13 +1014,13 @@ wchar_t const* main_window::on_export_get_col_address(pe_export_address_entry co
 		static_assert(sizeof(std::uint32_t) == sizeof(unsigned int), "");
 		std::array<wchar_t, 32> buff;
 		int const formatted = std::swprintf(buff.data(), buff.size(), L"0x%08x", static_cast<unsigned int>(export_entry.rva_or_forwarder.m_rva));
-		std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
+		std::wstring& tmpstr = m_export_tmp_strings[m_export_tmp_string_idx++ % m_export_tmp_strings.size()];
 		tmpstr.assign(buff.data(), buff.data() + formatted);
 		return tmpstr.c_str();
 	}
 	else
 	{
-		std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
+		std::wstring& tmpstr = m_export_tmp_strings[m_export_tmp_string_idx++ % m_export_tmp_strings.size()];
 		tmpstr.resize(export_entry.rva_or_forwarder.m_forwarder->m_len);
 		std::transform(cbegin(export_entry.rva_or_forwarder.m_forwarder), cend(export_entry.rva_or_forwarder.m_forwarder), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
 		return tmpstr.c_str();

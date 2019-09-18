@@ -113,8 +113,12 @@ private:
 	std::queue<std::pair<idle_task_t, idle_task_param_t>> m_idle_tasks;
 	std::deque<get_symbols_from_addresses_task_t*> m_symbol_tasks;
 private:
-	std::array<std::wstring, 16> m_tmp_strings;
-	unsigned m_tmp_string_idx;
+	std::array<std::wstring, 4> m_tree_tmp_strings;
+	std::array<std::wstring, 4> m_import_tmp_strings;
+	std::array<std::wstring, 4> m_export_tmp_strings;
+	unsigned m_tree_tmp_string_idx;
+	unsigned m_import_tmp_string_idx;
+	unsigned m_export_tmp_string_idx;
 private:
 	main_type m_mo;
 	bool m_full_paths;
