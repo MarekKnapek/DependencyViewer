@@ -23,7 +23,7 @@ file_name::file_name()
 	}
 	static constexpr wchar_t const s_method_name[] = L"GetAbsolutePathName";
 	wchar_t const* const method_name = s_method_name;
-	HRESULT const got_method = (*m_object->lpVtbl->GetIDsOfNames)(m_object, IID_NULL, const_cast<wchar_t**>(&method_name), 1, LOCALE_USER_DEFAULT, &m_method);
+	HRESULT const got_method = m_object->lpVtbl->GetIDsOfNames(m_object, IID_NULL, const_cast<wchar_t**>(&method_name), 1, LOCALE_USER_DEFAULT, &m_method);
 	if(!(got_method == S_OK))
 	{
 		throw s_file_name_err;
@@ -32,7 +32,7 @@ file_name::file_name()
 
 file_name::~file_name()
 {
-	(*m_object->lpVtbl->Release)(m_object);
+	m_object->lpVtbl->Release(m_object);
 	OleUninitialize();
 }
 
@@ -48,7 +48,7 @@ wstring const* file_name::get_correct_file_name(wchar_t const* const& file_name,
 	input.cNamedArgs = 0;
 	VARIANT output;
 	output.vt = VT_BSTR;
-	HRESULT const invoked = (*m_object->lpVtbl->Invoke)(m_object, m_method, m_clsid, LOCALE_USER_DEFAULT, DISPATCH_METHOD, &input, &output, nullptr, nullptr);
+	HRESULT const invoked = m_object->lpVtbl->Invoke(m_object, m_method, m_clsid, LOCALE_USER_DEFAULT, DISPATCH_METHOD, &input, &output, nullptr, nullptr);
 	if(!(invoked == S_OK))
 	{
 		throw s_file_name_err;

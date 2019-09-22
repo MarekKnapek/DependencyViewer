@@ -4,8 +4,6 @@
 #include "unique_strings.h"
 #include "allocator.h"
 
-#define CINTERFACE
-
 #include "my_windows.h"
 #include <ole2.h>
 #include <objbase.h>
