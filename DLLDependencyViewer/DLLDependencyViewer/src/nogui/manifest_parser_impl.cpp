@@ -151,16 +151,16 @@ bool manifest_parser_impl::parse_3()
 {
 	bool const found = find_element(s_sxs_manifest_element_dependent_assembly, s_sxs_manifest_element_dependent_assembly_len, s_sxs_manifest_namespace_v1, s_sxs_manifest_namespace_v1_len);
 	WARN_M_R(found, L"Failed to find at least one dependentAssembly element.", false);
-	bool const parsed_4 = parse_4();
-	WARN_M_R(parsed_4, L"Failed to parse_4.", false);
-	bool const closed = go_out_of_current_node();
-	WARN_M_R(closed, L"Failed to go_out_of_current_node.", false);
+	bool const parsed_4a = parse_4();
+	WARN_M_R(parsed_4a, L"Failed to parse_4.", false);
+	bool const closed_a = go_out_of_current_node();
+	WARN_M_R(closed_a, L"Failed to go_out_of_current_node.", false);
 	while(find_element(s_sxs_manifest_element_dependent_assembly, s_sxs_manifest_element_dependent_assembly_len, s_sxs_manifest_namespace_v1, s_sxs_manifest_namespace_v1_len))
 	{
-		bool const parsed_4 = parse_4();
-		WARN_M_R(parsed_4, L"Failed to parse_4.", false);
-		bool const closed = go_out_of_current_node();
-		WARN_M_R(closed, L"Failed to go_out_of_current_node.", false);
+		bool const parsed_4b = parse_4();
+		WARN_M_R(parsed_4b, L"Failed to parse_4.", false);
+		bool const closed_b = go_out_of_current_node();
+		WARN_M_R(closed_b, L"Failed to go_out_of_current_node.", false);
 	}
 	return true;
 }

@@ -580,6 +580,7 @@ void main_window::on_tree_getdispinfow(NMHDR& nmhdr)
 		ti.hItem = parent;
 		ti.mask = TVIF_PARAM;
 		LRESULT const got = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
+		assert(got == TRUE);
 		parent_fi = reinterpret_cast<file_info*>(ti.lParam);
 	}
 	if((di.item.mask & TVIF_TEXT) != 0)
@@ -609,16 +610,9 @@ void main_window::on_tree_getdispinfow(NMHDR& nmhdr)
 	}
 	if((di.item.mask & (TVIF_IMAGE | TVIF_SELECTEDIMAGE)) != 0)
 	{
-		file_info const* parent_fi = nullptr;
 		bool delay = false;
-		HTREEITEM const parent = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(di.item.hItem)));
-		TVITEMEXW ti;
-		ti.hItem = parent;
-		ti.mask = TVIF_PARAM;
-		LRESULT const got = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-		if(got)
+		if(parent_fi)
 		{
-			parent_fi = reinterpret_cast<file_info*>(ti.lParam);
 			int const idx = static_cast<int>(&tmp_fi - parent_fi->m_sub_file_infos.data());
 			delay = idx >= parent_fi->m_import_table.m_nondelay_imports_count;
 		}

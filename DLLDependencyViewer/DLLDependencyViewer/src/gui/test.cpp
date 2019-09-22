@@ -36,8 +36,8 @@ void test()
 	{
 		return;
 	}
-	fs::recursive_directory_iterator it(argv[2]);
-	for(auto const& e : it)
+	fs::recursive_directory_iterator dir_it(argv[2]);
+	for(auto const& e : dir_it)
 	{
 		auto const& p = e.path();
 		if(fs::is_directory(p))
