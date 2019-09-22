@@ -9,7 +9,7 @@
 #include <intrin.h>
 
 #pragma warning(push)
-#pragma warning(disable:4201)
+#pragma warning(disable: 4201 4471)
 #include <phnt_windows.h>
 #include <phnt.h>
 #pragma warning(pop)
