@@ -111,6 +111,7 @@ void* allocator_big::allocate_bytes(int const& size, int const& align)
 {
 	assert(size >= s_big_allocation_threshold);
 	assert(align <= alignof(std::max_align_t));
+	(void)align;
 	void* const alloc = std::malloc(size);
 	m_allocs.push_back(alloc);
 	return alloc;
