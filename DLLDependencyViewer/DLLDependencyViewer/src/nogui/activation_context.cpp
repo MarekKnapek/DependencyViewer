@@ -33,7 +33,7 @@ const manifests_t& activation_context::get_system_default_manifests()
 	ACTIVATION_CONTEXT_DATA_ASSEMBLY_ROSTER_ENTRY const* const assembly_entries = reinterpret_cast<ACTIVATION_CONTEXT_DATA_ASSEMBLY_ROSTER_ENTRY const*>(reinterpret_cast<char const*>(activation_context_data) + assembly_header->FirstEntryOffset);
 	void const* const assembly_information_section = reinterpret_cast<char const*>(activation_context_data) + assembly_header->AssemblyInformationSectionOffset;
 	g_system_default_manifests->reserve(assembly_header->EntryCount - 1);
-	for(int i = 1; i != assembly_header->EntryCount; ++i)
+	for(ULONG i = 1; i != assembly_header->EntryCount; ++i)
 	{
 		if((assembly_entries[i].Flags & ACTIVATION_CONTEXT_DATA_ASSEMBLY_ROSTER_ENTRY_INVALID) != 0)
 		{

@@ -207,7 +207,7 @@ bool manifest_parser_impl::parse_6()
 	bool found = false;
 	for(int i = 0; i != static_cast<int>(std::size(s_assembly_identity_attribute_lens)); ++i)
 	{
-		if(attribute_len == s_assembly_identity_attribute_lens[i] && std::memcmp(attribute, s_assembly_identity_attribute_names[i], (s_assembly_identity_attribute_lens[i] + 1) * sizeof(wchar_t)) == 0)
+		if(static_cast<int>(attribute_len) == s_assembly_identity_attribute_lens[i] && std::memcmp(attribute, s_assembly_identity_attribute_names[i], (s_assembly_identity_attribute_lens[i] + 1) * sizeof(wchar_t)) == 0)
 		{
 			found = true;
 			wchar_t const* value;
@@ -311,7 +311,7 @@ bool manifest_parser_impl::find_element(wchar_t const* const& element_to_find, i
 		UINT element_len;
 		HRESULT const got_element = xml_reader.GetLocalName(&element, &element_len);
 		WARN_M_R(got_element == S_OK, L"Failed to IXmlReader::GetLocalName.", false);
-		if(element_len != element_to_find_len)
+		if(static_cast<int>(element_len) != element_to_find_len)
 		{
 			continue;
 		}
@@ -324,7 +324,7 @@ bool manifest_parser_impl::find_element(wchar_t const* const& element_to_find, i
 		UINT xmlns_len;
 		HRESULT const got_xmlns = xml_reader.GetNamespaceUri(&xmlns, &xmlns_len);
 		WARN_M_R(got_xmlns == S_OK && xmlns != nullptr, L"Failed to IXmlReader::GetNamespaceUri.", false);
-		if(xmlns_len != xmlns_to_find_len)
+		if(static_cast<int>(xmlns_len) != xmlns_to_find_len)
 		{
 			continue;
 		}
