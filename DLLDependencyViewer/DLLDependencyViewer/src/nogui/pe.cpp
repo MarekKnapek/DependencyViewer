@@ -317,14 +317,15 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 	int const export_address_count_proper = static_cast<int>(std::count_if(export_address_table, export_address_table + export_dir.m_export_address_count, [](std::uint32_t const& e){ return e != 0; }));
 	ret.m_export_address_table.resize(export_address_count_proper);
 	int j = 0;
-	for(std::uint32_t i = 0; i != export_dir.m_export_address_count; ++i)
+	std::uint16_t const n = static_cast<std::uint16_t>(export_dir.m_export_address_count);
+	for(std::uint16_t i = 0; i != n; ++i)
 	{
 		std::uint32_t const export_rva = export_address_table[i];
 		if(export_rva == 0)
 		{
 			continue;
 		}
-		std::uint16_t const ordinal = i + export_dir.m_ordinal_base;
+		std::uint16_t const ordinal = i + static_cast<std::uint16_t>(export_dir.m_ordinal_base);
 		std::uint16_t hint;
 		char const* export_address_name = nullptr;
 		std::uint32_t export_address_name_len;
