@@ -326,9 +326,9 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 			continue;
 		}
 		std::uint16_t const ordinal = i + static_cast<std::uint16_t>(export_dir.m_ordinal_base);
-		std::uint16_t hint;
+		std::uint16_t hint = 0;
 		char const* export_address_name = nullptr;
-		std::uint32_t export_address_name_len;
+		std::uint32_t export_address_name_len = 0;
 		if(export_ordinal_table)
 		{
 			auto const it = std::find(export_ordinal_table, export_ordinal_table + export_dir.m_names_count, i);
