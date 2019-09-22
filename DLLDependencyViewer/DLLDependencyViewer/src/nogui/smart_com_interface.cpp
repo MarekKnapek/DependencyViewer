@@ -3,5 +3,5 @@
 
 void com_interface_deleter::operator()(IUnknown* const& ptr) const
 {
-	ULONG const new_reference_count = ptr->Release();
+	ULONG const new_reference_count = ptr->lpVtbl->Release(ptr);
 }
