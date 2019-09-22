@@ -110,7 +110,6 @@ void test()
 			OutputDebugStringW(p.c_str());
 			OutputDebugStringW(L"\n");
 		}
-		continue;
 		/**/
 		memory_manager mm;
 		pe_header_info hi;

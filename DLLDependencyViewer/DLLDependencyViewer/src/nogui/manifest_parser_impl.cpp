@@ -339,8 +339,7 @@ bool manifest_parser_impl::find_element(wchar_t const* const& element_to_find, i
 		}
 		return true;
 	}
-	assert(false);
-	return false;
+	__assume(false);
 }
 
 bool manifest_parser_impl::go_out_of_current_node()
@@ -373,5 +372,5 @@ bool manifest_parser_impl::go_out_of_current_node()
 			}
 		}
 	}
-	return false;
+	__assume(false);
 }

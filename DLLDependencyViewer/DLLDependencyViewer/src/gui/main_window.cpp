@@ -351,7 +351,7 @@ LRESULT main_window::on_message(UINT msg, WPARAM wparam, LPARAM lparam)
 		}
 		break;
 	}
-	assert(false);
+	__assume(false);
 }
 
 LRESULT main_window::on_wm_destroy(WPARAM wparam, LPARAM lparam)
