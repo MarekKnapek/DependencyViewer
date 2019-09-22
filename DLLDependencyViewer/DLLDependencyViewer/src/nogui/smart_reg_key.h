@@ -3,7 +3,7 @@
 
 #include <memory>
 
-#include <windows.h>
+#include "my_windows.h"
 
 
 struct reg_close_key_deleter

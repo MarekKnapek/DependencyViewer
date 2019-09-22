@@ -4,7 +4,7 @@
 #include <cassert>
 #include <cstdint>
 
-#include <windows.h>
+#include "my_windows.h"
 
 
 #define WANT_CUSTOM_ALLOCATOR 1

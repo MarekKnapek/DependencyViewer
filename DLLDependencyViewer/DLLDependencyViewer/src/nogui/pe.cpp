@@ -13,7 +13,7 @@
 #include <cstdint>
 #include <cassert>
 
-#include <windows.h>
+#include "my_windows.h"
 
 
 enum class data_directory_type

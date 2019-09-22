@@ -12,7 +12,8 @@
 #include <iterator>
 #include <memory>
 
-#include <windows.h>
+#include "../nogui/my_windows.h"
+#include <shellapi.h>
 
 
 static constexpr int const s_very_big_int = 2'147'483'647;

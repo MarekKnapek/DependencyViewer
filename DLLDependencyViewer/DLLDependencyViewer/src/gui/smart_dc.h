@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include <windows.h>
+#include "../nogui/my_windows.h"
 
 
 class smart_dc

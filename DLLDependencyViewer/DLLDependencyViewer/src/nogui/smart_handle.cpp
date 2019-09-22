@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-#include <windows.h>
+#include "my_windows.h"
 
 
 void close_handle_deleter::operator()(void* const ptr) const

@@ -12,7 +12,7 @@
 #include <string>
 #include <utility>
 
-#include <windows.h>
+#include "../nogui/my_windows.h"
 
 
 struct _TREEITEM;

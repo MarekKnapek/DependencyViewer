@@ -249,6 +249,9 @@
     <ClInclude Include="src\gui\smart_menu.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\nogui\my_windows.h">
+      <Filter>src\nogui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\main.cpp">

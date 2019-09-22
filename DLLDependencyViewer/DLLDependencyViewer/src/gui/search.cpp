@@ -7,7 +7,7 @@
 #include <array>
 #include <cassert>
 
-#include <windows.h>
+#include "../nogui/my_windows.h"
 
 
 namespace fs = std::experimental::filesystem;

@@ -109,17 +109,17 @@ manifest_data manifest_parser_impl::parse(char const* const& data, int const& le
 {
 	IStream* const stream = SHCreateMemStream(reinterpret_cast<BYTE const*>(data), static_cast<UINT>(len));
 	WARN_M_R(stream, L"Failed to SHCreateMemStream.", {});
-	m_stream.reset(stream);
+	m_stream.reset(reinterpret_cast<IUnknown*>(stream));
 
 	IXmlReader* xml_reader;
-	HRESULT const xml_reader_created = CreateXmlReader(__uuidof(IXmlReader), reinterpret_cast<void**>(&xml_reader), nullptr);
+	HRESULT const xml_reader_created = CreateXmlReader(IID_IXmlReader, reinterpret_cast<void**>(&xml_reader), nullptr);
 	WARN_M_R(xml_reader_created == S_OK && xml_reader, L"Failed to CreateXmlReader.", {});
-	m_xml_reader.reset(xml_reader);
+	m_xml_reader.reset(reinterpret_cast<IUnknown*>(xml_reader));
 
-	HRESULT const dtd_set = xml_reader->SetProperty(XmlReaderProperty_DtdProcessing, DtdProcessing_Prohibit);
+	HRESULT const dtd_set = xml_reader->lpVtbl->SetProperty(xml_reader, XmlReaderProperty_DtdProcessing, DtdProcessing_Prohibit);
 	WARN_M_R(dtd_set == S_OK, L"Failed to IXmlReader::SetProperty(DtdProcessing, Prohibit).", {});
 
-	HRESULT const input_set = xml_reader->SetInput(m_stream.get());
+	HRESULT const input_set = xml_reader->lpVtbl->SetInput(xml_reader, m_stream.get());
 	WARN_M_R(input_set == S_OK, L"Failed to IXmlReader::SetInput.", {});
 
 	bool const parsed_1 = parse_1();
@@ -181,18 +181,18 @@ bool manifest_parser_impl::parse_5()
 {
 	IXmlReader& xml_reader = get_xml_reader();
 	UINT attr_count;
-	HRESULT const got_attrib_count = xml_reader.GetAttributeCount(&attr_count);
+	HRESULT const got_attrib_count = xml_reader.lpVtbl->GetAttributeCount(&xml_reader, &attr_count);
 	WARN_M_R(got_attrib_count == S_OK, L"Failed to IXmlReader::GetAttributeCount.", false);
-	HRESULT const moved = xml_reader.MoveToFirstAttribute();
+	HRESULT const moved = xml_reader.lpVtbl->MoveToFirstAttribute(&xml_reader);
 	WARN_M_R(moved == S_OK, L"Failed to IXmlReader::MoveToFirstAttribute.", false);
 	for(UINT i = 0; i != attr_count; ++i)
 	{
 		bool const parsed_6 = parse_6();
 		WARN_M_R(parsed_6, L"Failed to parse_6.", false);
-		HRESULT const next = xml_reader.MoveToNextAttribute();
+		HRESULT const next = xml_reader.lpVtbl->MoveToNextAttribute(&xml_reader);
 		WARN_M_R((next == S_OK && i != attr_count - 1) || (next == S_FALSE && i == attr_count - 1), L"Failed to IXmlReader::MoveToNextAttribute.", false);
 	}
-	HRESULT const moved_back = xml_reader.MoveToElement();
+	HRESULT const moved_back = xml_reader.lpVtbl->MoveToElement(&xml_reader);
 	WARN_M_R(moved_back == S_OK, L"Failed to IXmlReader::MoveToElement.", false);
 	return true;
 }
@@ -202,7 +202,7 @@ bool manifest_parser_impl::parse_6()
 	IXmlReader& xml_reader = get_xml_reader();
 	wchar_t const* attribute;
 	UINT attribute_len;
-	HRESULT const got_attribute = xml_reader.GetLocalName(&attribute, &attribute_len);
+	HRESULT const got_attribute = xml_reader.lpVtbl->GetLocalName(&xml_reader, &attribute, &attribute_len);
 	WARN_M_R(got_attribute == S_OK && attribute != nullptr, L"Failed to IXmlReader::GetLocalName.", false);
 	bool found = false;
 	for(int i = 0; i != static_cast<int>(std::size(s_assembly_identity_attribute_lens)); ++i)
@@ -212,7 +212,7 @@ bool manifest_parser_impl::parse_6()
 			found = true;
 			wchar_t const* value;
 			UINT value_len;
-			HRESULT const got_value = xml_reader.GetValue(&value, &value_len);
+			HRESULT const got_value = xml_reader.lpVtbl->GetValue(&xml_reader, &value, &value_len);
 			WARN_M_R(got_value == S_OK, L"Failed to IXmlReader::GetValue.", false);
 			WARN_M_R(value_len < s_very_big_int, L"Attribute is too big.", false);
 			bool const parsed = (this->*s_assembly_identity_attribute_funcs[i])(value, static_cast<int>(value_len));
@@ -276,7 +276,7 @@ bool manifest_parser_impl::parse_public_key_token(wchar_t const* const& /*value*
 
 IXmlReader& manifest_parser_impl::get_xml_reader() const
 {
-	return *static_cast<IXmlReader*>(m_xml_reader.get());
+	return *reinterpret_cast<IXmlReader*>(m_xml_reader.get());
 }
 
 bool manifest_parser_impl::find_element(wchar_t const* const& element_to_find, int const& element_to_find_len, wchar_t const* const& xmlns_to_find, int const& xmlns_to_find_len)
@@ -286,7 +286,7 @@ bool manifest_parser_impl::find_element(wchar_t const* const& element_to_find, i
 	for(;;)
 	{
 		XmlNodeType node_type;
-		HRESULT const read = xml_reader.Read(&node_type);
+		HRESULT const read = xml_reader.lpVtbl->Read(&xml_reader, &node_type);
 		WARN_M_R(read == S_OK, L"Failed to IXmlReader::Read.", false);
 		if(node_type == XmlNodeType_EndElement)
 		{
@@ -301,7 +301,7 @@ bool manifest_parser_impl::find_element(wchar_t const* const& element_to_find, i
 			continue;
 		}
 		++depth;
-		bool const is_empty = xml_reader.IsEmptyElement() == TRUE;
+		bool const is_empty = xml_reader.lpVtbl->IsEmptyElement(&xml_reader) == TRUE;
 		if(is_empty)
 		{
 			--depth;
@@ -309,7 +309,7 @@ bool manifest_parser_impl::find_element(wchar_t const* const& element_to_find, i
 
 		wchar_t const* element;
 		UINT element_len;
-		HRESULT const got_element = xml_reader.GetLocalName(&element, &element_len);
+		HRESULT const got_element = xml_reader.lpVtbl->GetLocalName(&xml_reader, &element, &element_len);
 		WARN_M_R(got_element == S_OK, L"Failed to IXmlReader::GetLocalName.", false);
 		if(static_cast<int>(element_len) != element_to_find_len)
 		{
@@ -322,7 +322,7 @@ bool manifest_parser_impl::find_element(wchar_t const* const& element_to_find, i
 
 		wchar_t const* xmlns;
 		UINT xmlns_len;
-		HRESULT const got_xmlns = xml_reader.GetNamespaceUri(&xmlns, &xmlns_len);
+		HRESULT const got_xmlns = xml_reader.lpVtbl->GetNamespaceUri(&xml_reader, &xmlns, &xmlns_len);
 		WARN_M_R(got_xmlns == S_OK && xmlns != nullptr, L"Failed to IXmlReader::GetNamespaceUri.", false);
 		if(static_cast<int>(xmlns_len) != xmlns_to_find_len)
 		{
@@ -345,7 +345,7 @@ bool manifest_parser_impl::find_element(wchar_t const* const& element_to_find, i
 bool manifest_parser_impl::go_out_of_current_node()
 {
 	IXmlReader& xml_reader = get_xml_reader();
-	if(xml_reader.IsEmptyElement() == TRUE)
+	if(xml_reader.lpVtbl->IsEmptyElement(&xml_reader) == TRUE)
 	{
 		return true;
 	}
@@ -353,7 +353,7 @@ bool manifest_parser_impl::go_out_of_current_node()
 	for(;;)
 	{
 		XmlNodeType node_type;
-		HRESULT const read = xml_reader.Read(&node_type);
+		HRESULT const read = xml_reader.lpVtbl->Read(&xml_reader, &node_type);
 		WARN_M_R(read == S_OK, L"Failed to IXmlReader::Read.", false);
 		if(node_type == XmlNodeType_EndElement)
 		{
@@ -365,7 +365,7 @@ bool manifest_parser_impl::go_out_of_current_node()
 		}
 		else if(node_type == XmlNodeType_Element)
 		{
-			bool const is_empty = xml_reader.IsEmptyElement() == TRUE;
+			bool const is_empty = xml_reader.lpVtbl->IsEmptyElement(&xml_reader) == TRUE;
 			if(!is_empty)
 			{
 				++depth;

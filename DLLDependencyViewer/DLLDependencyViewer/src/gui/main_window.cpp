@@ -20,6 +20,7 @@
 #include <iterator>
 
 #include <commctrl.h>
+#include <commdlg.h>
 #include <shellapi.h>
 
 

@@ -5,7 +5,7 @@
 #include "unique_strings.h"
 #include "memory_manager.h"
 
-#include <windows.h>
+#include "my_windows.h"
 
 
 class manifest_parser_impl;

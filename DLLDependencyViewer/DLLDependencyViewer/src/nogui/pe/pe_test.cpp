@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <iterator>
 
-#include <windows.h>
+#include "../../nogui/my_windows.h"
 
 
 bool pe_test(void const* const& fd, int const& file_size)

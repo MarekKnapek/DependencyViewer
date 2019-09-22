@@ -3,7 +3,7 @@
 
 #include "smart_library.h"
 
-#include <windows.h>
+#include "my_windows.h"
 #define DBGHELP_TRANSLATE_TCHAR
 #include <dbghelp.h>
 

@@ -4,7 +4,7 @@
 #include <cassert>
 #include <utility>
 
-#include <windows.h>
+#include "my_windows.h"
 
 
 static constexpr int const s_max_file_size = 1 * 1024 * 1024 * 1024;
