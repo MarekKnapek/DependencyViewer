@@ -124,15 +124,17 @@ static_assert(sizeof(resource_data_entry) == 0x10, "");
 struct pe_resource_name_string_or_id_internal
 {
 	bool m_is_string;
-	union
+	union string_or_id
 	{
-		struct
+		struct string_with_length
 		{
 			std::uint16_t m_string_len;
 			wchar_t const* m_string;
 		};
+		string_with_length m_string_with_length;
 		std::uint16_t m_id;
 	};
+	string_or_id m_string_or_id;
 };
 
 
@@ -567,13 +569,13 @@ pe_resource_name_string_or_id_internal pe_resources_process_string(char const* c
 		resource_directory_string const& res_name_string = *reinterpret_cast<resource_directory_string const*>(file_data + resource_directory_disk_offset + string_off);
 		VERIFY(res_name_string.m_length >= 1);
 		VERIFY(resource_directory_size >= string_off + sizeof(resource_directory_string::m_length) + res_name_string.m_length * sizeof(char));
-		ret.m_string_len = res_name_string.m_length;
-		ret.m_string = reinterpret_cast<wchar_t const*>(file_data + resource_directory_disk_offset + string_off + sizeof(resource_directory_string::m_length));
+		ret.m_string_or_id.m_string_with_length.m_string_len = res_name_string.m_length;
+		ret.m_string_or_id.m_string_with_length.m_string = reinterpret_cast<wchar_t const*>(file_data + resource_directory_disk_offset + string_off + sizeof(resource_directory_string::m_length));
 	}
 	else
 	{
 		VERIFY((dir_entry.m_name_offset & (1u << 31)) == 0);
-		ret.m_id = dir_entry.m_integer_id;
+		ret.m_string_or_id.m_id = dir_entry.m_integer_id;
 	}
 	return ret;
 }
@@ -584,11 +586,11 @@ pe_resource_string_or_id convert_pe_string_to_string(pe_resource_name_string_or_
 	ret.m_is_string = str.m_is_string;
 	if(str.m_is_string)
 	{
-		ret.m_string = mm.m_wstrs.add_string(str.m_string, str.m_string_len, mm.m_alc);
+		ret.m_string = mm.m_wstrs.add_string(str.m_string_or_id.m_string_with_length.m_string, str.m_string_or_id.m_string_with_length.m_string_len, mm.m_alc);
 	}
 	else
 	{
-		ret.m_id = str.m_id;
+		ret.m_id = str.m_string_or_id.m_id;
 	}
 	return ret;
 }
