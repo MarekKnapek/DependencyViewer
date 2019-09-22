@@ -16,7 +16,7 @@
 #include <unordered_map>
 
 
-static constexpr int const s_very_big_int = 2'147'483'647;
+#define s_very_big_int (2'147'483'647)
 
 
 main_type process_impl(std::wstring const& main_file_path)

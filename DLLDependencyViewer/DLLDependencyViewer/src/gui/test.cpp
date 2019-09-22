@@ -16,7 +16,7 @@
 #include <shellapi.h>
 
 
-static constexpr int const s_very_big_int = 2'147'483'647;
+#define s_very_big_int (2'147'483'647)
 static constexpr wchar_t const s_cmd_arg_test[] = L"/test";
 
 
