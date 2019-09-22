@@ -3,6 +3,7 @@
 
 #include "splitter_window.h"
 #include "processor.h"
+#include "smart_menu.h"
 
 #include "../nogui/pe.h"
 
@@ -45,6 +46,7 @@ public:
 	HWND get_hwnd() const;
 private:
 	static HMENU create_menu();
+	static HMENU create_tree_menu();
 	static HWND create_toolbar(HWND const& parent);
 	static LRESULT CALLBACK class_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 private:
@@ -64,7 +66,7 @@ private:
 	void on_tree_notify(NMHDR& nmhdr);
 	void on_tree_getdispinfow(NMHDR& nmhdr);
 	void on_tree_selchangedw(NMHDR& nmhdr);
-	void on_tree_dblclk(NMHDR& nmhdr);
+	void on_tree_rclick(NMHDR& nmhdr);
 	void on_import_notify(NMHDR& nmhdr);
 	void on_import_getdispinfow(NMHDR& nmhdr);
 	wchar_t const* on_import_get_col_type(pe_import_entry const& import_entry);
@@ -80,9 +82,11 @@ private:
 	wchar_t const* on_export_get_col_address(pe_export_address_entry const& export_entry);
 	void on_menu_open();
 	void on_menu_exit();
+	void on_tree_menu_orig();
 	void on_accel_open();
 	void on_accel_exit();
 	void on_accel_paths();
+	void on_accel_tree_orig();
 	void on_toolbar_open();
 	void on_toolbar_full_paths();
 	void open();
@@ -90,9 +94,11 @@ private:
 	void refresh(main_type&& mo);
 	void refresh_view_recursive(file_info& parent_fi, HTREEITEM const& parent_ti);
 	void full_paths();
+	void select_original_instance();
 	int get_import_type_column_max_width();
 	int get_export_type_column_max_width();
 	int get_twobyte_column_max_width();
+	std::pair<file_info const*, POINT> get_file_info_under_cursor();
 	void add_idle_task(idle_task_t const task, idle_task_param_t const param);
 	void on_idle();
 	void process_command_line();
@@ -110,6 +116,7 @@ private:
 	splitter_window_ver m_splitter_ver;
 	HWND m_import_list;
 	HWND m_export_list;
+	smart_menu m_tree_menu;
 	std::queue<std::pair<idle_task_t, idle_task_param_t>> m_idle_tasks;
 	std::deque<get_symbols_from_addresses_task_t*> m_symbol_tasks;
 private:
