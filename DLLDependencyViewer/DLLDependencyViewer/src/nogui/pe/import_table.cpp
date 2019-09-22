@@ -66,8 +66,6 @@ bool pe_parse_import_table(void const* const& fd, int const& file_size, pe_impor
 bool pe_parse_import_dll_name(void const* const& fd, int const& file_size, pe_import_directory_entry const& ide, pe_string& str)
 {
 	char const* const file_data = static_cast<char const*>(fd);
-	pe_dos_header const& dos_hdr = *reinterpret_cast<pe_dos_header const*>(file_data + 0);
-	pe_coff_full_32_64 const& coff_hdr = *reinterpret_cast<pe_coff_full_32_64 const*>(file_data + dos_hdr.m_pe_offset);
 	WARN_M_R(ide.m_name != 0, L"Import directory entry has no DLL name.", false);
 	pe_section_header const* sct;
 	std::uint32_t const dll_name_raw = pe_find_object_in_raw(file_data, file_size, ide.m_name, 2, sct);

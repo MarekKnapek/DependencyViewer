@@ -24,7 +24,6 @@ void search(searcher& sch, string const* const& dll_name)
 	// -- The current directory.
 	// -- The directories that are listed in the PATH environment variable. Note that this does not include the per-application path specified by the App Paths registry key. The App Paths key is not used when computing the DLL search path.
 
-	std::string& tmpn = sch.m_mo->m_tmpn;
 	std::wstring& tmpw = sch.m_mo->m_tmpw;
 	fs::path& tmpp = sch.m_mo->m_tmpp;
 

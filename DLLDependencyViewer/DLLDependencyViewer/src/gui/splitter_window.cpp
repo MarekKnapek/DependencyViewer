@@ -208,7 +208,7 @@ LRESULT splitter_window<orientation>::on_wm_lbuttondown(WPARAM wparam, LPARAM lp
 	{
 		return DefWindowProcW(m_hwnd, WM_LBUTTONDOWN, wparam, lparam);
 	}
-	HWND const prev = SetCapture(m_hwnd);
+	SetCapture(m_hwnd);
 	m_sizing = true;
 	return DefWindowProcW(m_hwnd, WM_LBUTTONDOWN, wparam, lparam);
 }

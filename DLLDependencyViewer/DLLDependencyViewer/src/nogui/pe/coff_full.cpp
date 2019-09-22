@@ -27,7 +27,6 @@ bool pe_parse_coff_full_32_64(void const* const& fd, int const& file_size, pe_co
 	WARN_M_R(coff_hdr->m_optional_header_size == (is_32 ? (sizeof(pe_coff_optional_header_standard_32) + sizeof(pe_coff_optional_header_windows_32)) : (sizeof(pe_coff_optional_header_standard_64) + sizeof(pe_coff_optional_header_windows_64))) + dir_cnt * sizeof(pe_data_directory), L"Optional header size is too small to contain coff_full_32_64.", false);
 	WARN_M_R(file_size >= static_cast<int>(dosheader.m_pe_offset + sizeof(pe_coff_full_32_64)), L"File too small to contain coff_full_32_64.", false);
 	hd = reinterpret_cast<pe_coff_full_32_64 const*>(coff_hdr);
-	pe_coff_full_32_64 const& header = *hd;
 	WARN_M_R(file_size >= static_cast<int>(dosheader.m_pe_offset + (is_32 ? sizeof(pe_coff_full_32) : sizeof(pe_coff_full_64) + dir_cnt * sizeof(pe_data_directory))), L"File too small to contain all directories.", false);
 	pe_data_directory const* const directories = reinterpret_cast<pe_data_directory const*>(file_data + dosheader.m_pe_offset + (is_32 ? sizeof(pe_coff_full_32) : sizeof(pe_coff_full_64)));
 	WARN_M(dir_cnt < static_cast<std::uint32_t>(pe_e_directory_table::architecture) || (directories[static_cast<int>(pe_e_directory_table::architecture)].m_va == 0 && directories[static_cast<int>(pe_e_directory_table::architecture)].m_size == 0), L"Architecture is reserved, must be 0.");
