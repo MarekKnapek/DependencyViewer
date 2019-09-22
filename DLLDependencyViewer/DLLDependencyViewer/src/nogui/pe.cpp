@@ -173,7 +173,7 @@ pe_header_info pe_process_header(void const* const fd, int const file_size)
 	return ret;
 }
 
-pe_import_table_info pe_process_import_table(void const* const fd, int const fs, pe_header_info const& hi, memory_manager& mm)
+pe_import_table_info pe_process_import_table(void const* const fd, int const fs, pe_header_info const& /*hi*/, memory_manager& mm)
 {
 	pe_import_table_info ret;
 	auto const fn = [&]() -> bool
@@ -398,7 +398,7 @@ using resource_visitor_t = void(*)
 	std::uint32_t const& code_page
 );
 
-void pe_process_resource_table(void const* const fd, int const fs, pe_header_info const& hi, memory_manager& mm, resource_visitor_t const& visitor, void* const& self)
+void pe_process_resource_table(void const* const fd, int const fs, pe_header_info const& hi, memory_manager& /*mm*/, resource_visitor_t const& visitor, void* const& self)
 {
 	char const* const file_data = static_cast<char const*>(fd);
 	std::uint32_t const file_size = static_cast<std::uint32_t>(fs);
@@ -475,12 +475,12 @@ void pe_process_resource_table(void const* const fd, int const fs, pe_header_inf
 void resource_visitor_1
 (
 	void* const& self,
-	pe_resource_name_string_or_id_internal const& type_string,
-	pe_resource_name_string_or_id_internal const& name_string,
-	pe_resource_name_string_or_id_internal const& lang_string,
-	char const* const& res_data,
-	std::uint32_t const& res_data_size,
-	std::uint32_t const& code_page
+	pe_resource_name_string_or_id_internal const& /*type_string*/,
+	pe_resource_name_string_or_id_internal const& /*name_string*/,
+	pe_resource_name_string_or_id_internal const& /*lang_string*/,
+	char const* const& /*res_data*/,
+	std::uint32_t const& /*res_data_size*/,
+	std::uint32_t const& /*code_page*/
 )
 {
 	int& resource_count = *reinterpret_cast<int*>(self);

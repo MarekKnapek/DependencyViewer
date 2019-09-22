@@ -48,7 +48,7 @@ void dbg_provider::add_task(dbg_provider_task_t const task, dbg_provider_param_t
 	}, thread_worker_param);
 }
 
-void dbg_provider::init_task(dbg_provider_param_t const param)
+void dbg_provider::init_task(dbg_provider_param_t const /*param*/)
 {
 	bool const dbghelp_inited = m_dbghelp.init();
 	if(!dbghelp_inited)
@@ -65,7 +65,7 @@ void dbg_provider::init_task(dbg_provider_param_t const param)
 	m_sym_inited = true;
 }
 
-void dbg_provider::deinit_task(dbg_provider_param_t const param)
+void dbg_provider::deinit_task(dbg_provider_param_t const /*param*/)
 {
 	if(!m_sym_inited)
 	{

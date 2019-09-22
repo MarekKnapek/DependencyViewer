@@ -264,12 +264,12 @@ bool manifest_parser_impl::parse_processor_architecture(wchar_t const* const& va
 	return true;
 }
 
-bool manifest_parser_impl::parse_version(wchar_t const* const& value, int const& value_len)
+bool manifest_parser_impl::parse_version(wchar_t const* const& /*value*/, int const& /*value_len*/)
 {
 	return true;
 }
 
-bool manifest_parser_impl::parse_public_key_token(wchar_t const* const& value, int const& value_len)
+bool manifest_parser_impl::parse_public_key_token(wchar_t const* const& /*value*/, int const& /*value_len*/)
 {
 	return true;
 }

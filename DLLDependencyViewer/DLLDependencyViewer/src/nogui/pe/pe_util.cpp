@@ -6,7 +6,7 @@
 #include <algorithm>
 
 
-std::uint32_t pe_find_object_in_raw(void const* const& fd, int const& file_size, std::uint32_t const& obj_va, std::uint32_t const& obj_size, pe_section_header const*& sct)
+std::uint32_t pe_find_object_in_raw(void const* const& fd, int const& /*file_size*/, std::uint32_t const& obj_va, std::uint32_t const& obj_size, pe_section_header const*& sct)
 {
 	char const* const file_data = static_cast<char const*>(fd);
 	pe_dos_header const& dos_hdr = *reinterpret_cast<pe_dos_header const*>(file_data + 0);
