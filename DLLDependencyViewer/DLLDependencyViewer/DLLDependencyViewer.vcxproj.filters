@@ -246,11 +246,11 @@
     <ClInclude Include="src\nogui\dbg.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
-    <ClInclude Include="src\gui\smart_menu.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="src\nogui\my_windows.h">
       <Filter>src\nogui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gui\smart_menu.h">
+      <Filter>src\gui</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -369,7 +369,7 @@
       <Filter>src\nogui</Filter>
     </ClCompile>
     <ClCompile Include="src\gui\smart_menu.cpp">
-      <Filter>src</Filter>
+      <Filter>src\gui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
