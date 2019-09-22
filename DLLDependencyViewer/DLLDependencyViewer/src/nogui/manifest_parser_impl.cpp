@@ -2,8 +2,8 @@
 
 #include "assert.h"
 
-#include <cassert>
 #include <algorithm>
+#include <cassert>
 
 #include <shlwapi.h>
 

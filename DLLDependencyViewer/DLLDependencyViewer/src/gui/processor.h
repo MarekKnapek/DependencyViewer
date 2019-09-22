@@ -1,13 +1,13 @@
 #pragma once
 
 
-#include "../nogui/pe.h"
-#include "../nogui/memory_manager.h"
 #include "../nogui/manifest_parser.h"
+#include "../nogui/memory_manager.h"
+#include "../nogui/pe.h"
 
+#include <filesystem>
 #include <string>
 #include <vector>
-#include <filesystem>
 
 
 struct file_info;

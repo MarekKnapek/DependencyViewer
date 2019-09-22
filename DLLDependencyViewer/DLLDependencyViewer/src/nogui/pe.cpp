@@ -4,14 +4,14 @@
 #include "memory_manager.h"
 #include "unicode.h"
 
-#include "pe/mz.h"
 #include "pe/coff_full.h"
 #include "pe/import_table.h"
+#include "pe/mz.h"
 
 #include <algorithm>
 #include <array>
-#include <cstdint>
 #include <cassert>
+#include <cstdint>
 
 #include "my_windows.h"
 

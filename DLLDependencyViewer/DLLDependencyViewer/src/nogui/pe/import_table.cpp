@@ -1,8 +1,8 @@
 #include "import_table.h"
 
-#include "mz.h"
-#include "coff_full.h"
 #include "../assert.h"
+#include "coff_full.h"
+#include "mz.h"
 
 #include <algorithm>
 

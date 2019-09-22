@@ -1,7 +1,7 @@
 #include "coff_full.h"
 
-#include "mz.h"
 #include "../assert.h"
+#include "mz.h"
 
 
 bool pe_parse_coff_full_32_64(void const* const& fd, int const& file_size, pe_coff_full_32_64 const*& hd)

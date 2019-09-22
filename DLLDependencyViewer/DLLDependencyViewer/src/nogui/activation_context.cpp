@@ -2,11 +2,9 @@
 
 #include "file_system.h"
 
-#include <cstdint>
 #include <array>
+#include <cstdint>
 #include <vector>
-
-#include <intrin.h>
 
 #include "my_windows.h"
 

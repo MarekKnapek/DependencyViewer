@@ -1,8 +1,8 @@
 #pragma once
 
 
-#include <vector>
 #include <string>
+#include <vector>
 
 
 typedef std::vector<std::wstring> manifests_t;

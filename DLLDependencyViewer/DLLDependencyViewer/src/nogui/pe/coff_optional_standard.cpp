@@ -1,8 +1,8 @@
 #include "coff_optional_standard.h"
 
-#include "mz.h"
-#include "coff.h"
 #include "../assert.h"
+#include "coff.h"
+#include "mz.h"
 
 
 pe_e_parse_coff_optional_header_standard_32_64 pe_parse_coff_optional_header_standard_32_64(void const* const& fd, int const& file_size, pe_coff_optional_header_standard_32_64 const*& hd)

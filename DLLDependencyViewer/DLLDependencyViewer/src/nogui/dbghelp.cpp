@@ -4,7 +4,6 @@
 
 #include <array>
 #include <cassert>
-
 #include <filesystem>
 
 

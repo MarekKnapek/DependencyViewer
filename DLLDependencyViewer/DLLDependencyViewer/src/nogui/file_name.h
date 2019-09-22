@@ -1,12 +1,12 @@
 #pragma once
 
 
-#include "unique_strings.h"
 #include "allocator.h"
+#include "unique_strings.h"
 
 #include "my_windows.h"
-#include <ole2.h>
 #include <objbase.h>
+#include <ole2.h>
 
 
 class file_name

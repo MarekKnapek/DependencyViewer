@@ -1,10 +1,10 @@
 #include "coff.h"
 
-#include "mz.h"
 #include "../assert.h"
+#include "mz.h"
 
-#include <iterator>
 #include <algorithm>
+#include <iterator>
 
 
 static constexpr std::uint32_t const s_coff_signature = 0x00004550; // PE\0\0

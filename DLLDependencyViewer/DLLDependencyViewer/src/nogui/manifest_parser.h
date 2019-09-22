@@ -1,9 +1,9 @@
 #pragma once
 
 
+#include "memory_manager.h"
 #include "smart_library.h"
 #include "unique_strings.h"
-#include "memory_manager.h"
 
 #include "my_windows.h"
 

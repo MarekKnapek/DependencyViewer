@@ -1,12 +1,12 @@
 #include "pe_test.h"
 
-#include "mz.h"
+#include "../assert.h"
 #include "coff_full.h"
 #include "import_table.h"
-#include "../assert.h"
+#include "mz.h"
 
-#include <cstring>
 #include <algorithm>
+#include <cstring>
 #include <iterator>
 
 #include "../../nogui/my_windows.h"

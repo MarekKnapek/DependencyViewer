@@ -1,9 +1,9 @@
 #pragma once
 
 
-#include "splitter_window.h"
 #include "processor.h"
 #include "smart_menu.h"
+#include "splitter_window.h"
 
 #include "../nogui/pe.h"
 

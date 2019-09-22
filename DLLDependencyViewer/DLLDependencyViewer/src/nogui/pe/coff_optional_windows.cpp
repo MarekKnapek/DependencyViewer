@@ -1,12 +1,12 @@
 #include "coff_optional_windows.h"
 
+#include "../assert.h"
+#include "coff.h"
 #include "coff_optional_standard.h"
 #include "mz.h"
-#include "coff.h"
-#include "../assert.h"
 
-#include <iterator>
 #include <algorithm>
+#include <iterator>
 
 
 static constexpr std::uint16_t s_image_subsystem_unknown                 	= 0; // IMAGE_SUBSYSTEM_UNKNOWN                  	An unknown subsystem
