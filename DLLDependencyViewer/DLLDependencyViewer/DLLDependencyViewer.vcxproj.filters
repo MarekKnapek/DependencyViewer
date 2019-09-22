@@ -246,6 +246,9 @@
     <ClInclude Include="src\nogui\dbg.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
+    <ClInclude Include="src\gui\smart_menu.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\main.cpp">
@@ -361,6 +364,9 @@
     </ClCompile>
     <ClCompile Include="src\nogui\dbg.cpp">
       <Filter>src\nogui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gui\smart_menu.cpp">
+      <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -195,6 +195,7 @@
     <ClInclude Include="src\gui\processor_impl.h" />
     <ClInclude Include="src\gui\search.h" />
     <ClInclude Include="src\gui\smart_dc.h" />
+    <ClInclude Include="src\gui\smart_menu.h" />
     <ClInclude Include="src\gui\splitter_window.h" />
     <ClInclude Include="src\gui\test.h" />
     <ClInclude Include="src\nogui\activation_context.h" />
@@ -237,6 +238,7 @@
     <ClCompile Include="src\gui\processor_impl.cpp" />
     <ClCompile Include="src\gui\search.cpp" />
     <ClCompile Include="src\gui\smart_dc.cpp" />
+    <ClCompile Include="src\gui\smart_menu.cpp" />
     <ClCompile Include="src\gui\splitter_window.cpp" />
     <ClCompile Include="src\gui\test.cpp" />
     <ClCompile Include="src\nogui\activation_context.cpp" />
