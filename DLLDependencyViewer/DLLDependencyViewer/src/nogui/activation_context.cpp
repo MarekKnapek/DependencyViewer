@@ -9,7 +9,9 @@
 #include <intrin.h>
 
 #pragma warning(push)
-#pragma warning(disable: 4201 4471)
+#pragma warning(disable:4201) // warning C4201: nonstandard extension used: nameless struct/union
+#pragma warning(disable:4324) // warning C4324: 'xxx': structure was padded due to alignment specifier
+#pragma warning(disable:4471) // warning C4471: 'xxx': a forward declaration of an unscoped enumeration must have an underlying type
 #include <phnt_windows.h>
 #include <phnt.h>
 #pragma warning(pop)
