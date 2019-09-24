@@ -43,6 +43,8 @@ static constexpr wchar_t const s_export_type_false[] = L"forwarder";
 static constexpr wchar_t const s_export_hint_na[] = L"N/A";
 static constexpr wchar_t const s_export_name_na[] = L"N/A";
 static constexpr wchar_t const s_export_name_processing[] = L"Processing...";
+static constexpr wchar_t const s_toolbar_open_tooltip[] = L"Open... (Ctrl+O)";
+static constexpr wchar_t const s_toolbar_full_paths_tooltip[] = L"View Full Paths (F9)";
 static constexpr wstring const s_export_name_debug_na = {s_export_name_na, static_cast<int>(std::size(s_export_name_na)) - 1};
 static constexpr int const s_menu_open_id = 2000;
 static constexpr int const s_menu_exit_id = 2001;
@@ -50,7 +52,7 @@ static constexpr int const s_tree_id = 1000;
 static constexpr int const s_import_list = 1001;
 static constexpr int const s_export_list = 1002;
 static constexpr int const s_toolbar_open = 3000;
-static constexpr int const s_toolbar_full_paths = 3004;
+static constexpr int const s_toolbar_full_paths = 3001;
 static constexpr int const s_accel_open = 4001;
 static constexpr int const s_accel_exit = 4002;
 static constexpr int const s_accel_paths = 4003;
@@ -258,7 +260,7 @@ HMENU main_window::create_tree_menu()
 
 HWND main_window::create_toolbar(HWND const& parent)
 {
-	HWND const toolbar = CreateWindowExW(0, TOOLBARCLASSNAMEW, nullptr, WS_CHILD | TBSTYLE_WRAPABLE, 0, 0, 0, 0, parent, nullptr, get_instance(), nullptr);
+	HWND const toolbar = CreateWindowExW(0, TOOLBARCLASSNAMEW, nullptr, WS_CHILD | TBSTYLE_WRAPABLE | TBSTYLE_TOOLTIPS, 0, 0, 0, 0, parent, nullptr, get_instance(), nullptr);
 	LRESULT const size_sent = SendMessageW(toolbar, TB_BUTTONSTRUCTSIZE, sizeof(TBBUTTON), 0);
 	TBADDBITMAP button_bitmap;
 	button_bitmap.hInst = get_instance();
@@ -404,6 +406,10 @@ LRESULT main_window::on_wm_notify(WPARAM wparam, LPARAM lparam)
 	else if(nmhdr.hwndFrom == m_export_list)
 	{
 		on_export_notify(nmhdr);
+	}
+	else if(nmhdr.hwndFrom == m_toolbar)
+	{
+		on_toolbar_notify(nmhdr);
 	}
 	return DefWindowProcW(m_hwnd, WM_NOTIFY, wparam, lparam);
 }
@@ -1050,6 +1056,31 @@ wchar_t const* main_window::on_export_get_col_address(pe_export_address_entry co
 		tmpstr.resize(export_entry.rva_or_forwarder.m_forwarder->m_len);
 		std::transform(cbegin(export_entry.rva_or_forwarder.m_forwarder), cend(export_entry.rva_or_forwarder.m_forwarder), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
 		return tmpstr.c_str();
+	}
+}
+
+void main_window::on_toolbar_notify(NMHDR& nmhdr)
+{
+	switch(nmhdr.code)
+	{
+		case TBN_GETINFOTIPW:
+		{
+			NMTBGETINFOTIPW& tbgit = reinterpret_cast<NMTBGETINFOTIPW&>(nmhdr);
+			switch(tbgit.iItem)
+			{
+				case s_toolbar_open:
+				{
+					tbgit.pszText = const_cast<wchar_t*>(s_toolbar_open_tooltip);
+				}
+				break;
+				case s_toolbar_full_paths:
+				{
+					tbgit.pszText = const_cast<wchar_t*>(s_toolbar_full_paths_tooltip);
+				}
+				break;
+			}
+		}
+		break;
 	}
 }
 
