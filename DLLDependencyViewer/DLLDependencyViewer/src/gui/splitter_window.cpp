@@ -91,6 +91,11 @@ LRESULT splitter_window<orientation>::on_message(UINT msg, WPARAM wparam, LPARAM
 			return on_wm_notify(wparam, lparam);
 		}
 		break;
+		case WM_CONTEXTMENU:
+		{
+			return on_wm_contextmenu(wparam, lparam);
+		}
+		break;
 		case WM_MOUSEMOVE:
 		{
 			return on_wm_mousemove(wparam, lparam);
@@ -161,6 +166,12 @@ template<splitter_window_orientation orientation>
 LRESULT splitter_window<orientation>::on_wm_notify(WPARAM wparam, LPARAM lparam)
 {
 	return SendMessageW(reinterpret_cast<HWND>(GetWindowLongPtrW(m_hwnd, GWLP_HWNDPARENT)), WM_NOTIFY, wparam, lparam);
+}
+
+template<splitter_window_orientation orientation>
+LRESULT splitter_window<orientation>::on_wm_contextmenu(WPARAM wparam, LPARAM lparam)
+{
+	return SendMessageW(reinterpret_cast<HWND>(GetWindowLongPtrW(m_hwnd, GWLP_HWNDPARENT)), WM_CONTEXTMENU, wparam, lparam);
 }
 
 template<>
