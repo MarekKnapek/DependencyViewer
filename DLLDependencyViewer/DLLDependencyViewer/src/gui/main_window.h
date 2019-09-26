@@ -55,6 +55,7 @@ private:
 	LRESULT on_wm_size(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_close(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_notify(WPARAM wparam, LPARAM lparam);
+	LRESULT on_wm_contextmenu(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_command(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_dropfiles(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_main_window_add_idle_task(WPARAM wparam, LPARAM lparam);
@@ -64,9 +65,9 @@ private:
 	LRESULT on_accelerator(WPARAM wparam, LPARAM lparam);
 	LRESULT on_toolbar(WPARAM wparam, LPARAM lparam);
 	void on_tree_notify(NMHDR& nmhdr);
+	void on_tree_context_menu(WPARAM wparam, LPARAM lparam);
 	void on_tree_getdispinfow(NMHDR& nmhdr);
 	void on_tree_selchangedw(NMHDR& nmhdr);
-	void on_tree_rclick(NMHDR& nmhdr);
 	void on_import_notify(NMHDR& nmhdr);
 	void on_import_getdispinfow(NMHDR& nmhdr);
 	wchar_t const* on_import_get_col_type(pe_import_entry const& import_entry);

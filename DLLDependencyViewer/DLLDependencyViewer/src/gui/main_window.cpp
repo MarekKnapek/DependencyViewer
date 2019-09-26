@@ -19,6 +19,7 @@
 #include <cstdlib>
 #include <iterator>
 
+#include <windowsx.h>
 #include <commctrl.h>
 #include <commdlg.h>
 #include <shellapi.h>
@@ -323,6 +324,11 @@ LRESULT main_window::on_message(UINT msg, WPARAM wparam, LPARAM lparam)
 			return on_wm_notify(wparam, lparam);
 		}
 		break;
+		case WM_CONTEXTMENU:
+		{
+			return on_wm_contextmenu(wparam, lparam);
+		}
+		break;
 		case WM_COMMAND:
 		{
 			return on_wm_command(wparam, lparam);
@@ -412,6 +418,12 @@ LRESULT main_window::on_wm_notify(WPARAM wparam, LPARAM lparam)
 		on_toolbar_notify(nmhdr);
 	}
 	return DefWindowProcW(m_hwnd, WM_NOTIFY, wparam, lparam);
+}
+
+LRESULT main_window::on_wm_contextmenu(WPARAM wparam, LPARAM lparam)
+{
+	on_tree_context_menu(wparam, lparam);
+	return DefWindowProcW(m_hwnd, WM_CONTEXTMENU, wparam, lparam);
 }
 
 LRESULT main_window::on_wm_command(WPARAM wparam, LPARAM lparam)
@@ -568,10 +580,70 @@ void main_window::on_tree_notify(NMHDR& nmhdr)
 	{
 		on_tree_selchangedw(nmhdr);
 	}
-	else if(nmhdr.code == NM_RCLICK)
+}
+
+void main_window::on_tree_context_menu(WPARAM wparam, LPARAM lparam)
+{
+	POINT cursor_screen;
+	HTREEITEM item;
+	if(lparam == 0xffffffff)
 	{
-		on_tree_rclick(nmhdr);
+		HWND const wnd = reinterpret_cast<HWND>(wparam);
+		if(wnd != m_tree)
+		{
+			return;
+		}
+		LRESULT const sel = SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_CARET, 0);
+		HTREEITEM const selected = reinterpret_cast<HTREEITEM>(sel);
+		if(!selected)
+		{
+			return;
+		}
+		RECT rect;
+		*reinterpret_cast<HTREEITEM*>(&rect) = selected;
+		LRESULT const got_rect = SendMessageW(m_tree, TVM_GETITEMRECT, TRUE, reinterpret_cast<LPARAM>(&rect));
+		if(got_rect == FALSE)
+		{
+			return;
+		}
+		cursor_screen.x = rect.left + (rect.right - rect.left) / 2;
+		cursor_screen.y = rect.top + (rect.bottom - rect.top) / 2;
+		BOOL const converted = ClientToScreen(m_tree, &cursor_screen);
+		assert(converted != 0);
+		item = selected;
 	}
+	else
+	{
+		cursor_screen.x = GET_X_LPARAM(lparam);
+		cursor_screen.y = GET_Y_LPARAM(lparam);
+		POINT cursor_client = cursor_screen;
+		BOOL const converted = ScreenToClient(m_tree, &cursor_client);
+		assert(converted != 0);
+		TVHITTESTINFO hti;
+		hti.pt = cursor_client;
+		LPARAM const hit_tested = SendMessageW(m_tree, TVM_HITTEST, 0, reinterpret_cast<LPARAM>(&hti));
+		assert(reinterpret_cast<HTREEITEM>(hit_tested) == hti.hItem);
+		if(!(hti.hItem && (hti.flags & (TVHT_ONITEM | TVHT_ONITEMBUTTON | TVHT_ONITEMICON | TVHT_ONITEMLABEL | TVHT_ONITEMSTATEICON)) != 0))
+		{
+			return;
+		}
+		LRESULT const selected = SendMessageW(m_tree, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(hti.hItem));
+		assert(selected == TRUE);
+		item = hti.hItem;
+	}
+	TVITEMEXW ti;
+	ti.hItem = item;
+	ti.mask = TVIF_PARAM;
+	LRESULT const got_item = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
+	assert(got_item == TRUE);
+	assert(ti.lParam);
+	file_info const& fi = *reinterpret_cast<file_info*>(ti.lParam);
+	bool const enable_goto_orig = fi.m_orig_instance != nullptr;
+	HMENU const tree_menu = reinterpret_cast<HMENU>(m_tree_menu.get());
+	BOOL const enabled = EnableMenuItem(tree_menu, s_tree_menu_orig_id, MF_BYCOMMAND | (enable_goto_orig ? MF_ENABLED : MF_GRAYED));
+	assert(enabled != -1 && (enabled == MF_ENABLED || enabled == MF_GRAYED));
+	BOOL const tracked = TrackPopupMenu(tree_menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON | TPM_NOANIMATION, cursor_screen.x, cursor_screen.y, 0, m_hwnd, nullptr);
+	assert(tracked != 0);
 }
 
 void main_window::on_tree_getdispinfow(NMHDR& nmhdr)
@@ -750,25 +822,6 @@ void main_window::on_tree_selchangedw(NMHDR& nmhdr)
 	}
 }
 
-void main_window::on_tree_rclick(NMHDR& /*nmhdr*/)
-{
-	auto const fi_cursor = get_file_info_under_cursor();
-	file_info const* const& fi = fi_cursor.first;
-	POINT const& cursor_screen = fi_cursor.second;
-	if(!fi)
-	{
-		return;
-	}
-	LRESULT const selected = SendMessageW(m_tree, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(fi->m_tree_item));
-	assert(selected == TRUE);
-	bool const enable_goto_orig = fi->m_orig_instance != nullptr;
-	HMENU const tree_menu = reinterpret_cast<HMENU>(m_tree_menu.get());
-	BOOL const enabled = EnableMenuItem(tree_menu, s_tree_menu_orig_id, MF_BYCOMMAND | (enable_goto_orig ? MF_ENABLED : MF_GRAYED));
-	assert(enabled != -1 && (enabled == MF_ENABLED || enabled == MF_GRAYED));
-	BOOL const tracked = TrackPopupMenu(tree_menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON | TPM_NOANIMATION, cursor_screen.x, cursor_screen.y, 0, m_hwnd, nullptr);
-	assert(tracked != 0);
-}
-
 void main_window::on_import_notify(NMHDR& nmhdr)
 {
 	if(nmhdr.code == LVN_GETDISPINFOW)
@@ -782,8 +835,7 @@ void main_window::on_import_getdispinfow(NMHDR& nmhdr)
 	NMLVDISPINFOW& nm = reinterpret_cast<NMLVDISPINFOW&>(nmhdr);
 	if((nm.item.mask | LVIF_TEXT) != 0)
 	{
-		TVITEMEXW ti;
-		HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(&ti)));
+		HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_CARET, 0));
 		if(!selected)
 		{
 			return;
@@ -793,6 +845,7 @@ void main_window::on_import_getdispinfow(NMHDR& nmhdr)
 		{
 			return;
 		}
+		TVITEMEXW ti;
 		ti.hItem = parent;
 		ti.mask = TVIF_PARAM;
 		LRESULT const got_parent = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
@@ -920,12 +973,12 @@ void main_window::on_export_getdispinfow(NMHDR& nmhdr)
 	NMLVDISPINFOW& nm = reinterpret_cast<NMLVDISPINFOW&>(nmhdr);
 	if((nm.item.mask | LVIF_TEXT) != 0)
 	{
-		TVITEMEXW ti;
-		HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(&ti)));
+		HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_CARET, 0));
 		if(!selected)
 		{
 			return;
 		}
+		TVITEMEXW ti;
 		ti.hItem = selected;
 		ti.mask = TVIF_PARAM;
 		LRESULT const got_selected = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
