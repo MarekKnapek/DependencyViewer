@@ -76,8 +76,24 @@ void deallocate_all_2(void** alloc_2)
 }
 
 
+static constexpr int const s_allocator_big_state_size = 64 * 1024;
+
+
+struct allocator_big_inner_t
+{
+	int m_used;
+	void* m_next;
+};
+
+struct allocator_big_outer_t
+{
+	allocator_big_inner_t m_inner;
+	void* m_allocs[(s_allocator_big_state_size - sizeof(allocator_big_inner_t)) / sizeof(void*)];
+};
+
+
 allocator_big::allocator_big() noexcept :
- m_allocs()
+ m_state(nullptr)
 {
 }
 
@@ -95,26 +111,62 @@ allocator_big& allocator_big::operator=(allocator_big&& other) noexcept
 
 allocator_big::~allocator_big() noexcept
 {
-	for(auto const& alloc : m_allocs)
+	allocator_big_outer_t* state = reinterpret_cast<allocator_big_outer_t*>(m_state);
+	while(state)
 	{
-		std::free(alloc);
+		allocator_big_outer_t* const state_old = state;
+		state = reinterpret_cast<allocator_big_outer_t*>(state->m_inner.m_next);
+		for(int i = 0; i != state_old->m_inner.m_used; ++i)
+		{
+			BOOL const freed = VirtualFree(state_old->m_allocs[i], 0, MEM_RELEASE);
+			assert(freed != 0);
+		}
+		BOOL const freed = VirtualFree(state_old, 0, MEM_RELEASE);
+		assert(freed != 0);
 	}
 }
 
 void allocator_big::swap(allocator_big& other) noexcept
 {
 	using std::swap;
-	swap(m_allocs, other.m_allocs);
+	swap(m_state, other.m_state);
 }
 
-void* allocator_big::allocate_bytes(int const& size, int const& align)
+void* allocator_big::allocate_bytes(int const size, int const align)
 {
 	assert(size >= s_big_allocation_threshold);
 	assert(align <= alignof(std::max_align_t));
 	(void)align;
-	void* const alloc = std::malloc(size);
-	m_allocs.push_back(alloc);
-	return alloc;
+	if(!m_state)
+	{
+		void* const new_mem_1 = VirtualAlloc(NULL, s_allocator_big_state_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+		assert(new_mem_1);
+		allocator_big_outer_t* const state_1 = reinterpret_cast<allocator_big_outer_t*>(new_mem_1);
+		assert(state_1->m_inner.m_used == 0);
+		assert(state_1->m_inner.m_next == nullptr);
+		assert(std::all_of(std::cbegin(state_1->m_allocs), std::cend(state_1->m_allocs), [](void* const& e){ return e == nullptr; }));
+		m_state = state_1;
+	}
+	{
+		allocator_big_outer_t* const state_2 = reinterpret_cast<allocator_big_outer_t*>(m_state);
+		if(state_2->m_inner.m_used == static_cast<int>(std::size(state_2->m_allocs)))
+		{
+			void* const new_mem_2 = VirtualAlloc(NULL, s_allocator_big_state_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+			assert(new_mem_2);
+			allocator_big_outer_t* const state_3 = reinterpret_cast<allocator_big_outer_t*>(new_mem_2);
+			assert(state_3->m_inner.m_used == 0);
+			assert(state_3->m_inner.m_next == nullptr);
+			assert(std::all_of(std::cbegin(state_3->m_allocs), std::cend(state_3->m_allocs), [](void* const& e){ return e == nullptr; }));
+			state_3->m_inner.m_next = state_2;
+			m_state = state_3;
+		}
+	}
+	allocator_big_outer_t* const state_4 = reinterpret_cast<allocator_big_outer_t*>(m_state);
+	void* const new_mem_3 = VirtualAlloc(NULL, size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+	assert(new_mem_3);
+	state_4->m_allocs[state_4->m_inner.m_used] = new_mem_3;
+	++state_4->m_inner.m_used;
+	return new_mem_3;
 }
 
 

@@ -1,9 +1,6 @@
 #pragma once
 
 
-#include <vector>
-
-
 void* allocate_bytes_2(void** alloc_2, int const& size, int const& align);
 void deallocate_all_2(void** alloc_2);
 
@@ -19,9 +16,9 @@ public:
 	~allocator_big() noexcept;
 	void swap(allocator_big& other) noexcept;
 public:
-	void* allocate_bytes(int const& size, int const& align);
+	void* allocate_bytes(int const size, int const align);
 private:
-	std::vector<void*> m_allocs;
+	void* m_state;
 };
 
 inline void swap(allocator_big& a, allocator_big& b) noexcept { a.swap(b); }
