@@ -90,6 +90,10 @@ void dbg_provider::get_symbols_from_addresses_task(dbg_provider_param_t const pa
 	{
 		return;
 	}
+	if(!m_sym_inited)
+	{
+		return;
+	}
 	DWORD64 const sym_module = m_dbghelp.m_fn_SymLoadModuleExW(GetCurrentProcess(), nullptr, task->m_module_path.c_str(), nullptr, 0, 0, nullptr, 0);
 	if(sym_module == 0)
 	{
