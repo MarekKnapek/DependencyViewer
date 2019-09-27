@@ -1515,6 +1515,7 @@ void main_window::request_symbol_traslation(file_info& fi)
 	task->m_module_path.assign(fi.m_file_path->m_str, fi.m_file_path->m_len);
 	task->m_addresses.resize(n);
 	task->m_export_entries.resize(n);
+	task->m_symbol_names.resize(n);
 	int i = 0;
 	for(auto& e : fi.m_export_table.m_export_address_table)
 	{

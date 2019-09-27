@@ -104,8 +104,8 @@ void dbg_provider::get_symbols_from_addresses_task(dbg_provider_param_t const pa
 		BOOL const unloaded = m_dbghelp.m_fn_SymUnloadModule64(GetCurrentProcess(), sym_module);
 		assert(unloaded != FALSE);
 	});
+	assert(task->m_addresses.size() == task->m_symbol_names.size());
 	int const n = static_cast<int>(task->m_addresses.size());
-	task->m_symbol_names.resize(n);
 	for(int i = 0; i != n; ++i)
 	{
 		DWORD64 displacement;
