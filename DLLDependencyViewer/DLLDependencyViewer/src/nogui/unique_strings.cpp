@@ -124,6 +124,39 @@ template struct basic_string_case_insensitive_equal<char>;
 template struct basic_string_case_insensitive_equal<wchar_t>;
 
 
+bool basic_string_less<char>::operator()(basic_string<char> const* const& a, basic_string<char> const* const& b) const
+{
+	if(a == b)
+	{
+		return false;
+	}
+	if(a->m_str == b->m_str)
+	{
+		assert(a->m_len == b->m_len);
+		return false;
+	}
+	return std::strcmp(a->m_str, b->m_str) < 0;
+}
+
+template<>
+bool basic_string_less<wchar_t>::operator()(basic_string<wchar_t> const* const& a, basic_string<wchar_t> const* const& b) const
+{
+	if(a == b)
+	{
+		return false;
+	}
+	if(a->m_str == b->m_str)
+	{
+		assert(a->m_len == b->m_len);
+		return false;
+	}
+	return std::wcscmp(a->m_str, b->m_str) < 0;
+}
+
+template struct basic_string_less<char>;
+template struct basic_string_less<wchar_t>;
+
+
 template<typename char_t>
 basic_unique_strings<char_t>::basic_unique_strings() noexcept :
 	m_strings()

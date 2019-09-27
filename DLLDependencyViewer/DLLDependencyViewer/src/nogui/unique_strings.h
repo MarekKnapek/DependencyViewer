@@ -75,6 +75,16 @@ typedef basic_string_case_insensitive_equal<wchar_t> wstring_case_insensitive_eq
 
 
 template<typename char_t>
+struct basic_string_less
+{
+	bool operator()(basic_string<char_t> const* const& a, basic_string<char_t> const* const& b) const;
+};
+
+typedef basic_string_less<char> string_less;
+typedef basic_string_less<wchar_t> wstring_less;
+
+
+template<typename char_t>
 class basic_unique_strings
 {
 public:
