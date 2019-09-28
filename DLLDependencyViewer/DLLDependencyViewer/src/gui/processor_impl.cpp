@@ -207,7 +207,7 @@ void pair_imports_with_exports_e(file_info& fi)
 					auto const it = std::lower_bound(enpt_eot.cbegin(), enpt_eot.cend(), name, [&](auto const& e, auto const& v){ return string_less{}(eat[e.first].m_name, v); });
 					if(it != enpt_eot.cend() && string_equal{}(eat[it->first].m_name, name))
 					{
-						impe.m_matched_export = it->second;
+						impe.m_matched_export = it->first;
 					}
 					else
 					{
