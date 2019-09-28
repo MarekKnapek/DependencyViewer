@@ -1446,6 +1446,8 @@ int main_window::get_twobyte_column_max_width()
 	HDC const dc = GetDC(m_import_list);
 	assert(dc != NULL);
 	smart_dc sdc(m_import_list, dc);
+	auto const orig_font = SelectObject(dc, reinterpret_cast<HFONT>(SendMessageW(m_import_list, WM_GETFONT, 0, 0)));
+	auto const fn_revert = mk::make_scope_exit([&](){ SelectObject(dc, orig_font); });
 
 	int maximum = 0;
 	for(auto const& twobyte : s_twobytes)
@@ -1463,8 +1465,9 @@ int main_window::get_twobyte_column_max_width()
 		maximum = (std::max)(maximum, static_cast<int>(size.cx));
 	}
 
-	g_twobyte_column_max_width = maximum;
-	return maximum;
+	static constexpr int const s_trailing_label_padding = 12;
+	g_twobyte_column_max_width = maximum + s_trailing_label_padding;
+	return g_twobyte_column_max_width;
 }
 
 std::pair<file_info const*, POINT> main_window::get_file_info_under_cursor()
