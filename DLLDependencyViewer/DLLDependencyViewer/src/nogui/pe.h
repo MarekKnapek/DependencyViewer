@@ -62,6 +62,8 @@ struct pe_export_address_entry
 struct pe_export_table_info
 {
 	std::vector<pe_export_address_entry> m_export_address_table;
+	std::vector<std::pair<std::uint16_t, std::uint16_t>> m_enpt_eot;
+	std::uint16_t m_ordinal_base;
 };
 
 struct pe_resource_string_or_id

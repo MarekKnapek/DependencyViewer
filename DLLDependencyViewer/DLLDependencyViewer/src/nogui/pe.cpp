@@ -316,7 +316,11 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 	std::uint32_t const* export_address_table = reinterpret_cast<std::uint32_t const*>(file_data + export_address_table_disk_off);
 	int const export_address_count_proper = static_cast<int>(std::count_if(export_address_table, export_address_table + export_dir.m_export_address_count, [](std::uint32_t const& e){ return e != 0; }));
 	ret.m_export_address_table.resize(export_address_count_proper);
-	int j = 0;
+	ret.m_enpt_eot.resize(export_dir.m_names_count);
+	std::fill(ret.m_enpt_eot.begin(), ret.m_enpt_eot.end(), std::make_pair(std::uint16_t(0xffff), std::uint16_t(0xffff)));
+	ret.m_ordinal_base = static_cast<std::uint16_t>(export_dir.m_ordinal_base);
+	std::uint16_t j = 0;
+	int hint_idx = 0;
 	std::uint16_t const n = static_cast<std::uint16_t>(export_dir.m_export_address_count);
 	for(std::uint16_t i = 0; i != n; ++i)
 	{
@@ -335,7 +339,7 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 			if(it != export_ordinal_table + export_dir.m_names_count)
 			{
 				hint = static_cast<std::uint16_t>(it - export_ordinal_table);
-				std::uint32_t const export_address_name_rva = export_name_pointer_table[it - export_ordinal_table];
+				std::uint32_t const export_address_name_rva = export_name_pointer_table[hint];
 				auto const export_address_name_sect_off = convert_rva_to_disk_ptr(export_address_name_rva, hi);
 				section_header const& export_address_name_sect = *export_address_name_sect_off.first;
 				std::uint32_t const& export_address_name_disk_offset = export_address_name_sect_off.second;
@@ -376,8 +380,13 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 		}
 		if(export_address_name)
 		{
+			string const* const export_name = mm.m_strs.add_string(export_address_name, export_address_name_len, mm.m_alc);
 			ret.m_export_address_table[j].m_hint = hint;
-			ret.m_export_address_table[j].m_name = mm.m_strs.add_string(export_address_name, export_address_name_len, mm.m_alc);
+			ret.m_export_address_table[j].m_name = export_name;
+			VERIFY(ret.m_enpt_eot[hint].first == 0xffff && ret.m_enpt_eot[hint].second == 0xffff);
+			ret.m_enpt_eot[hint].first = j;
+			ret.m_enpt_eot[hint].second = i;
+			++hint_idx;
 		}
 		else
 		{
@@ -386,6 +395,15 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 		}
 		++j;
 	}
+	VERIFY(hint_idx == static_cast<int>(export_dir.m_names_count));
+	VERIFY(std::is_sorted(ret.m_enpt_eot.cbegin(), ret.m_enpt_eot.cend(), [&](auto const& a, auto const& b)
+	{
+		auto const& aa = ret.m_export_address_table[a.first].m_name;
+		auto const& bb = ret.m_export_address_table[b.first].m_name;
+		assert(aa);
+		assert(bb);
+		return string_less{}(aa, bb);
+	}));
 
 	return ret;
 }
