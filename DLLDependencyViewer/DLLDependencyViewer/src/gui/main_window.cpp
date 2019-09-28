@@ -893,13 +893,27 @@ void main_window::on_import_getdispinfow(NMHDR& nmhdr)
 	}
 	if((nm.item.mask & LVIF_IMAGE) != 0)
 	{
-		if(import_entry.m_matched_export != 0xffff)
+		bool const matched = import_entry.m_matched_export != 0xffff;
+		bool const ordinal = import_entry.m_is_ordinal;
+		if(matched && ordinal)
+		{
+			nm.item.iImage = s_res_icon_import_found_o;
+		}
+		else if(matched && !ordinal)
 		{
 			nm.item.iImage = s_res_icon_import_found_c;
 		}
-		else
+		else if(!matched && ordinal)
+		{
+			nm.item.iImage = s_res_icon_import_not_found_o;
+		}
+		else if(!matched && !ordinal)
 		{
 			nm.item.iImage = s_res_icon_import_not_found_c;
+		}
+		else
+		{
+			__assume(false);
 		}
 	}
 }

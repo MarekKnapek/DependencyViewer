@@ -54,4 +54,6 @@
 #define s_res_icons_import 4
 
 #define s_res_icon_import_not_found_c 0;
+#define s_res_icon_import_not_found_o 2;
 #define s_res_icon_import_found_c 6;
+#define s_res_icon_import_found_o 8;
