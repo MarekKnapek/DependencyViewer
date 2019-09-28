@@ -38,7 +38,7 @@ static constexpr wchar_t const s_import_type_false[] = L"name";
 static constexpr wchar_t const s_import_ordinal_na[] = L"N/A";
 static constexpr wchar_t const s_import_hint_na[] = L"N/A";
 static constexpr wchar_t const s_import_name_na[] = L"N/A";
-static constexpr wchar_t const* const s_export_headers[] = { L"type", L"ordinal", L"hint", L"name", L"entry point" };
+static constexpr wchar_t const* const s_export_headers[] = {L"type", L"ordinal", L"hint", L"name", L"entry point"};
 static constexpr wchar_t const s_export_type_true[] = L"address";
 static constexpr wchar_t const s_export_type_false[] = L"forwarder";
 static constexpr wchar_t const s_export_hint_na[] = L"N/A";
@@ -46,7 +46,7 @@ static constexpr wchar_t const s_export_name_na[] = L"N/A";
 static constexpr wchar_t const s_export_name_processing[] = L"Processing...";
 static constexpr wchar_t const s_toolbar_open_tooltip[] = L"Open... (Ctrl+O)";
 static constexpr wchar_t const s_toolbar_full_paths_tooltip[] = L"View Full Paths (F9)";
-static constexpr wstring const s_export_name_debug_na = {s_export_name_na, static_cast<int>(std::size(s_export_name_na)) - 1};
+static constexpr wstring const s_export_name_debug_na ={s_export_name_na, static_cast<int>(std::size(s_export_name_na)) - 1};
 static constexpr int const s_menu_open_id = 2000;
 static constexpr int const s_menu_exit_id = 2001;
 static constexpr int const s_tree_id = 1000;
@@ -185,7 +185,7 @@ main_window::main_window() :
 		LVCOLUMNW cl;
 		cl.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
 		cl.fmt = LVCFMT_LEFT;
-		cl.cx = 0;
+		cl.cx = 100;
 		cl.pszText = const_cast<LPWSTR>(s_import_headers[i]);
 		cl.cchTextMax = 0;
 		cl.iSubItem = i;
@@ -206,7 +206,7 @@ main_window::main_window() :
 		LVCOLUMNW cl;
 		cl.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
 		cl.fmt = LVCFMT_LEFT;
-		cl.cx = 0;
+		cl.cx = 100;
 		cl.pszText = const_cast<LPWSTR>(s_export_headers[i]);
 		cl.cchTextMax = 0;
 		cl.iSubItem = i;
@@ -791,10 +791,7 @@ void main_window::on_tree_selchangedw(NMHDR& nmhdr)
 			int const idx = static_cast<int>(&fi - parent_fi.m_sub_file_infos.data());
 			LRESULT const set_size = SendMessageW(m_import_list, LVM_SETITEMCOUNT, parent_fi.m_import_table.m_dlls[idx].m_entries.size(), 0);
 		}
-		for(int i = 0; i != static_cast<int>(std::size(s_import_headers)); ++i)
-		{
-			LRESULT const auto_sized = SendMessageW(m_import_list, LVM_SETCOLUMNWIDTH, i, LVSCW_AUTOSIZE);
-		}
+		LRESULT const auto_sized_pi = SendMessageW(m_import_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_import_column::e_pi), LVSCW_AUTOSIZE);
 		int const import_type_column_max_width = get_import_type_column_max_width();
 		LRESULT const type_sized = SendMessageW(m_import_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_import_column::e_type), import_type_column_max_width);
 		assert(type_sized == TRUE);
@@ -811,10 +808,6 @@ void main_window::on_tree_selchangedw(NMHDR& nmhdr)
 		file_info const& tmp_fi = *reinterpret_cast<file_info*>(nm.itemNew.lParam);
 		file_info const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
 		LRESULT const set_size = SendMessageW(m_export_list, LVM_SETITEMCOUNT, fi.m_export_table.m_export_address_table.size(), 0);
-		for(int i = 0; i != static_cast<int>(std::size(s_export_headers)); ++i)
-		{
-			LRESULT const auto_sized = SendMessageW(m_export_list, LVM_SETCOLUMNWIDTH, i, LVSCW_AUTOSIZE);
-		}
 		int const export_type_column_max_width = get_export_type_column_max_width();
 		LRESULT const type_sized = SendMessageW(m_export_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_export_column::e_type), export_type_column_max_width);
 		assert(type_sized == TRUE);
