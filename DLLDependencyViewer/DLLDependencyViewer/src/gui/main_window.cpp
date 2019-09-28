@@ -28,8 +28,10 @@
 static constexpr wchar_t const s_window_class_name[] = L"main_window";
 static constexpr wchar_t const s_window_title[] = L"DLLDependencyViewer";
 static constexpr wchar_t const s_menu_file[] = L"&File";
-static constexpr wchar_t const s_menu_open[] = L"&Open...\tCtrl+O";
-static constexpr wchar_t const s_menu_exit[] = L"E&xit\tCtrl+W";
+static constexpr wchar_t const s_menu_file_open[] = L"&Open...\tCtrl+O";
+static constexpr wchar_t const s_menu_file_exit[] = L"E&xit\tCtrl+W";
+static constexpr wchar_t const s_menu_view[] = L"&View";
+static constexpr wchar_t const s_menu_view_paths[] = L"&Full Paths\tF9";
 static constexpr wchar_t const s_open_file_dialog_file_name_filter[] = L"Executable files and libraries (*.exe;*.dll;*.ocx)\0*.exe;*.dll;*.ocx\0All files\0*.*\0";
 static constexpr wchar_t const s_msg_error[] = L"DLLDependencyViewer error.";
 static constexpr wchar_t const* const s_import_headers[] = {L"PI", L"type", L"ordinal", L"hint", L"name"};
@@ -49,6 +51,7 @@ static constexpr wchar_t const s_toolbar_full_paths_tooltip[] = L"View Full Path
 static constexpr wstring const s_export_name_debug_na ={s_export_name_na, static_cast<int>(std::size(s_export_name_na)) - 1};
 static constexpr int const s_menu_open_id = 2000;
 static constexpr int const s_menu_exit_id = 2001;
+static constexpr int const s_menu_paths_id = 2010;
 static constexpr int const s_tree_id = 1000;
 static constexpr int const s_import_list = 1001;
 static constexpr int const s_export_list = 1002;
@@ -242,10 +245,26 @@ HWND main_window::get_hwnd() const
 HMENU main_window::create_menu()
 {
 	HMENU const menu_bar = CreateMenu();
+	assert(menu_bar != nullptr);
+
 	HMENU const menu_file = CreatePopupMenu();
+	assert(menu_file != nullptr);
 	BOOL const menu_file_appended = AppendMenuW(menu_bar, MF_POPUP, reinterpret_cast<UINT_PTR>(menu_file), s_menu_file);
-	BOOL const menu_open_appended = AppendMenuW(menu_file, MF_STRING, s_menu_open_id, s_menu_open);
-	BOOL const menu_exit_appended = AppendMenuW(menu_file, MF_STRING, s_menu_exit_id, s_menu_exit);
+	assert(menu_file_appended != 0);
+
+	BOOL const menu_file_open_appended = AppendMenuW(menu_file, MF_STRING, s_menu_open_id, s_menu_file_open);
+	assert(menu_file_open_appended != 0);
+	BOOL const menu_file_exit_appended = AppendMenuW(menu_file, MF_STRING, s_menu_exit_id, s_menu_file_exit);
+	assert(menu_file_exit_appended != 0);
+
+	HMENU const menu_view = CreatePopupMenu();
+	assert(menu_view != nullptr);
+	BOOL const menu_view_appended = AppendMenuW(menu_bar, MF_POPUP, reinterpret_cast<UINT_PTR>(menu_view), s_menu_view);
+	assert(menu_view_appended != 0);
+
+	BOOL const menu_view_paths_appended = AppendMenuW(menu_view, MF_STRING, s_menu_paths_id, s_menu_view_paths);
+	assert(menu_view_paths_appended != 0);
+
 	return menu_bar;
 }
 
@@ -510,6 +529,11 @@ LRESULT main_window::on_menu(WPARAM wparam, LPARAM lparam)
 		case s_menu_exit_id:
 		{
 			on_menu_exit();
+		}
+		break;
+		case s_menu_paths_id:
+		{
+			on_menu_paths();
 		}
 		break;
 		case s_tree_menu_orig_id:
@@ -1186,6 +1210,11 @@ void main_window::on_menu_open()
 void main_window::on_menu_exit()
 {
 	LRESULT const sent = SendMessageW(m_hwnd, WM_CLOSE, 0, 0);
+}
+
+void main_window::on_menu_paths()
+{
+	full_paths();
 }
 
 void main_window::on_tree_menu_orig()

@@ -84,6 +84,7 @@ private:
 	void on_toolbar_notify(NMHDR& nmhdr);
 	void on_menu_open();
 	void on_menu_exit();
+	void on_menu_paths();
 	void on_tree_menu_orig();
 	void on_accel_open();
 	void on_accel_exit();
