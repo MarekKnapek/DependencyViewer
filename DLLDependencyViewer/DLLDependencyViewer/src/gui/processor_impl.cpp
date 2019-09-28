@@ -151,6 +151,7 @@ void pair_imports_with_exports(processor_impl& prcsr)
 
 void pair_imports_with_exports_r(file_info& fi)
 {
+	pair_imports_with_exports_e(fi);
 	for(auto& sub_fi : fi.m_sub_file_infos)
 	{
 		pair_imports_with_exports_e(sub_fi);
