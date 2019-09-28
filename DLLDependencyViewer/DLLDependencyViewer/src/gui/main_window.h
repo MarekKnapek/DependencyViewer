@@ -71,8 +71,8 @@ private:
 	void on_import_notify(NMHDR& nmhdr);
 	void on_import_getdispinfow(NMHDR& nmhdr);
 	wchar_t const* on_import_get_col_type(pe_import_entry const& import_entry);
-	wchar_t const* on_import_get_col_ordinal(pe_import_entry const& import_entry);
-	wchar_t const* on_import_get_col_hint(pe_import_entry const& import_entry);
+	wchar_t const* on_import_get_col_ordinal(pe_import_entry const& import_entry, file_info const& fi);
+	wchar_t const* on_import_get_col_hint(pe_import_entry const& import_entry, file_info const& fi);
 	wchar_t const* on_import_get_col_name(pe_import_entry const& import_entry, file_info const& fi);
 	void on_export_notify(NMHDR& nmhdr);
 	void on_export_getdispinfow(NMHDR& nmhdr);

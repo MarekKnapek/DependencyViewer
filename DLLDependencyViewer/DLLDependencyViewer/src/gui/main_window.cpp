@@ -871,12 +871,12 @@ void main_window::on_import_getdispinfow(NMHDR& nmhdr)
 			break;
 			case e_import_column::e_ordinal:
 			{
-				nm.item.pszText = const_cast<wchar_t*>(on_import_get_col_ordinal(import_entry));
+				nm.item.pszText = const_cast<wchar_t*>(on_import_get_col_ordinal(import_entry, fi));
 			}
 			break;
 			case e_import_column::e_hint:
 			{
-				nm.item.pszText = const_cast<wchar_t*>(on_import_get_col_hint(import_entry));
+				nm.item.pszText = const_cast<wchar_t*>(on_import_get_col_hint(import_entry, fi));
 			}
 			break;
 			case e_import_column::e_name:
@@ -916,7 +916,7 @@ wchar_t const* main_window::on_import_get_col_type(pe_import_entry const& import
 	}
 }
 
-wchar_t const* main_window::on_import_get_col_ordinal(pe_import_entry const& import_entry)
+wchar_t const* main_window::on_import_get_col_ordinal(pe_import_entry const& import_entry, file_info const& fi)
 {
 	if(import_entry.m_is_ordinal)
 	{
@@ -929,15 +929,29 @@ wchar_t const* main_window::on_import_get_col_ordinal(pe_import_entry const& imp
 	}
 	else
 	{
-		return s_import_ordinal_na;
+		if(import_entry.m_matched_export != 0xffff)
+		{
+			return on_export_get_col_ordinal(fi.m_export_table.m_export_address_table[import_entry.m_matched_export]);
+		}
+		else
+		{
+			return s_import_ordinal_na;
+		}
 	}
 }
 
-wchar_t const* main_window::on_import_get_col_hint(pe_import_entry const& import_entry)
+wchar_t const* main_window::on_import_get_col_hint(pe_import_entry const& import_entry, file_info const& fi)
 {
 	if(import_entry.m_is_ordinal)
 	{
-		return s_import_hint_na;
+		if(import_entry.m_matched_export != 0xffff)
+		{
+			return on_export_get_col_hint(fi.m_export_table.m_export_address_table[import_entry.m_matched_export]);
+		}
+		else
+		{
+			return s_import_hint_na;
+		}
 	}
 	else
 	{
@@ -954,11 +968,9 @@ wchar_t const* main_window::on_import_get_col_name(pe_import_entry const& import
 {
 	if(import_entry.m_is_ordinal)
 	{
-		std::uint16_t const& ordinal = import_entry.m_ordinal_or_hint;
-		auto const it = std::lower_bound(fi.m_export_table.m_export_address_table.cbegin(), fi.m_export_table.m_export_address_table.cend(), ordinal, [](pe_export_address_entry const& e, std::uint16_t const& v){ return e.m_ordinal < v; });
-		if(it != fi.m_export_table.m_export_address_table.cend() && it->m_ordinal == ordinal)
+		if(import_entry.m_matched_export != 0xffff)
 		{
-			return on_export_get_col_name(*it);
+			return on_export_get_col_name(fi.m_export_table.m_export_address_table[import_entry.m_matched_export]);
 		}
 		else
 		{
