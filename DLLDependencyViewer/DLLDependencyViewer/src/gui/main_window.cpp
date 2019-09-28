@@ -32,7 +32,7 @@ static constexpr wchar_t const s_menu_open[] = L"&Open...\tCtrl+O";
 static constexpr wchar_t const s_menu_exit[] = L"E&xit\tCtrl+W";
 static constexpr wchar_t const s_open_file_dialog_file_name_filter[] = L"Executable files and libraries (*.exe;*.dll;*.ocx)\0*.exe;*.dll;*.ocx\0All files\0*.*\0";
 static constexpr wchar_t const s_msg_error[] = L"DLLDependencyViewer error.";
-static constexpr wchar_t const* const s_import_headers[] = { L"type", L"ordinal", L"hint", L"name" };
+static constexpr wchar_t const* const s_import_headers[] = {L"PI", L"type", L"ordinal", L"hint", L"name"};
 static constexpr wchar_t const s_import_type_true[] = L"ordinal";
 static constexpr wchar_t const s_import_type_false[] = L"name";
 static constexpr wchar_t const s_import_ordinal_na[] = L"N/A";
@@ -76,6 +76,7 @@ static int g_twobyte_column_max_width = 0;
 
 enum class e_import_column
 {
+	e_pi,
 	e_type,
 	e_ordinal,
 	e_hint,
@@ -173,8 +174,9 @@ main_window::main_window() :
 
 	LRESULT const set_tree = SendMessageW(m_tree, TVM_SETEXTENDEDSTYLE, TVS_EX_DOUBLEBUFFER, TVS_EX_DOUBLEBUFFER);
 	LONG_PTR const prev = SetWindowLongPtrW(m_tree, GWL_STYLE, GetWindowLongPtrW(m_tree, GWL_STYLE) | TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS);
-	HIMAGELIST const img_list = ImageList_LoadImageW(get_instance(), MAKEINTRESOURCEW(s_res_icons_tree), 26, 0, CLR_DEFAULT, IMAGE_BITMAP, LR_DEFAULTCOLOR);
-	LRESULT const img_list_set = SendMessageW(m_tree, TVM_SETIMAGELIST, TVSIL_NORMAL, reinterpret_cast<LPARAM>(img_list));
+	HIMAGELIST const tree_img_list = ImageList_LoadImageW(get_instance(), MAKEINTRESOURCEW(s_res_icons_tree), 26, 0, CLR_DEFAULT, IMAGE_BITMAP, LR_DEFAULTCOLOR);
+	assert(tree_img_list);
+	LRESULT const img_list_set_tree = SendMessageW(m_tree, TVM_SETIMAGELIST, TVSIL_NORMAL, reinterpret_cast<LPARAM>(tree_img_list));
 
 	unsigned const extended_lv_styles = LVS_EX_FULLROWSELECT | LVS_EX_LABELTIP | LVS_EX_DOUBLEBUFFER;
 	LRESULT const set_import = SendMessageW(m_import_list, LVM_SETEXTENDEDLISTVIEWSTYLE, extended_lv_styles, extended_lv_styles);
@@ -194,6 +196,9 @@ main_window::main_window() :
 		cl.cxIdeal = 0;
 		auto const inserted = SendMessageW(m_import_list, LVM_INSERTCOLUMNW, i, reinterpret_cast<LPARAM>(&cl));
 	}
+	HIMAGELIST const import_img_list = ImageList_LoadImageW(get_instance(), MAKEINTRESOURCEW(s_res_icons_import), 30, 0, CLR_DEFAULT, IMAGE_BITMAP, LR_DEFAULTCOLOR);
+	assert(import_img_list);
+	LRESULT const img_list_set_import = SendMessageW(m_import_list, LVM_SETIMAGELIST, LVSIL_SMALL, reinterpret_cast<LPARAM>(import_img_list));
 
 	LRESULT const set_export = SendMessageW(m_export_list, LVM_SETEXTENDEDLISTVIEWSTYLE, extended_lv_styles, extended_lv_styles);
 	for(int i = 0; i != static_cast<int>(std::size(s_export_headers)); ++i)
@@ -833,34 +838,39 @@ void main_window::on_import_notify(NMHDR& nmhdr)
 void main_window::on_import_getdispinfow(NMHDR& nmhdr)
 {
 	NMLVDISPINFOW& nm = reinterpret_cast<NMLVDISPINFOW&>(nmhdr);
+	HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_CARET, 0));
+	if(!selected)
+	{
+		return;
+	}
+	HTREEITEM const parent = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(selected)));
+	if(!parent)
+	{
+		return;
+	}
+	TVITEMEXW ti;
+	ti.hItem = parent;
+	ti.mask = TVIF_PARAM;
+	LRESULT const got_parent = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
+	file_info const& parent_fi = *reinterpret_cast<file_info*>(ti.lParam);
+	ti.hItem = selected;
+	ti.mask = TVIF_PARAM;
+	LRESULT const got_selected = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
+	file_info const& fi = *reinterpret_cast<file_info*>(ti.lParam);
+	int const idx = static_cast<int>(&fi - parent_fi.m_sub_file_infos.data());
+	int const row = nm.item.iItem;
+	int const col = nm.item.iSubItem;
+	pe_import_entry const& import_entry = parent_fi.m_import_table.m_dlls[idx].m_entries[row];
+	e_import_column const ecol = static_cast<e_import_column>(col);
 	if((nm.item.mask | LVIF_TEXT) != 0)
 	{
-		HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_CARET, 0));
-		if(!selected)
-		{
-			return;
-		}
-		HTREEITEM const parent = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(selected)));
-		if(!parent)
-		{
-			return;
-		}
-		TVITEMEXW ti;
-		ti.hItem = parent;
-		ti.mask = TVIF_PARAM;
-		LRESULT const got_parent = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-		file_info const& parent_fi = *reinterpret_cast<file_info*>(ti.lParam);
-		ti.hItem = selected;
-		ti.mask = TVIF_PARAM;
-		LRESULT const got_selected = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-		file_info const& fi = *reinterpret_cast<file_info*>(ti.lParam);
-		int const idx = static_cast<int>(&fi - parent_fi.m_sub_file_infos.data());
-		int const row = nm.item.iItem;
-		int const col = nm.item.iSubItem;
-		pe_import_entry const& import_entry = parent_fi.m_import_table.m_dlls[idx].m_entries[row];
-		e_import_column const ecol = static_cast<e_import_column>(col);
 		switch(ecol)
 		{
+			case e_import_column::e_pi:
+			{
+				nm.item.pszText = const_cast<wchar_t*>(L"");
+			}
+			break;
 			case e_import_column::e_type:
 			{
 				nm.item.pszText = const_cast<wchar_t*>(on_import_get_col_type(import_entry));
@@ -886,6 +896,17 @@ void main_window::on_import_getdispinfow(NMHDR& nmhdr)
 				assert(false);
 			}
 			break;
+		}
+	}
+	if((nm.item.mask & LVIF_IMAGE) != 0)
+	{
+		if(import_entry.m_matched_export != 0xffff)
+		{
+			nm.item.iImage = s_res_icon_import_found_c;
+		}
+		else
+		{
+			nm.item.iImage = s_res_icon_import_not_found_c;
 		}
 	}
 }
