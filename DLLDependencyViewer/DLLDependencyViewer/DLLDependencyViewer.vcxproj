@@ -274,6 +274,7 @@
     <ClCompile Include="src\nogui\utils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="src\res\icons_import.bmp" />
     <Image Include="src\res\icons_toolbar.bmp" />
     <Image Include="src\res\icons_tree.bmp" />
   </ItemGroup>

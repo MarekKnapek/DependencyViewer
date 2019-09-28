@@ -379,6 +379,9 @@
     <Image Include="src\res\icons_tree.bmp">
       <Filter>src\res</Filter>
     </Image>
+    <Image Include="src\res\icons_import.bmp">
+      <Filter>src\res</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src\res\resources.rc">

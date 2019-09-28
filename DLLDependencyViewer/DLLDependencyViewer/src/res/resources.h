@@ -48,3 +48,10 @@
 
 #define s_res_icon_open 0
 #define s_res_icon_full_paths 4
+
+
+
+#define s_res_icons_import 4
+
+#define s_res_icon_import_not_found_c 0;
+#define s_res_icon_import_found_c 6;
