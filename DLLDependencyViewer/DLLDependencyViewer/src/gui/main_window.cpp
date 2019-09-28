@@ -850,6 +850,7 @@ void main_window::on_import_getdispinfow(NMHDR& nmhdr)
 	ti.mask = TVIF_PARAM;
 	LRESULT const got_selected = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
 	file_info const& fi = *reinterpret_cast<file_info*>(ti.lParam);
+	file_info const& fi_orig = fi.m_orig_instance ? *fi.m_orig_instance : fi;
 	int const idx = static_cast<int>(&fi - parent_fi.m_sub_file_infos.data());
 	int const row = nm.item.iItem;
 	int const col = nm.item.iSubItem;
@@ -871,17 +872,17 @@ void main_window::on_import_getdispinfow(NMHDR& nmhdr)
 			break;
 			case e_import_column::e_ordinal:
 			{
-				nm.item.pszText = const_cast<wchar_t*>(on_import_get_col_ordinal(import_entry, fi));
+				nm.item.pszText = const_cast<wchar_t*>(on_import_get_col_ordinal(import_entry, fi_orig));
 			}
 			break;
 			case e_import_column::e_hint:
 			{
-				nm.item.pszText = const_cast<wchar_t*>(on_import_get_col_hint(import_entry, fi));
+				nm.item.pszText = const_cast<wchar_t*>(on_import_get_col_hint(import_entry, fi_orig));
 			}
 			break;
 			case e_import_column::e_name:
 			{
-				nm.item.pszText = const_cast<wchar_t*>(on_import_get_col_name(import_entry, fi));
+				nm.item.pszText = const_cast<wchar_t*>(on_import_get_col_name(import_entry, fi_orig));
 			}
 			break;
 			default:
