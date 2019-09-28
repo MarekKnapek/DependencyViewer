@@ -26,3 +26,6 @@ void process_r(processor_impl& prcsr);
 void process_e(processor_impl& prcsr, file_info& fi, string const* const& dll_name);
 manifest_data process_manifest(processor_impl& prcsr, file_info const& fi);
 std::pair<char const*, int> find_manifest(file_info const& fi);
+void pair_imports_with_exports(processor_impl& prcsr);
+void pair_imports_with_exports_r(file_info& fi);
+void pair_imports_with_exports_e(file_info& fi);

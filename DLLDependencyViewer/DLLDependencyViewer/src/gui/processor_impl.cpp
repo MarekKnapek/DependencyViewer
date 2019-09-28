@@ -71,6 +71,7 @@ void process_r(processor_impl& prcsr)
 			}
 		}
 	}
+	pair_imports_with_exports(prcsr);
 }
 
 void process_e(processor_impl& prcsr, file_info& fi, string const* const& dll_name)
@@ -139,4 +140,81 @@ std::pair<char const*, int> find_manifest(file_info const& fi)
 		}
 	}
 	return {};
+}
+
+void pair_imports_with_exports(processor_impl& prcsr)
+{
+	assert(prcsr.m_mo->m_fi.m_sub_file_infos.size() == 1);
+	auto& fi = prcsr.m_mo->m_fi.m_sub_file_infos.front();
+	pair_imports_with_exports_r(fi);
+}
+
+void pair_imports_with_exports_r(file_info& fi)
+{
+	for(auto& sub_fi : fi.m_sub_file_infos)
+	{
+		pair_imports_with_exports_e(sub_fi);
+		pair_imports_with_exports_r(sub_fi);
+	}
+}
+
+void pair_imports_with_exports_e(file_info& fi)
+{
+	assert(fi.m_import_table.m_dlls.size() == fi.m_sub_file_infos.size());
+	int const n = static_cast<int>(fi.m_import_table.m_dlls.size());
+	for(int i = 0; i != n; ++i)
+	{
+		pe_import_dll_with_entries& dll = fi.m_import_table.m_dlls[i];
+		pe_export_table_info const& exp = fi.m_sub_file_infos[i].m_orig_instance ? fi.m_sub_file_infos[i].m_orig_instance->m_export_table : fi.m_sub_file_infos[i].m_export_table;
+		auto const& eat = exp.m_export_address_table;
+		int const m = static_cast<int>(dll.m_entries.size());
+		for(int j = 0; j != m; ++j)
+		{
+			pe_import_entry& impe = dll.m_entries[j];
+			if(impe.m_is_ordinal)
+			{
+				std::uint16_t const ordinal_as_idx = impe.m_ordinal_or_hint - exp.m_ordinal_base;
+				if(ordinal_as_idx < eat.size() && eat[ordinal_as_idx].m_ordinal == impe.m_ordinal_or_hint)
+				{
+					impe.m_matched_export = ordinal_as_idx;
+				}
+				else
+				{
+					auto const it = std::lower_bound(eat.cbegin(), eat.cend(), impe.m_ordinal_or_hint, [](auto const& e, auto const& v){ return e.m_ordinal < v; });
+					if(it != eat.cend() && it->m_ordinal == impe.m_ordinal_or_hint)
+					{
+						assert(eat.size() <= 0xffff);
+						impe.m_matched_export = static_cast<std::uint16_t>(it - eat.cbegin());
+					}
+					else
+					{
+						impe.m_matched_export = 0xffff;
+					}
+				}
+			}
+			else
+			{
+				std::uint16_t const& hint = impe.m_ordinal_or_hint;
+				string const* const& name = impe.m_name;
+				auto const& enpt_eot = exp.m_enpt_eot;
+				if(hint < enpt_eot.size() && string_equal{}(eat[enpt_eot[hint].first].m_name, name))
+				{
+					impe.m_matched_export = enpt_eot[hint].second;
+				}
+				else
+				{
+					auto const it = std::lower_bound(enpt_eot.cbegin(), enpt_eot.cend(), name, [&](auto const& e, auto const& v){ return string_less{}(eat[e.first].m_name, v); });
+					if(it != enpt_eot.cend() && string_equal{}(eat[it->first].m_name, name))
+					{
+						impe.m_matched_export = it->second;
+					}
+					else
+					{
+						impe.m_matched_export = 0xffff;
+					}
+				}
+			}
+			assert(impe.m_matched_export == 0xffff || (impe.m_is_ordinal ? (impe.m_ordinal_or_hint == eat[impe.m_matched_export].m_ordinal) : (string_equal{}(impe.m_name, eat[impe.m_matched_export].m_name))));
+		}
+	}
 }

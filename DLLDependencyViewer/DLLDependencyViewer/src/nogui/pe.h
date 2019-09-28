@@ -28,9 +28,10 @@ struct pe_header_info
 
 struct pe_import_entry
 {
-	bool m_is_ordinal;
-	std::uint16_t m_ordinal_or_hint;
 	string const* m_name;
+	std::uint16_t m_ordinal_or_hint;
+	std::uint16_t m_matched_export;
+	bool m_is_ordinal;
 };
 
 struct pe_import_dll_with_entries
