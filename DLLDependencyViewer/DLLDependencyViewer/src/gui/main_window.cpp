@@ -652,6 +652,7 @@ void main_window::on_tree_notify(NMHDR& nmhdr)
 void main_window::on_tree_context_menu(WPARAM wparam, LPARAM lparam)
 {
 	assert(reinterpret_cast<HWND>(wparam) == m_tree);
+	(void)wparam;
 	POINT cursor_screen;
 	HTREEITEM item;
 	if(lparam == 0xffffffff)
@@ -1062,6 +1063,7 @@ wchar_t const* main_window::on_import_get_col_name(pe_import_entry const& import
 void main_window::on_import_context_menu(WPARAM wparam, LPARAM lparam)
 {
 	assert(reinterpret_cast<HWND>(wparam) == m_import_list);
+	(void)wparam;
 	POINT cursor_screen;
 	int ith_import;
 	if(lparam == 0xffffffff)
@@ -1565,6 +1567,7 @@ void main_window::import_select_original_instance()
 	assert(selection_set == TRUE);
 	HWND const prev_focus = SetFocus(m_export_list);
 	assert(prev_focus != nullptr);
+	(void)prev_focus;
 }
 
 int main_window::get_import_type_column_max_width()
