@@ -1,6 +1,8 @@
 #pragma once
 
 
+#include "my_vector.h"
+
 #include <cstdint>
 #include <string>
 #include <utility>
@@ -37,12 +39,12 @@ struct pe_import_entry
 struct pe_import_dll_with_entries
 {
 	string const* m_dll_name = nullptr;
-	std::vector<pe_import_entry> m_entries;
+	my_vector<pe_import_entry> m_entries;
 };
 
 struct pe_import_table_info
 {
-	std::vector<pe_import_dll_with_entries> m_dlls;
+	my_vector<pe_import_dll_with_entries> m_dlls;
 	int m_nondelay_imports_count = 0;
 };
 
@@ -62,8 +64,8 @@ struct pe_export_address_entry
 
 struct pe_export_table_info
 {
-	std::vector<pe_export_address_entry> m_export_address_table;
-	std::vector<std::pair<std::uint16_t, std::uint16_t>> m_enpt_eot;
+	my_vector<pe_export_address_entry> m_export_address_table;
+	my_vector<std::pair<std::uint16_t, std::uint16_t>> m_enpt_eot;
 	std::uint16_t m_ordinal_base;
 };
 

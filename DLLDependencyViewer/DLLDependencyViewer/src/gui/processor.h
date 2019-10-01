@@ -4,14 +4,14 @@
 #include "../nogui/manifest_parser.h"
 #include "../nogui/memory_manager.h"
 #include "../nogui/pe.h"
+#include "../nogui/my_vector.h"
 
 #include <filesystem>
 #include <string>
-#include <vector>
 
 
 struct file_info;
-typedef std::vector<file_info> file_infos;
+typedef my_vector<file_info> file_infos;
 
 
 namespace fs = std::experimental::filesystem;

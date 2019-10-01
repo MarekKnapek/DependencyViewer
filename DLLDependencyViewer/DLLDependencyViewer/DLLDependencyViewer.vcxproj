@@ -210,6 +210,7 @@
     <ClInclude Include="src\nogui\manifest_parser_impl.h" />
     <ClInclude Include="src\nogui\memory_manager.h" />
     <ClInclude Include="src\nogui\memory_mapped_file.h" />
+    <ClInclude Include="src\nogui\my_vector.h" />
     <ClInclude Include="src\nogui\my_windows.h" />
     <ClInclude Include="src\nogui\pe.h" />
     <ClInclude Include="src\nogui\pe\coff.h" />
@@ -226,6 +227,7 @@
     <ClInclude Include="src\nogui\smart_library.h" />
     <ClInclude Include="src\nogui\smart_local_free.h" />
     <ClInclude Include="src\nogui\smart_reg_key.h" />
+    <ClInclude Include="src\nogui\static_vector.h" />
     <ClInclude Include="src\nogui\thread_worker.h" />
     <ClInclude Include="src\nogui\unicode.h" />
     <ClInclude Include="src\nogui\unique_strings.h" />
@@ -284,6 +286,9 @@
   <ItemGroup>
     <Xml Include="src\gui\manifest.amd64.xml" />
     <Xml Include="src\gui\manifest.x86.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\nogui\static_vector.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

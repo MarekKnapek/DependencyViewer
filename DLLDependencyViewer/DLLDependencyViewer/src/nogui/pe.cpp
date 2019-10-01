@@ -189,7 +189,7 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 		pe_delay_import_table dlit;
 		bool const delay_descriptor_parsed = pe_parse_delay_import_table(file_data, file_size, dlit);
 		WARN_M_R(delay_descriptor_parsed, L"Failed to parse delay import descriptor", false);
-		ret.m_dlls.resize(idt.m_count + dlit.m_count);
+		my_vector_resize(ret.m_dlls, mm.m_alc, idt.m_count + dlit.m_count);
 		ret.m_nondelay_imports_count = idt.m_count;
 		int ii = 0;
 		for(int i = 0; i != idt.m_count; ++i, ++ii)
@@ -201,7 +201,7 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 			bool const iat_parsed = pe_parse_import_address_table(file_data, file_size, idt.m_table[i], iat);
 			WARN_M_R(iat_parsed, L"Failed to parse import address table.", false);
 			ret.m_dlls[ii].m_dll_name = mm.m_strs.add_string(dll.m_str, dll.m_len, mm.m_alc);
-			ret.m_dlls[ii].m_entries.resize(iat.m_count);
+			my_vector_resize(ret.m_dlls[ii].m_entries, mm.m_alc, iat.m_count);
 			for(int j = 0; j != iat.m_count; ++j)
 			{
 				bool is_ordinal;
@@ -230,7 +230,7 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 			bool const dliat_parsed = pe_parse_delay_import_address_table(file_data, file_size, dlit.m_table[i], dliat);
 			WARN_M_R(dliat_parsed, L"Failed to parse delay load import address table.", false);
 			ret.m_dlls[ii].m_dll_name = mm.m_strs.add_string(dldll.m_str, dldll.m_len, mm.m_alc);
-			ret.m_dlls[ii].m_entries.resize(dliat.m_count);
+			my_vector_resize(ret.m_dlls[ii].m_entries, mm.m_alc, dliat.m_count);
 			for(int j = 0; j != dliat.m_count; ++j)
 			{
 				bool is_ordinal;
@@ -315,8 +315,8 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 	VERIFY(export_address_table_section.m_raw_ptr + export_address_table_section.m_raw_size - export_address_table_disk_off >= export_dir.m_export_address_count * sizeof(std::uint32_t));
 	std::uint32_t const* export_address_table = reinterpret_cast<std::uint32_t const*>(file_data + export_address_table_disk_off);
 	int const export_address_count_proper = static_cast<int>(std::count_if(export_address_table, export_address_table + export_dir.m_export_address_count, [](std::uint32_t const& e){ return e != 0; }));
-	ret.m_export_address_table.resize(export_address_count_proper);
-	ret.m_enpt_eot.resize(export_dir.m_names_count);
+	my_vector_resize(ret.m_export_address_table, mm.m_alc, export_address_count_proper);
+	my_vector_resize(ret.m_enpt_eot, mm.m_alc, export_dir.m_names_count);
 	std::fill(ret.m_enpt_eot.begin(), ret.m_enpt_eot.end(), std::make_pair(std::uint16_t(0xffff), std::uint16_t(0xffff)));
 	ret.m_ordinal_base = static_cast<std::uint16_t>(export_dir.m_ordinal_base);
 	std::uint16_t j = 0;

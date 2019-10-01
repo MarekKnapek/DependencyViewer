@@ -33,8 +33,8 @@ main_type process_impl(std::wstring const& main_file_path)
 	file_info& fi = mo.m_fi;
 	fi.m_orig_instance = nullptr;
 	fi.m_file_path = nullptr;
-	fi.m_sub_file_infos.resize(1);
-	fi.m_import_table.m_dlls.resize(1);
+	my_vector_resize(fi.m_sub_file_infos, mo.m_mm.m_alc, 1);
+	my_vector_resize(fi.m_import_table.m_dlls, mo.m_mm.m_alc, 1);
 	pe_import_dll_with_entries& only_dependency = fi.m_import_table.m_dlls[0];
 	wchar_t const* const name = find_file_name(main_file_path.c_str(), static_cast<int>(main_file_path.size()));
 	int const name_len = static_cast<int>(main_file_path.c_str() + main_file_path.size() - name);
@@ -66,7 +66,7 @@ void process_r(processor_impl& prcsr)
 			{
 				process_e(prcsr, sub_fi, sub_name);
 				prcsr.m_map[sub_name] = &sub_fi;
-				sub_fi.m_sub_file_infos.resize(sub_fi.m_import_table.m_dlls.size());
+				my_vector_resize(sub_fi.m_sub_file_infos, prcsr.m_mo->m_mm.m_alc, static_cast<int>(sub_fi.m_import_table.m_dlls.size()));
 				prcsr.m_queue.push(&sub_fi);
 			}
 		}

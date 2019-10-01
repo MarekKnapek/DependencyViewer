@@ -252,6 +252,12 @@
     <ClInclude Include="src\gui\smart_menu.h">
       <Filter>src\gui</Filter>
     </ClInclude>
+    <ClInclude Include="src\nogui\static_vector.h">
+      <Filter>src\nogui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nogui\my_vector.h">
+      <Filter>src\nogui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\main.cpp">
@@ -395,5 +401,10 @@
     <Xml Include="src\gui\manifest.x86.xml">
       <Filter>src\gui</Filter>
     </Xml>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\nogui\static_vector.inl">
+      <Filter>src\nogui</Filter>
+    </None>
   </ItemGroup>
 </Project>
