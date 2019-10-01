@@ -47,6 +47,7 @@ public:
 private:
 	static HMENU create_menu();
 	static HMENU create_tree_menu();
+	static HMENU create_import_menu();
 	static HWND create_toolbar(HWND const& parent);
 	static LRESULT CALLBACK class_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 private:
@@ -74,6 +75,7 @@ private:
 	wchar_t const* on_import_get_col_ordinal(pe_import_entry const& import_entry, file_info const& fi);
 	wchar_t const* on_import_get_col_hint(pe_import_entry const& import_entry, file_info const& fi);
 	wchar_t const* on_import_get_col_name(pe_import_entry const& import_entry, file_info const& fi);
+	void on_import_context_menu(WPARAM wparam, LPARAM lparam);
 	void on_export_notify(NMHDR& nmhdr);
 	void on_export_getdispinfow(NMHDR& nmhdr);
 	wchar_t const* on_export_get_col_type(pe_export_address_entry const& export_entry);
@@ -86,10 +88,12 @@ private:
 	void on_menu_exit();
 	void on_menu_paths();
 	void on_tree_menu_orig();
+	void on_import_menu_orig();
 	void on_accel_open();
 	void on_accel_exit();
 	void on_accel_paths();
 	void on_accel_tree_orig();
+	void on_accel_import_orig();
 	void on_toolbar_open();
 	void on_toolbar_full_paths();
 	void open();
@@ -97,7 +101,8 @@ private:
 	void refresh(main_type&& mo);
 	void refresh_view_recursive(file_info& parent_fi, HTREEITEM const& parent_ti);
 	void full_paths();
-	void select_original_instance();
+	void tree_select_original_instance();
+	void import_select_original_instance();
 	int get_import_type_column_max_width();
 	int get_export_type_column_max_width();
 	int get_twobyte_column_max_width();
@@ -120,6 +125,7 @@ private:
 	HWND m_import_list;
 	HWND m_export_list;
 	smart_menu m_tree_menu;
+	smart_menu m_import_menu;
 	std::queue<std::pair<idle_task_t, idle_task_param_t>> m_idle_tasks;
 	std::deque<get_symbols_from_addresses_task_t*> m_symbol_tasks;
 private:

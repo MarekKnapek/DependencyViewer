@@ -61,15 +61,19 @@ static constexpr int const s_accel_open = 4001;
 static constexpr int const s_accel_exit = 4002;
 static constexpr int const s_accel_paths = 4003;
 static constexpr int const s_accel_tree_orig = 4004;
+static constexpr int const s_accel_import_orig = 4005;
 static constexpr ACCEL const s_accel_table[] =
 {
 	{FVIRTKEY | FCONTROL, 'O', s_accel_open},
 	{FVIRTKEY | FCONTROL, 'W', s_accel_exit},
 	{FVIRTKEY, VK_F9, s_accel_paths},
 	{FVIRTKEY | FCONTROL, 'K', s_accel_tree_orig},
+	{FVIRTKEY | FCONTROL, 'M', s_accel_import_orig},
 };
 static constexpr int const s_tree_menu_orig_id = 5001;
 static constexpr wchar_t const s_tree_menu_orig_str[] = L"Highlight &Original Instance\tCtrl+K";
+static constexpr int const s_import_menu_orig_id = 5002;
+static constexpr wchar_t const s_import_menu_orig_str[] = L"&Highlight Matching Export Function\tCtrl+M";
 
 
 static int g_import_type_column_max_width = 0;
@@ -161,6 +165,7 @@ main_window::main_window() :
 	m_import_list(CreateWindowExW(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE, WC_LISTVIEWW, nullptr, WS_VISIBLE | WS_CHILD | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA, 0, 0, 0, 0, m_splitter_ver.get_hwnd(), reinterpret_cast<HMENU>(static_cast<std::uintptr_t>(s_import_list)), get_instance(), nullptr)),
 	m_export_list(CreateWindowExW(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE, WC_LISTVIEWW, nullptr, WS_VISIBLE | WS_CHILD | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA, 0, 0, 0, 0, m_splitter_ver.get_hwnd(), reinterpret_cast<HMENU>(static_cast<std::uintptr_t>(s_export_list)), get_instance(), nullptr)),
 	m_tree_menu(create_tree_menu()),
+	m_import_menu(create_import_menu()),
 	m_idle_tasks(),
 	m_symbol_tasks(),
 	m_tree_tmp_strings(),
@@ -281,6 +286,21 @@ HMENU main_window::create_tree_menu()
 	BOOL const inserted = InsertMenuItemW(tree_menu, 0, TRUE, &mi);
 	assert(inserted != 0);
 	return tree_menu;
+}
+
+HMENU main_window::create_import_menu()
+{
+	HMENU const import_menu = CreatePopupMenu();
+	assert(import_menu);
+	MENUITEMINFOW mi{};
+	mi.cbSize = sizeof(mi);
+	mi.fMask = MIIM_ID | MIIM_STRING | MIIM_FTYPE;
+	mi.fType = MFT_STRING;
+	mi.wID = s_import_menu_orig_id;
+	mi.dwTypeData = const_cast<wchar_t*>(s_import_menu_orig_str);
+	BOOL const inserted = InsertMenuItemW(import_menu, 0, TRUE, &mi);
+	assert(inserted != 0);
+	return import_menu;
 }
 
 HWND main_window::create_toolbar(HWND const& parent)
@@ -446,7 +466,15 @@ LRESULT main_window::on_wm_notify(WPARAM wparam, LPARAM lparam)
 
 LRESULT main_window::on_wm_contextmenu(WPARAM wparam, LPARAM lparam)
 {
-	on_tree_context_menu(wparam, lparam);
+	HWND const hwnd = reinterpret_cast<HWND>(wparam);
+	if(hwnd == m_tree)
+	{
+		on_tree_context_menu(wparam, lparam);
+	}
+	else if(hwnd == m_import_list)
+	{
+		on_import_context_menu(wparam, lparam);
+	}
 	return DefWindowProcW(m_hwnd, WM_CONTEXTMENU, wparam, lparam);
 }
 
@@ -541,6 +569,11 @@ LRESULT main_window::on_menu(WPARAM wparam, LPARAM lparam)
 			on_tree_menu_orig();
 		}
 		break;
+		case s_import_menu_orig_id:
+		{
+			on_import_menu_orig();
+		}
+		break;
 	}
 	return DefWindowProcW(m_hwnd, WM_COMMAND, wparam, lparam);
 }
@@ -568,6 +601,11 @@ LRESULT main_window::on_accelerator(WPARAM wparam, LPARAM lparam)
 		case s_accel_tree_orig:
 		{
 			on_accel_tree_orig();
+		}
+		break;
+		case s_accel_import_orig:
+		{
+			on_accel_import_orig();
 		}
 		break;
 	}
@@ -613,15 +651,11 @@ void main_window::on_tree_notify(NMHDR& nmhdr)
 
 void main_window::on_tree_context_menu(WPARAM wparam, LPARAM lparam)
 {
+	assert(reinterpret_cast<HWND>(wparam) == m_tree);
 	POINT cursor_screen;
 	HTREEITEM item;
 	if(lparam == 0xffffffff)
 	{
-		HWND const wnd = reinterpret_cast<HWND>(wparam);
-		if(wnd != m_tree)
-		{
-			return;
-		}
 		LRESULT const sel = SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_CARET, 0);
 		HTREEITEM const selected = reinterpret_cast<HTREEITEM>(sel);
 		if(!selected)
@@ -1025,6 +1059,86 @@ wchar_t const* main_window::on_import_get_col_name(pe_import_entry const& import
 	}
 }
 
+void main_window::on_import_context_menu(WPARAM wparam, LPARAM lparam)
+{
+	assert(reinterpret_cast<HWND>(wparam) == m_import_list);
+	POINT cursor_screen;
+	int ith_import;
+	if(lparam == 0xffffffff)
+	{
+		LRESULT const sel = SendMessageW(m_import_list, LVM_GETNEXTITEM, WPARAM{0} - 1, LVNI_SELECTED);
+		if(sel == -1)
+		{
+			return;
+		}
+		RECT rect;
+		rect.top = 1;
+		rect.left = LVIR_BOUNDS;
+		LRESULT const got_rect = SendMessageW(m_import_list, LVM_GETSUBITEMRECT, sel, reinterpret_cast<LPARAM>(&rect));
+		if(got_rect == 0)
+		{
+			return;
+		}
+		cursor_screen.x = rect.left + (rect.right - rect.left) / 2;
+		cursor_screen.y = rect.top + (rect.bottom - rect.top) / 2;
+		BOOL const converted = ClientToScreen(m_import_list, &cursor_screen);
+		assert(converted != 0);
+		ith_import = static_cast<int>(sel);
+	}
+	else
+	{
+		cursor_screen.x = GET_X_LPARAM(lparam);
+		cursor_screen.y = GET_Y_LPARAM(lparam);
+		POINT cursor_client = cursor_screen;
+		BOOL const converted = ScreenToClient(m_import_list, &cursor_client);
+		assert(converted != 0);
+		LVHITTESTINFO hti;
+		hti.pt = cursor_client;
+		hti.flags = LVHT_ONITEM;
+		LPARAM const hit_tested = SendMessageW(m_import_list, LVM_HITTEST, 0, reinterpret_cast<LPARAM>(&hti));
+		if(hit_tested == -1)
+		{
+			return;
+		}
+		assert(hit_tested == hti.iItem);
+		ith_import = hti.iItem;
+	}
+	LRESULT const tree_sel = SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_CARET, 0);
+	HTREEITEM const tree_selected = reinterpret_cast<HTREEITEM>(tree_sel);
+	if(!tree_selected)
+	{
+		return;
+	}
+	LRESULT const got_tree_parent = SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(tree_selected));
+	HTREEITEM const tree_parent = reinterpret_cast<HTREEITEM>(got_tree_parent);
+	if(!tree_parent)
+	{
+		return;
+	}
+	TVITEMEXW ti;
+	ti.hItem = tree_selected;
+	ti.mask = TVIF_PARAM;
+	LRESULT const got_item = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
+	assert(got_item == TRUE);
+	assert(ti.lParam);
+	file_info const& fi = *reinterpret_cast<file_info*>(ti.lParam);
+	TVITEMEXW ti_2;
+	ti_2.hItem = tree_parent;
+	ti_2.mask = TVIF_PARAM;
+	LRESULT const got_item_2 = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti_2));
+	assert(got_item_2 == TRUE);
+	assert(ti_2.lParam);
+	file_info const& parent_fi = *reinterpret_cast<file_info*>(ti_2.lParam);
+	int const ith_dll = static_cast<int>(&fi - parent_fi.m_sub_file_infos.data());
+	std::uint16_t const& matched = parent_fi.m_import_table.m_dlls[ith_dll].m_entries[ith_import].m_matched_export;
+	bool const enable_goto_orig = matched != 0xffff;
+	HMENU const import_menu = reinterpret_cast<HMENU>(m_import_menu.get());
+	BOOL const enabled = EnableMenuItem(import_menu, s_import_menu_orig_id, MF_BYCOMMAND | (enable_goto_orig ? MF_ENABLED : MF_GRAYED));
+	assert(enabled != -1 && (enabled == MF_ENABLED || enabled == MF_GRAYED));
+	BOOL const tracked = TrackPopupMenu(import_menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON | TPM_NOANIMATION, cursor_screen.x, cursor_screen.y, 0, m_hwnd, nullptr);
+	assert(tracked != 0);
+}
+
 void main_window::on_export_notify(NMHDR& nmhdr)
 {
 	if(nmhdr.code == LVN_GETDISPINFOW)
@@ -1219,7 +1333,12 @@ void main_window::on_menu_paths()
 
 void main_window::on_tree_menu_orig()
 {
-	select_original_instance();
+	tree_select_original_instance();
+}
+
+void main_window::on_import_menu_orig()
+{
+	import_select_original_instance();
 }
 
 void main_window::on_accel_open()
@@ -1239,7 +1358,12 @@ void main_window::on_accel_paths()
 
 void main_window::on_accel_tree_orig()
 {
-	select_original_instance();
+	tree_select_original_instance();
+}
+
+void main_window::on_accel_import_orig()
+{
+	import_select_original_instance();
 }
 
 void main_window::on_toolbar_open()
@@ -1369,7 +1493,7 @@ void main_window::full_paths()
 	assert(tree_invalidated != 0);
 }
 
-void main_window::select_original_instance()
+void main_window::tree_select_original_instance()
 {
 	LRESULT const got_selected = SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_CARET, 0);
 	assert(got_selected != NULL);
@@ -1387,6 +1511,60 @@ void main_window::select_original_instance()
 	}
 	LRESULT const orig_selected = SendMessageW(m_tree, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(fi.m_orig_instance->m_tree_item));
 	assert(orig_selected == TRUE);
+}
+
+void main_window::import_select_original_instance()
+{
+	LRESULT const sel = SendMessageW(m_import_list, LVM_GETNEXTITEM, WPARAM{0} - 1, LVNI_SELECTED);
+	if(sel == -1)
+	{
+		return;
+	}
+	int const ith_import = static_cast<int>(sel);
+	LRESULT const tree_sel = SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_CARET, 0);
+	HTREEITEM const tree_selected = reinterpret_cast<HTREEITEM>(tree_sel);
+	if(!tree_selected)
+	{
+		return;
+	}
+	LRESULT const got_tree_parent = SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(tree_selected));
+	HTREEITEM const tree_parent = reinterpret_cast<HTREEITEM>(got_tree_parent);
+	if(!tree_parent)
+	{
+		return;
+	}
+	TVITEMEXW ti;
+	ti.hItem = tree_selected;
+	ti.mask = TVIF_PARAM;
+	LRESULT const got_item = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
+	assert(got_item == TRUE);
+	assert(ti.lParam);
+	file_info const& fi = *reinterpret_cast<file_info*>(ti.lParam);
+	TVITEMEXW ti_2;
+	ti_2.hItem = tree_parent;
+	ti_2.mask = TVIF_PARAM;
+	LRESULT const got_item_2 = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti_2));
+	assert(got_item_2 == TRUE);
+	assert(ti_2.lParam);
+	file_info const& parent_fi = *reinterpret_cast<file_info*>(ti_2.lParam);
+	int const ith_dll = static_cast<int>(&fi - parent_fi.m_sub_file_infos.data());
+	std::uint16_t const& matched = parent_fi.m_import_table.m_dlls[ith_dll].m_entries[ith_import].m_matched_export;
+	if(matched == 0xffff)
+	{
+		return;
+	}
+	LRESULT const visibility_ensured = SendMessageW(m_export_list, LVM_ENSUREVISIBLE, matched, FALSE);
+	assert(visibility_ensured == TRUE);
+	LVITEM lvi;
+	lvi.stateMask = LVIS_FOCUSED | LVIS_SELECTED;
+	lvi.state = 0;
+	LRESULT const selection_cleared = SendMessageW(m_export_list, LVM_SETITEMSTATE, WPARAM{0} - 1, reinterpret_cast<LPARAM>(&lvi));
+	assert(selection_cleared == TRUE);
+	lvi.state = LVIS_FOCUSED | LVIS_SELECTED;
+	LRESULT const selection_set = SendMessageW(m_export_list, LVM_SETITEMSTATE, static_cast<WPARAM>(matched), reinterpret_cast<LPARAM>(&lvi));
+	assert(selection_set == TRUE);
+	HWND const prev_focus = SetFocus(m_export_list);
+	assert(prev_focus != nullptr);
 }
 
 int main_window::get_import_type_column_max_width()
