@@ -18,6 +18,7 @@ public:
 public:
 	void resize(allocator& alc, int const size);
 public:
+	bool empty() const;
 	T& operator[](int const idx);
 	T const& operator[](int const idx) const;
 	T* data();

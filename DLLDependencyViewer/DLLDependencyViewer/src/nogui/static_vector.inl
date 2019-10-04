@@ -56,6 +56,12 @@ void static_vector<T>::resize(allocator& alc, int const size)
 }
 
 template<typename T>
+bool static_vector<T>::empty() const
+{
+	return m_size == 0;
+}
+
+template<typename T>
 T& static_vector<T>::operator[](int const idx)
 {
 	assert(idx < m_size);
