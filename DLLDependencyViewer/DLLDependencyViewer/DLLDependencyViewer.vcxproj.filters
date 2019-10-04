@@ -410,6 +410,9 @@
     <ClCompile Include="src\gui\import_view.cpp">
       <Filter>src\gui</Filter>
     </ClCompile>
+    <ClCompile Include="src\DLLDependencyViewer.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="src\res\icons_toolbar.bmp">

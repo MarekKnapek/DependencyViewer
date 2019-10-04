@@ -38,8 +38,8 @@ static constexpr wchar_t const s_open_file_dialog_file_name_filter[] = L"Executa
 static constexpr wchar_t const s_msg_error[] = L"DLLDependencyViewer error.";
 static constexpr wchar_t const s_toolbar_open_tooltip[] = L"Open... (Ctrl+O)";
 static constexpr wchar_t const s_toolbar_full_paths_tooltip[] = L"View Full Paths (F9)";
-static constexpr wchar_t const s_export_name_na[] = L"N/A";
-static constexpr wstring const s_export_name_debug_na ={s_export_name_na, static_cast<int>(std::size(s_export_name_na)) - 1};
+static constexpr wchar_t const s_export_name_debug_na[] = L"N/A";
+static constexpr wstring const s_export_name_debug_na2 = {s_export_name_debug_na, static_cast<int>(std::size(s_export_name_debug_na)) - 1};
 enum class e_main_menu_id : std::uint16_t
 {
 	e_open = s_main_view_menu_min,
@@ -940,7 +940,7 @@ void main_window::process_finished_dbg_task(get_symbols_from_addresses_task_t* c
 		}
 		else
 		{
-			task->m_export_entries[i]->m_debug_name = &s_export_name_debug_na;
+			task->m_export_entries[i]->m_debug_name = &s_export_name_debug_na2;
 		}
 	}
 	m_import_view.repaint();
