@@ -222,6 +222,7 @@ void tree_view::on_context_menu(LPARAM const lparam)
 		TVHITTESTINFO hti;
 		hti.pt = cursor_client;
 		HTREEITEM const hit_tested = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_HITTEST, 0, reinterpret_cast<LPARAM>(&hti)));
+		(void)hit_tested;
 		assert(hit_tested == hti.hItem);
 		if(!(hti.hItem && (hti.flags & (TVHT_ONITEM | TVHT_ONITEMBUTTON | TVHT_ONITEMICON | TVHT_ONITEMLABEL | TVHT_ONITEMSTATEICON)) != 0))
 		{
