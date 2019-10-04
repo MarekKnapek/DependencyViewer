@@ -42,13 +42,9 @@ static constexpr wchar_t const s_import_ordinal_na[] = L"N/A";
 static constexpr wchar_t const s_import_hint_na[] = L"N/A";
 static constexpr wchar_t const s_import_name_na[] = L"N/A";
 static constexpr wchar_t const* const s_export_headers[] = {L"type", L"ordinal", L"hint", L"name", L"entry point"};
-static constexpr wchar_t const s_export_type_true[] = L"address";
-static constexpr wchar_t const s_export_type_false[] = L"forwarder";
-static constexpr wchar_t const s_export_hint_na[] = L"N/A";
-static constexpr wchar_t const s_export_name_na[] = L"N/A";
-static constexpr wchar_t const s_export_name_processing[] = L"Processing...";
 static constexpr wchar_t const s_toolbar_open_tooltip[] = L"Open... (Ctrl+O)";
 static constexpr wchar_t const s_toolbar_full_paths_tooltip[] = L"View Full Paths (F9)";
+static constexpr wchar_t const s_export_name_na[] = L"N/A";
 static constexpr wstring const s_export_name_debug_na ={s_export_name_na, static_cast<int>(std::size(s_export_name_na)) - 1};
 static constexpr int const s_menu_open_id = 2000;
 static constexpr int const s_menu_exit_id = 2001;
@@ -81,7 +77,6 @@ static constexpr wchar_t const s_import_menu_orig_str[] = L"&Highlight Matching 
 
 
 static int g_import_type_column_max_width = 0;
-static int g_export_type_column_max_width = 0;
 static int g_twobyte_column_max_width = 0;
 
 
@@ -93,16 +88,6 @@ enum class e_import_column
 	e_hint,
 	e_name
 };
-
-enum class e_export_column
-{
-	e_type,
-	e_ordinal,
-	e_hint,
-	e_name,
-	e_entry_point
-};
-
 
 struct drop_deleter
 {
@@ -167,7 +152,7 @@ main_window::main_window() :
 	m_tree_view(m_splitter_hor.get_hwnd(), *this),
 	m_splitter_ver(m_splitter_hor.get_hwnd()),
 	m_import_list(CreateWindowExW(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE, WC_LISTVIEWW, nullptr, WS_VISIBLE | WS_CHILD | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA, 0, 0, 0, 0, m_splitter_ver.get_hwnd(), nullptr, get_instance(), nullptr)),
-	m_export_list(CreateWindowExW(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE, WC_LISTVIEWW, nullptr, WS_VISIBLE | WS_CHILD | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA, 0, 0, 0, 0, m_splitter_ver.get_hwnd(), nullptr, get_instance(), nullptr)),
+	m_export_view(m_splitter_ver.get_hwnd(), *this),
 	m_import_menu(create_import_menu()),
 	m_idle_tasks(),
 	m_symbol_tasks(),
@@ -203,25 +188,7 @@ main_window::main_window() :
 	assert(import_img_list);
 	LRESULT const img_list_set_import = SendMessageW(m_import_list, LVM_SETIMAGELIST, LVSIL_SMALL, reinterpret_cast<LPARAM>(import_img_list));
 
-	LRESULT const set_export = SendMessageW(m_export_list, LVM_SETEXTENDEDLISTVIEWSTYLE, extended_lv_styles, extended_lv_styles);
-	for(int i = 0; i != static_cast<int>(std::size(s_export_headers)); ++i)
-	{
-		LVCOLUMNW cl;
-		cl.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
-		cl.fmt = LVCFMT_LEFT;
-		cl.cx = 100;
-		cl.pszText = const_cast<LPWSTR>(s_export_headers[i]);
-		cl.cchTextMax = 0;
-		cl.iSubItem = i;
-		cl.iImage = 0;
-		cl.iOrder = i;
-		cl.cxMin = 0;
-		cl.cxDefault = 0;
-		cl.cxIdeal = 0;
-		auto const inserted = SendMessageW(m_export_list, LVM_INSERTCOLUMNW, i, reinterpret_cast<LPARAM>(&cl));
-	}
-
-	m_splitter_ver.set_elements(m_import_list, m_export_list);
+	m_splitter_ver.set_elements(m_import_list, m_export_view.get_hwnd());
 	m_splitter_hor.set_elements(m_tree_view.get_hwnd(), m_splitter_ver.get_hwnd());
 	RECT r;
 	BOOL const got_rect = GetClientRect(m_hwnd, &r);
@@ -435,9 +402,9 @@ LRESULT main_window::on_wm_notify(WPARAM wparam, LPARAM lparam)
 	{
 		on_import_notify(nmhdr);
 	}
-	else if(nmhdr.hwndFrom == m_export_list)
+	else if(nmhdr.hwndFrom == m_export_view.get_hwnd())
 	{
-		on_export_notify(nmhdr);
+		m_export_view.on_notify(nmhdr);
 	}
 	else if(nmhdr.hwndFrom == m_toolbar)
 	{
@@ -630,15 +597,6 @@ void main_window::on_tree_selchangedw()
 		BOOL const redrawn = RedrawWindow(m_import_list, nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_FRAME);
 		assert(redrawn != 0);
 	});
-	LRESULT const redr_off_2 = SendMessageW(m_export_list, WM_SETREDRAW, FALSE, 0);
-	LRESULT const deleted_2 = SendMessageW(m_export_list, LVM_DELETEALLITEMS, 0, 0);
-	assert(deleted_2 == TRUE);
-	auto const redraw_export = mk::make_scope_exit([&]()
-	{
-		LRESULT const redr_on = SendMessageW(m_export_list, WM_SETREDRAW, TRUE, 0);
-		BOOL const redrawn = RedrawWindow(m_export_list, nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_FRAME);
-		assert(redrawn != 0);
-	});
 
 	HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree_view.get_hwnd(), TVM_GETNEXTITEM, TVGN_CARET, 0));
 	if(!selected)
@@ -666,27 +624,16 @@ void main_window::on_tree_selchangedw()
 	}
 
 	int const import_type_column_max_width = get_import_type_column_max_width();
-	int const twobyte_column_max_width = get_twobyte_column_max_width();
-	int const export_type_column_max_width = get_export_type_column_max_width();
+	int const ordinal_column_max_width = get_ordinal_column_max_width();
 
 	LRESULT const auto_sized_pi = SendMessageW(m_import_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_import_column::e_pi), LVSCW_AUTOSIZE);
 	assert(auto_sized_pi == TRUE);
 	LRESULT const type_sized_1 = SendMessageW(m_import_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_import_column::e_type), import_type_column_max_width);
 	assert(type_sized_1 == TRUE);
-	LRESULT const ordinal_sized_1 = SendMessageW(m_import_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_import_column::e_ordinal), twobyte_column_max_width);
+	LRESULT const ordinal_sized_1 = SendMessageW(m_import_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_import_column::e_ordinal), ordinal_column_max_width);
 	assert(ordinal_sized_1 == TRUE);
-	LRESULT const hint_sized_1 = SendMessageW(m_import_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_import_column::e_hint), twobyte_column_max_width);
+	LRESULT const hint_sized_1 = SendMessageW(m_import_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_import_column::e_hint), ordinal_column_max_width);
 	assert(hint_sized_1 == TRUE);
-
-	file_info const& fi = fi_tmp.m_orig_instance ? *fi_tmp.m_orig_instance : fi_tmp;
-	LRESULT const set_size = SendMessageW(m_export_list, LVM_SETITEMCOUNT, fi.m_export_table.m_export_address_table.size(), 0);
-	assert(set_size != 0);
-	LRESULT const type_sized_2 = SendMessageW(m_export_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_export_column::e_type), export_type_column_max_width);
-	assert(type_sized_2 == TRUE);
-	LRESULT const ordinal_sized_2 = SendMessageW(m_export_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_export_column::e_ordinal), twobyte_column_max_width);
-	assert(ordinal_sized_2 == TRUE);
-	LRESULT const hint_sized_2 = SendMessageW(m_export_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_export_column::e_hint), twobyte_column_max_width);
-	assert(hint_sized_2 == TRUE);
 }
 
 void main_window::on_import_notify(NMHDR& nmhdr)
@@ -815,7 +762,7 @@ wchar_t const* main_window::on_import_get_col_ordinal(pe_import_entry const& imp
 	{
 		if(import_entry.m_matched_export != 0xffff)
 		{
-			return on_export_get_col_ordinal(fi.m_export_table.m_export_address_table[import_entry.m_matched_export]);
+			return m_export_view.on_get_col_ordinal(fi.m_export_table.m_export_address_table[import_entry.m_matched_export]);
 		}
 		else
 		{
@@ -830,7 +777,7 @@ wchar_t const* main_window::on_import_get_col_hint(pe_import_entry const& import
 	{
 		if(import_entry.m_matched_export != 0xffff)
 		{
-			return on_export_get_col_hint(fi.m_export_table.m_export_address_table[import_entry.m_matched_export]);
+			return m_export_view.on_get_col_hint(fi.m_export_table.m_export_address_table[import_entry.m_matched_export]);
 		}
 		else
 		{
@@ -854,7 +801,7 @@ wchar_t const* main_window::on_import_get_col_name(pe_import_entry const& import
 	{
 		if(import_entry.m_matched_export != 0xffff)
 		{
-			return on_export_get_col_name(fi.m_export_table.m_export_address_table[import_entry.m_matched_export]);
+			return m_export_view.on_get_col_name(fi.m_export_table.m_export_address_table[import_entry.m_matched_export]);
 		}
 		else
 		{
@@ -949,158 +896,6 @@ void main_window::on_import_context_menu(WPARAM wparam, LPARAM lparam)
 	assert(enabled != -1 && (enabled == MF_ENABLED || enabled == MF_GRAYED));
 	BOOL const tracked = TrackPopupMenu(import_menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON | TPM_NOANIMATION, cursor_screen.x, cursor_screen.y, 0, m_hwnd, nullptr);
 	assert(tracked != 0);
-}
-
-void main_window::on_export_notify(NMHDR& nmhdr)
-{
-	if(nmhdr.code == LVN_GETDISPINFOW)
-	{
-		on_export_getdispinfow(nmhdr);
-	}
-}
-
-void main_window::on_export_getdispinfow(NMHDR& nmhdr)
-{
-	NMLVDISPINFOW& nm = reinterpret_cast<NMLVDISPINFOW&>(nmhdr);
-	if((nm.item.mask | LVIF_TEXT) != 0)
-	{
-		HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree_view.get_hwnd(), TVM_GETNEXTITEM, TVGN_CARET, 0));
-		if(!selected)
-		{
-			return;
-		}
-		TVITEMEXW ti;
-		ti.hItem = selected;
-		ti.mask = TVIF_PARAM;
-		LRESULT const got_selected = SendMessageW(m_tree_view.get_hwnd(), TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-		file_info const& fi_tmp = *reinterpret_cast<file_info*>(ti.lParam);
-		file_info const& fi = fi_tmp.m_orig_instance ? *fi_tmp.m_orig_instance : fi_tmp;
-		int const row = nm.item.iItem;
-		int const col = nm.item.iSubItem;
-		pe_export_address_entry const& export_entry = fi.m_export_table.m_export_address_table[row];
-		e_export_column const ecol = static_cast<e_export_column>(col);
-		switch(ecol)
-		{
-			case e_export_column::e_type:
-			{
-				nm.item.pszText = const_cast<wchar_t*>(on_export_get_col_type(export_entry));
-			}
-			break;
-			case e_export_column::e_ordinal:
-			{
-				nm.item.pszText = const_cast<wchar_t*>(on_export_get_col_ordinal(export_entry));
-			}
-			break;
-			case e_export_column::e_hint:
-			{
-				nm.item.pszText = const_cast<wchar_t*>(on_export_get_col_hint(export_entry));
-			}
-			break;
-			case e_export_column::e_name:
-			{
-				nm.item.pszText = const_cast<wchar_t*>(on_export_get_col_name(export_entry));
-			}
-			break;
-			case e_export_column::e_entry_point:
-			{
-				nm.item.pszText = const_cast<wchar_t*>(on_export_get_col_address(export_entry));
-			}
-			break;
-			default:
-			{
-				assert(false);
-			}
-			break;
-		}
-	}
-}
-
-wchar_t const* main_window::on_export_get_col_type(pe_export_address_entry const& export_entry)
-{
-	if(export_entry.m_is_rva)
-	{
-		return const_cast<wchar_t*>(s_export_type_true);
-	}
-	else
-	{
-		return const_cast<wchar_t*>(s_export_type_false);
-	}
-}
-
-wchar_t const* main_window::on_export_get_col_ordinal(pe_export_address_entry const& export_entry)
-{
-	static_assert(sizeof(std::uint16_t) == sizeof(unsigned short int), "");
-	std::array<wchar_t, 32> buff;
-	int const formatted = std::swprintf(buff.data(), buff.size(), L"%hu (0x%04hx)", static_cast<unsigned short int>(export_entry.m_ordinal), static_cast<unsigned short int>(export_entry.m_ordinal));
-	std::wstring& tmpstr = m_export_tmp_strings[m_export_tmp_string_idx++ % m_export_tmp_strings.size()];
-	tmpstr.assign(buff.data(), buff.data() + formatted);
-	return tmpstr.c_str();
-}
-
-wchar_t const* main_window::on_export_get_col_hint(pe_export_address_entry const& export_entry)
-{
-	if(!export_entry.m_name)
-	{
-		return s_export_hint_na;
-	}
-	else
-	{
-		static_assert(sizeof(std::uint16_t) == sizeof(unsigned short int), "");
-		std::array<wchar_t, 32> buff;
-		int const formatted = std::swprintf(buff.data(), buff.size(), L"%hu (0x%04hx)", static_cast<unsigned short int>(export_entry.m_hint), static_cast<unsigned short int>(export_entry.m_hint));
-		std::wstring& tmpstr = m_export_tmp_strings[m_export_tmp_string_idx++ % m_export_tmp_strings.size()];
-		tmpstr.assign(buff.data(), buff.data() + formatted);
-		return tmpstr.c_str();
-	}
-}
-
-wchar_t const* main_window::on_export_get_col_name(pe_export_address_entry const& export_entry)
-{
-	if(export_entry.m_name)
-	{
-		std::wstring& tmpstr = m_export_tmp_strings[m_export_tmp_string_idx++ % m_export_tmp_strings.size()];
-		tmpstr.resize(export_entry.m_name->m_len);
-		std::transform(cbegin(export_entry.m_name), cend(export_entry.m_name), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
-		return tmpstr.c_str();
-	}
-	else
-	{
-		if(export_entry.m_is_rva)
-		{
-			if(export_entry.m_debug_name)
-			{
-				return export_entry.m_debug_name->m_str;
-			}
-			else
-			{
-				return s_export_name_processing;
-			}
-		}
-		else
-		{
-			return s_export_name_na;
-		}
-	}
-}
-
-wchar_t const* main_window::on_export_get_col_address(pe_export_address_entry const& export_entry)
-{
-	if(export_entry.m_is_rva)
-	{
-		static_assert(sizeof(std::uint32_t) == sizeof(unsigned int), "");
-		std::array<wchar_t, 32> buff;
-		int const formatted = std::swprintf(buff.data(), buff.size(), L"0x%08x", static_cast<unsigned int>(export_entry.rva_or_forwarder.m_rva));
-		std::wstring& tmpstr = m_export_tmp_strings[m_export_tmp_string_idx++ % m_export_tmp_strings.size()];
-		tmpstr.assign(buff.data(), buff.data() + formatted);
-		return tmpstr.c_str();
-	}
-	else
-	{
-		std::wstring& tmpstr = m_export_tmp_strings[m_export_tmp_string_idx++ % m_export_tmp_strings.size()];
-		tmpstr.resize(export_entry.rva_or_forwarder.m_forwarder->m_len);
-		std::transform(cbegin(export_entry.rva_or_forwarder.m_forwarder), cend(export_entry.rva_or_forwarder.m_forwarder), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
-		return tmpstr.c_str();
-	}
 }
 
 void main_window::on_toolbar_notify(NMHDR& nmhdr)
@@ -1240,11 +1035,9 @@ void main_window::refresh(main_type&& mo)
 
 	LRESULT const redr_off_1 = SendMessageW(m_tree_view.get_hwnd(), WM_SETREDRAW, FALSE, 0);
 	LRESULT const redr_off_2 = SendMessageW(m_import_list, WM_SETREDRAW, FALSE, 0);
-	LRESULT const redr_off_3 = SendMessageW(m_export_list, WM_SETREDRAW, FALSE, 0);
 
 	LRESULT const deleted_1 = SendMessageW(m_tree_view.get_hwnd(), TVM_DELETEITEM, 0, reinterpret_cast<LPARAM>(TVI_ROOT));
 	LRESULT const deleted_2 = SendMessageW(m_import_list, LVM_DELETEALLITEMS, 0, 0);
-	LRESULT const deleted_3 = SendMessageW(m_export_list, LVM_DELETEALLITEMS, 0, 0);
 
 	assert(m_mo.m_fi.m_sub_file_infos.size() == 1);
 	refresh_view_recursive(m_mo.m_fi, TVI_ROOT);
@@ -1254,7 +1047,7 @@ void main_window::refresh(main_type&& mo)
 
 	LRESULT const redr_on_1 = SendMessageW(m_tree_view.get_hwnd(), WM_SETREDRAW, TRUE, 0);
 	LRESULT const redr_on_2 = SendMessageW(m_import_list, WM_SETREDRAW, TRUE, 0);
-	LRESULT const redr_on_3 = SendMessageW(m_export_list, WM_SETREDRAW, TRUE, 0);
+	m_export_view.refresh();
 }
 
 void main_window::refresh_view_recursive(file_info& parent_fi, HTREEITEM const& parent_ti)
@@ -1336,19 +1129,7 @@ void main_window::import_select_original_instance()
 	{
 		return;
 	}
-	LRESULT const visibility_ensured = SendMessageW(m_export_list, LVM_ENSUREVISIBLE, matched, FALSE);
-	assert(visibility_ensured == TRUE);
-	LVITEM lvi;
-	lvi.stateMask = LVIS_FOCUSED | LVIS_SELECTED;
-	lvi.state = 0;
-	LRESULT const selection_cleared = SendMessageW(m_export_list, LVM_SETITEMSTATE, WPARAM{0} - 1, reinterpret_cast<LPARAM>(&lvi));
-	assert(selection_cleared == TRUE);
-	lvi.state = LVIS_FOCUSED | LVIS_SELECTED;
-	LRESULT const selection_set = SendMessageW(m_export_list, LVM_SETITEMSTATE, static_cast<WPARAM>(matched), reinterpret_cast<LPARAM>(&lvi));
-	assert(selection_set == TRUE);
-	HWND const prev_focus = SetFocus(m_export_list);
-	assert(prev_focus != nullptr);
-	(void)prev_focus;
+	m_export_view.select_item(matched);
 }
 
 int main_window::get_import_type_column_max_width()
@@ -1377,33 +1158,7 @@ int main_window::get_import_type_column_max_width()
 	return maximum;
 }
 
-int main_window::get_export_type_column_max_width()
-{
-	if(g_export_type_column_max_width != 0)
-	{
-		return g_export_type_column_max_width;
-	}
-
-	HDC const dc = GetDC(m_export_list);
-	assert(dc != NULL);
-	smart_dc sdc(m_export_list, dc);
-
-	int maximum = 0;
-	SIZE size;
-
-	BOOL const got1 = GetTextExtentPointW(dc, s_export_type_true, static_cast<int>(std::size(s_export_type_true)) - 1, &size);
-	assert(got1 != 0);
-	maximum = (std::max)(maximum, static_cast<int>(size.cx));
-
-	BOOL const got2 = GetTextExtentPointW(dc, s_export_type_false, static_cast<int>(std::size(s_export_type_false)) - 1, &size);
-	assert(got2 != 0);
-	maximum = (std::max)(maximum, static_cast<int>(size.cx));
-
-	g_export_type_column_max_width = maximum;
-	return maximum;
-}
-
-int main_window::get_twobyte_column_max_width()
+int main_window::get_ordinal_column_max_width()
 {
 	static constexpr std::uint16_t const s_twobytes[] =
 	{
@@ -1617,8 +1372,8 @@ void main_window::process_finished_dbg_task(get_symbols_from_addresses_task_t* c
 	}
 	BOOL const import_invalidated = InvalidateRect(m_import_list, nullptr, TRUE);
 	assert(import_invalidated != 0);
-	BOOL const export_invalidated = InvalidateRect(m_export_list, nullptr, TRUE);
-	assert(export_invalidated != 0);
+	BOOL const redrawn = RedrawWindow(m_export_view.get_hwnd(), nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_FRAME);
+	assert(redrawn != 0);
 }
 
 ATOM main_window::g_class = 0;

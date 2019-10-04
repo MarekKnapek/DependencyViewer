@@ -267,6 +267,9 @@
     <ClInclude Include="src\gui\constants.h">
       <Filter>src\gui</Filter>
     </ClInclude>
+    <ClInclude Include="src\gui\export_view.h">
+      <Filter>src\gui</Filter>
+    </ClInclude>
     <ClInclude Include="src\nogui\int_to_string.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
@@ -393,6 +396,9 @@
       <Filter>src\gui</Filter>
     </ClCompile>
     <ClCompile Include="src\gui\settings.cpp">
+      <Filter>src\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gui\export_view.cpp">
       <Filter>src\gui</Filter>
     </ClCompile>
     <ClCompile Include="src\nogui\int_to_string.cpp">

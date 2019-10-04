@@ -40,5 +40,5 @@ private:
 	main_window& m_main_window;
 	smart_menu const m_menu;
 	std::array<std::wstring, 4> m_tmp_strings;
-	unsigned m_tmp_strings_idx;
+	unsigned m_tmp_string_idx;
 };

@@ -6,6 +6,7 @@
 #include "splitter_window.h"
 #include "tree_view.h"
 #include "settings.h"
+#include "export_view.h"
 
 #include "../nogui/pe.h"
 
@@ -74,13 +75,6 @@ private:
 	wchar_t const* on_import_get_col_hint(pe_import_entry const& import_entry, file_info const& fi);
 	wchar_t const* on_import_get_col_name(pe_import_entry const& import_entry, file_info const& fi);
 	void on_import_context_menu(WPARAM wparam, LPARAM lparam);
-	void on_export_notify(NMHDR& nmhdr);
-	void on_export_getdispinfow(NMHDR& nmhdr);
-	wchar_t const* on_export_get_col_type(pe_export_address_entry const& export_entry);
-	wchar_t const* on_export_get_col_ordinal(pe_export_address_entry const& export_entry);
-	wchar_t const* on_export_get_col_hint(pe_export_address_entry const& export_entry);
-	wchar_t const* on_export_get_col_name(pe_export_address_entry const& export_entry);
-	wchar_t const* on_export_get_col_address(pe_export_address_entry const& export_entry);
 	void on_toolbar_notify(NMHDR& nmhdr);
 	void on_menu_open();
 	void on_menu_exit();
@@ -99,8 +93,7 @@ private:
 	void full_paths();
 	void import_select_original_instance();
 	int get_import_type_column_max_width();
-	int get_export_type_column_max_width();
-	int get_twobyte_column_max_width();
+	int get_ordinal_column_max_width();
 	std::pair<file_info const*, POINT> get_file_info_under_cursor();
 	void add_idle_task(idle_task_t const task, idle_task_param_t const param);
 	void on_idle();
@@ -118,7 +111,7 @@ private:
 	tree_view m_tree_view;
 	splitter_window_ver m_splitter_ver;
 	HWND m_import_list;
-	HWND m_export_list;
+	export_view m_export_view;
 	smart_menu m_import_menu;
 	std::queue<std::pair<idle_task_t, idle_task_param_t>> m_idle_tasks;
 	std::deque<get_symbols_from_addresses_task_t*> m_symbol_tasks;
@@ -132,4 +125,5 @@ private:
 	settings m_settings;
 private:
 	friend class tree_view;
+	friend class export_view;
 };
