@@ -191,6 +191,7 @@
     <ClInclude Include="src\3rd_party\windows\sxstypes.h" />
     <ClInclude Include="src\gui\constants.h" />
     <ClInclude Include="src\gui\export_view.h" />
+    <ClInclude Include="src\gui\import_view.h" />
     <ClInclude Include="src\gui\main.h" />
     <ClInclude Include="src\gui\main_window.h" />
     <ClInclude Include="src\gui\processor.h" />
@@ -241,6 +242,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\export_view.cpp" />
+    <ClCompile Include="src\gui\import_view.cpp" />
     <ClCompile Include="src\gui\main.cpp" />
     <ClCompile Include="src\gui\main_window.cpp" />
     <ClCompile Include="src\gui\processor.cpp" />

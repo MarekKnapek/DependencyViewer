@@ -35,21 +35,16 @@ static constexpr wchar_t const s_menu_view[] = L"&View";
 static constexpr wchar_t const s_menu_view_paths[] = L"&Full Paths\tF9";
 static constexpr wchar_t const s_open_file_dialog_file_name_filter[] = L"Executable files and libraries (*.exe;*.dll;*.ocx)\0*.exe;*.dll;*.ocx\0All files\0*.*\0";
 static constexpr wchar_t const s_msg_error[] = L"DLLDependencyViewer error.";
-static constexpr wchar_t const* const s_import_headers[] = {L"PI", L"type", L"ordinal", L"hint", L"name"};
-static constexpr wchar_t const s_import_type_true[] = L"ordinal";
-static constexpr wchar_t const s_import_type_false[] = L"name";
-static constexpr wchar_t const s_import_ordinal_na[] = L"N/A";
-static constexpr wchar_t const s_import_hint_na[] = L"N/A";
-static constexpr wchar_t const s_import_name_na[] = L"N/A";
-static constexpr wchar_t const* const s_export_headers[] = {L"type", L"ordinal", L"hint", L"name", L"entry point"};
 static constexpr wchar_t const s_toolbar_open_tooltip[] = L"Open... (Ctrl+O)";
 static constexpr wchar_t const s_toolbar_full_paths_tooltip[] = L"View Full Paths (F9)";
 static constexpr wchar_t const s_export_name_na[] = L"N/A";
 static constexpr wstring const s_export_name_debug_na ={s_export_name_na, static_cast<int>(std::size(s_export_name_na)) - 1};
-static constexpr int const s_menu_open_id = 2000;
-static constexpr int const s_menu_exit_id = 2001;
-static constexpr int const s_menu_paths_id = 2010;
-
+enum class e_main_menu_id : std::uint16_t
+{
+	e_open = s_main_view_menu_min,
+	e_exit,
+	e_full_paths,
+};
 enum class e_toolbar : std::uint16_t
 {
 	e_open,
@@ -60,34 +55,21 @@ enum class e_accel : std::uint16_t
 	e_main_open,
 	e_main_exit,
 	e_main_paths,
+	e_main_matching,
 	e_tree_orig,
-	e_import_orig,
 };
 static constexpr ACCEL const s_accel_table[] =
 {
-	{FVIRTKEY | FCONTROL, 'O',   static_cast<std::uint16_t>(e_accel::e_main_open  )},
-	{FVIRTKEY | FCONTROL, 'W',   static_cast<std::uint16_t>(e_accel::e_main_exit  )},
-	{FVIRTKEY,            VK_F9, static_cast<std::uint16_t>(e_accel::e_main_paths )},
-	{FVIRTKEY | FCONTROL, 'K',   static_cast<std::uint16_t>(e_accel::e_tree_orig  )},
-	{FVIRTKEY | FCONTROL, 'M',   static_cast<std::uint16_t>(e_accel::e_import_orig)},
+	{FVIRTKEY | FCONTROL, 'O',   static_cast<std::uint16_t>(e_accel::e_main_open    )},
+	{FVIRTKEY | FCONTROL, 'W',   static_cast<std::uint16_t>(e_accel::e_main_exit    )},
+	{FVIRTKEY,            VK_F9, static_cast<std::uint16_t>(e_accel::e_main_paths   )},
+	{FVIRTKEY | FCONTROL, 'M',   static_cast<std::uint16_t>(e_accel::e_main_matching)},
+	{FVIRTKEY | FCONTROL, 'K',   static_cast<std::uint16_t>(e_accel::e_tree_orig    )},
 };
 
-static constexpr int const s_import_menu_orig_id = 5002;
-static constexpr wchar_t const s_import_menu_orig_str[] = L"&Highlight Matching Export Function\tCtrl+M";
 
+static int g_ordinal_column_max_width = 0;
 
-static int g_import_type_column_max_width = 0;
-static int g_twobyte_column_max_width = 0;
-
-
-enum class e_import_column
-{
-	e_pi,
-	e_type,
-	e_ordinal,
-	e_hint,
-	e_name
-};
 
 struct drop_deleter
 {
@@ -151,45 +133,19 @@ main_window::main_window() :
 	m_splitter_hor(m_hwnd),
 	m_tree_view(m_splitter_hor.get_hwnd(), *this),
 	m_splitter_ver(m_splitter_hor.get_hwnd()),
-	m_import_list(CreateWindowExW(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE, WC_LISTVIEWW, nullptr, WS_VISIBLE | WS_CHILD | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA, 0, 0, 0, 0, m_splitter_ver.get_hwnd(), nullptr, get_instance(), nullptr)),
+	m_import_view(m_splitter_ver.get_hwnd(), *this),
 	m_export_view(m_splitter_ver.get_hwnd(), *this),
-	m_import_menu(create_import_menu()),
 	m_idle_tasks(),
 	m_symbol_tasks(),
-	m_import_tmp_strings(),
-	m_export_tmp_strings(),
-	m_import_tmp_string_idx(),
-	m_export_tmp_string_idx(),
 	m_mo(),
 	m_settings()
 {
 	LONG_PTR const set = SetWindowLongPtrW(m_hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
 	DragAcceptFiles(m_hwnd, TRUE);
 
-	unsigned const extended_lv_styles = LVS_EX_FULLROWSELECT | LVS_EX_LABELTIP | LVS_EX_DOUBLEBUFFER;
-	LRESULT const set_import = SendMessageW(m_import_list, LVM_SETEXTENDEDLISTVIEWSTYLE, extended_lv_styles, extended_lv_styles);
-	for(int i = 0; i != static_cast<int>(std::size(s_import_headers)); ++i)
-	{
-		LVCOLUMNW cl;
-		cl.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
-		cl.fmt = LVCFMT_LEFT;
-		cl.cx = 100;
-		cl.pszText = const_cast<LPWSTR>(s_import_headers[i]);
-		cl.cchTextMax = 0;
-		cl.iSubItem = i;
-		cl.iImage = 0;
-		cl.iOrder = i;
-		cl.cxMin = 0;
-		cl.cxDefault = 0;
-		cl.cxIdeal = 0;
-		auto const inserted = SendMessageW(m_import_list, LVM_INSERTCOLUMNW, i, reinterpret_cast<LPARAM>(&cl));
-	}
-	HIMAGELIST const import_img_list = ImageList_LoadImageW(get_instance(), MAKEINTRESOURCEW(s_res_icons_import), 30, 0, CLR_DEFAULT, IMAGE_BITMAP, LR_DEFAULTCOLOR);
-	assert(import_img_list);
-	LRESULT const img_list_set_import = SendMessageW(m_import_list, LVM_SETIMAGELIST, LVSIL_SMALL, reinterpret_cast<LPARAM>(import_img_list));
-
-	m_splitter_ver.set_elements(m_import_list, m_export_view.get_hwnd());
+	m_splitter_ver.set_elements(m_import_view.get_hwnd(), m_export_view.get_hwnd());
 	m_splitter_hor.set_elements(m_tree_view.get_hwnd(), m_splitter_ver.get_hwnd());
+
 	RECT r;
 	BOOL const got_rect = GetClientRect(m_hwnd, &r);
 	LRESULT const moved = on_wm_size(0, ((static_cast<unsigned>(r.bottom) & 0xFFFFu) << 16) | (static_cast<unsigned>(r.right) & 0xFFFFu));
@@ -221,9 +177,9 @@ HMENU main_window::create_menu()
 	BOOL const menu_file_appended = AppendMenuW(menu_bar, MF_POPUP, reinterpret_cast<UINT_PTR>(menu_file), s_menu_file);
 	assert(menu_file_appended != 0);
 
-	BOOL const menu_file_open_appended = AppendMenuW(menu_file, MF_STRING, s_menu_open_id, s_menu_file_open);
+	BOOL const menu_file_open_appended = AppendMenuW(menu_file, MF_STRING, static_cast<std::uint16_t>(e_main_menu_id::e_open), s_menu_file_open);
 	assert(menu_file_open_appended != 0);
-	BOOL const menu_file_exit_appended = AppendMenuW(menu_file, MF_STRING, s_menu_exit_id, s_menu_file_exit);
+	BOOL const menu_file_exit_appended = AppendMenuW(menu_file, MF_STRING, static_cast<std::uint16_t>(e_main_menu_id::e_exit), s_menu_file_exit);
 	assert(menu_file_exit_appended != 0);
 
 	HMENU const menu_view = CreatePopupMenu();
@@ -231,25 +187,10 @@ HMENU main_window::create_menu()
 	BOOL const menu_view_appended = AppendMenuW(menu_bar, MF_POPUP, reinterpret_cast<UINT_PTR>(menu_view), s_menu_view);
 	assert(menu_view_appended != 0);
 
-	BOOL const menu_view_paths_appended = AppendMenuW(menu_view, MF_STRING, s_menu_paths_id, s_menu_view_paths);
+	BOOL const menu_view_paths_appended = AppendMenuW(menu_view, MF_STRING, static_cast<std::uint16_t>(e_main_menu_id::e_full_paths), s_menu_view_paths);
 	assert(menu_view_paths_appended != 0);
 
 	return menu_bar;
-}
-
-HMENU main_window::create_import_menu()
-{
-	HMENU const import_menu = CreatePopupMenu();
-	assert(import_menu);
-	MENUITEMINFOW mi{};
-	mi.cbSize = sizeof(mi);
-	mi.fMask = MIIM_ID | MIIM_STRING | MIIM_FTYPE;
-	mi.fType = MFT_STRING;
-	mi.wID = s_import_menu_orig_id;
-	mi.dwTypeData = const_cast<wchar_t*>(s_import_menu_orig_str);
-	BOOL const inserted = InsertMenuItemW(import_menu, 0, TRUE, &mi);
-	assert(inserted != 0);
-	return import_menu;
 }
 
 HWND main_window::create_toolbar(HWND const& parent)
@@ -398,9 +339,9 @@ LRESULT main_window::on_wm_notify(WPARAM wparam, LPARAM lparam)
 	{
 		m_tree_view.on_notify(nmhdr);
 	}
-	else if(nmhdr.hwndFrom == m_import_list)
+	else if(nmhdr.hwndFrom == m_import_view.get_hwnd())
 	{
-		on_import_notify(nmhdr);
+		m_import_view.on_notify(nmhdr);
 	}
 	else if(nmhdr.hwndFrom == m_export_view.get_hwnd())
 	{
@@ -420,9 +361,9 @@ LRESULT main_window::on_wm_contextmenu(WPARAM wparam, LPARAM lparam)
 	{
 		m_tree_view.on_context_menu(lparam);
 	}
-	else if(hwnd == m_import_list)
+	else if(hwnd == m_import_view.get_hwnd())
 	{
-		on_import_context_menu(wparam, lparam);
+		m_import_view.on_context_menu(lparam);
 	}
 	return DefWindowProcW(m_hwnd, WM_CONTEXTMENU, wparam, lparam);
 }
@@ -496,30 +437,38 @@ LRESULT main_window::on_wm_main_window_take_finished_dbg_task(WPARAM wparam, LPA
 void main_window::on_menu(WPARAM const wparam)
 {
 	std::uint16_t const menu_id = static_cast<std::uint16_t>(LOWORD(wparam));
-	if(menu_id >= s_tree_view_menu_min && menu_id < s_tree_view_menu_max)
+	if(menu_id >= s_main_view_menu_min && menu_id < s_main_view_menu_max)
+	{
+		on_menu(menu_id);
+	}
+	else if(menu_id >= s_tree_view_menu_min && menu_id < s_tree_view_menu_max)
 	{
 		m_tree_view.on_menu(menu_id);
 	}
-	switch(menu_id)
+	else if(menu_id >= s_import_view_menu_min && menu_id < s_import_view_menu_max)
 	{
-		case s_menu_open_id:
+		m_import_view.on_menu(menu_id);
+	}
+}
+
+void main_window::on_menu(std::uint16_t const menu_id)
+{
+	e_main_menu_id const e_menu = static_cast<e_main_menu_id>(menu_id);
+	switch(e_menu)
+	{
+		case e_main_menu_id::e_open:
 		{
 			on_menu_open();
 		}
 		break;
-		case s_menu_exit_id:
+		case e_main_menu_id::e_exit:
 		{
 			on_menu_exit();
 		}
 		break;
-		case s_menu_paths_id:
+		case e_main_menu_id::e_full_paths:
 		{
 			on_menu_paths();
-		}
-		break;
-		case s_import_menu_orig_id:
-		{
-			on_import_menu_orig();
 		}
 		break;
 	}
@@ -545,14 +494,14 @@ void main_window::on_accelerator(WPARAM const wparam)
 			on_accel_paths();
 		}
 		break;
+		case e_accel::e_main_matching:
+		{
+			on_accel_matching();
+		}
+		break;
 		case e_accel::e_tree_orig:
 		{
 			m_tree_view.on_accel_orig();
-		}
-		break;
-		case e_accel::e_import_orig:
-		{
-			on_accel_import_orig();
 		}
 		break;
 		default:
@@ -588,316 +537,8 @@ void main_window::on_toolbar(WPARAM const wparam)
 
 void main_window::on_tree_selchangedw()
 {
+	m_import_view.refresh();
 	m_export_view.refresh();
-
-	LRESULT const redr_off_1 = SendMessageW(m_import_list, WM_SETREDRAW, FALSE, 0);
-	LRESULT const deleted_1 = SendMessageW(m_import_list, LVM_DELETEALLITEMS, 0, 0);
-	assert(deleted_1 == TRUE);
-	auto const redraw_import = mk::make_scope_exit([&]()
-	{
-		LRESULT const redr_on = SendMessageW(m_import_list, WM_SETREDRAW, TRUE, 0);
-		BOOL const redrawn = RedrawWindow(m_import_list, nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_FRAME);
-		assert(redrawn != 0);
-	});
-
-	HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree_view.get_hwnd(), TVM_GETNEXTITEM, TVGN_CARET, 0));
-	if(!selected)
-	{
-		return;
-	}
-	TVITEMEXW ti;
-	ti.hItem = selected;
-	ti.mask = TVIF_PARAM;
-	LRESULT const got_1 = SendMessageW(m_tree_view.get_hwnd(), TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-	assert(got_1 == TRUE);
-	file_info const& fi_tmp = *reinterpret_cast<file_info*>(ti.lParam);
-	HTREEITEM const parent = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree_view.get_hwnd(), TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(selected)));
-	if(parent)
-	{
-		TVITEMEXW ti_2;
-		ti_2.hItem = parent;
-		ti_2.mask = TVIF_PARAM;
-		LRESULT const got_2 = SendMessageW(m_tree_view.get_hwnd(), TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti_2));
-		assert(got_2 == TRUE);
-		file_info const& parent_fi = *reinterpret_cast<file_info*>(ti_2.lParam);
-		int const idx = static_cast<int>(&fi_tmp - parent_fi.m_sub_file_infos.data());
-		LRESULT const set_size = SendMessageW(m_import_list, LVM_SETITEMCOUNT, parent_fi.m_import_table.m_dlls[idx].m_entries.size(), 0);
-		assert(set_size != 0);
-	}
-
-	int const import_type_column_max_width = get_import_type_column_max_width();
-	int const ordinal_column_max_width = get_ordinal_column_max_width();
-
-	LRESULT const auto_sized_pi = SendMessageW(m_import_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_import_column::e_pi), LVSCW_AUTOSIZE);
-	assert(auto_sized_pi == TRUE);
-	LRESULT const type_sized_1 = SendMessageW(m_import_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_import_column::e_type), import_type_column_max_width);
-	assert(type_sized_1 == TRUE);
-	LRESULT const ordinal_sized_1 = SendMessageW(m_import_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_import_column::e_ordinal), ordinal_column_max_width);
-	assert(ordinal_sized_1 == TRUE);
-	LRESULT const hint_sized_1 = SendMessageW(m_import_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_import_column::e_hint), ordinal_column_max_width);
-	assert(hint_sized_1 == TRUE);
-}
-
-void main_window::on_import_notify(NMHDR& nmhdr)
-{
-	if(nmhdr.code == LVN_GETDISPINFOW)
-	{
-		on_import_getdispinfow(nmhdr);
-	}
-}
-
-void main_window::on_import_getdispinfow(NMHDR& nmhdr)
-{
-	NMLVDISPINFOW& nm = reinterpret_cast<NMLVDISPINFOW&>(nmhdr);
-	HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree_view.get_hwnd(), TVM_GETNEXTITEM, TVGN_CARET, 0));
-	if(!selected)
-	{
-		return;
-	}
-	HTREEITEM const parent = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree_view.get_hwnd(), TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(selected)));
-	if(!parent)
-	{
-		return;
-	}
-	TVITEMEXW ti;
-	ti.hItem = parent;
-	ti.mask = TVIF_PARAM;
-	LRESULT const got_parent = SendMessageW(m_tree_view.get_hwnd(), TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-	file_info const& parent_fi = *reinterpret_cast<file_info*>(ti.lParam);
-	ti.hItem = selected;
-	ti.mask = TVIF_PARAM;
-	LRESULT const got_selected = SendMessageW(m_tree_view.get_hwnd(), TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-	file_info const& fi = *reinterpret_cast<file_info*>(ti.lParam);
-	file_info const& fi_orig = fi.m_orig_instance ? *fi.m_orig_instance : fi;
-	int const idx = static_cast<int>(&fi - parent_fi.m_sub_file_infos.data());
-	int const row = nm.item.iItem;
-	int const col = nm.item.iSubItem;
-	pe_import_entry const& import_entry = parent_fi.m_import_table.m_dlls[idx].m_entries[row];
-	e_import_column const ecol = static_cast<e_import_column>(col);
-	if((nm.item.mask | LVIF_TEXT) != 0)
-	{
-		switch(ecol)
-		{
-			case e_import_column::e_pi:
-			{
-				nm.item.pszText = const_cast<wchar_t*>(L"");
-			}
-			break;
-			case e_import_column::e_type:
-			{
-				nm.item.pszText = const_cast<wchar_t*>(on_import_get_col_type(import_entry));
-			}
-			break;
-			case e_import_column::e_ordinal:
-			{
-				nm.item.pszText = const_cast<wchar_t*>(on_import_get_col_ordinal(import_entry, fi_orig));
-			}
-			break;
-			case e_import_column::e_hint:
-			{
-				nm.item.pszText = const_cast<wchar_t*>(on_import_get_col_hint(import_entry, fi_orig));
-			}
-			break;
-			case e_import_column::e_name:
-			{
-				nm.item.pszText = const_cast<wchar_t*>(on_import_get_col_name(import_entry, fi_orig));
-			}
-			break;
-			default:
-			{
-				assert(false);
-			}
-			break;
-		}
-	}
-	if((nm.item.mask & LVIF_IMAGE) != 0)
-	{
-		bool const matched = import_entry.m_matched_export != 0xffff;
-		bool const ordinal = import_entry.m_is_ordinal;
-		if(matched && ordinal)
-		{
-			nm.item.iImage = s_res_icon_import_found_o;
-		}
-		else if(matched && !ordinal)
-		{
-			nm.item.iImage = s_res_icon_import_found_c;
-		}
-		else if(!matched && ordinal)
-		{
-			nm.item.iImage = s_res_icon_import_not_found_o;
-		}
-		else if(!matched && !ordinal)
-		{
-			nm.item.iImage = s_res_icon_import_not_found_c;
-		}
-		else
-		{
-			__assume(false);
-		}
-	}
-}
-
-wchar_t const* main_window::on_import_get_col_type(pe_import_entry const& import_entry)
-{
-	if(import_entry.m_is_ordinal)
-	{
-		return s_import_type_true;
-	}
-	else
-	{
-		return s_import_type_false;
-	}
-}
-
-wchar_t const* main_window::on_import_get_col_ordinal(pe_import_entry const& import_entry, file_info const& fi)
-{
-	if(import_entry.m_is_ordinal)
-	{
-		static_assert(sizeof(std::uint16_t) == sizeof(unsigned short int), "");
-		std::array<wchar_t, 32> buff;
-		int const formatted = std::swprintf(buff.data(), buff.size(), L"%hu (0x%04hx)", static_cast<unsigned short int>(import_entry.m_ordinal_or_hint), static_cast<unsigned short int>(import_entry.m_ordinal_or_hint));
-		std::wstring& tmpstr = m_import_tmp_strings[m_import_tmp_string_idx++ % m_import_tmp_strings.size()];
-		tmpstr.assign(buff.data(), buff.data() + formatted);
-		return tmpstr.c_str();
-	}
-	else
-	{
-		if(import_entry.m_matched_export != 0xffff)
-		{
-			return m_export_view.on_get_col_ordinal(fi.m_export_table.m_export_address_table[import_entry.m_matched_export]);
-		}
-		else
-		{
-			return s_import_ordinal_na;
-		}
-	}
-}
-
-wchar_t const* main_window::on_import_get_col_hint(pe_import_entry const& import_entry, file_info const& fi)
-{
-	if(import_entry.m_is_ordinal)
-	{
-		if(import_entry.m_matched_export != 0xffff)
-		{
-			return m_export_view.on_get_col_hint(fi.m_export_table.m_export_address_table[import_entry.m_matched_export]);
-		}
-		else
-		{
-			return s_import_hint_na;
-		}
-	}
-	else
-	{
-		static_assert(sizeof(std::uint16_t) == sizeof(unsigned short int), "");
-		std::array<wchar_t, 32> buff;
-		int const formatted = std::swprintf(buff.data(), buff.size(), L"%hu (0x%04hx)", static_cast<unsigned short int>(import_entry.m_ordinal_or_hint), static_cast<unsigned short int>(import_entry.m_ordinal_or_hint));
-		std::wstring& tmpstr = m_import_tmp_strings[m_import_tmp_string_idx++ % m_import_tmp_strings.size()];
-		tmpstr.assign(buff.data(), buff.data() + formatted);
-		return tmpstr.c_str();
-	}
-}
-
-wchar_t const* main_window::on_import_get_col_name(pe_import_entry const& import_entry, file_info const& fi)
-{
-	if(import_entry.m_is_ordinal)
-	{
-		if(import_entry.m_matched_export != 0xffff)
-		{
-			return m_export_view.on_get_col_name(fi.m_export_table.m_export_address_table[import_entry.m_matched_export]);
-		}
-		else
-		{
-			return s_import_name_na;
-		}
-	}
-	else
-	{
-		std::wstring& tmpstr = m_import_tmp_strings[m_import_tmp_string_idx++ % m_import_tmp_strings.size()];
-		tmpstr.resize(import_entry.m_name->m_len);
-		std::transform(cbegin(import_entry.m_name), cend(import_entry.m_name), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
-		return tmpstr.c_str();
-	}
-}
-
-void main_window::on_import_context_menu(WPARAM wparam, LPARAM lparam)
-{
-	assert(reinterpret_cast<HWND>(wparam) == m_import_list);
-	(void)wparam;
-	POINT cursor_screen;
-	int ith_import;
-	if(lparam == 0xffffffff)
-	{
-		LRESULT const sel = SendMessageW(m_import_list, LVM_GETNEXTITEM, WPARAM{0} - 1, LVNI_SELECTED);
-		if(sel == -1)
-		{
-			return;
-		}
-		RECT rect;
-		rect.top = 1;
-		rect.left = LVIR_BOUNDS;
-		LRESULT const got_rect = SendMessageW(m_import_list, LVM_GETSUBITEMRECT, sel, reinterpret_cast<LPARAM>(&rect));
-		if(got_rect == 0)
-		{
-			return;
-		}
-		cursor_screen.x = rect.left + (rect.right - rect.left) / 2;
-		cursor_screen.y = rect.top + (rect.bottom - rect.top) / 2;
-		BOOL const converted = ClientToScreen(m_import_list, &cursor_screen);
-		assert(converted != 0);
-		ith_import = static_cast<int>(sel);
-	}
-	else
-	{
-		cursor_screen.x = GET_X_LPARAM(lparam);
-		cursor_screen.y = GET_Y_LPARAM(lparam);
-		POINT cursor_client = cursor_screen;
-		BOOL const converted = ScreenToClient(m_import_list, &cursor_client);
-		assert(converted != 0);
-		LVHITTESTINFO hti;
-		hti.pt = cursor_client;
-		hti.flags = LVHT_ONITEM;
-		LPARAM const hit_tested = SendMessageW(m_import_list, LVM_HITTEST, 0, reinterpret_cast<LPARAM>(&hti));
-		if(hit_tested == -1)
-		{
-			return;
-		}
-		assert(hit_tested == hti.iItem);
-		ith_import = hti.iItem;
-	}
-	LRESULT const tree_sel = SendMessageW(m_tree_view.get_hwnd(), TVM_GETNEXTITEM, TVGN_CARET, 0);
-	HTREEITEM const tree_selected = reinterpret_cast<HTREEITEM>(tree_sel);
-	if(!tree_selected)
-	{
-		return;
-	}
-	LRESULT const got_tree_parent = SendMessageW(m_tree_view.get_hwnd(), TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(tree_selected));
-	HTREEITEM const tree_parent = reinterpret_cast<HTREEITEM>(got_tree_parent);
-	if(!tree_parent)
-	{
-		return;
-	}
-	TVITEMEXW ti;
-	ti.hItem = tree_selected;
-	ti.mask = TVIF_PARAM;
-	LRESULT const got_item = SendMessageW(m_tree_view.get_hwnd(), TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-	assert(got_item == TRUE);
-	assert(ti.lParam);
-	file_info const& fi = *reinterpret_cast<file_info*>(ti.lParam);
-	TVITEMEXW ti_2;
-	ti_2.hItem = tree_parent;
-	ti_2.mask = TVIF_PARAM;
-	LRESULT const got_item_2 = SendMessageW(m_tree_view.get_hwnd(), TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti_2));
-	assert(got_item_2 == TRUE);
-	assert(ti_2.lParam);
-	file_info const& parent_fi = *reinterpret_cast<file_info*>(ti_2.lParam);
-	int const ith_dll = static_cast<int>(&fi - parent_fi.m_sub_file_infos.data());
-	std::uint16_t const& matched = parent_fi.m_import_table.m_dlls[ith_dll].m_entries[ith_import].m_matched_export;
-	bool const enable_goto_orig = matched != 0xffff;
-	HMENU const import_menu = reinterpret_cast<HMENU>(m_import_menu.get());
-	BOOL const enabled = EnableMenuItem(import_menu, s_import_menu_orig_id, MF_BYCOMMAND | (enable_goto_orig ? MF_ENABLED : MF_GRAYED));
-	assert(enabled != -1 && (enabled == MF_ENABLED || enabled == MF_GRAYED));
-	BOOL const tracked = TrackPopupMenu(import_menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON | TPM_NOANIMATION, cursor_screen.x, cursor_screen.y, 0, m_hwnd, nullptr);
-	assert(tracked != 0);
 }
 
 void main_window::on_toolbar_notify(NMHDR& nmhdr)
@@ -941,11 +582,6 @@ void main_window::on_menu_paths()
 	full_paths();
 }
 
-void main_window::on_import_menu_orig()
-{
-	import_select_original_instance();
-}
-
 void main_window::on_accel_open()
 {
 	open();
@@ -961,9 +597,17 @@ void main_window::on_accel_paths()
 	full_paths();
 }
 
-void main_window::on_accel_import_orig()
+void main_window::on_accel_matching()
 {
-	import_select_original_instance();
+	HWND const focus = GetFocus();
+	if(!focus)
+	{
+		return;
+	}
+	if(focus == m_import_view.get_hwnd())
+	{
+		m_import_view.on_accel_matching();
+	}
 }
 
 void main_window::on_toolbar_open()
@@ -1036,10 +680,8 @@ void main_window::refresh(main_type&& mo)
 	m_mo = std::move(mo);
 
 	LRESULT const redr_off_1 = SendMessageW(m_tree_view.get_hwnd(), WM_SETREDRAW, FALSE, 0);
-	LRESULT const redr_off_2 = SendMessageW(m_import_list, WM_SETREDRAW, FALSE, 0);
 
 	LRESULT const deleted_1 = SendMessageW(m_tree_view.get_hwnd(), TVM_DELETEITEM, 0, reinterpret_cast<LPARAM>(TVI_ROOT));
-	LRESULT const deleted_2 = SendMessageW(m_import_list, LVM_DELETEALLITEMS, 0, 0);
 
 	assert(m_mo.m_fi.m_sub_file_infos.size() == 1);
 	refresh_view_recursive(m_mo.m_fi, TVI_ROOT);
@@ -1048,7 +690,7 @@ void main_window::refresh(main_type&& mo)
 	LRESULT const selected = SendMessageW(m_tree_view.get_hwnd(), TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(m_mo.m_fi.m_sub_file_infos[0].m_tree_item));
 
 	LRESULT const redr_on_1 = SendMessageW(m_tree_view.get_hwnd(), WM_SETREDRAW, TRUE, 0);
-	LRESULT const redr_on_2 = SendMessageW(m_import_list, WM_SETREDRAW, TRUE, 0);
+	m_import_view.refresh();
 	m_export_view.refresh();
 }
 
@@ -1091,75 +733,6 @@ void main_window::full_paths()
 	assert(tree_invalidated != 0);
 }
 
-void main_window::import_select_original_instance()
-{
-	LRESULT const sel = SendMessageW(m_import_list, LVM_GETNEXTITEM, WPARAM{0} - 1, LVNI_SELECTED);
-	if(sel == -1)
-	{
-		return;
-	}
-	int const ith_import = static_cast<int>(sel);
-	LRESULT const tree_sel = SendMessageW(m_tree_view.get_hwnd(), TVM_GETNEXTITEM, TVGN_CARET, 0);
-	HTREEITEM const tree_selected = reinterpret_cast<HTREEITEM>(tree_sel);
-	if(!tree_selected)
-	{
-		return;
-	}
-	LRESULT const got_tree_parent = SendMessageW(m_tree_view.get_hwnd(), TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(tree_selected));
-	HTREEITEM const tree_parent = reinterpret_cast<HTREEITEM>(got_tree_parent);
-	if(!tree_parent)
-	{
-		return;
-	}
-	TVITEMEXW ti;
-	ti.hItem = tree_selected;
-	ti.mask = TVIF_PARAM;
-	LRESULT const got_item = SendMessageW(m_tree_view.get_hwnd(), TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-	assert(got_item == TRUE);
-	assert(ti.lParam);
-	file_info const& fi = *reinterpret_cast<file_info*>(ti.lParam);
-	TVITEMEXW ti_2;
-	ti_2.hItem = tree_parent;
-	ti_2.mask = TVIF_PARAM;
-	LRESULT const got_item_2 = SendMessageW(m_tree_view.get_hwnd(), TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti_2));
-	assert(got_item_2 == TRUE);
-	assert(ti_2.lParam);
-	file_info const& parent_fi = *reinterpret_cast<file_info*>(ti_2.lParam);
-	int const ith_dll = static_cast<int>(&fi - parent_fi.m_sub_file_infos.data());
-	std::uint16_t const& matched = parent_fi.m_import_table.m_dlls[ith_dll].m_entries[ith_import].m_matched_export;
-	if(matched == 0xffff)
-	{
-		return;
-	}
-	m_export_view.select_item(matched);
-}
-
-int main_window::get_import_type_column_max_width()
-{
-	if(g_import_type_column_max_width != 0)
-	{
-		return g_import_type_column_max_width;
-	}
-
-	HDC const dc = GetDC(m_import_list);
-	assert(dc != NULL);
-	smart_dc sdc(m_import_list, dc);
-
-	int maximum = 0;
-	SIZE size;
-
-	BOOL const got1 = GetTextExtentPointW(dc, s_import_type_true, static_cast<int>(std::size(s_import_type_true)) - 1, &size);
-	assert(got1 != 0);
-	maximum = (std::max)(maximum, static_cast<int>(size.cx));
-
-	BOOL const got2 = GetTextExtentPointW(dc, s_import_type_false, static_cast<int>(std::size(s_import_type_false)) - 1, &size);
-	assert(got2 != 0);
-	maximum = (std::max)(maximum, static_cast<int>(size.cx));
-
-	g_import_type_column_max_width = maximum;
-	return maximum;
-}
-
 int main_window::get_ordinal_column_max_width()
 {
 	static constexpr std::uint16_t const s_twobytes[] =
@@ -1186,15 +759,16 @@ int main_window::get_ordinal_column_max_width()
 		0xFFFF,
 	};
 
-	if(g_twobyte_column_max_width != 0)
+	if(g_ordinal_column_max_width != 0)
 	{
-		return g_twobyte_column_max_width;
+		return g_ordinal_column_max_width;
 	}
 
-	HDC const dc = GetDC(m_import_list);
+	HWND const imprt = m_import_view.get_hwnd();
+	HDC const dc = GetDC(imprt);
 	assert(dc != NULL);
-	smart_dc sdc(m_import_list, dc);
-	auto const orig_font = SelectObject(dc, reinterpret_cast<HFONT>(SendMessageW(m_import_list, WM_GETFONT, 0, 0)));
+	smart_dc sdc(imprt, dc);
+	auto const orig_font = SelectObject(dc, reinterpret_cast<HFONT>(SendMessageW(imprt, WM_GETFONT, 0, 0)));
 	auto const fn_revert = mk::make_scope_exit([&](){ SelectObject(dc, orig_font); });
 
 	int maximum = 0;
@@ -1214,8 +788,8 @@ int main_window::get_ordinal_column_max_width()
 	}
 
 	static constexpr int const s_trailing_label_padding = 12;
-	g_twobyte_column_max_width = maximum + s_trailing_label_padding;
-	return g_twobyte_column_max_width;
+	g_ordinal_column_max_width = maximum + s_trailing_label_padding;
+	return g_ordinal_column_max_width;
 }
 
 std::pair<file_info const*, POINT> main_window::get_file_info_under_cursor()
@@ -1372,8 +946,7 @@ void main_window::process_finished_dbg_task(get_symbols_from_addresses_task_t* c
 			task->m_export_entries[i]->m_debug_name = &s_export_name_debug_na;
 		}
 	}
-	BOOL const import_invalidated = InvalidateRect(m_import_list, nullptr, TRUE);
-	assert(import_invalidated != 0);
+	m_import_view.repaint();
 	m_export_view.repaint();
 }
 

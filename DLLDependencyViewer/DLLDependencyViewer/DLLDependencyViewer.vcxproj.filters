@@ -273,6 +273,9 @@
     <ClInclude Include="src\nogui\int_to_string.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
+    <ClInclude Include="src\gui\import_view.h">
+      <Filter>src\gui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\main.cpp">
@@ -403,6 +406,9 @@
     </ClCompile>
     <ClCompile Include="src\nogui\int_to_string.cpp">
       <Filter>src\nogui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gui\import_view.cpp">
+      <Filter>src\gui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

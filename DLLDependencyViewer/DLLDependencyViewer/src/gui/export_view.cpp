@@ -171,8 +171,8 @@ void export_view::refresh()
 	LRESULT const set_size = SendMessageW(m_hwnd, LVM_SETITEMCOUNT, fi.m_export_table.m_export_address_table.size(), 0);
 	assert(set_size != 0);
 
-	int const ordinal_column_max_width = m_main_window.get_ordinal_column_max_width();
 	int const export_type_column_max_width = get_type_column_max_width();
+	int const ordinal_column_max_width = m_main_window.get_ordinal_column_max_width();
 
 	LRESULT const type_sized = SendMessageW(m_hwnd, LVM_SETCOLUMNWIDTH, static_cast<int>(e_export_column::e_type), export_type_column_max_width);
 	assert(type_sized == TRUE);
