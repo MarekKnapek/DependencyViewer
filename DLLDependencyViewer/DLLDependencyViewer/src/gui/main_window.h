@@ -4,6 +4,8 @@
 #include "processor.h"
 #include "smart_menu.h"
 #include "splitter_window.h"
+#include "tree_view.h"
+#include "settings.h"
 
 #include "../nogui/pe.h"
 
@@ -46,7 +48,6 @@ public:
 	HWND get_hwnd() const;
 private:
 	static HMENU create_menu();
-	static HMENU create_tree_menu();
 	static HMENU create_import_menu();
 	static HWND create_toolbar(HWND const& parent);
 	static LRESULT CALLBACK class_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
@@ -62,13 +63,10 @@ private:
 	LRESULT on_wm_main_window_add_idle_task(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_main_window_process_on_idle(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_main_window_take_finished_dbg_task(WPARAM wparam, LPARAM lparam);
-	LRESULT on_menu(WPARAM wparam, LPARAM lparam);
-	LRESULT on_accelerator(WPARAM wparam, LPARAM lparam);
-	LRESULT on_toolbar(WPARAM wparam, LPARAM lparam);
-	void on_tree_notify(NMHDR& nmhdr);
-	void on_tree_context_menu(WPARAM wparam, LPARAM lparam);
-	void on_tree_getdispinfow(NMHDR& nmhdr);
-	void on_tree_selchangedw(NMHDR& nmhdr);
+	void on_menu(WPARAM const wparam);
+	void on_accelerator(WPARAM const wparam);
+	void on_toolbar(WPARAM const wparam);
+	void on_tree_selchangedw();
 	void on_import_notify(NMHDR& nmhdr);
 	void on_import_getdispinfow(NMHDR& nmhdr);
 	wchar_t const* on_import_get_col_type(pe_import_entry const& import_entry);
@@ -87,12 +85,10 @@ private:
 	void on_menu_open();
 	void on_menu_exit();
 	void on_menu_paths();
-	void on_tree_menu_orig();
 	void on_import_menu_orig();
 	void on_accel_open();
 	void on_accel_exit();
 	void on_accel_paths();
-	void on_accel_tree_orig();
 	void on_accel_import_orig();
 	void on_toolbar_open();
 	void on_toolbar_full_paths();
@@ -101,7 +97,6 @@ private:
 	void refresh(main_type&& mo);
 	void refresh_view_recursive(file_info& parent_fi, HTREEITEM const& parent_ti);
 	void full_paths();
-	void tree_select_original_instance();
 	void import_select_original_instance();
 	int get_import_type_column_max_width();
 	int get_export_type_column_max_width();
@@ -120,22 +115,21 @@ private:
 	HWND m_hwnd;
 	HWND m_toolbar;
 	splitter_window_hor m_splitter_hor;
-	HWND m_tree;
+	tree_view m_tree_view;
 	splitter_window_ver m_splitter_ver;
 	HWND m_import_list;
 	HWND m_export_list;
-	smart_menu m_tree_menu;
 	smart_menu m_import_menu;
 	std::queue<std::pair<idle_task_t, idle_task_param_t>> m_idle_tasks;
 	std::deque<get_symbols_from_addresses_task_t*> m_symbol_tasks;
 private:
-	std::array<std::wstring, 4> m_tree_tmp_strings;
 	std::array<std::wstring, 4> m_import_tmp_strings;
 	std::array<std::wstring, 4> m_export_tmp_strings;
-	unsigned m_tree_tmp_string_idx;
 	unsigned m_import_tmp_string_idx;
 	unsigned m_export_tmp_string_idx;
 private:
 	main_type m_mo;
-	bool m_full_paths;
+	settings m_settings;
+private:
+	friend class tree_view;
 };

@@ -1,5 +1,6 @@
 #include "main_window.h"
 
+#include "constants.h"
 #include "main.h"
 #include "smart_dc.h"
 
@@ -52,26 +53,29 @@ static constexpr wstring const s_export_name_debug_na ={s_export_name_na, static
 static constexpr int const s_menu_open_id = 2000;
 static constexpr int const s_menu_exit_id = 2001;
 static constexpr int const s_menu_paths_id = 2010;
-static constexpr int const s_tree_id = 1000;
-static constexpr int const s_import_list = 1001;
-static constexpr int const s_export_list = 1002;
-static constexpr int const s_toolbar_open = 3000;
-static constexpr int const s_toolbar_full_paths = 3001;
-static constexpr int const s_accel_open = 4001;
-static constexpr int const s_accel_exit = 4002;
-static constexpr int const s_accel_paths = 4003;
-static constexpr int const s_accel_tree_orig = 4004;
-static constexpr int const s_accel_import_orig = 4005;
+
+enum class e_toolbar : std::uint16_t
+{
+	e_open,
+	e_full_paths,
+};
+enum class e_accel : std::uint16_t
+{
+	e_main_open,
+	e_main_exit,
+	e_main_paths,
+	e_tree_orig,
+	e_import_orig,
+};
 static constexpr ACCEL const s_accel_table[] =
 {
-	{FVIRTKEY | FCONTROL, 'O', s_accel_open},
-	{FVIRTKEY | FCONTROL, 'W', s_accel_exit},
-	{FVIRTKEY, VK_F9, s_accel_paths},
-	{FVIRTKEY | FCONTROL, 'K', s_accel_tree_orig},
-	{FVIRTKEY | FCONTROL, 'M', s_accel_import_orig},
+	{FVIRTKEY | FCONTROL, 'O',   static_cast<std::uint16_t>(e_accel::e_main_open  )},
+	{FVIRTKEY | FCONTROL, 'W',   static_cast<std::uint16_t>(e_accel::e_main_exit  )},
+	{FVIRTKEY,            VK_F9, static_cast<std::uint16_t>(e_accel::e_main_paths )},
+	{FVIRTKEY | FCONTROL, 'K',   static_cast<std::uint16_t>(e_accel::e_tree_orig  )},
+	{FVIRTKEY | FCONTROL, 'M',   static_cast<std::uint16_t>(e_accel::e_import_orig)},
 };
-static constexpr int const s_tree_menu_orig_id = 5001;
-static constexpr wchar_t const s_tree_menu_orig_str[] = L"Highlight &Original Instance\tCtrl+K";
+
 static constexpr int const s_import_menu_orig_id = 5002;
 static constexpr wchar_t const s_import_menu_orig_str[] = L"&Highlight Matching Export Function\tCtrl+M";
 
@@ -160,31 +164,22 @@ main_window::main_window() :
 	m_hwnd(CreateWindowExW(0, reinterpret_cast<wchar_t const*>(g_class), s_window_title, WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, nullptr, create_menu(), get_instance(), nullptr)),
 	m_toolbar(create_toolbar(m_hwnd)),
 	m_splitter_hor(m_hwnd),
-	m_tree(CreateWindowExW(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE, WC_TREEVIEWW, nullptr, WS_VISIBLE | WS_CHILD, 0, 0, 0, 0, m_splitter_hor.get_hwnd(), reinterpret_cast<HMENU>(static_cast<std::uintptr_t>(s_tree_id)), get_instance(), nullptr)),
+	m_tree_view(m_splitter_hor.get_hwnd(), *this),
 	m_splitter_ver(m_splitter_hor.get_hwnd()),
-	m_import_list(CreateWindowExW(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE, WC_LISTVIEWW, nullptr, WS_VISIBLE | WS_CHILD | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA, 0, 0, 0, 0, m_splitter_ver.get_hwnd(), reinterpret_cast<HMENU>(static_cast<std::uintptr_t>(s_import_list)), get_instance(), nullptr)),
-	m_export_list(CreateWindowExW(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE, WC_LISTVIEWW, nullptr, WS_VISIBLE | WS_CHILD | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA, 0, 0, 0, 0, m_splitter_ver.get_hwnd(), reinterpret_cast<HMENU>(static_cast<std::uintptr_t>(s_export_list)), get_instance(), nullptr)),
-	m_tree_menu(create_tree_menu()),
+	m_import_list(CreateWindowExW(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE, WC_LISTVIEWW, nullptr, WS_VISIBLE | WS_CHILD | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA, 0, 0, 0, 0, m_splitter_ver.get_hwnd(), nullptr, get_instance(), nullptr)),
+	m_export_list(CreateWindowExW(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE, WC_LISTVIEWW, nullptr, WS_VISIBLE | WS_CHILD | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA, 0, 0, 0, 0, m_splitter_ver.get_hwnd(), nullptr, get_instance(), nullptr)),
 	m_import_menu(create_import_menu()),
 	m_idle_tasks(),
 	m_symbol_tasks(),
-	m_tree_tmp_strings(),
 	m_import_tmp_strings(),
 	m_export_tmp_strings(),
-	m_tree_tmp_string_idx(),
 	m_import_tmp_string_idx(),
 	m_export_tmp_string_idx(),
 	m_mo(),
-	m_full_paths(false)
+	m_settings()
 {
 	LONG_PTR const set = SetWindowLongPtrW(m_hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
 	DragAcceptFiles(m_hwnd, TRUE);
-
-	LRESULT const set_tree = SendMessageW(m_tree, TVM_SETEXTENDEDSTYLE, TVS_EX_DOUBLEBUFFER, TVS_EX_DOUBLEBUFFER);
-	LONG_PTR const prev = SetWindowLongPtrW(m_tree, GWL_STYLE, GetWindowLongPtrW(m_tree, GWL_STYLE) | TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS);
-	HIMAGELIST const tree_img_list = ImageList_LoadImageW(get_instance(), MAKEINTRESOURCEW(s_res_icons_tree), 26, 0, CLR_DEFAULT, IMAGE_BITMAP, LR_DEFAULTCOLOR);
-	assert(tree_img_list);
-	LRESULT const img_list_set_tree = SendMessageW(m_tree, TVM_SETIMAGELIST, TVSIL_NORMAL, reinterpret_cast<LPARAM>(tree_img_list));
 
 	unsigned const extended_lv_styles = LVS_EX_FULLROWSELECT | LVS_EX_LABELTIP | LVS_EX_DOUBLEBUFFER;
 	LRESULT const set_import = SendMessageW(m_import_list, LVM_SETEXTENDEDLISTVIEWSTYLE, extended_lv_styles, extended_lv_styles);
@@ -227,13 +222,15 @@ main_window::main_window() :
 	}
 
 	m_splitter_ver.set_elements(m_import_list, m_export_list);
-	m_splitter_hor.set_elements(m_tree, m_splitter_ver.get_hwnd());
+	m_splitter_hor.set_elements(m_tree_view.get_hwnd(), m_splitter_ver.get_hwnd());
 	RECT r;
 	BOOL const got_rect = GetClientRect(m_hwnd, &r);
 	LRESULT const moved = on_wm_size(0, ((static_cast<unsigned>(r.bottom) & 0xFFFFu) << 16) | (static_cast<unsigned>(r.right) & 0xFFFFu));
 
 	auto const process_cmd_line_task = [](main_window& self, idle_task_param_t const /*param*/) -> void { self.process_command_line(); };
 	add_idle_task(process_cmd_line_task, nullptr);
+
+	m_settings.m_full_paths = false;
 }
 
 main_window::~main_window()
@@ -273,21 +270,6 @@ HMENU main_window::create_menu()
 	return menu_bar;
 }
 
-HMENU main_window::create_tree_menu()
-{
-	HMENU const tree_menu = CreatePopupMenu();
-	assert(tree_menu);
-	MENUITEMINFOW mi{};
-	mi.cbSize = sizeof(mi);
-	mi.fMask = MIIM_ID | MIIM_STRING | MIIM_FTYPE;
-	mi.fType = MFT_STRING;
-	mi.wID = s_tree_menu_orig_id;
-	mi.dwTypeData = const_cast<wchar_t*>(s_tree_menu_orig_str);
-	BOOL const inserted = InsertMenuItemW(tree_menu, 0, TRUE, &mi);
-	assert(inserted != 0);
-	return tree_menu;
-}
-
 HMENU main_window::create_import_menu()
 {
 	HMENU const import_menu = CreatePopupMenu();
@@ -314,13 +296,13 @@ HWND main_window::create_toolbar(HWND const& parent)
 	assert(bitmap_added != -1);
 	TBBUTTON buttons[2]{};
 	buttons[0].iBitmap = s_res_icon_open;
-	buttons[0].idCommand = s_toolbar_open;
+	buttons[0].idCommand = static_cast<std::uint16_t>(e_toolbar::e_open);
 	buttons[0].fsState = TBSTATE_ENABLED;
 	buttons[0].fsStyle = BTNS_BUTTON;
 	buttons[0].dwData = 0;
 	buttons[0].iString = 0;
 	buttons[1].iBitmap = s_res_icon_full_paths;
-	buttons[1].idCommand = s_toolbar_full_paths;
+	buttons[1].idCommand = static_cast<std::uint16_t>(e_toolbar::e_full_paths);
 	buttons[1].fsState = TBSTATE_ENABLED;
 	buttons[1].fsStyle = BTNS_BUTTON;
 	buttons[1].dwData = 0;
@@ -445,9 +427,9 @@ LRESULT main_window::on_wm_close(WPARAM wparam, LPARAM lparam)
 LRESULT main_window::on_wm_notify(WPARAM wparam, LPARAM lparam)
 {
 	NMHDR& nmhdr = *reinterpret_cast<NMHDR*>(lparam);
-	if(nmhdr.hwndFrom == m_tree)
+	if(nmhdr.hwndFrom == m_tree_view.get_hwnd())
 	{
-		on_tree_notify(nmhdr);
+		m_tree_view.on_notify(nmhdr);
 	}
 	else if(nmhdr.hwndFrom == m_import_list)
 	{
@@ -467,9 +449,9 @@ LRESULT main_window::on_wm_notify(WPARAM wparam, LPARAM lparam)
 LRESULT main_window::on_wm_contextmenu(WPARAM wparam, LPARAM lparam)
 {
 	HWND const hwnd = reinterpret_cast<HWND>(wparam);
-	if(hwnd == m_tree)
+	if(hwnd == m_tree_view.get_hwnd())
 	{
-		on_tree_context_menu(wparam, lparam);
+		m_tree_view.on_context_menu(lparam);
 	}
 	else if(hwnd == m_import_list)
 	{
@@ -482,15 +464,15 @@ LRESULT main_window::on_wm_command(WPARAM wparam, LPARAM lparam)
 {
 	if(HIWORD(wparam) == 0 && lparam == 0)
 	{
-		return on_menu(wparam, lparam);
+		on_menu(wparam);
 	}
 	else if(HIWORD(wparam) == 1 && lparam == 0)
 	{
-		return on_accelerator(wparam, lparam);
+		on_accelerator(wparam);
 	}
 	else if(reinterpret_cast<HWND>(lparam) == m_toolbar)
 	{
-		return on_toolbar(wparam, lparam);
+		on_toolbar(wparam);
 	}
 	return DefWindowProcW(m_hwnd, WM_COMMAND, wparam, lparam);
 }
@@ -544,9 +526,13 @@ LRESULT main_window::on_wm_main_window_take_finished_dbg_task(WPARAM wparam, LPA
 	return DefWindowProcW(m_hwnd, wm_main_window_take_finished_dbg_task, wparam, lparam);
 }
 
-LRESULT main_window::on_menu(WPARAM wparam, LPARAM lparam)
+void main_window::on_menu(WPARAM const wparam)
 {
-	int const menu_id = LOWORD(wparam);
+	std::uint16_t const menu_id = static_cast<std::uint16_t>(LOWORD(wparam));
+	if(menu_id >= s_tree_view_menu_min && menu_id < s_tree_view_menu_max)
+	{
+		m_tree_view.on_menu(menu_id);
+	}
 	switch(menu_id)
 	{
 		case s_menu_open_id:
@@ -564,66 +550,63 @@ LRESULT main_window::on_menu(WPARAM wparam, LPARAM lparam)
 			on_menu_paths();
 		}
 		break;
-		case s_tree_menu_orig_id:
-		{
-			on_tree_menu_orig();
-		}
-		break;
 		case s_import_menu_orig_id:
 		{
 			on_import_menu_orig();
 		}
 		break;
 	}
-	return DefWindowProcW(m_hwnd, WM_COMMAND, wparam, lparam);
 }
 
-LRESULT main_window::on_accelerator(WPARAM wparam, LPARAM lparam)
+void main_window::on_accelerator(WPARAM const wparam)
 {
-	int const accel_id = LOWORD(wparam);
+	e_accel const accel_id = static_cast<e_accel>(static_cast<std::uint16_t>(LOWORD(wparam)));
 	switch(accel_id)
 	{
-		case s_accel_open:
+		case e_accel::e_main_open:
 		{
 			on_accel_open();
 		}
 		break;
-		case s_accel_exit:
+		case e_accel::e_main_exit:
 		{
 			on_accel_exit();
 		}
 		break;
-		case s_accel_paths:
+		case e_accel::e_main_paths:
 		{
 			on_accel_paths();
 		}
 		break;
-		case s_accel_tree_orig:
+		case e_accel::e_tree_orig:
 		{
-			on_accel_tree_orig();
+			m_tree_view.on_accel_orig();
 		}
 		break;
-		case s_accel_import_orig:
+		case e_accel::e_import_orig:
 		{
 			on_accel_import_orig();
 		}
 		break;
+		default:
+		{
+			assert(false);
+		}
+		break;
 	}
-	return DefWindowProcW(m_hwnd, WM_COMMAND, wparam, lparam);
 }
 
-LRESULT main_window::on_toolbar(WPARAM wparam, LPARAM lparam)
+void main_window::on_toolbar(WPARAM const wparam)
 {
-	assert(reinterpret_cast<HWND>(lparam) == m_toolbar);
-	int const control_id = LOWORD(wparam);
-	switch(control_id)
+	e_toolbar const toolbar_id = static_cast<e_toolbar>(static_cast<std::uint16_t>(LOWORD(wparam)));
+	switch(toolbar_id)
 	{
-		case s_toolbar_open:
+		case e_toolbar::e_open:
 		{
 			on_toolbar_open();
 		}
 		break;
-		case s_toolbar_full_paths:
+		case e_toolbar::e_full_paths:
 		{
 			on_toolbar_full_paths();
 		}
@@ -634,249 +617,76 @@ LRESULT main_window::on_toolbar(WPARAM wparam, LPARAM lparam)
 		}
 		break;
 	}
-	return DefWindowProcW(m_hwnd, WM_COMMAND, wparam, lparam);
 }
 
-void main_window::on_tree_notify(NMHDR& nmhdr)
+void main_window::on_tree_selchangedw()
 {
-	if(nmhdr.code == TVN_GETDISPINFOW)
+	LRESULT const redr_off_1 = SendMessageW(m_import_list, WM_SETREDRAW, FALSE, 0);
+	LRESULT const deleted_1 = SendMessageW(m_import_list, LVM_DELETEALLITEMS, 0, 0);
+	assert(deleted_1 == TRUE);
+	auto const redraw_import = mk::make_scope_exit([&]()
 	{
-		on_tree_getdispinfow(nmhdr);
-	}
-	else if(nmhdr.code == TVN_SELCHANGEDW)
+		LRESULT const redr_on = SendMessageW(m_import_list, WM_SETREDRAW, TRUE, 0);
+		BOOL const redrawn = RedrawWindow(m_import_list, nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_FRAME);
+		assert(redrawn != 0);
+	});
+	LRESULT const redr_off_2 = SendMessageW(m_export_list, WM_SETREDRAW, FALSE, 0);
+	LRESULT const deleted_2 = SendMessageW(m_export_list, LVM_DELETEALLITEMS, 0, 0);
+	assert(deleted_2 == TRUE);
+	auto const redraw_export = mk::make_scope_exit([&]()
 	{
-		on_tree_selchangedw(nmhdr);
-	}
-}
+		LRESULT const redr_on = SendMessageW(m_export_list, WM_SETREDRAW, TRUE, 0);
+		BOOL const redrawn = RedrawWindow(m_export_list, nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_FRAME);
+		assert(redrawn != 0);
+	});
 
-void main_window::on_tree_context_menu(WPARAM wparam, LPARAM lparam)
-{
-	assert(reinterpret_cast<HWND>(wparam) == m_tree);
-	(void)wparam;
-	POINT cursor_screen;
-	HTREEITEM item;
-	if(lparam == 0xffffffff)
+	HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree_view.get_hwnd(), TVM_GETNEXTITEM, TVGN_CARET, 0));
+	if(!selected)
 	{
-		LRESULT const sel = SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_CARET, 0);
-		HTREEITEM const selected = reinterpret_cast<HTREEITEM>(sel);
-		if(!selected)
-		{
-			return;
-		}
-		RECT rect;
-		*reinterpret_cast<HTREEITEM*>(&rect) = selected;
-		LRESULT const got_rect = SendMessageW(m_tree, TVM_GETITEMRECT, TRUE, reinterpret_cast<LPARAM>(&rect));
-		if(got_rect == FALSE)
-		{
-			return;
-		}
-		cursor_screen.x = rect.left + (rect.right - rect.left) / 2;
-		cursor_screen.y = rect.top + (rect.bottom - rect.top) / 2;
-		BOOL const converted = ClientToScreen(m_tree, &cursor_screen);
-		assert(converted != 0);
-		item = selected;
-	}
-	else
-	{
-		cursor_screen.x = GET_X_LPARAM(lparam);
-		cursor_screen.y = GET_Y_LPARAM(lparam);
-		POINT cursor_client = cursor_screen;
-		BOOL const converted = ScreenToClient(m_tree, &cursor_client);
-		assert(converted != 0);
-		TVHITTESTINFO hti;
-		hti.pt = cursor_client;
-		LPARAM const hit_tested = SendMessageW(m_tree, TVM_HITTEST, 0, reinterpret_cast<LPARAM>(&hti));
-		assert(reinterpret_cast<HTREEITEM>(hit_tested) == hti.hItem);
-		if(!(hti.hItem && (hti.flags & (TVHT_ONITEM | TVHT_ONITEMBUTTON | TVHT_ONITEMICON | TVHT_ONITEMLABEL | TVHT_ONITEMSTATEICON)) != 0))
-		{
-			return;
-		}
-		LRESULT const selected = SendMessageW(m_tree, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(hti.hItem));
-		assert(selected == TRUE);
-		item = hti.hItem;
+		return;
 	}
 	TVITEMEXW ti;
-	ti.hItem = item;
+	ti.hItem = selected;
 	ti.mask = TVIF_PARAM;
-	LRESULT const got_item = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-	assert(got_item == TRUE);
-	assert(ti.lParam);
-	file_info const& fi = *reinterpret_cast<file_info*>(ti.lParam);
-	bool const enable_goto_orig = fi.m_orig_instance != nullptr;
-	HMENU const tree_menu = reinterpret_cast<HMENU>(m_tree_menu.get());
-	BOOL const enabled = EnableMenuItem(tree_menu, s_tree_menu_orig_id, MF_BYCOMMAND | (enable_goto_orig ? MF_ENABLED : MF_GRAYED));
-	assert(enabled != -1 && (enabled == MF_ENABLED || enabled == MF_GRAYED));
-	BOOL const tracked = TrackPopupMenu(tree_menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON | TPM_NOANIMATION, cursor_screen.x, cursor_screen.y, 0, m_hwnd, nullptr);
-	assert(tracked != 0);
-}
-
-void main_window::on_tree_getdispinfow(NMHDR& nmhdr)
-{
-	NMTVDISPINFOW& di = reinterpret_cast<NMTVDISPINFOW&>(nmhdr);
-	file_info const& tmp_fi = *reinterpret_cast<file_info*>(di.item.lParam);
-	file_info const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
-	file_info const* parent_fi = nullptr;
-	HTREEITEM const parent = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(di.item.hItem)));
+	LRESULT const got_1 = SendMessageW(m_tree_view.get_hwnd(), TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
+	assert(got_1 == TRUE);
+	file_info const& fi_tmp = *reinterpret_cast<file_info*>(ti.lParam);
+	HTREEITEM const parent = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree_view.get_hwnd(), TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(selected)));
 	if(parent)
 	{
-		TVITEMEXW ti;
-		ti.hItem = parent;
-		ti.mask = TVIF_PARAM;
-		LRESULT const got = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-		assert(got == TRUE);
-		parent_fi = reinterpret_cast<file_info*>(ti.lParam);
+		TVITEMEXW ti_2;
+		ti_2.hItem = parent;
+		ti_2.mask = TVIF_PARAM;
+		LRESULT const got_2 = SendMessageW(m_tree_view.get_hwnd(), TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti_2));
+		assert(got_2 == TRUE);
+		file_info const& parent_fi = *reinterpret_cast<file_info*>(ti_2.lParam);
+		int const idx = static_cast<int>(&fi_tmp - parent_fi.m_sub_file_infos.data());
+		LRESULT const set_size = SendMessageW(m_import_list, LVM_SETITEMCOUNT, parent_fi.m_import_table.m_dlls[idx].m_entries.size(), 0);
+		assert(set_size != 0);
 	}
-	if((di.item.mask & TVIF_TEXT) != 0)
-	{
-		bool const long_name = m_full_paths && fi.m_file_path != get_not_found_string();
-		if(long_name)
-		{
-			di.item.pszText = const_cast<wchar_t*>(fi.m_file_path->m_str);
-		}
-		else
-		{
-			if(parent_fi)
-			{
-				int const idx = static_cast<int>(&tmp_fi - parent_fi->m_sub_file_infos.data());
-				string const& my_name = *parent_fi->m_import_table.m_dlls[idx].m_dll_name;
-				std::wstring& tmp = m_tree_tmp_strings[m_tree_tmp_string_idx++ % m_tree_tmp_strings.size()];
-				tmp.resize(my_name.m_len);
-				std::transform(my_name.m_str, my_name.m_str + my_name.m_len, tmp.begin(), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
-				di.item.pszText = const_cast<wchar_t*>(tmp.c_str());
-			}
-			else
-			{
-				wchar_t const* const file_name = find_file_name(fi.m_file_path->m_str, fi.m_file_path->m_len);
-				di.item.pszText = const_cast<wchar_t*>(file_name);
-			}
-		}
-	}
-	if((di.item.mask & (TVIF_IMAGE | TVIF_SELECTEDIMAGE)) != 0)
-	{
-		bool delay = false;
-		if(parent_fi)
-		{
-			int const idx = static_cast<int>(&tmp_fi - parent_fi->m_sub_file_infos.data());
-			delay = idx >= parent_fi->m_import_table.m_nondelay_imports_count;
-		}
 
-		bool const is_32_bit = fi.m_is_32_bit;
-		bool const is_duplicate = tmp_fi.m_orig_instance != nullptr;
-		bool const is_missing = fi.m_file_path == get_not_found_string();
-		bool const is_delay = delay;
-		if(is_missing)
-		{
-			if(is_delay)
-			{
-				di.item.iImage = s_res_icon_missing_delay;
-			}
-			else
-			{
-				di.item.iImage = s_res_icon_missing;
-			}
-		}
-		else
-		{
-			if(is_duplicate)
-			{
-				if(is_32_bit)
-				{
-					if(is_delay)
-					{
-						di.item.iImage = s_res_icon_duplicate_delay;
-					}
-					else
-					{
-						di.item.iImage = s_res_icon_duplicate;
-					}
-				}
-				else
-				{
-					if(is_delay)
-					{
-						di.item.iImage = s_res_icon_duplicate_delay_64;
-					}
-					else
-					{
-						di.item.iImage = s_res_icon_duplicate_64;
-					}
-				}
-			}
-			else
-			{
-				if(is_32_bit)
-				{
-					if(is_delay)
-					{
-						di.item.iImage = s_res_icon_normal_delay;
-					}
-					else
-					{
-						di.item.iImage = s_res_icon_normal;
-					}
-				}
-				else
-				{
-					if(is_delay)
-					{
-						di.item.iImage = s_res_icon_normal_delay_64;
-					}
-					else
-					{
-						di.item.iImage = s_res_icon_normal_64;
-					}
-				}
-			}
-		}
-		di.item.iSelectedImage = di.item.iImage;
-	}
-}
+	int const import_type_column_max_width = get_import_type_column_max_width();
+	int const twobyte_column_max_width = get_twobyte_column_max_width();
+	int const export_type_column_max_width = get_export_type_column_max_width();
 
-void main_window::on_tree_selchangedw(NMHDR& nmhdr)
-{
-	NMTREEVIEWW& nm = reinterpret_cast<NMTREEVIEWW&>(nmhdr);
-	{
-		LRESULT const redr_off_1 = SendMessageW(m_import_list, WM_SETREDRAW, FALSE, 0);
-		LRESULT const deleted_1 = SendMessageW(m_import_list, LVM_DELETEALLITEMS, 0, 0);
-		HTREEITEM const parent = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(nm.itemNew.hItem)));
-		if(parent)
-		{
-			TVITEMEXW ti;
-			ti.hItem = parent;
-			ti.mask = TVIF_PARAM;
-			LRESULT const got = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-			file_info const& parent_fi = *reinterpret_cast<file_info*>(ti.lParam);
-			file_info const& fi = *reinterpret_cast<file_info*>(nm.itemNew.lParam);
-			int const idx = static_cast<int>(&fi - parent_fi.m_sub_file_infos.data());
-			LRESULT const set_size = SendMessageW(m_import_list, LVM_SETITEMCOUNT, parent_fi.m_import_table.m_dlls[idx].m_entries.size(), 0);
-		}
-		LRESULT const auto_sized_pi = SendMessageW(m_import_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_import_column::e_pi), LVSCW_AUTOSIZE);
-		int const import_type_column_max_width = get_import_type_column_max_width();
-		LRESULT const type_sized = SendMessageW(m_import_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_import_column::e_type), import_type_column_max_width);
-		assert(type_sized == TRUE);
-		int const twobyte_column_max_width = get_twobyte_column_max_width();
-		LRESULT const ordinal_sized = SendMessageW(m_import_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_import_column::e_ordinal), twobyte_column_max_width);
-		assert(ordinal_sized == TRUE);
-		LRESULT const hint_sized = SendMessageW(m_import_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_import_column::e_hint), twobyte_column_max_width);
-		assert(hint_sized == TRUE);
-		LRESULT const redr_on_1 = SendMessageW(m_import_list, WM_SETREDRAW, TRUE, 0);
-	}
-	{
-		LRESULT const redr_off_2 = SendMessageW(m_export_list, WM_SETREDRAW, FALSE, 0);
-		LRESULT const deleted_2 = SendMessageW(m_export_list, LVM_DELETEALLITEMS, 0, 0);
-		file_info const& tmp_fi = *reinterpret_cast<file_info*>(nm.itemNew.lParam);
-		file_info const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
-		LRESULT const set_size = SendMessageW(m_export_list, LVM_SETITEMCOUNT, fi.m_export_table.m_export_address_table.size(), 0);
-		int const export_type_column_max_width = get_export_type_column_max_width();
-		LRESULT const type_sized = SendMessageW(m_export_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_export_column::e_type), export_type_column_max_width);
-		assert(type_sized == TRUE);
-		int const twobyte_column_max_width = get_twobyte_column_max_width();
-		LRESULT const ordinal_sized = SendMessageW(m_export_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_export_column::e_ordinal), twobyte_column_max_width);
-		assert(ordinal_sized == TRUE);
-		LRESULT const hint_sized = SendMessageW(m_export_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_export_column::e_hint), twobyte_column_max_width);
-		assert(hint_sized == TRUE);
-		LRESULT const redr_on_2 = SendMessageW(m_export_list, WM_SETREDRAW, TRUE, 0);
-	}
+	LRESULT const auto_sized_pi = SendMessageW(m_import_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_import_column::e_pi), LVSCW_AUTOSIZE);
+	assert(auto_sized_pi == TRUE);
+	LRESULT const type_sized_1 = SendMessageW(m_import_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_import_column::e_type), import_type_column_max_width);
+	assert(type_sized_1 == TRUE);
+	LRESULT const ordinal_sized_1 = SendMessageW(m_import_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_import_column::e_ordinal), twobyte_column_max_width);
+	assert(ordinal_sized_1 == TRUE);
+	LRESULT const hint_sized_1 = SendMessageW(m_import_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_import_column::e_hint), twobyte_column_max_width);
+	assert(hint_sized_1 == TRUE);
+
+	file_info const& fi = fi_tmp.m_orig_instance ? *fi_tmp.m_orig_instance : fi_tmp;
+	LRESULT const set_size = SendMessageW(m_export_list, LVM_SETITEMCOUNT, fi.m_export_table.m_export_address_table.size(), 0);
+	assert(set_size != 0);
+	LRESULT const type_sized_2 = SendMessageW(m_export_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_export_column::e_type), export_type_column_max_width);
+	assert(type_sized_2 == TRUE);
+	LRESULT const ordinal_sized_2 = SendMessageW(m_export_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_export_column::e_ordinal), twobyte_column_max_width);
+	assert(ordinal_sized_2 == TRUE);
+	LRESULT const hint_sized_2 = SendMessageW(m_export_list, LVM_SETCOLUMNWIDTH, static_cast<int>(e_export_column::e_hint), twobyte_column_max_width);
+	assert(hint_sized_2 == TRUE);
 }
 
 void main_window::on_import_notify(NMHDR& nmhdr)
@@ -890,12 +700,12 @@ void main_window::on_import_notify(NMHDR& nmhdr)
 void main_window::on_import_getdispinfow(NMHDR& nmhdr)
 {
 	NMLVDISPINFOW& nm = reinterpret_cast<NMLVDISPINFOW&>(nmhdr);
-	HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_CARET, 0));
+	HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree_view.get_hwnd(), TVM_GETNEXTITEM, TVGN_CARET, 0));
 	if(!selected)
 	{
 		return;
 	}
-	HTREEITEM const parent = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(selected)));
+	HTREEITEM const parent = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree_view.get_hwnd(), TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(selected)));
 	if(!parent)
 	{
 		return;
@@ -903,11 +713,11 @@ void main_window::on_import_getdispinfow(NMHDR& nmhdr)
 	TVITEMEXW ti;
 	ti.hItem = parent;
 	ti.mask = TVIF_PARAM;
-	LRESULT const got_parent = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
+	LRESULT const got_parent = SendMessageW(m_tree_view.get_hwnd(), TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
 	file_info const& parent_fi = *reinterpret_cast<file_info*>(ti.lParam);
 	ti.hItem = selected;
 	ti.mask = TVIF_PARAM;
-	LRESULT const got_selected = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
+	LRESULT const got_selected = SendMessageW(m_tree_view.get_hwnd(), TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
 	file_info const& fi = *reinterpret_cast<file_info*>(ti.lParam);
 	file_info const& fi_orig = fi.m_orig_instance ? *fi.m_orig_instance : fi;
 	int const idx = static_cast<int>(&fi - parent_fi.m_sub_file_infos.data());
@@ -1105,13 +915,13 @@ void main_window::on_import_context_menu(WPARAM wparam, LPARAM lparam)
 		assert(hit_tested == hti.iItem);
 		ith_import = hti.iItem;
 	}
-	LRESULT const tree_sel = SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_CARET, 0);
+	LRESULT const tree_sel = SendMessageW(m_tree_view.get_hwnd(), TVM_GETNEXTITEM, TVGN_CARET, 0);
 	HTREEITEM const tree_selected = reinterpret_cast<HTREEITEM>(tree_sel);
 	if(!tree_selected)
 	{
 		return;
 	}
-	LRESULT const got_tree_parent = SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(tree_selected));
+	LRESULT const got_tree_parent = SendMessageW(m_tree_view.get_hwnd(), TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(tree_selected));
 	HTREEITEM const tree_parent = reinterpret_cast<HTREEITEM>(got_tree_parent);
 	if(!tree_parent)
 	{
@@ -1120,14 +930,14 @@ void main_window::on_import_context_menu(WPARAM wparam, LPARAM lparam)
 	TVITEMEXW ti;
 	ti.hItem = tree_selected;
 	ti.mask = TVIF_PARAM;
-	LRESULT const got_item = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
+	LRESULT const got_item = SendMessageW(m_tree_view.get_hwnd(), TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
 	assert(got_item == TRUE);
 	assert(ti.lParam);
 	file_info const& fi = *reinterpret_cast<file_info*>(ti.lParam);
 	TVITEMEXW ti_2;
 	ti_2.hItem = tree_parent;
 	ti_2.mask = TVIF_PARAM;
-	LRESULT const got_item_2 = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti_2));
+	LRESULT const got_item_2 = SendMessageW(m_tree_view.get_hwnd(), TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti_2));
 	assert(got_item_2 == TRUE);
 	assert(ti_2.lParam);
 	file_info const& parent_fi = *reinterpret_cast<file_info*>(ti_2.lParam);
@@ -1154,7 +964,7 @@ void main_window::on_export_getdispinfow(NMHDR& nmhdr)
 	NMLVDISPINFOW& nm = reinterpret_cast<NMLVDISPINFOW&>(nmhdr);
 	if((nm.item.mask | LVIF_TEXT) != 0)
 	{
-		HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_CARET, 0));
+		HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree_view.get_hwnd(), TVM_GETNEXTITEM, TVGN_CARET, 0));
 		if(!selected)
 		{
 			return;
@@ -1162,7 +972,7 @@ void main_window::on_export_getdispinfow(NMHDR& nmhdr)
 		TVITEMEXW ti;
 		ti.hItem = selected;
 		ti.mask = TVIF_PARAM;
-		LRESULT const got_selected = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
+		LRESULT const got_selected = SendMessageW(m_tree_view.get_hwnd(), TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
 		file_info const& fi_tmp = *reinterpret_cast<file_info*>(ti.lParam);
 		file_info const& fi = fi_tmp.m_orig_instance ? *fi_tmp.m_orig_instance : fi_tmp;
 		int const row = nm.item.iItem;
@@ -1300,14 +1110,15 @@ void main_window::on_toolbar_notify(NMHDR& nmhdr)
 		case TBN_GETINFOTIPW:
 		{
 			NMTBGETINFOTIPW& tbgit = reinterpret_cast<NMTBGETINFOTIPW&>(nmhdr);
-			switch(tbgit.iItem)
+			e_toolbar const toolbar_id = static_cast<e_toolbar>(static_cast<std::uint16_t>(tbgit.iItem));
+			switch(toolbar_id)
 			{
-				case s_toolbar_open:
+				case e_toolbar::e_open:
 				{
 					tbgit.pszText = const_cast<wchar_t*>(s_toolbar_open_tooltip);
 				}
 				break;
-				case s_toolbar_full_paths:
+				case e_toolbar::e_full_paths:
 				{
 					tbgit.pszText = const_cast<wchar_t*>(s_toolbar_full_paths_tooltip);
 				}
@@ -1333,11 +1144,6 @@ void main_window::on_menu_paths()
 	full_paths();
 }
 
-void main_window::on_tree_menu_orig()
-{
-	tree_select_original_instance();
-}
-
 void main_window::on_import_menu_orig()
 {
 	import_select_original_instance();
@@ -1356,11 +1162,6 @@ void main_window::on_accel_exit()
 void main_window::on_accel_paths()
 {
 	full_paths();
-}
-
-void main_window::on_accel_tree_orig()
-{
-	tree_select_original_instance();
 }
 
 void main_window::on_accel_import_orig()
@@ -1437,21 +1238,21 @@ void main_window::refresh(main_type&& mo)
 	request_cancellation_of_all_dbg_tasks();
 	m_mo = std::move(mo);
 
-	LRESULT const redr_off_1 = SendMessageW(m_tree, WM_SETREDRAW, FALSE, 0);
+	LRESULT const redr_off_1 = SendMessageW(m_tree_view.get_hwnd(), WM_SETREDRAW, FALSE, 0);
 	LRESULT const redr_off_2 = SendMessageW(m_import_list, WM_SETREDRAW, FALSE, 0);
 	LRESULT const redr_off_3 = SendMessageW(m_export_list, WM_SETREDRAW, FALSE, 0);
 
-	LRESULT const deleted_1 = SendMessageW(m_tree, TVM_DELETEITEM, 0, reinterpret_cast<LPARAM>(TVI_ROOT));
+	LRESULT const deleted_1 = SendMessageW(m_tree_view.get_hwnd(), TVM_DELETEITEM, 0, reinterpret_cast<LPARAM>(TVI_ROOT));
 	LRESULT const deleted_2 = SendMessageW(m_import_list, LVM_DELETEALLITEMS, 0, 0);
 	LRESULT const deleted_3 = SendMessageW(m_export_list, LVM_DELETEALLITEMS, 0, 0);
 
 	assert(m_mo.m_fi.m_sub_file_infos.size() == 1);
 	refresh_view_recursive(m_mo.m_fi, TVI_ROOT);
 
-	LRESULT const expanded = SendMessageW(m_tree, TVM_EXPAND, TVE_EXPAND, reinterpret_cast<LPARAM>(m_mo.m_fi.m_sub_file_infos[0].m_tree_item));
-	LRESULT const selected = SendMessageW(m_tree, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(m_mo.m_fi.m_sub_file_infos[0].m_tree_item));
+	LRESULT const expanded = SendMessageW(m_tree_view.get_hwnd(), TVM_EXPAND, TVE_EXPAND, reinterpret_cast<LPARAM>(m_mo.m_fi.m_sub_file_infos[0].m_tree_item));
+	LRESULT const selected = SendMessageW(m_tree_view.get_hwnd(), TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(m_mo.m_fi.m_sub_file_infos[0].m_tree_item));
 
-	LRESULT const redr_on_1 = SendMessageW(m_tree, WM_SETREDRAW, TRUE, 0);
+	LRESULT const redr_on_1 = SendMessageW(m_tree_view.get_hwnd(), WM_SETREDRAW, TRUE, 0);
 	LRESULT const redr_on_2 = SendMessageW(m_import_list, WM_SETREDRAW, TRUE, 0);
 	LRESULT const redr_on_3 = SendMessageW(m_export_list, WM_SETREDRAW, TRUE, 0);
 }
@@ -1478,7 +1279,7 @@ void main_window::refresh_view_recursive(file_info& parent_fi, HTREEITEM const& 
 		tvi.itemex.hwnd = nullptr;
 		tvi.itemex.iExpandedImage = 0;
 		tvi.itemex.iReserved = 0;
-		HTREEITEM const ti = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree, TVM_INSERTITEMW, 0, reinterpret_cast<LPARAM>(&tvi)));
+		HTREEITEM const ti = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree_view.get_hwnd(), TVM_INSERTITEMW, 0, reinterpret_cast<LPARAM>(&tvi)));
 		fi.m_tree_item = ti;
 		request_symbol_traslation(fi);
 		refresh_view_recursive(fi, ti);
@@ -1487,32 +1288,12 @@ void main_window::refresh_view_recursive(file_info& parent_fi, HTREEITEM const& 
 
 void main_window::full_paths()
 {
-	m_full_paths = !m_full_paths;
-	LRESULT const state_set = SendMessageW(m_toolbar, TB_SETSTATE, s_toolbar_full_paths, (m_full_paths ? TBSTATE_PRESSED : 0) | TBSTATE_ENABLED);
+	m_settings.m_full_paths = !m_settings.m_full_paths;
+	LRESULT const state_set = SendMessageW(m_toolbar, TB_SETSTATE, static_cast<std::uint16_t>(e_toolbar::e_full_paths), (m_settings.m_full_paths ? TBSTATE_PRESSED : 0) | TBSTATE_ENABLED);
 	assert(state_set == TRUE);
 
-	BOOL const tree_invalidated = InvalidateRect(m_tree, nullptr, TRUE);
+	BOOL const tree_invalidated = InvalidateRect(m_tree_view.get_hwnd(), nullptr, TRUE);
 	assert(tree_invalidated != 0);
-}
-
-void main_window::tree_select_original_instance()
-{
-	LRESULT const got_selected = SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_CARET, 0);
-	assert(got_selected != NULL);
-	HTREEITEM const selected = reinterpret_cast<HTREEITEM>(got_selected);
-	TVITEMW ti;
-	ti.hItem = selected;
-	ti.mask = TVIF_PARAM;
-	LRESULT const got_item = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-	assert(got_item == TRUE);
-	assert(ti.lParam != 0);
-	file_info const& fi = *reinterpret_cast<file_info*>(ti.lParam);
-	if(!fi.m_orig_instance)
-	{
-		return;
-	}
-	LRESULT const orig_selected = SendMessageW(m_tree, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(fi.m_orig_instance->m_tree_item));
-	assert(orig_selected == TRUE);
 }
 
 void main_window::import_select_original_instance()
@@ -1523,13 +1304,13 @@ void main_window::import_select_original_instance()
 		return;
 	}
 	int const ith_import = static_cast<int>(sel);
-	LRESULT const tree_sel = SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_CARET, 0);
+	LRESULT const tree_sel = SendMessageW(m_tree_view.get_hwnd(), TVM_GETNEXTITEM, TVGN_CARET, 0);
 	HTREEITEM const tree_selected = reinterpret_cast<HTREEITEM>(tree_sel);
 	if(!tree_selected)
 	{
 		return;
 	}
-	LRESULT const got_tree_parent = SendMessageW(m_tree, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(tree_selected));
+	LRESULT const got_tree_parent = SendMessageW(m_tree_view.get_hwnd(), TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(tree_selected));
 	HTREEITEM const tree_parent = reinterpret_cast<HTREEITEM>(got_tree_parent);
 	if(!tree_parent)
 	{
@@ -1538,14 +1319,14 @@ void main_window::import_select_original_instance()
 	TVITEMEXW ti;
 	ti.hItem = tree_selected;
 	ti.mask = TVIF_PARAM;
-	LRESULT const got_item = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
+	LRESULT const got_item = SendMessageW(m_tree_view.get_hwnd(), TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
 	assert(got_item == TRUE);
 	assert(ti.lParam);
 	file_info const& fi = *reinterpret_cast<file_info*>(ti.lParam);
 	TVITEMEXW ti_2;
 	ti_2.hItem = tree_parent;
 	ti_2.mask = TVIF_PARAM;
-	LRESULT const got_item_2 = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti_2));
+	LRESULT const got_item_2 = SendMessageW(m_tree_view.get_hwnd(), TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti_2));
 	assert(got_item_2 == TRUE);
 	assert(ti_2.lParam);
 	file_info const& parent_fi = *reinterpret_cast<file_info*>(ti_2.lParam);
@@ -1686,11 +1467,11 @@ std::pair<file_info const*, POINT> main_window::get_file_info_under_cursor()
 	BOOL const got_cursor_pos = GetCursorPos(&cursor_screen);
 	assert(got_cursor_pos != 0);
 	POINT cursor_client = cursor_screen;
-	BOOL const converted = ScreenToClient(m_tree, &cursor_client);
+	BOOL const converted = ScreenToClient(m_tree_view.get_hwnd(), &cursor_client);
 	assert(converted != 0);
 	TVHITTESTINFO hti;
 	hti.pt = cursor_client;
-	LPARAM const hit_tested = SendMessageW(m_tree, TVM_HITTEST, 0, reinterpret_cast<LPARAM>(&hti));
+	LPARAM const hit_tested = SendMessageW(m_tree_view.get_hwnd(), TVM_HITTEST, 0, reinterpret_cast<LPARAM>(&hti));
 	assert(reinterpret_cast<HTREEITEM>(hit_tested) == hti.hItem);
 	if(!(hti.hItem && (hti.flags & (TVHT_ONITEM | TVHT_ONITEMBUTTON | TVHT_ONITEMICON | TVHT_ONITEMLABEL | TVHT_ONITEMSTATEICON)) != 0))
 	{
@@ -1699,7 +1480,7 @@ std::pair<file_info const*, POINT> main_window::get_file_info_under_cursor()
 	TVITEMEXW ti;
 	ti.hItem = hti.hItem;
 	ti.mask = TVIF_PARAM;
-	LRESULT const got_item = SendMessageW(m_tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
+	LRESULT const got_item = SendMessageW(m_tree_view.get_hwnd(), TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
 	assert(got_item == TRUE);
 	assert(ti.lParam);
 	file_info const* const fi = reinterpret_cast<file_info*>(ti.lParam);
