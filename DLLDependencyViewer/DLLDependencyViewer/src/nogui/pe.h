@@ -57,7 +57,7 @@ struct pe_export_address_entry
 		string const* m_forwarder;
 		std::uint32_t m_rva;
 	} rva_or_forwarder;
-	std::uint32_t m_ordinal;
+	std::uint16_t m_ordinal;
 	std::uint16_t m_hint;
 	bool m_is_rva;
 };
