@@ -33,6 +33,7 @@ static constexpr wchar_t const s_menu_file_open[] = L"&Open...\tCtrl+O";
 static constexpr wchar_t const s_menu_file_exit[] = L"E&xit\tCtrl+W";
 static constexpr wchar_t const s_menu_view[] = L"&View";
 static constexpr wchar_t const s_menu_view_paths[] = L"&Full Paths\tF9";
+static constexpr wchar_t const s_menu_view_refresh[] = L"&Refresh\tF5";
 static constexpr wchar_t const s_open_file_dialog_file_name_filter[] = L"Executable files and libraries (*.exe;*.dll;*.ocx)\0*.exe;*.dll;*.ocx\0All files\0*.*\0";
 static constexpr wchar_t const s_msg_error[] = L"DLLDependencyViewer error.";
 static constexpr wchar_t const s_toolbar_open_tooltip[] = L"Open... (Ctrl+O)";
@@ -44,6 +45,7 @@ enum class e_main_menu_id : std::uint16_t
 	e_open = s_main_view_menu_min,
 	e_exit,
 	e_full_paths,
+	e_refresh,
 };
 enum class e_toolbar : std::uint16_t
 {
@@ -55,6 +57,7 @@ enum class e_accel : std::uint16_t
 	e_main_open,
 	e_main_exit,
 	e_main_paths,
+	e_main_refresh,
 	e_main_matching,
 	e_tree_orig,
 };
@@ -63,6 +66,7 @@ static constexpr ACCEL const s_accel_table[] =
 	{FVIRTKEY | FCONTROL, 'O',   static_cast<std::uint16_t>(e_accel::e_main_open    )},
 	{FVIRTKEY | FCONTROL, 'W',   static_cast<std::uint16_t>(e_accel::e_main_exit    )},
 	{FVIRTKEY,            VK_F9, static_cast<std::uint16_t>(e_accel::e_main_paths   )},
+	{FVIRTKEY,            VK_F5, static_cast<std::uint16_t>(e_accel::e_main_refresh )},
 	{FVIRTKEY | FCONTROL, 'M',   static_cast<std::uint16_t>(e_accel::e_main_matching)},
 	{FVIRTKEY | FCONTROL, 'K',   static_cast<std::uint16_t>(e_accel::e_tree_orig    )},
 };
@@ -189,6 +193,8 @@ HMENU main_window::create_menu()
 
 	BOOL const menu_view_paths_appended = AppendMenuW(menu_view, MF_STRING, static_cast<std::uint16_t>(e_main_menu_id::e_full_paths), s_menu_view_paths);
 	assert(menu_view_paths_appended != 0);
+	BOOL const menu_view_refresh_appended = AppendMenuW(menu_view, MF_STRING, static_cast<std::uint16_t>(e_main_menu_id::e_refresh), s_menu_view_refresh);
+	assert(menu_view_refresh_appended != 0);
 
 	return menu_bar;
 }
@@ -471,6 +477,11 @@ void main_window::on_menu(std::uint16_t const menu_id)
 			on_menu_paths();
 		}
 		break;
+		case e_main_menu_id::e_refresh:
+		{
+			on_menu_refresh();
+		}
+		break;
 	}
 }
 
@@ -492,6 +503,11 @@ void main_window::on_accelerator(WPARAM const wparam)
 		case e_accel::e_main_paths:
 		{
 			on_accel_paths();
+		}
+		break;
+		case e_accel::e_main_refresh:
+		{
+			on_accel_refresh();
 		}
 		break;
 		case e_accel::e_main_matching:
@@ -582,6 +598,11 @@ void main_window::on_menu_paths()
 	full_paths();
 }
 
+void main_window::on_menu_refresh()
+{
+	refresh();
+}
+
 void main_window::on_accel_open()
 {
 	open();
@@ -595,6 +616,11 @@ void main_window::on_accel_exit()
 void main_window::on_accel_paths()
 {
 	full_paths();
+}
+
+void main_window::on_accel_refresh()
+{
+	refresh();
 }
 
 void main_window::on_accel_matching()
@@ -689,6 +715,19 @@ void main_window::full_paths()
 	LRESULT const state_set = SendMessageW(m_toolbar, TB_SETSTATE, static_cast<std::uint16_t>(e_toolbar::e_full_paths), (m_settings.m_full_paths ? TBSTATE_PRESSED : 0) | TBSTATE_ENABLED);
 	assert(state_set == TRUE);
 	m_tree_view.repaint();
+}
+
+void main_window::refresh()
+{
+	if(m_mo.m_fi.m_sub_file_infos.empty())
+	{
+		return;
+	}
+	assert(m_mo.m_fi.m_sub_file_infos.size() == 1);
+	wstring const* const& name = m_mo.m_fi.m_sub_file_infos[0].m_file_path;
+	assert(name->m_str);
+	assert(name->m_len > 0);
+	open_file(name->m_str);
 }
 
 int main_window::get_ordinal_column_max_width()

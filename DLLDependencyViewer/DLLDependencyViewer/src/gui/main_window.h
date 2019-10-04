@@ -73,9 +73,11 @@ private:
 	void on_menu_open();
 	void on_menu_exit();
 	void on_menu_paths();
+	void on_menu_refresh();
 	void on_accel_open();
 	void on_accel_exit();
 	void on_accel_paths();
+	void on_accel_refresh();
 	void on_accel_matching();
 	void on_toolbar_open();
 	void on_toolbar_full_paths();
@@ -83,6 +85,7 @@ private:
 	void open_file(wchar_t const* const file_path);
 	void refresh(main_type&& mo);
 	void full_paths();
+	void refresh();
 	int get_ordinal_column_max_width();
 	std::pair<file_info const*, POINT> get_file_info_under_cursor();
 	void add_idle_task(idle_task_t const task, idle_task_param_t const param);
