@@ -11,6 +11,7 @@
 
 
 class main_window;
+struct file_info;
 
 
 class tree_view
@@ -32,8 +33,11 @@ public:
 	void on_menu(std::uint16_t const menu_id);
 	void on_menu_orig();
 	void on_accel_orig();
+	void refresh();
+	void repaint();
 private:
 	smart_menu create_menu();
+	void refresh_view_recursive(file_info& parent_fi, void* const parent_ti);
 	void select_original_instance();
 private:
 	HWND const m_hwnd;

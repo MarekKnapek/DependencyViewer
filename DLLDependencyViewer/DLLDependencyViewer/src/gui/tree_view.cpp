@@ -273,6 +273,30 @@ void tree_view::on_accel_orig()
 	select_original_instance();
 }
 
+void tree_view::refresh()
+{
+	LRESULT const redr_off = SendMessageW(m_hwnd, WM_SETREDRAW, FALSE, 0);
+	LRESULT const deleted = SendMessageW(m_hwnd, TVM_DELETEITEM, 0, reinterpret_cast<LPARAM>(TVI_ROOT));
+	assert(deleted == TRUE);
+
+	assert(m_main_window.m_mo.m_fi.m_sub_file_infos.size() == 1);
+	refresh_view_recursive(m_main_window.m_mo.m_fi, TVI_ROOT);
+
+	LRESULT const expanded = SendMessageW(m_hwnd, TVM_EXPAND, TVE_EXPAND, reinterpret_cast<LPARAM>(m_main_window.m_mo.m_fi.m_sub_file_infos[0].m_tree_item));
+	assert(expanded != 0);
+	LRESULT const selected = SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(m_main_window.m_mo.m_fi.m_sub_file_infos[0].m_tree_item));
+	assert(selected == TRUE);
+
+	LRESULT const redr_on_1 = SendMessageW(m_hwnd, WM_SETREDRAW, TRUE, 0);
+	repaint();
+}
+
+void tree_view::repaint()
+{
+	BOOL const redrawn = RedrawWindow(m_hwnd, nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_FRAME);
+	assert(redrawn != 0);
+}
+
 smart_menu tree_view::create_menu()
 {
 	HMENU const tree_menu = CreatePopupMenu();
@@ -286,6 +310,36 @@ smart_menu tree_view::create_menu()
 	BOOL const inserted = InsertMenuItemW(tree_menu, 0, TRUE, &mi);
 	assert(inserted != 0);
 	return smart_menu{tree_menu};
+}
+
+void tree_view::refresh_view_recursive(file_info& parent_fi, void* const parent_ti)
+{
+	for(auto& fi : parent_fi.m_sub_file_infos)
+	{
+		TVINSERTSTRUCTW tvi;
+		tvi.hParent = reinterpret_cast<HTREEITEM>(parent_ti);
+		tvi.hInsertAfter = TVI_LAST;
+		tvi.itemex.mask = TVIF_TEXT | TVIF_IMAGE | TVIF_PARAM | TVIF_SELECTEDIMAGE;
+		tvi.itemex.hItem = nullptr;
+		tvi.itemex.state = 0;
+		tvi.itemex.stateMask = 0;
+		tvi.itemex.pszText = LPSTR_TEXTCALLBACKW;
+		tvi.itemex.cchTextMax = 0;
+		tvi.itemex.iImage = I_IMAGECALLBACK;
+		tvi.itemex.iSelectedImage = I_IMAGECALLBACK;
+		tvi.itemex.cChildren = 0;
+		tvi.itemex.lParam = reinterpret_cast<LPARAM>(&fi);
+		tvi.itemex.iIntegral = 0;
+		tvi.itemex.uStateEx = 0;
+		tvi.itemex.hwnd = nullptr;
+		tvi.itemex.iExpandedImage = 0;
+		tvi.itemex.iReserved = 0;
+		HTREEITEM const ti = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_INSERTITEMW, 0, reinterpret_cast<LPARAM>(&tvi)));
+		assert(ti != nullptr);
+		fi.m_tree_item = ti;
+		m_main_window.request_symbol_traslation(fi);
+		refresh_view_recursive(fi, ti);
+	}
 }
 
 void tree_view::select_original_instance()

@@ -82,7 +82,6 @@ private:
 	void open();
 	void open_file(wchar_t const* const file_path);
 	void refresh(main_type&& mo);
-	void refresh_view_recursive(file_info& parent_fi, HTREEITEM const& parent_ti);
 	void full_paths();
 	int get_ordinal_column_max_width();
 	std::pair<file_info const*, POINT> get_file_info_under_cursor();

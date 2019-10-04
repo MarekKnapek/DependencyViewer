@@ -679,48 +679,8 @@ void main_window::refresh(main_type&& mo)
 	request_cancellation_of_all_dbg_tasks();
 	m_mo = std::move(mo);
 
-	LRESULT const redr_off_1 = SendMessageW(m_tree_view.get_hwnd(), WM_SETREDRAW, FALSE, 0);
-
-	LRESULT const deleted_1 = SendMessageW(m_tree_view.get_hwnd(), TVM_DELETEITEM, 0, reinterpret_cast<LPARAM>(TVI_ROOT));
-
-	assert(m_mo.m_fi.m_sub_file_infos.size() == 1);
-	refresh_view_recursive(m_mo.m_fi, TVI_ROOT);
-
-	LRESULT const expanded = SendMessageW(m_tree_view.get_hwnd(), TVM_EXPAND, TVE_EXPAND, reinterpret_cast<LPARAM>(m_mo.m_fi.m_sub_file_infos[0].m_tree_item));
-	LRESULT const selected = SendMessageW(m_tree_view.get_hwnd(), TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(m_mo.m_fi.m_sub_file_infos[0].m_tree_item));
-
-	LRESULT const redr_on_1 = SendMessageW(m_tree_view.get_hwnd(), WM_SETREDRAW, TRUE, 0);
-	m_import_view.refresh();
-	m_export_view.refresh();
-}
-
-void main_window::refresh_view_recursive(file_info& parent_fi, HTREEITEM const& parent_ti)
-{
-	for(auto& fi : parent_fi.m_sub_file_infos)
-	{
-		TVINSERTSTRUCTW tvi;
-		tvi.hParent = parent_ti;
-		tvi.hInsertAfter = TVI_LAST;
-		tvi.itemex.mask = TVIF_TEXT | TVIF_IMAGE | TVIF_PARAM | TVIF_SELECTEDIMAGE;
-		tvi.itemex.hItem = nullptr;
-		tvi.itemex.state = 0;
-		tvi.itemex.stateMask = 0;
-		tvi.itemex.pszText = LPSTR_TEXTCALLBACKW;
-		tvi.itemex.cchTextMax = 0;
-		tvi.itemex.iImage = I_IMAGECALLBACK;
-		tvi.itemex.iSelectedImage = I_IMAGECALLBACK;
-		tvi.itemex.cChildren = 0;
-		tvi.itemex.lParam = reinterpret_cast<LPARAM>(&fi);
-		tvi.itemex.iIntegral = 0;
-		tvi.itemex.uStateEx = 0;
-		tvi.itemex.hwnd = nullptr;
-		tvi.itemex.iExpandedImage = 0;
-		tvi.itemex.iReserved = 0;
-		HTREEITEM const ti = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree_view.get_hwnd(), TVM_INSERTITEMW, 0, reinterpret_cast<LPARAM>(&tvi)));
-		fi.m_tree_item = ti;
-		request_symbol_traslation(fi);
-		refresh_view_recursive(fi, ti);
-	}
+	m_tree_view.refresh();
+	SetFocus(m_tree_view.get_hwnd());
 }
 
 void main_window::full_paths()
@@ -728,9 +688,7 @@ void main_window::full_paths()
 	m_settings.m_full_paths = !m_settings.m_full_paths;
 	LRESULT const state_set = SendMessageW(m_toolbar, TB_SETSTATE, static_cast<std::uint16_t>(e_toolbar::e_full_paths), (m_settings.m_full_paths ? TBSTATE_PRESSED : 0) | TBSTATE_ENABLED);
 	assert(state_set == TRUE);
-
-	BOOL const tree_invalidated = InvalidateRect(m_tree_view.get_hwnd(), nullptr, TRUE);
-	assert(tree_invalidated != 0);
+	m_tree_view.repaint();
 }
 
 int main_window::get_ordinal_column_max_width()
