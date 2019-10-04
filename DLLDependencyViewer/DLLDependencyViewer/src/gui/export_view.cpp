@@ -151,8 +151,7 @@ void export_view::refresh()
 	auto const redraw_export = mk::make_scope_exit([&]()
 	{
 		LRESULT const redr_on = SendMessageW(m_hwnd, WM_SETREDRAW, TRUE, 0);
-		BOOL const redrawn = RedrawWindow(m_hwnd, nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_FRAME);
-		assert(redrawn != 0);
+		repaint();
 	});
 
 	HWND const tree = m_main_window.m_tree_view.get_hwnd();
@@ -183,6 +182,12 @@ void export_view::refresh()
 	assert(hint_sized == TRUE);
 }
 
+void export_view::repaint()
+{
+	BOOL const redrawn = RedrawWindow(m_hwnd, nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_FRAME);
+	assert(redrawn != 0);
+}
+
 void export_view::select_item(std::uint16_t const item_idx)
 {
 	LRESULT const visibility_ensured = SendMessageW(m_hwnd, LVM_ENSUREVISIBLE, item_idx, FALSE);
@@ -198,6 +203,7 @@ void export_view::select_item(std::uint16_t const item_idx)
 	HWND const prev_focus = SetFocus(m_hwnd);
 	assert(prev_focus != nullptr);
 	(void)prev_focus;
+	repaint();
 }
 
 wchar_t const* export_view::on_get_col_type(pe_export_address_entry const& export_entry)

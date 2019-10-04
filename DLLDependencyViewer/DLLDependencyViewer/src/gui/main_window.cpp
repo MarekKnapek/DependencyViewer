@@ -588,6 +588,8 @@ void main_window::on_toolbar(WPARAM const wparam)
 
 void main_window::on_tree_selchangedw()
 {
+	m_export_view.refresh();
+
 	LRESULT const redr_off_1 = SendMessageW(m_import_list, WM_SETREDRAW, FALSE, 0);
 	LRESULT const deleted_1 = SendMessageW(m_import_list, LVM_DELETEALLITEMS, 0, 0);
 	assert(deleted_1 == TRUE);
@@ -1372,8 +1374,7 @@ void main_window::process_finished_dbg_task(get_symbols_from_addresses_task_t* c
 	}
 	BOOL const import_invalidated = InvalidateRect(m_import_list, nullptr, TRUE);
 	assert(import_invalidated != 0);
-	BOOL const redrawn = RedrawWindow(m_export_view.get_hwnd(), nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_FRAME);
-	assert(redrawn != 0);
+	m_export_view.repaint();
 }
 
 ATOM main_window::g_class = 0;

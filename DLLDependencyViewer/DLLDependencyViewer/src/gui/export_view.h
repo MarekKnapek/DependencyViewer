@@ -27,6 +27,7 @@ public:
 	void on_notify(NMHDR& nmhdr);
 	void on_getdispinfow(NMHDR& nmhdr);
 	void refresh();
+	void repaint();
 	void select_item(std::uint16_t const item_idx);
 private:
 	wchar_t const* on_get_col_type(pe_export_address_entry const& export_entry);
