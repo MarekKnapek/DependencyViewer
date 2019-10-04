@@ -693,7 +693,7 @@ void main_window::full_paths()
 
 int main_window::get_ordinal_column_max_width()
 {
-	static constexpr std::uint16_t const s_twobytes[] =
+	static constexpr std::uint16_t const s_ordinals[] =
 	{
 		11111,
 		22222,
@@ -725,16 +725,16 @@ int main_window::get_ordinal_column_max_width()
 	HWND const imprt = m_import_view.get_hwnd();
 	HDC const dc = GetDC(imprt);
 	assert(dc != NULL);
-	smart_dc sdc(imprt, dc);
+	smart_dc const sdc(imprt, dc);
 	auto const orig_font = SelectObject(dc, reinterpret_cast<HFONT>(SendMessageW(imprt, WM_GETFONT, 0, 0)));
 	auto const fn_revert = mk::make_scope_exit([&](){ SelectObject(dc, orig_font); });
 
 	int maximum = 0;
-	for(auto const& twobyte : s_twobytes)
+	for(auto const& oridnal : s_ordinals)
 	{
 		static_assert(sizeof(std::uint16_t) == sizeof(unsigned short int), "");
 		std::array<wchar_t, 15> buff;
-		auto const n = static_cast<unsigned short int>(twobyte);
+		auto const n = static_cast<unsigned short int>(oridnal);
 		int const printed = std::swprintf(buff.data(), buff.size(), L"%hu (0x%04hx)", n, n);
 		assert(printed >= 0);
 

@@ -294,7 +294,9 @@ int export_view::get_type_column_max_width()
 
 	HDC const dc = GetDC(m_hwnd);
 	assert(dc != NULL);
-	smart_dc sdc(m_hwnd, dc);
+	smart_dc const sdc(m_hwnd, dc);
+	auto const orig_font = SelectObject(dc, reinterpret_cast<HFONT>(SendMessageW(m_hwnd, WM_GETFONT, 0, 0)));
+	auto const fn_revert = mk::make_scope_exit([&](){ SelectObject(dc, orig_font); });
 
 	int maximum = 0;
 	SIZE size;
@@ -307,6 +309,7 @@ int export_view::get_type_column_max_width()
 	assert(got2 != 0);
 	maximum = (std::max)(maximum, static_cast<int>(size.cx));
 
-	g_export_type_column_max_width = maximum;
+	static constexpr int const s_trailing_label_padding = 12;
+	g_export_type_column_max_width = maximum + s_trailing_label_padding;
 	return g_export_type_column_max_width;
 }
