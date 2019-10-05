@@ -27,47 +27,36 @@ static constexpr int const s_big_allocation_threshold = 0;
 #endif
 
 
-void* allocate_bytes_2(void** alloc_2, int const& size, int const& align)
+void allocator2__allocate_allocator(header** self);
+void allocator2__allocate_more(header** self);
+void* allocator2__allocate_from_prev(header** self, int const size, int const align);
+void* allocator2__allocate_real(header* self, int const size, int const align);
+
+
+void* allocator2__allocate_bytes(void** alloc_2, int const size, int const align)
 {
 	assert(size < s_big_allocation_threshold || size == sizeof(allocator_big));
 	assert(align <= alignof(std::max_align_t));
 	header** self = reinterpret_cast<header**>(alloc_2);
 	if(!*self)
 	{
-		void* const new_mem = VirtualAlloc(NULL, s_chunk_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-		assert(new_mem);
-		*self = static_cast<header*>(new_mem);
-		(*self)->m_remaining = s_chunk_usable_size;
-		(*self)->m_prev = nullptr;
-		(*self)->m_user = nullptr;
+		allocator2__allocate_allocator(self);
 	}
 	int const needed = size + align - 1;
 	assert(needed <= s_chunk_usable_size);
 	if(needed > (*self)->m_remaining)
 	{
-		void* const new_mem = VirtualAlloc(NULL, s_chunk_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-		assert(new_mem);
-		header* const new_self = static_cast<header*>(new_mem);
-		new_self->m_remaining = s_chunk_usable_size;
-		new_self->m_prev = *self;
-		new_self->m_user = (*self)->m_user;
-		*self = new_self;
+		void* const allocation = allocator2__allocate_from_prev(self, size, align);
+		if(allocation)
+		{
+			return allocation;
+		}
+		allocator2__allocate_more(self);
 	}
-	int const consumed =  s_chunk_usable_size - (*self)->m_remaining;
-	char* begin = reinterpret_cast<char*>(*self + 1) + consumed;
-	int i = 0;
-	while((reinterpret_cast<std::uintptr_t>(begin) % align) != 0)
-	{
-		++i;
-		++begin;
-	};
-	assert(i < align);
-	(*self)->m_remaining -= size + i;
-	assert((*self)->m_remaining >= 0);
-	return begin;
+	return allocator2__allocate_real(*self, size, align);
 }
 
-void deallocate_all_2(void** alloc_2)
+void allocator2__deallocate_all(void** alloc_2)
 {
 	header** const self = reinterpret_cast<header**>(alloc_2);
 	while(*self)
@@ -77,6 +66,62 @@ void deallocate_all_2(void** alloc_2)
 		assert(freed != 0);
 		*self = prev_self;
 	}
+}
+
+
+void allocator2__allocate_allocator(header** self)
+{
+	void* const new_mem = VirtualAlloc(NULL, s_chunk_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+	assert(new_mem);
+	*self = static_cast<header*>(new_mem);
+	(*self)->m_remaining = s_chunk_usable_size;
+	(*self)->m_prev = nullptr;
+	(*self)->m_user = nullptr;
+}
+
+void allocator2__allocate_more(header** self)
+{
+	void* const new_mem = VirtualAlloc(NULL, s_chunk_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+	assert(new_mem);
+	header* const new_self = static_cast<header*>(new_mem);
+	new_self->m_remaining = s_chunk_usable_size;
+	new_self->m_prev = *self;
+	new_self->m_user = (*self)->m_user;
+	*self = new_self;
+}
+
+void* allocator2__allocate_from_prev(header** self, int const size, int const align)
+{
+	int const needed = size + align - 1;
+	header* prev = (*self)->m_prev;
+	while(prev)
+	{
+		if(prev->m_remaining >= needed)
+		{
+			return allocator2__allocate_real(prev, size, align);
+		}
+		prev = prev->m_prev;
+	}
+	return nullptr;
+}
+
+void* allocator2__allocate_real(header* self, int const size, int const align)
+{
+	int const needed = size + align - 1;
+	assert(self->m_remaining >= needed);
+	int const consumed_block =  s_chunk_usable_size - self->m_remaining;
+	char* begin = reinterpret_cast<char*>(self + 1) + consumed_block;
+	int i = 0;
+	while((reinterpret_cast<std::uintptr_t>(begin) % align) != 0)
+	{
+		++i;
+		++begin;
+	};
+	assert(i < align);
+	int const consumed_this_alloc = size + i;
+	self->m_remaining -= consumed_this_alloc;
+	assert(self->m_remaining >= 0);
+	return begin;
 }
 
 
@@ -197,7 +242,7 @@ allocator::~allocator() noexcept
 	{
 		static_cast<allocator_big*>(static_cast<header*>(m_alc)->m_user)->~allocator_big();
 	}
-	deallocate_all_2(&m_alc);
+	allocator2__deallocate_all(&m_alc);
 }
 
 void allocator::swap(allocator& other) noexcept
@@ -213,7 +258,7 @@ void* allocator::allocate_bytes(int const& size, int const& align)
 	{
 		if(m_alc == nullptr || static_cast<header*>(m_alc)->m_user == nullptr)
 		{
-			void* const alc_big = allocate_bytes_2(&m_alc, sizeof(allocator_big), alignof(allocator_big));
+			void* const alc_big = allocator2__allocate_bytes(&m_alc, sizeof(allocator_big), alignof(allocator_big));
 			::new(alc_big)allocator_big;
 			static_cast<header*>(m_alc)->m_user = alc_big;
 		}
@@ -221,6 +266,6 @@ void* allocator::allocate_bytes(int const& size, int const& align)
 	}
 	else
 	{
-		return allocate_bytes_2(&m_alc, size, align);
+		return allocator2__allocate_bytes(&m_alc, size, align);
 	}
 }

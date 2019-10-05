@@ -1,8 +1,8 @@
 #pragma once
 
 
-void* allocate_bytes_2(void** alloc_2, int const& size, int const& align);
-void deallocate_all_2(void** alloc_2);
+void* allocator2__allocate_bytes(void** alloc_2, int const size, int const align);
+void allocator2__deallocate_all(void** alloc_2);
 
 
 class allocator_big
