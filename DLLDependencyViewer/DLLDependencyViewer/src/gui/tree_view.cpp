@@ -284,7 +284,6 @@ void tree_view::refresh()
 	refresh_view_recursive(m_main_window.m_mo.m_fi, TVI_ROOT);
 
 	LRESULT const expanded = SendMessageW(m_hwnd, TVM_EXPAND, TVE_EXPAND, reinterpret_cast<LPARAM>(m_main_window.m_mo.m_fi.m_sub_file_infos[0].m_tree_item));
-	assert(expanded != 0);
 	LRESULT const selected = SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(m_main_window.m_mo.m_fi.m_sub_file_infos[0].m_tree_item));
 	assert(selected == TRUE);
 
