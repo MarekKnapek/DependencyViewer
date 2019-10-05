@@ -371,6 +371,10 @@ LRESULT main_window::on_wm_contextmenu(WPARAM wparam, LPARAM lparam)
 	{
 		m_import_view.on_context_menu(lparam);
 	}
+	else if(hwnd == m_export_view.get_hwnd())
+	{
+		m_export_view.on_context_menu(lparam);
+	}
 	return DefWindowProcW(m_hwnd, WM_CONTEXTMENU, wparam, lparam);
 }
 
@@ -454,6 +458,10 @@ void main_window::on_menu(WPARAM const wparam)
 	else if(menu_id >= s_import_view_menu_min && menu_id < s_import_view_menu_max)
 	{
 		m_import_view.on_menu(menu_id);
+	}
+	else if(menu_id >= s_export_view_menu_min && menu_id < s_export_view_menu_max)
+	{
+		m_export_view.on_menu(menu_id);
 	}
 }
 
@@ -633,6 +641,10 @@ void main_window::on_accel_matching()
 	if(focus == m_import_view.get_hwnd())
 	{
 		m_import_view.on_accel_matching();
+	}
+	else if(focus == m_export_view.get_hwnd())
+	{
+		m_export_view.on_accel_matching();
 	}
 }
 

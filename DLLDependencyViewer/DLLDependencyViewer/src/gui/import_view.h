@@ -35,6 +35,7 @@ public:
 	void on_accel_matching();
 	void refresh();
 	void repaint();
+	void select_item(std::uint16_t const item_idx);
 private:
 	smart_menu create_menu();
 	wchar_t const* on_get_col_type(pe_import_entry const& import_entry);
@@ -49,6 +50,4 @@ private:
 	smart_menu const m_menu;
 	std::array<std::wstring, 4> m_tmp_strings;
 	unsigned m_tmp_string_idx;
-private:
-	friend class import_view;
 };

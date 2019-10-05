@@ -1,5 +1,6 @@
 #include "export_view.h"
 
+#include "constants.h"
 #include "main.h"
 #include "main_window.h"
 #include "smart_dc.h"
@@ -14,9 +15,14 @@
 #include <iterator>
 #include <cassert>
 
+#include <windowsx.h>
 #include <commctrl.h>
 
 
+enum class e_export_menu_id : std::uint16_t
+{
+	e_matching = s_export_view_menu_min,
+};
 enum class e_export_column
 {
 	e_e,
@@ -35,6 +41,7 @@ static constexpr wchar_t const* const s_export_headers[] =
 	L"name",
 	L"entry point"
 };
+static constexpr wchar_t const s_export_menu_orig_str[] = L"&Highlight Matching Import Function\tCtrl+M";
 static constexpr wchar_t const s_export_type_true[] = L"address";
 static constexpr wchar_t const s_export_type_false[] = L"forwarder";
 static constexpr wchar_t const s_export_hint_na[] = L"N/A";
@@ -48,6 +55,7 @@ static int g_export_type_column_max_width = 0;
 export_view::export_view(HWND const parent, main_window& mw) :
 	m_hwnd(CreateWindowExW(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE, WC_LISTVIEWW, nullptr, WS_VISIBLE | WS_CHILD | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA, 0, 0, 0, 0, parent, nullptr, get_instance(), nullptr)),
 	m_main_window(mw),
+	m_menu(create_menu()),
 	m_tmp_strings(),
 	m_tmp_string_idx()
 {
@@ -212,6 +220,98 @@ void export_view::on_getdispinfow(NMHDR& nmhdr)
 	}
 }
 
+void export_view::on_context_menu(LPARAM const lparam)
+{
+	POINT cursor_screen;
+	int ith_export;
+	if(lparam == 0xffffffff)
+	{
+		LRESULT const sel = SendMessageW(m_hwnd, LVM_GETNEXTITEM, WPARAM{0} - 1, LVNI_SELECTED);
+		if(sel == -1)
+		{
+			return;
+		}
+		RECT rect;
+		rect.top = static_cast<int>(e_export_column::e_type);
+		rect.left = LVIR_BOUNDS;
+		LRESULT const got_rect = SendMessageW(m_hwnd, LVM_GETSUBITEMRECT, sel, reinterpret_cast<LPARAM>(&rect));
+		if(got_rect == 0)
+		{
+			return;
+		}
+		cursor_screen.x = rect.left + (rect.right - rect.left) / 2;
+		cursor_screen.y = rect.top + (rect.bottom - rect.top) / 2;
+		BOOL const converted = ClientToScreen(m_hwnd, &cursor_screen);
+		assert(converted != 0);
+		ith_export = static_cast<int>(sel);
+	}
+	else
+	{
+		cursor_screen.x = GET_X_LPARAM(lparam);
+		cursor_screen.y = GET_Y_LPARAM(lparam);
+		POINT cursor_client = cursor_screen;
+		BOOL const converted = ScreenToClient(m_hwnd, &cursor_client);
+		assert(converted != 0);
+		LVHITTESTINFO hti;
+		hti.pt = cursor_client;
+		hti.flags = LVHT_ONITEM;
+		LPARAM const hit_tested = SendMessageW(m_hwnd, LVM_HITTEST, 0, reinterpret_cast<LPARAM>(&hti));
+		if(hit_tested == -1)
+		{
+			return;
+		}
+		assert(hit_tested == hti.iItem);
+		ith_export = hti.iItem;
+	}
+	HWND const tree = m_main_window.m_tree_view.get_hwnd();
+	HTREEITEM const tree_selected = reinterpret_cast<HTREEITEM>(SendMessageW(tree, TVM_GETNEXTITEM, TVGN_CARET, 0));
+	if(!tree_selected)
+	{
+		return;
+	}
+	TVITEMEXW ti;
+	ti.hItem = tree_selected;
+	ti.mask = TVIF_PARAM;
+	LRESULT const got_item = SendMessageW(tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
+	assert(got_item == TRUE);
+	file_info const& fi = *reinterpret_cast<file_info*>(ti.lParam);
+	std::uint16_t const& matched = fi.m_matched_imports[ith_export];
+	bool const enable_goto_orig = matched != 0xffff;
+	HMENU const menu = reinterpret_cast<HMENU>(m_menu.get());
+	BOOL const enabled = EnableMenuItem(menu, static_cast<std::uint16_t>(e_export_menu_id::e_matching), MF_BYCOMMAND | (enable_goto_orig ? MF_ENABLED : MF_GRAYED));
+	assert(enabled != -1 && (enabled == MF_ENABLED || enabled == MF_GRAYED));
+	BOOL const tracked = TrackPopupMenu(menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON | TPM_NOANIMATION, cursor_screen.x, cursor_screen.y, 0, m_main_window.m_hwnd, nullptr);
+	assert(tracked != 0);
+}
+
+void export_view::on_menu(std::uint16_t const menu_id)
+{
+	e_export_menu_id const e_menu = static_cast<e_export_menu_id>(menu_id);
+	switch(e_menu)
+	{
+		case e_export_menu_id::e_matching:
+		{
+			on_menu_matching();
+		}
+		break;
+		default:
+		{
+			assert(false);
+		}
+		break;
+	}
+}
+
+void export_view::on_menu_matching()
+{
+	select_matching_instance();
+}
+
+void export_view::on_accel_matching()
+{
+	select_matching_instance();
+}
+
 void export_view::refresh()
 {
 	LRESULT const redr_off = SendMessageW(m_hwnd, WM_SETREDRAW, FALSE, 0);
@@ -275,6 +375,21 @@ void export_view::select_item(std::uint16_t const item_idx)
 	assert(prev_focus != nullptr);
 	(void)prev_focus;
 	repaint();
+}
+
+smart_menu export_view::create_menu()
+{
+	HMENU const menu = CreatePopupMenu();
+	assert(menu);
+	MENUITEMINFOW mi{};
+	mi.cbSize = sizeof(mi);
+	mi.fMask = MIIM_ID | MIIM_STRING | MIIM_FTYPE;
+	mi.fType = MFT_STRING;
+	mi.wID = static_cast<std::uint16_t>(e_export_menu_id::e_matching);
+	mi.dwTypeData = const_cast<wchar_t*>(s_export_menu_orig_str);
+	BOOL const inserted = InsertMenuItemW(menu, 0, TRUE, &mi);
+	assert(inserted != 0);
+	return smart_menu{menu};
 }
 
 wchar_t const* export_view::on_get_col_type(pe_export_address_entry const& export_entry)
@@ -354,6 +469,34 @@ wchar_t const* export_view::on_get_col_address(pe_export_address_entry const& ex
 		std::transform(cbegin(export_entry.rva_or_forwarder.m_forwarder), cend(export_entry.rva_or_forwarder.m_forwarder), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
 		return tmpstr.c_str();
 	}
+}
+
+void export_view::select_matching_instance()
+{
+	LRESULT const sel = SendMessageW(m_hwnd, LVM_GETNEXTITEM, WPARAM{0} - 1, LVNI_SELECTED);
+	if(sel == -1)
+	{
+		return;
+	}
+	int const ith_export = static_cast<int>(sel);
+	HWND const tree = m_main_window.m_tree_view.get_hwnd();
+	HTREEITEM const tree_selected = reinterpret_cast<HTREEITEM>(SendMessageW(tree, TVM_GETNEXTITEM, TVGN_CARET, 0));
+	if(!tree_selected)
+	{
+		return;
+	}
+	TVITEMEXW ti;
+	ti.hItem = tree_selected;
+	ti.mask = TVIF_PARAM;
+	LRESULT const got_item = SendMessageW(tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
+	assert(got_item == TRUE);
+	file_info const& fi = *reinterpret_cast<file_info*>(ti.lParam);
+	std::uint16_t const& matched = fi.m_matched_imports[ith_export];
+	if(matched == 0xffff)
+	{
+		return;
+	}
+	m_main_window.m_import_view.select_item(matched);
 }
 
 int export_view::get_type_column_max_width()

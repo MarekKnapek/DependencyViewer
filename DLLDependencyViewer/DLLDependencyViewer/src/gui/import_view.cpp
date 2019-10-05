@@ -204,7 +204,7 @@ void import_view::on_context_menu(LPARAM const lparam)
 			return;
 		}
 		RECT rect;
-		rect.top = 1;
+		rect.top = static_cast<int>(e_import_column::e_type);
 		rect.left = LVIR_BOUNDS;
 		LRESULT const got_rect = SendMessageW(m_hwnd, LVM_GETSUBITEMRECT, sel, reinterpret_cast<LPARAM>(&rect));
 		if(got_rect == 0)
@@ -261,10 +261,10 @@ void import_view::on_context_menu(LPARAM const lparam)
 	int const ith_dll = static_cast<int>(&fi - parent_fi.m_sub_file_infos.data());
 	std::uint16_t const& matched = parent_fi.m_import_table.m_dlls[ith_dll].m_entries[ith_import].m_matched_export;
 	bool const enable_goto_orig = matched != 0xffff;
-	HMENU const import_menu = reinterpret_cast<HMENU>(m_menu.get());
-	BOOL const enabled = EnableMenuItem(import_menu, static_cast<std::uint16_t>(e_import_menu_id::e_matching), MF_BYCOMMAND | (enable_goto_orig ? MF_ENABLED : MF_GRAYED));
+	HMENU const menu = reinterpret_cast<HMENU>(m_menu.get());
+	BOOL const enabled = EnableMenuItem(menu, static_cast<std::uint16_t>(e_import_menu_id::e_matching), MF_BYCOMMAND | (enable_goto_orig ? MF_ENABLED : MF_GRAYED));
 	assert(enabled != -1 && (enabled == MF_ENABLED || enabled == MF_GRAYED));
-	BOOL const tracked = TrackPopupMenu(import_menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON | TPM_NOANIMATION, cursor_screen.x, cursor_screen.y, 0, m_main_window.m_hwnd, nullptr);
+	BOOL const tracked = TrackPopupMenu(menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON | TPM_NOANIMATION, cursor_screen.x, cursor_screen.y, 0, m_main_window.m_hwnd, nullptr);
 	assert(tracked != 0);
 }
 
@@ -353,19 +353,37 @@ void import_view::repaint()
 	assert(redrawn != 0);
 }
 
+void import_view::select_item(std::uint16_t const item_idx)
+{
+	LRESULT const visibility_ensured = SendMessageW(m_hwnd, LVM_ENSUREVISIBLE, item_idx, FALSE);
+	assert(visibility_ensured == TRUE);
+	LVITEM lvi;
+	lvi.stateMask = LVIS_FOCUSED | LVIS_SELECTED;
+	lvi.state = 0;
+	LRESULT const selection_cleared = SendMessageW(m_hwnd, LVM_SETITEMSTATE, WPARAM{0} - 1, reinterpret_cast<LPARAM>(&lvi));
+	assert(selection_cleared == TRUE);
+	lvi.state = LVIS_FOCUSED | LVIS_SELECTED;
+	LRESULT const selection_set = SendMessageW(m_hwnd, LVM_SETITEMSTATE, static_cast<WPARAM>(item_idx), reinterpret_cast<LPARAM>(&lvi));
+	assert(selection_set == TRUE);
+	HWND const prev_focus = SetFocus(m_hwnd);
+	assert(prev_focus != nullptr);
+	(void)prev_focus;
+	repaint();
+}
+
 smart_menu import_view::create_menu()
 {
-	HMENU const import_menu = CreatePopupMenu();
-	assert(import_menu);
+	HMENU const menu = CreatePopupMenu();
+	assert(menu);
 	MENUITEMINFOW mi{};
 	mi.cbSize = sizeof(mi);
 	mi.fMask = MIIM_ID | MIIM_STRING | MIIM_FTYPE;
 	mi.fType = MFT_STRING;
 	mi.wID = static_cast<std::uint16_t>(e_import_menu_id::e_matching);
 	mi.dwTypeData = const_cast<wchar_t*>(s_import_menu_orig_str);
-	BOOL const inserted = InsertMenuItemW(import_menu, 0, TRUE, &mi);
+	BOOL const inserted = InsertMenuItemW(menu, 0, TRUE, &mi);
 	assert(inserted != 0);
-	return smart_menu{import_menu};
+	return smart_menu{menu};
 }
 
 wchar_t const* import_view::on_get_col_type(pe_import_entry const& import_entry)
