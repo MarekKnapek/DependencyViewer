@@ -12,7 +12,7 @@
 
 struct header
 {
-	int m_used;
+	int m_remaining;
 	header* m_prev;
 	void* m_user;
 };
@@ -37,20 +37,24 @@ void* allocate_bytes_2(void** alloc_2, int const& size, int const& align)
 		void* const new_mem = VirtualAlloc(NULL, s_chunk_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 		assert(new_mem);
 		*self = static_cast<header*>(new_mem);
+		(*self)->m_remaining = s_chunk_usable_size;
+		(*self)->m_prev = nullptr;
+		(*self)->m_user = nullptr;
 	}
-	int const remaining = s_chunk_usable_size - (*self)->m_used;
 	int const needed = size + align - 1;
 	assert(needed <= s_chunk_usable_size);
-	if(needed > remaining)
+	if(needed > (*self)->m_remaining)
 	{
 		void* const new_mem = VirtualAlloc(NULL, s_chunk_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 		assert(new_mem);
 		header* const new_self = static_cast<header*>(new_mem);
+		new_self->m_remaining = s_chunk_usable_size;
 		new_self->m_prev = *self;
 		new_self->m_user = (*self)->m_user;
 		*self = new_self;
 	}
-	char* begin = reinterpret_cast<char*>(*self + 1) + (*self)->m_used;
+	int const consumed =  s_chunk_usable_size - (*self)->m_remaining;
+	char* begin = reinterpret_cast<char*>(*self + 1) + consumed;
 	int i = 0;
 	while((reinterpret_cast<std::uintptr_t>(begin) % align) != 0)
 	{
@@ -58,8 +62,8 @@ void* allocate_bytes_2(void** alloc_2, int const& size, int const& align)
 		++begin;
 	};
 	assert(i < align);
-	(*self)->m_used += size + i;
-	assert((*self)->m_used <= s_chunk_usable_size);
+	(*self)->m_remaining -= size + i;
+	assert((*self)->m_remaining >= 0);
 	return begin;
 }
 
