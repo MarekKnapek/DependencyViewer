@@ -60,6 +60,7 @@ struct pe_export_address_entry
 	std::uint16_t m_ordinal;
 	std::uint16_t m_hint;
 	bool m_is_rva;
+	bool m_is_used;
 };
 
 struct pe_export_table_info

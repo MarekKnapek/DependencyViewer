@@ -421,7 +421,7 @@
     <Image Include="src\res\icons_tree.bmp">
       <Filter>src\res</Filter>
     </Image>
-    <Image Include="src\res\icons_import.bmp">
+    <Image Include="src\res\icons_import_export.bmp">
       <Filter>src\res</Filter>
     </Image>
   </ItemGroup>

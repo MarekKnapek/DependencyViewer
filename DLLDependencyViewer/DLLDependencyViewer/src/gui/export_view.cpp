@@ -8,6 +8,8 @@
 #include "../nogui/int_to_string.h"
 #include "../nogui/scope_exit.h"
 
+#include "../res/resources.h"
+
 #include <algorithm>
 #include <iterator>
 #include <cassert>
@@ -17,6 +19,7 @@
 
 enum class e_export_column
 {
+	e_e,
 	e_type,
 	e_ordinal,
 	e_hint,
@@ -25,6 +28,7 @@ enum class e_export_column
 };
 static constexpr wchar_t const* const s_export_headers[] =
 {
+	L"E",
 	L"type",
 	L"ordinal",
 	L"hint",
@@ -66,6 +70,9 @@ export_view::export_view(HWND const parent, main_window& mw) :
 		LRESULT const inserted = SendMessageW(m_hwnd, LVM_INSERTCOLUMNW, i, reinterpret_cast<LPARAM>(&cl));
 		assert(inserted != -1 && inserted == i);
 	}
+	HIMAGELIST const img_list = ImageList_LoadImageW(get_instance(), MAKEINTRESOURCEW(s_res_icons_import_export), 30, 0, CLR_DEFAULT, IMAGE_BITMAP, LR_DEFAULTCOLOR);
+	assert(img_list);
+	LRESULT const img_list_set = SendMessageW(m_hwnd, LVM_SETIMAGELIST, LVSIL_SMALL, reinterpret_cast<LPARAM>(img_list));
 }
 
 export_view::~export_view()
@@ -88,27 +95,32 @@ void export_view::on_notify(NMHDR& nmhdr)
 void export_view::on_getdispinfow(NMHDR& nmhdr)
 {
 	NMLVDISPINFOW& nm = reinterpret_cast<NMLVDISPINFOW&>(nmhdr);
+	HWND const tree = m_main_window.m_tree_view.get_hwnd();
+	HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(tree, TVM_GETNEXTITEM, TVGN_CARET, 0));
+	if(!selected)
+	{
+		return;
+	}
+	TVITEMEXW ti;
+	ti.hItem = selected;
+	ti.mask = TVIF_PARAM;
+	LRESULT const got_selected = SendMessageW(tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
+	assert(got_selected == TRUE);
+	file_info const& fi_tmp = *reinterpret_cast<file_info*>(ti.lParam);
+	file_info const& fi = fi_tmp.m_orig_instance ? *fi_tmp.m_orig_instance : fi_tmp;
+	int const row = nm.item.iItem;
+	int const col = nm.item.iSubItem;
+	pe_export_address_entry const& export_entry = fi.m_export_table.m_export_address_table[row];
+	e_export_column const ecol = static_cast<e_export_column>(col);
 	if((nm.item.mask | LVIF_TEXT) != 0)
 	{
-		HWND const tree = m_main_window.m_tree_view.get_hwnd();
-		HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(tree, TVM_GETNEXTITEM, TVGN_CARET, 0));
-		if(!selected)
-		{
-			return;
-		}
-		TVITEMEXW ti;
-		ti.hItem = selected;
-		ti.mask = TVIF_PARAM;
-		LRESULT const got_selected = SendMessageW(tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-		assert(got_selected == TRUE);
-		file_info const& fi_tmp = *reinterpret_cast<file_info*>(ti.lParam);
-		file_info const& fi = fi_tmp.m_orig_instance ? *fi_tmp.m_orig_instance : fi_tmp;
-		int const row = nm.item.iItem;
-		int const col = nm.item.iSubItem;
-		pe_export_address_entry const& export_entry = fi.m_export_table.m_export_address_table[row];
-		e_export_column const ecol = static_cast<e_export_column>(col);
 		switch(ecol)
 		{
+			case e_export_column::e_e:
+			{
+				nm.item.pszText = const_cast<wchar_t*>(L"");
+			}
+			break;
 			case e_export_column::e_type:
 			{
 				nm.item.pszText = const_cast<wchar_t*>(on_get_col_type(export_entry));
@@ -140,6 +152,63 @@ void export_view::on_getdispinfow(NMHDR& nmhdr)
 			}
 			break;
 		}
+	}
+	if((nm.item.mask & LVIF_IMAGE) != 0)
+	{
+		bool const used = fi.m_export_table.m_export_address_table[row].m_is_used;
+		bool const matched = fi_tmp.m_matched_imports[row] != 0xffff;
+		bool const address = fi.m_export_table.m_export_address_table[row].m_is_rva;
+		bool const name = fi.m_export_table.m_export_address_table[row].m_name != nullptr;
+		static constexpr std::int8_t const s_export_images[2][2][2][2] =
+		{
+			{
+				{
+					{
+						s_res_icon_export0000,
+						s_res_icon_export0001,
+					},
+					{
+						s_res_icon_export0010,
+						s_res_icon_export0011,
+					},
+				},
+				{
+					{
+						-1,
+						-1,
+					},
+					{
+						-1,
+						-1,
+					},
+				},
+			},
+			{
+				{
+					{
+						s_res_icon_export1000,
+						s_res_icon_export1001,
+					},
+					{
+						s_res_icon_export1010,
+						s_res_icon_export1011,
+					},
+				},
+				{
+					{
+						s_res_icon_export1100,
+						s_res_icon_export1101,
+					},
+					{
+						s_res_icon_export1110,
+						s_res_icon_export1111,
+					},
+				},
+			},
+		};
+		std::int8_t const img = s_export_images[used ? 1 : 0][matched ? 1 : 0][address ? 1 : 0][name ? 1 : 0];
+		assert(img != -1);
+		nm.item.iImage = img;
 	}
 }
 
@@ -174,6 +243,8 @@ void export_view::refresh()
 	int const export_type_column_max_width = get_type_column_max_width();
 	int const ordinal_column_max_width = m_main_window.get_ordinal_column_max_width();
 
+	LRESULT const auto_sized_e = SendMessageW(m_hwnd, LVM_SETCOLUMNWIDTH, static_cast<int>(e_export_column::e_e), LVSCW_AUTOSIZE);
+	assert(auto_sized_e == TRUE);
 	LRESULT const type_sized = SendMessageW(m_hwnd, LVM_SETCOLUMNWIDTH, static_cast<int>(e_export_column::e_type), export_type_column_max_width);
 	assert(type_sized == TRUE);
 	LRESULT const ordinal_sized = SendMessageW(m_hwnd, LVM_SETCOLUMNWIDTH, static_cast<int>(e_export_column::e_ordinal), ordinal_column_max_width);

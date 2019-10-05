@@ -378,6 +378,7 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 			ret.m_export_address_table[j].m_ordinal = ordinal;
 			ret.m_export_address_table[j].m_debug_name = nullptr;
 		}
+		ret.m_export_address_table[j].m_is_used = false;
 		if(export_address_name)
 		{
 			string const* const export_name = mm.m_strs.add_string(export_address_name, export_address_name_len, mm.m_alc);

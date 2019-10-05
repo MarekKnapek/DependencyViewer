@@ -3,4 +3,4 @@
 
 s_res_icons_tree BITMAP "icons_tree.bmp"
 s_res_icons_toolbar BITMAP "icons_toolbar.bmp"
-s_res_icons_import BITMAP "icons_import.bmp"
+s_res_icons_import_export BITMAP "icons_import_export.bmp"

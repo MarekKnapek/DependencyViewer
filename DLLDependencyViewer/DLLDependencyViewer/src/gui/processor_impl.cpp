@@ -145,16 +145,16 @@ std::pair<char const*, int> find_manifest(file_info const& fi)
 void pair_imports_with_exports(processor_impl& prcsr)
 {
 	assert(prcsr.m_mo->m_fi.m_sub_file_infos.size() == 1);
-	auto& fi = prcsr.m_mo->m_fi.m_sub_file_infos.front();
-	pair_imports_with_exports_r(fi);
+	pair_imports_with_exports_r(prcsr.m_mo->m_fi, prcsr);
 }
 
-void pair_imports_with_exports_r(file_info& fi)
+void pair_imports_with_exports_r(file_info& fi, processor_impl& prcsr)
 {
-	pair_imports_with_exports_e(fi);
 	for(auto& sub_fi : fi.m_sub_file_infos)
 	{
-		pair_imports_with_exports_r(sub_fi);
+		pair_imports_with_exports_e(sub_fi);
+		pair_exports_with_imports_e(fi, sub_fi, prcsr);
+		pair_imports_with_exports_r(sub_fi, prcsr);
 	}
 }
 
@@ -216,5 +216,26 @@ void pair_imports_with_exports_e(file_info& fi)
 			}
 			assert(impe.m_matched_export == 0xffff || (impe.m_is_ordinal ? (impe.m_ordinal_or_hint == eat[impe.m_matched_export].m_ordinal) : (string_equal{}(impe.m_name, eat[impe.m_matched_export].m_name))));
 		}
+	}
+}
+
+void pair_exports_with_imports_e(file_info& fi, file_info& sub_fi, processor_impl& prcsr)
+{
+	pe_export_table_info& exp = sub_fi.m_orig_instance ? sub_fi.m_orig_instance->m_export_table : sub_fi.m_export_table;
+	int const n = static_cast<int>(exp.m_export_address_table.size());
+	sub_fi.m_matched_imports = prcsr.m_mo->m_mm.m_alc.allocate_objects<std::uint16_t>(n);
+	std::fill(sub_fi.m_matched_imports, sub_fi.m_matched_imports + n, static_cast<std::uint16_t>(0xffff));
+	int const dll_idx = static_cast<int>(&sub_fi - fi.m_sub_file_infos.data());
+	auto const& imports = fi.m_import_table.m_dlls[dll_idx].m_entries;
+	std::uint16_t const n_imports = static_cast<std::uint16_t>(imports.size());
+	for(std::uint16_t i = 0; i != n_imports; ++i)
+	{
+		std::uint16_t const& matched_export = imports[i].m_matched_export;
+		if(matched_export == 0xffff)
+		{
+			continue;
+		}
+		sub_fi.m_matched_imports[matched_export] = i;
+		exp.m_export_address_table[matched_export].m_is_used = true;
 	}
 }

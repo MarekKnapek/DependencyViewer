@@ -423,7 +423,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="src\res\icons_import.bmp" />
+    <Image Include="src\res\icons_import_export.bmp" />
     <Image Include="src\res\icons_toolbar.bmp" />
     <Image Include="src\res\icons_tree.bmp" />
   </ItemGroup>

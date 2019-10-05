@@ -51,9 +51,26 @@
 
 
 
-#define s_res_icons_import 4
+#define s_res_icons_import_export 4
 
-#define s_res_icon_import_not_found_c 0;
-#define s_res_icon_import_not_found_o 2;
-#define s_res_icon_import_found_c 6;
-#define s_res_icon_import_found_o 8;
+#define s_res_icon_import_not_found_c 0
+#define s_res_icon_import_not_found_o 2
+#define s_res_icon_import_found_c 6
+#define s_res_icon_import_found_o 8
+
+#define s_res_icon_export0000 29
+#define s_res_icon_export0001 27
+#define s_res_icon_export0010 26
+#define s_res_icon_export0011 24
+//#define s_res_icon_export0100 -1
+//#define s_res_icon_export0101 -1
+//#define s_res_icon_export0110 -1
+//#define s_res_icon_export0111 -1
+#define s_res_icon_export1000 23
+#define s_res_icon_export1001 21
+#define s_res_icon_export1010 20
+#define s_res_icon_export1011 18
+#define s_res_icon_export1100 17
+#define s_res_icon_export1101 15
+#define s_res_icon_export1110 14
+#define s_res_icon_export1111 12
