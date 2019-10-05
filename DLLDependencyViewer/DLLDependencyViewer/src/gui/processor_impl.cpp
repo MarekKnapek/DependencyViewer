@@ -196,17 +196,17 @@ void pair_imports_with_exports_e(file_info& fi)
 			{
 				std::uint16_t const& hint = impe.m_ordinal_or_hint;
 				string const* const& name = impe.m_name;
-				auto const& enpt_eot = exp.m_enpt_eot;
-				if(hint < enpt_eot.size() && string_equal{}(eat[enpt_eot[hint].first].m_name, name))
+				auto const& enpt = exp.m_enpt;
+				if(hint < enpt.size() && string_equal{}(eat[enpt[hint]].m_name, name))
 				{
-					impe.m_matched_export = enpt_eot[hint].second;
+					impe.m_matched_export = enpt[hint];
 				}
 				else
 				{
-					auto const it = std::lower_bound(enpt_eot.cbegin(), enpt_eot.cend(), name, [&](auto const& e, auto const& v){ return string_less{}(eat[e.first].m_name, v); });
-					if(it != enpt_eot.cend() && string_equal{}(eat[it->first].m_name, name))
+					auto const it = std::lower_bound(enpt.cbegin(), enpt.cend(), name, [&](auto const& e, auto const& v){ return string_less{}(eat[e].m_name, v); });
+					if(it != enpt.cend() && string_equal{}(eat[*it].m_name, name))
 					{
-						impe.m_matched_export = it->first;
+						impe.m_matched_export = *it;
 					}
 					else
 					{

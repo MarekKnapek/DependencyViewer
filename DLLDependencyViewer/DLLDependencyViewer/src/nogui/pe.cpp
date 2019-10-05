@@ -316,8 +316,8 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 	std::uint32_t const* export_address_table = reinterpret_cast<std::uint32_t const*>(file_data + export_address_table_disk_off);
 	int const export_address_count_proper = static_cast<int>(std::count_if(export_address_table, export_address_table + export_dir.m_export_address_count, [](std::uint32_t const& e){ return e != 0; }));
 	my_vector_resize(ret.m_export_address_table, mm.m_alc, export_address_count_proper);
-	my_vector_resize(ret.m_enpt_eot, mm.m_alc, export_dir.m_names_count);
-	std::fill(ret.m_enpt_eot.begin(), ret.m_enpt_eot.end(), std::make_pair(std::uint16_t(0xffff), std::uint16_t(0xffff)));
+	my_vector_resize(ret.m_enpt, mm.m_alc, export_dir.m_names_count);
+	std::fill(ret.m_enpt.begin(), ret.m_enpt.end(), static_cast<std::uint16_t>(0xffff));
 	ret.m_ordinal_base = static_cast<std::uint16_t>(export_dir.m_ordinal_base);
 	std::uint16_t j = 0;
 	int hint_idx = 0;
@@ -384,9 +384,8 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 			string const* const export_name = mm.m_strs.add_string(export_address_name, export_address_name_len, mm.m_alc);
 			ret.m_export_address_table[j].m_hint = hint;
 			ret.m_export_address_table[j].m_name = export_name;
-			VERIFY(ret.m_enpt_eot[hint].first == 0xffff && ret.m_enpt_eot[hint].second == 0xffff);
-			ret.m_enpt_eot[hint].first = j;
-			ret.m_enpt_eot[hint].second = i;
+			VERIFY(ret.m_enpt[hint] == 0xffff);
+			ret.m_enpt[hint] = j;
 			++hint_idx;
 		}
 		else
@@ -397,10 +396,10 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 		++j;
 	}
 	VERIFY(hint_idx == static_cast<int>(export_dir.m_names_count));
-	VERIFY(std::is_sorted(ret.m_enpt_eot.cbegin(), ret.m_enpt_eot.cend(), [&](auto const& a, auto const& b)
+	VERIFY(std::is_sorted(ret.m_enpt.cbegin(), ret.m_enpt.cend(), [&](auto const& a, auto const& b)
 	{
-		auto const& aa = ret.m_export_address_table[a.first].m_name;
-		auto const& bb = ret.m_export_address_table[b.first].m_name;
+		auto const& aa = ret.m_export_address_table[a].m_name;
+		auto const& bb = ret.m_export_address_table[b].m_name;
 		assert(aa);
 		assert(bb);
 		return string_less{}(aa, bb);
