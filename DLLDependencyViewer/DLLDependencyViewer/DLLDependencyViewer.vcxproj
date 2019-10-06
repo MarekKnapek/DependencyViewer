@@ -205,6 +205,8 @@
     <ClInclude Include="src\gui\tree_view.h" />
     <ClInclude Include="src\nogui\activation_context.h" />
     <ClInclude Include="src\nogui\allocator.h" />
+    <ClInclude Include="src\nogui\allocator_big.h" />
+    <ClInclude Include="src\nogui\allocator_small.h" />
     <ClInclude Include="src\nogui\assert.h" />
     <ClInclude Include="src\nogui\dbg.h" />
     <ClInclude Include="src\nogui\dbghelp.h" />
@@ -302,6 +304,14 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\nogui\allocator.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="src\nogui\allocator_big.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="src\nogui\allocator_small.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>

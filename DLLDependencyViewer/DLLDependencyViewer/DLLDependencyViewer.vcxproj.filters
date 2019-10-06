@@ -276,6 +276,12 @@
     <ClInclude Include="src\gui\import_view.h">
       <Filter>src\gui</Filter>
     </ClInclude>
+    <ClInclude Include="src\nogui\allocator_small.h">
+      <Filter>src\nogui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nogui\allocator_big.h">
+      <Filter>src\nogui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\main.cpp">
@@ -412,6 +418,12 @@
     </ClCompile>
     <ClCompile Include="src\DLLDependencyViewer.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nogui\allocator_small.cpp">
+      <Filter>src\nogui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nogui\allocator_big.cpp">
+      <Filter>src\nogui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

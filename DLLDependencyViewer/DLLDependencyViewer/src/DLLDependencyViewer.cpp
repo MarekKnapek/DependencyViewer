@@ -14,6 +14,8 @@
 
 #include "nogui/activation_context.cpp"
 #include "nogui/allocator.cpp"
+#include "nogui/allocator_big.cpp"
+#include "nogui/allocator_small.cpp"
 #include "nogui/assert.cpp"
 #include "nogui/dbg.cpp"
 #include "nogui/dbg_provider.cpp"
