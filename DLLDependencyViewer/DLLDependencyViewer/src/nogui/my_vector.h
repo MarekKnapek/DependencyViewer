@@ -1,7 +1,11 @@
 #pragma once
 
 
+#ifdef _DEBUG
+#define WANT_STATIC_VECTOR 0
+#else
 #define WANT_STATIC_VECTOR 1
+#endif
 
 
 #if WANT_STATIC_VECTOR == 1
