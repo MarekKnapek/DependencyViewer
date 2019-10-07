@@ -715,7 +715,7 @@ void main_window::open_file(wchar_t const* const file_path)
 void main_window::refresh(main_type&& mo)
 {
 	request_cancellation_of_all_dbg_tasks();
-	m_mo = std::move(mo);
+	m_mo.swap(mo);
 
 	m_tree_view.refresh();
 	SetFocus(m_tree_view.get_hwnd());

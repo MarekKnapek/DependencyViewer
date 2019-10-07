@@ -30,12 +30,14 @@ struct file_info
 
 struct main_type
 {
+	void swap(main_type& other) noexcept;
 	memory_manager m_mm;
 	file_info m_fi;
 	std::string m_tmpn;
 	std::wstring m_tmpw;
 	std::filesystem::path m_tmpp;
 };
+inline void swap(main_type& a, main_type& b) noexcept { a.swap(b); }
 
 wstring const* get_not_found_string();
 main_type process(std::wstring const& main_file_path);
