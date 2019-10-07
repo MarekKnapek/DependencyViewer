@@ -73,7 +73,6 @@ void dbg_provider::deinit_task(dbg_provider_param_t const /*param*/)
 	}
 	BOOL const cleaned = m_dbghelp.m_fn_SymCleanup(GetCurrentProcess());
 	assert(cleaned != FALSE);
-	m_dbghelp.m_symsrv_dll.reset();
 	m_dbghelp.m_dbghelp_dll.reset();
 }
 

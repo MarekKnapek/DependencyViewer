@@ -25,5 +25,4 @@ public:
 	decltype(&SymUnloadModule64) m_fn_SymUnloadModule64;
 	decltype(&SymFromAddrW) m_fn_SymFromAddrW;
 	decltype(&UnDecorateSymbolNameW) m_fn_UnDecorateSymbolNameW;
-	smart_library m_symsrv_dll;
 };

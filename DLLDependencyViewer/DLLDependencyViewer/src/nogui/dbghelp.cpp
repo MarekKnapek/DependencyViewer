@@ -16,8 +16,7 @@ dbghelp::dbghelp():
 	m_fn_SymLoadModuleExW(),
 	m_fn_SymUnloadModule64(),
 	m_fn_SymFromAddrW(),
-	m_fn_UnDecorateSymbolNameW(),
-	m_symsrv_dll()
+	m_fn_UnDecorateSymbolNameW()
 {
 }
 
@@ -58,14 +57,12 @@ void dbghelp::load_dlls()
 	static constexpr wchar_t const s_windows_8_1_sdk[] = L"KitsRoot81";
 	static constexpr wchar_t const s_windows_8_sdk[] = L"KitsRoot";
 	static constexpr wchar_t const s_dbghelp_file_name[] = L"dbghelp.dll";
-	static constexpr wchar_t const s_symsrv_file_name[] = L"symsrv.dll";
 
 	HKEY installed_roots;
 	LSTATUS const opened = RegOpenKeyExW(HKEY_LOCAL_MACHINE, s_windows_kits_installed_roots, 0, KEY_QUERY_VALUE, &installed_roots);
 	if(opened != ERROR_SUCCESS)
 	{
 		m_dbghelp_dll = load_library(s_dbghelp_file_name);
-		m_symsrv_dll = load_library(s_symsrv_file_name);
 		return;
 	}
 	auto const sp_installed_roots = make_smart_reg_key(installed_roots);
@@ -91,10 +88,7 @@ void dbghelp::load_dlls()
 		{
 			continue;
 		}
-		p.replace_filename(s_symsrv_file_name);
-		m_symsrv_dll = load_library(p.c_str());
 		return;
 	}
 	m_dbghelp_dll = load_library(s_dbghelp_file_name);
-	m_symsrv_dll = load_library(s_symsrv_file_name);
 }
