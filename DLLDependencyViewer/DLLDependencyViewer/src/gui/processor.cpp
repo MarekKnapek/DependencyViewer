@@ -22,7 +22,7 @@ wstring const* get_not_found_string()
 	return &s_not_found_wstr;
 }
 
-main_type process(std::wstring const& main_file_path)
+main_type process(std::vector<std::wstring> const& file_paths)
 {
-	return process_impl(main_file_path);
+	return process_impl(file_paths);
 }

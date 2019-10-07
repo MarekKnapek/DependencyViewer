@@ -14,7 +14,7 @@ struct main_type;
 struct searcher
 {
 	main_type* m_mo;
-	std::wstring const* m_main_file_path;
+	wstring const* m_main_file_path;
 };
 
 void search(searcher& sch, string const* const& dll_name);

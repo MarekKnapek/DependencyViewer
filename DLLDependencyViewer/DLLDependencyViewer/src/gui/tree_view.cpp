@@ -277,14 +277,25 @@ void tree_view::on_accel_orig()
 void tree_view::refresh()
 {
 	LRESULT const redr_off = SendMessageW(m_hwnd, WM_SETREDRAW, FALSE, 0);
+	LRESULT const deselected = SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(nullptr));
+	assert(deselected == TRUE);
 	LRESULT const deleted = SendMessageW(m_hwnd, TVM_DELETEITEM, 0, reinterpret_cast<LPARAM>(TVI_ROOT));
 	assert(deleted == TRUE);
 
-	assert(m_main_window.m_mo.m_fi.m_sub_file_infos.size() == 1);
-	refresh_view_recursive(m_main_window.m_mo.m_fi, TVI_ROOT);
+	assert(m_main_window.m_mo.m_fi.m_sub_file_infos.size() >= 1);
+	for(auto& sub_fi : m_main_window.m_mo.m_fi.m_sub_file_infos)
+	{
+		refresh_view_recursive(sub_fi, TVI_ROOT);
+	}
 
-	LRESULT const expanded = SendMessageW(m_hwnd, TVM_EXPAND, TVE_EXPAND, reinterpret_cast<LPARAM>(m_main_window.m_mo.m_fi.m_sub_file_infos[0].m_tree_item));
-	LRESULT const selected = SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(m_main_window.m_mo.m_fi.m_sub_file_infos[0].m_tree_item));
+	for(auto& sub_fi : m_main_window.m_mo.m_fi.m_sub_file_infos)
+	{
+		assert(!m_main_window.m_mo.m_fi.m_sub_file_infos[0].m_sub_file_infos.empty());
+		LRESULT const expanded = SendMessageW(m_hwnd, TVM_EXPAND, TVE_EXPAND, reinterpret_cast<LPARAM>(sub_fi.m_sub_file_infos[0].m_tree_item));
+	}
+	HTREEITEM const first = static_cast<HTREEITEM>(m_main_window.m_mo.m_fi.m_sub_file_infos[0].m_sub_file_infos[0].m_tree_item);
+	LRESULT const visibled = SendMessageW(m_hwnd, TVM_ENSUREVISIBLE, 0, reinterpret_cast<LPARAM>(first));
+	LRESULT const selected = SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(first));
 	assert(selected == TRUE);
 
 	LRESULT const redr_on_1 = SendMessageW(m_hwnd, WM_SETREDRAW, TRUE, 0);

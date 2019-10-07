@@ -19,30 +19,36 @@
 #define s_very_big_int (2'147'483'647)
 
 
-main_type process_impl(std::wstring const& main_file_path)
+main_type process_impl(std::vector<std::wstring> const& file_paths)
 {
 	main_type mo;
 	file_name fn;
 	manifest_parser mp(mo.m_mm);
 	processor_impl prcsr;
 	prcsr.m_mo = &mo;
-	prcsr.m_main_file_path = &main_file_path;
 	prcsr.m_file_name = &fn;
 	prcsr.m_manifest_parser = &mp;
 
 	file_info& fi = mo.m_fi;
 	fi.m_orig_instance = nullptr;
 	fi.m_file_path = nullptr;
-	my_vector_resize(fi.m_sub_file_infos, mo.m_mm.m_alc, 1);
-	my_vector_resize(fi.m_import_table.m_dlls, mo.m_mm.m_alc, 1);
-	pe_import_dll_with_entries& only_dependency = fi.m_import_table.m_dlls[0];
-	wchar_t const* const name = find_file_name(main_file_path.c_str(), static_cast<int>(main_file_path.size()));
-	int const name_len = static_cast<int>(main_file_path.c_str() + main_file_path.size() - name);
-	assert(is_ascii(name, name_len));
-	mo.m_tmpn.resize(name_len);
-	std::transform(name, name + name_len, begin(mo.m_tmpn), [](wchar_t const& e) -> char { return static_cast<char>(e); });
-	only_dependency.m_dll_name = mo.m_mm.m_strs.add_string(mo.m_tmpn.c_str(), name_len, mo.m_mm.m_alc);
-	prcsr.m_queue.push(&fi);
+	int const n = static_cast<int>(file_paths.size());
+	my_vector_resize(fi.m_sub_file_infos, mo.m_mm.m_alc, n);
+	my_vector_resize(fi.m_import_table.m_dlls, mo.m_mm.m_alc, n);
+	for(int i = 0; i != n; ++i)
+	{
+		int const len = static_cast<int>(file_paths[i].size());
+		fi.m_sub_file_infos[i].m_file_path = mo.m_mm.m_wstrs.add_string(file_paths[i].c_str(), len, mo.m_mm.m_alc);
+		my_vector_resize(fi.m_sub_file_infos[i].m_sub_file_infos, mo.m_mm.m_alc, 1);
+		my_vector_resize(fi.m_sub_file_infos[i].m_import_table.m_dlls, mo.m_mm.m_alc, 1);
+		wchar_t const* const name = find_file_name(file_paths[i].c_str(), len);
+		int const name_len = static_cast<int>(file_paths[i].c_str() + len - name);
+		assert(is_ascii(name, name_len));
+		mo.m_tmpn.resize(name_len);
+		std::transform(name, name + name_len, begin(mo.m_tmpn), [](wchar_t const& e) -> char { return static_cast<char>(e); });
+		fi.m_sub_file_infos[i].m_import_table.m_dlls[0].m_dll_name = mo.m_mm.m_strs.add_string(mo.m_tmpn.c_str(), name_len, mo.m_mm.m_alc);
+		prcsr.m_queue.push(&fi.m_sub_file_infos[i]);
+	}
 	process_r(prcsr);
 	return mo;
 }
@@ -53,7 +59,8 @@ void process_r(processor_impl& prcsr)
 	{
 		file_info& fi = *prcsr.m_queue.front();
 		prcsr.m_queue.pop();
-		for(int i = 0; i != static_cast<int>(fi.m_import_table.m_dlls.size()); ++i)
+		int const n = static_cast<int>(fi.m_import_table.m_dlls.size());
+		for(int i = 0; i != n; ++i)
 		{
 			file_info& sub_fi = fi.m_sub_file_infos[i];
 			string const* const& sub_name = fi.m_import_table.m_dlls[i].m_dll_name;
@@ -64,7 +71,7 @@ void process_r(processor_impl& prcsr)
 			}
 			else
 			{
-				process_e(prcsr, sub_fi, sub_name);
+				process_e(prcsr, fi, sub_fi, sub_name);
 				prcsr.m_map[sub_name] = &sub_fi;
 				my_vector_resize(sub_fi.m_sub_file_infos, prcsr.m_mo->m_mm.m_alc, static_cast<int>(sub_fi.m_import_table.m_dlls.size()));
 				prcsr.m_queue.push(&sub_fi);
@@ -74,34 +81,34 @@ void process_r(processor_impl& prcsr)
 	pair_imports_with_exports(prcsr);
 }
 
-void process_e(processor_impl& prcsr, file_info& fi, string const* const& dll_name)
+void process_e(processor_impl& prcsr, file_info& fi, file_info& sub_fi, string const* const& dll_name)
 {
 	searcher sch;
 	sch.m_mo = prcsr.m_mo;
-	sch.m_main_file_path = prcsr.m_main_file_path;
+	sch.m_main_file_path = fi.m_file_path;
 	search(sch, dll_name);
 	if(sch.m_mo->m_tmpw.empty())
 	{
-		fi.m_file_path = get_not_found_string();
+		sub_fi.m_file_path = get_not_found_string();
 		return;
 	}
 	wstring const* const wstr = prcsr.m_file_name->get_correct_file_name(sch.m_mo->m_tmpw.c_str(), static_cast<int>(sch.m_mo->m_tmpw.size()), prcsr.m_mo->m_mm.m_wstrs, prcsr.m_mo->m_mm.m_alc);
 	if(wstr)
 	{
-		fi.m_file_path = wstr;
+		sub_fi.m_file_path = wstr;
 	}
 	else
 	{
-		fi.m_file_path = prcsr.m_mo->m_mm.m_wstrs.add_string(sch.m_mo->m_tmpw.c_str(), static_cast<int>(sch.m_mo->m_tmpw.size()), prcsr.m_mo->m_mm.m_alc);
+		sub_fi.m_file_path = prcsr.m_mo->m_mm.m_wstrs.add_string(sch.m_mo->m_tmpw.c_str(), static_cast<int>(sch.m_mo->m_tmpw.size()), prcsr.m_mo->m_mm.m_alc);
 	}
 
-	memory_mapped_file const mmf = memory_mapped_file(fi.m_file_path->m_str);
+	memory_mapped_file const mmf = memory_mapped_file(sub_fi.m_file_path->m_str);
 	pe_header_info const hi = pe_process_header(mmf.begin(), mmf.size());
-	fi.m_is_32_bit = hi.m_is_pe32;
-	fi.m_import_table = pe_process_import_table(mmf.begin(), mmf.size(), hi, prcsr.m_mo->m_mm);
-	fi.m_export_table = pe_process_export_table(mmf.begin(), mmf.size(), hi, prcsr.m_mo->m_mm);
-	fi.m_resources_table = pe_process_resource_table(mmf.begin(), mmf.size(), hi, prcsr.m_mo->m_mm);
-	fi.m_manifest_data = process_manifest(prcsr, fi);
+	sub_fi.m_is_32_bit = hi.m_is_pe32;
+	sub_fi.m_import_table = pe_process_import_table(mmf.begin(), mmf.size(), hi, prcsr.m_mo->m_mm);
+	sub_fi.m_export_table = pe_process_export_table(mmf.begin(), mmf.size(), hi, prcsr.m_mo->m_mm);
+	sub_fi.m_resources_table = pe_process_resource_table(mmf.begin(), mmf.size(), hi, prcsr.m_mo->m_mm);
+	sub_fi.m_manifest_data = process_manifest(prcsr, sub_fi);
 }
 
 manifest_data process_manifest(processor_impl& prcsr, file_info const& fi)
@@ -144,7 +151,7 @@ std::pair<char const*, int> find_manifest(file_info const& fi)
 
 void pair_imports_with_exports(processor_impl& prcsr)
 {
-	assert(prcsr.m_mo->m_fi.m_sub_file_infos.size() == 1);
+	assert(prcsr.m_mo->m_fi.m_sub_file_infos.size() >= 1);
 	pair_imports_with_exports_r(prcsr.m_mo->m_fi, prcsr);
 }
 

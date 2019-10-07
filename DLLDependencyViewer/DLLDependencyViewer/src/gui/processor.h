@@ -40,4 +40,4 @@ struct main_type
 inline void swap(main_type& a, main_type& b) noexcept { a.swap(b); }
 
 wstring const* get_not_found_string();
-main_type process(std::wstring const& main_file_path);
+main_type process(std::vector<std::wstring> const& file_paths);

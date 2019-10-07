@@ -15,6 +15,7 @@
 #include <queue>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "../nogui/my_windows.h"
 
@@ -82,7 +83,7 @@ private:
 	void on_toolbar_open();
 	void on_toolbar_full_paths();
 	void open();
-	void open_file(wchar_t const* const file_path);
+	void open_files(std::vector<std::wstring> const& file_paths);
 	void refresh(main_type&& mo);
 	void full_paths();
 	void refresh();

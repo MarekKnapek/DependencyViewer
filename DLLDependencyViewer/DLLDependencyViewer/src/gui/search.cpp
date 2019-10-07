@@ -34,7 +34,7 @@ void search(searcher& sch, string const* const& dll_name)
 	// TODO: Well known DLLs.
 
 	// The directory from which the application loaded.
-	tmpp = *sch.m_main_file_path;
+	tmpp.assign(sch.m_main_file_path->m_str, sch.m_main_file_path->m_str + sch.m_main_file_path->m_len);
 	tmpp.replace_filename(tmpw);
 	if(std::filesystem::exists(tmpp))
 	{

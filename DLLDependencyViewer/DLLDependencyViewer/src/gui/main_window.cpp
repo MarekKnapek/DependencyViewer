@@ -75,19 +75,6 @@ static constexpr ACCEL const s_accel_table[] =
 static int g_ordinal_column_max_width = 0;
 
 
-struct drop_deleter
-{
-	void operator()(void* const& obj) const;
-};
-using smart_drop = std::unique_ptr<void, drop_deleter>;
-
-
-void drop_deleter::operator()(void* const& obj) const
-{
-	DragFinish(reinterpret_cast<HDROP>(obj));
-}
-
-
 void main_window::register_class()
 {
 	WNDCLASSEXW wc;
@@ -400,22 +387,31 @@ LRESULT main_window::on_wm_dropfiles(WPARAM wparam, LPARAM lparam)
 	static_assert(sizeof(WPARAM) == sizeof(HDROP), "");
 	static_assert(sizeof(HDROP) == sizeof(void*), "");
 	HDROP const hdrop = reinterpret_cast<HDROP>(wparam);
-	smart_drop sp_drop(hdrop);
+	auto const fn_finish_drop = mk::make_scope_exit([&](){ DragFinish(hdrop); });
 	UINT const queried_1 = DragQueryFileW(hdrop, 0xFFFFFFFF, nullptr, 0);
-	if(queried_1 != 1)
+	assert(queried_1 != 0);
+	int const n = static_cast<int>(queried_1);
+	auto file_names = std::make_unique<std::vector<std::wstring>>();
+	file_names->resize(n);
+	for(int i = 0; i != n; ++i)
 	{
-		return DefWindowProcW(m_hwnd, WM_DROPFILES, wparam, lparam);
+		UINT const queried_2 = DragQueryFileW(hdrop, i, nullptr, 0);
+		assert(queried_2 != 0);
+		int const size = static_cast<int>(queried_2);
+		auto& file_name = (*file_names)[i];
+		file_name.resize(size);
+		UINT const queried_3 = DragQueryFileW(hdrop, i, const_cast<wchar_t*>(file_name.data()), size + 1); // TODO: Remove the cast.
+		assert(queried_3 == queried_2);
 	}
-	auto buff = std::make_unique<std::array<wchar_t, 32 * 1024>>();
-	UINT const queried_2 = DragQueryFileW(hdrop, 0, buff->data(), static_cast<int>(buff->size()));
 	idle_task_t const drop_task = [](main_window& self, idle_task_param_t const param)
 	{
 		assert(param);
-		std::unique_ptr<std::array<wchar_t, 32 * 1024>> const buff(reinterpret_cast<std::array<wchar_t, 32 * 1024>*>(param));
-		self.open_file(buff->data());
+		auto const typed_param = static_cast<std::vector<std::wstring>*>(param);
+		std::unique_ptr<std::vector<std::wstring>> const file_names(typed_param);
+		self.open_files(*file_names);
 	};
-	idle_task_param_t const drop_task_param = buff.release();
-	add_idle_task(drop_task, drop_task_param);
+	idle_task_param_t const drop_param = file_names.release();
+	add_idle_task(drop_task, drop_param);
 	return DefWindowProcW(m_hwnd, WM_DROPFILES, wparam, lparam);
 }
 
@@ -677,7 +673,7 @@ void main_window::open()
 	ofn.nMaxFileTitle = 0;
 	ofn.lpstrInitialDir = nullptr;
 	ofn.lpstrTitle = nullptr;
-	ofn.Flags = OFN_ENABLESIZING | OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY | OFN_PATHMUSTEXIST;
+	ofn.Flags = OFN_HIDEREADONLY | OFN_ALLOWMULTISELECT | OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_EXPLORER | OFN_ENABLESIZING;
 	ofn.nFileOffset = 0;
 	ofn.nFileExtension = 0;
 	ofn.lpstrDefExt = nullptr;
@@ -694,15 +690,41 @@ void main_window::open()
 		return;
 	}
 
-	open_file(buff->data());
+	std::vector<std::wstring> file_paths;
+	auto it = std::find(cbegin(*buff), cend(*buff), L'\0');
+	auto const end = cend(*buff);
+	assert(it != end);
+	if(*(it + 1) == L'\0')
+	{
+		file_paths.resize(1);
+		wchar_t const* const b = buff->data();
+		wchar_t const* const e = &*it;
+		file_paths[0].assign(b, e);
+	}
+	else
+	{
+		wchar_t const* const folder_b = buff->data();
+		wchar_t const* const folder_e = &*it;
+		auto next = it;
+		it = std::find(it + 1, end, L'\0');
+		do
+		{
+			wchar_t const* const b = &*(next + 1);
+			wchar_t const* const e = &*it;
+			file_paths.push_back(std::wstring{folder_b, folder_e} + std::wstring{L"\\"} + std::wstring{b, e});
+			next = it;
+			it = std::find(it + 1, end, L'\0');
+		}while(it != next + 1);
+	}
+	open_files(file_paths);
 }
 
-void main_window::open_file(wchar_t const* const file_path)
+void main_window::open_files(std::vector<std::wstring> const& file_paths)
 {
 	main_type mo;
 	try
 	{
-		mo = process(file_path);
+		mo = process(file_paths);
 	}
 	catch(wchar_t const* const ex)
 	{
@@ -735,11 +757,18 @@ void main_window::refresh()
 	{
 		return;
 	}
-	assert(m_mo.m_fi.m_sub_file_infos.size() == 1);
-	wstring const* const& name = m_mo.m_fi.m_sub_file_infos[0].m_file_path;
-	assert(name->m_str);
-	assert(name->m_len > 0);
-	open_file(name->m_str);
+	int const n = static_cast<int>(m_mo.m_fi.m_sub_file_infos.size());
+	assert(n >= 1);
+	std::vector<std::wstring> file_paths;
+	file_paths.resize(n);
+	for(int i = 0; i != n; ++i)
+	{
+		wstring const* const& name = m_mo.m_fi.m_sub_file_infos[i].m_file_path;
+		assert(name->m_str);
+		assert(name->m_len > 0);
+		file_paths[i].assign(name->m_str, name->m_str + name->m_len);
+	}
+	open_files(file_paths);
 }
 
 int main_window::get_ordinal_column_max_width()
@@ -858,11 +887,17 @@ void main_window::process_command_line()
 	int argc;
 	wchar_t** const argv = CommandLineToArgvW(cmd_line, &argc);
 	smart_local_free const sp_argv(reinterpret_cast<void*>(argv));
-	if(argc != 2)
+	if(argc == 1)
 	{
 		return;
 	}
-	open_file(argv[1]);
+	std::vector<std::wstring> file_paths;
+	file_paths.resize(argc - 1);
+	for(int i = 1; i != argc; ++i)
+	{
+		file_paths[i - 1].assign(argv[i]);
+	}
+	open_files(file_paths);
 }
 
 void dbg_task_callback_1(get_symbols_from_addresses_task_t* const task)
@@ -955,8 +990,22 @@ void main_window::process_finished_dbg_task(get_symbols_from_addresses_task_t* c
 			task->m_export_entries[i]->m_debug_name = &s_export_name_debug_na2;
 		}
 	}
-	m_import_view.repaint();
-	m_export_view.repaint();
+	HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree_view.get_hwnd(), TVM_GETNEXTITEM, TVGN_CARET, 0));
+	if(selected)
+	{
+		TVITEMW ti;
+		ti.mask = TVIF_PARAM;
+		ti.hItem = selected;
+		LRESULT const got = SendMessageW(m_tree_view.get_hwnd(), TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
+		assert(got == TRUE);
+		file_info const& fi_tmp = *reinterpret_cast<file_info*>(ti.lParam);
+		file_info const& fi = fi_tmp.m_orig_instance ? *fi_tmp.m_orig_instance : fi_tmp;
+		if(fi.m_file_path->m_len == static_cast<int>(task->m_module_path.size()) && std::wcscmp(fi.m_file_path->m_str, task->m_module_path.c_str()) == 0)
+		{
+			m_import_view.repaint();
+			m_export_view.repaint();
+		}
+	}
 }
 
 ATOM main_window::g_class = 0;
