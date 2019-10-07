@@ -10,9 +10,6 @@
 #include "../nogui/my_windows.h"
 
 
-namespace fs = std::experimental::filesystem;
-
-
 void search(searcher& sch, string const* const& dll_name)
 {
 	// Standard Search Order for Desktop Applications
@@ -25,7 +22,7 @@ void search(searcher& sch, string const* const& dll_name)
 	// -- The directories that are listed in the PATH environment variable. Note that this does not include the per-application path specified by the App Paths registry key. The App Paths key is not used when computing the DLL search path.
 
 	std::wstring& tmpw = sch.m_mo->m_tmpw;
-	fs::path& tmpp = sch.m_mo->m_tmpp;
+	std::filesystem::path& tmpp = sch.m_mo->m_tmpp;
 
 	auto const buff = std::make_unique<std::array<wchar_t, 32 * 1024>>();
 	tmpw.resize(dll_name->m_len);
@@ -39,7 +36,7 @@ void search(searcher& sch, string const* const& dll_name)
 	// The directory from which the application loaded.
 	tmpp = *sch.m_main_file_path;
 	tmpp.replace_filename(tmpw);
-	if(fs::exists(tmpp))
+	if(std::filesystem::exists(tmpp))
 	{
 		tmpw = tmpp.wstring();
 		return;
@@ -49,7 +46,7 @@ void search(searcher& sch, string const* const& dll_name)
 	UINT const got_sys = GetSystemDirectoryW(buff->data(), static_cast<UINT>(buff->size()));
 	tmpp.assign(buff->data(), buff->data() + got_sys);
 	tmpp.append(tmpw);
-	if(fs::exists(tmpp))
+	if(std::filesystem::exists(tmpp))
 	{
 		tmpw = tmpp.wstring();
 		return;
@@ -63,7 +60,7 @@ void search(searcher& sch, string const* const& dll_name)
 	assert(got_win < buff->size());
 	tmpp.assign(buff->data(), buff->data() + got_win);
 	tmpp.append(tmpw);
-	if(fs::exists(tmpp))
+	if(std::filesystem::exists(tmpp))
 	{
 		tmpw = tmpp.wstring();
 		return;
@@ -84,7 +81,7 @@ void search(searcher& sch, string const* const& dll_name)
 			{
 				tmpp.assign(cbegin(path_env) + last, cend(path_env));
 				tmpp.append(tmpw);
-				if(fs::exists(tmpp))
+				if(std::filesystem::exists(tmpp))
 				{
 					tmpw = tmpp.wstring();
 					return;
@@ -95,7 +92,7 @@ void search(searcher& sch, string const* const& dll_name)
 			{
 				tmpp.assign(cbegin(path_env) + last, cbegin(path_env) + idx);
 				tmpp.append(tmpw);
-				if(fs::exists(tmpp))
+				if(std::filesystem::exists(tmpp))
 				{
 					tmpw = tmpp.wstring();
 					return;

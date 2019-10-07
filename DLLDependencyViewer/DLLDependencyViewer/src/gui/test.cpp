@@ -20,9 +20,6 @@
 static constexpr wchar_t const s_cmd_arg_test[] = L"/test";
 
 
-namespace fs = std::experimental::filesystem;
-
-
 void test()
 {
 	wchar_t const* const cmd_line = GetCommandLineW();
@@ -37,11 +34,11 @@ void test()
 	{
 		return;
 	}
-	fs::recursive_directory_iterator dir_it(argv[2]);
+	std::filesystem::recursive_directory_iterator dir_it(argv[2]);
 	for(auto const& e : dir_it)
 	{
 		auto const& p = e.path();
-		if(fs::is_directory(p))
+		if(std::filesystem::is_directory(p))
 		{
 			continue;
 		}

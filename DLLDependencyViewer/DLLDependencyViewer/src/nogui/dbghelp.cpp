@@ -85,7 +85,7 @@ void dbghelp::load_dlls()
 		assert(size >= 2 * sizeof(wchar_t));
 		assert(size % sizeof(wchar_t) == 0);
 		assert((*buff)[(size / sizeof(wchar_t)) - 1] == L'\0');
-		auto p = std::experimental::filesystem::path(buff->data(), buff->data() + (size / sizeof(wchar_t)) - 1).append(s_debuggers_sub_directory).append(s_dbghelp_file_name);
+		auto p = std::filesystem::path(buff->data(), buff->data() + (size / sizeof(wchar_t)) - 1).append(s_debuggers_sub_directory).append(s_dbghelp_file_name);
 		m_dbghelp_dll = load_library(p.c_str());
 		if(!m_dbghelp_dll)
 		{

@@ -21,7 +21,6 @@
 #include "nogui/dbg_provider.cpp"
 #include "nogui/dbghelp.cpp"
 #include "nogui/file_name.cpp"
-#include "nogui/file_system.cpp"
 #include "nogui/int_to_string.cpp"
 #include "nogui/manifest_parser.cpp"
 #include "nogui/manifest_parser_impl.cpp"

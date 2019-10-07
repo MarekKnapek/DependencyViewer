@@ -153,9 +153,6 @@
     <ClInclude Include="src\nogui\allocator.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
-    <ClInclude Include="src\nogui\file_system.h">
-      <Filter>src\nogui</Filter>
-    </ClInclude>
     <ClInclude Include="src\nogui\memory_manager.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
@@ -309,9 +306,6 @@
       <Filter>src\nogui</Filter>
     </ClCompile>
     <ClCompile Include="src\nogui\allocator.cpp">
-      <Filter>src\nogui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\nogui\file_system.cpp">
       <Filter>src\nogui</Filter>
     </ClCompile>
     <ClCompile Include="src\nogui\memory_manager.cpp">

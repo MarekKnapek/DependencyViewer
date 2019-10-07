@@ -1,9 +1,8 @@
 #include "activation_context.h"
 
-#include "file_system.h"
-
 #include <array>
 #include <cstdint>
+#include <filesystem>
 #include <vector>
 
 #include "my_windows.h"
@@ -46,7 +45,7 @@ const manifests_t& activation_context::get_system_default_manifests()
 			continue;
 		}
 		wchar_t const* const path = reinterpret_cast<wchar_t const*>(reinterpret_cast<char const*>(assembly_information_section) + assembly_info->ManifestPathOffset);
-		if(!file_exists(path))
+		if(!std::filesystem::exists(path))
 		{
 			continue;
 		}

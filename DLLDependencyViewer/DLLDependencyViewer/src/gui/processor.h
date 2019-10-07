@@ -14,9 +14,6 @@ struct file_info;
 typedef my_vector<file_info> file_infos;
 
 
-namespace fs = std::experimental::filesystem;
-
-
 struct file_info
 {
 	void* m_tree_item = nullptr;
@@ -37,7 +34,7 @@ struct main_type
 	file_info m_fi;
 	std::string m_tmpn;
 	std::wstring m_tmpw;
-	fs::path m_tmpp;
+	std::filesystem::path m_tmpp;
 };
 
 wstring const* get_not_found_string();
