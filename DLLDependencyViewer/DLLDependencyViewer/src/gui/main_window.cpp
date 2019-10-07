@@ -656,7 +656,7 @@ void main_window::on_toolbar_full_paths()
 
 void main_window::open()
 {
-	auto const buff = std::make_unique<std::array<wchar_t, 32 * 1024>>();
+	auto const buff = std::make_unique<std::array<wchar_t, 1 * 1024 * 1024>>();
 	(*buff)[0] = L'\0';
 
 	OPENFILENAMEW ofn;
