@@ -249,10 +249,6 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 	std::uint32_t const file_size = static_cast<std::uint32_t>(fs);
 	pe_export_table_info ret;
 
-	data_directory const* const dta_dir_table = reinterpret_cast<data_directory const*>(file_data + hi.m_data_directory_start);
-	std::uint32_t const export_directory_rva = dta_dir_table[static_cast<int>(data_directory_type::export_table)].m_rva;
-	std::uint32_t const export_directory_size = dta_dir_table[static_cast<int>(data_directory_type::export_table)].m_size;
-
 	pe_export_directory_table edt;
 	bool const edt_parsed = pe_parse_export_directory_table(fd, fs, edt);
 	VERIFY(edt_parsed);
@@ -268,6 +264,10 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 	{
 		return ret;
 	}
+
+	data_directory const* const dta_dir_table = reinterpret_cast<data_directory const*>(file_data + hi.m_data_directory_start);
+	std::uint32_t const export_directory_rva = dta_dir_table[static_cast<int>(data_directory_type::export_table)].m_rva;
+	std::uint32_t const export_directory_size = dta_dir_table[static_cast<int>(data_directory_type::export_table)].m_size;
 
 	// 64k export names should be enough for everybody.
 	VERIFY(edt.m_table->m_names_count <= 64 * 1024);
