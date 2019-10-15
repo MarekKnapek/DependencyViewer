@@ -81,11 +81,11 @@ struct pe_delay_load_import_address_table
 
 
 bool pe_parse_import_table(void const* const& file_data, int const& file_size, pe_import_directory_table& idt);
-bool pe_parse_import_dll_name(void const* const& file_data, int const& file_size, pe_import_directory_entry const& ide, pe_string& str);
+bool pe_parse_import_dll_name(void const* const& file_data, int const& file_size, pe_import_directory_entry const& ide, pe_string& dll_name_out);
 bool pe_parse_import_address_table(void const* const& file_data, int const& file_size, pe_import_directory_entry const& ide, pe_import_address_table& iat);
 bool pe_parse_import_address(void const* const& file_data, int const& file_size, pe_import_address_table const& iat_in, int const& idx, bool& is_ordinal_out, std::uint16_t& ordinal_out, pe_hint_name& hint_name_out);
 
 bool pe_parse_delay_import_table(void const* const& file_data, int const& file_size, pe_delay_import_table& dlit);
-bool pe_parse_delay_import_dll_name(void const* const& file_data, int const& file_size, pe_delay_load_descriptor const& dld, pe_string& str);
+bool pe_parse_delay_import_dll_name(void const* const& file_data, int const& file_size, pe_delay_load_descriptor const& dld, pe_string& dll_name_out);
 bool pe_parse_delay_import_address_table(void const* const& file_data, int const& file_size, pe_delay_load_descriptor const& dld, pe_delay_load_import_address_table& dliat_out);
 bool pe_parse_delay_import_address(void const* const& file_data, int const& file_size, pe_delay_load_descriptor const& dld, pe_delay_load_import_address_table const& dliat_in, int const& idx, bool& is_ordinal_out, std::uint16_t& ordinal_out, pe_hint_name& hint_name_out);

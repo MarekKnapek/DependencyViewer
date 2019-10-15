@@ -63,22 +63,15 @@ bool pe_parse_import_table(void const* const& fd, int const& file_size, pe_impor
 	return true;
 }
 
-bool pe_parse_import_dll_name(void const* const& fd, int const& file_size, pe_import_directory_entry const& ide, pe_string& str)
+bool pe_parse_import_dll_name(void const* const& fd, int const& file_size, pe_import_directory_entry const& ide, pe_string& dll_name_out)
 {
 	char const* const file_data = static_cast<char const*>(fd);
 	WARN_M_R(ide.m_name != 0, L"Import directory entry has no DLL name.", false);
-	pe_section_header const* sct;
-	std::uint32_t const dll_name_raw = pe_find_object_in_raw(file_data, file_size, ide.m_name, 2, sct);
-	WARN_M_R(dll_name_raw != 0, L"Import DLL name not found in any section.", false);
-	std::uint32_t const dll_name_len_max = std::min(256u, sct->m_raw_ptr + sct->m_raw_size - dll_name_raw);
-	char const* const dll_name = reinterpret_cast<char const*>(file_data + dll_name_raw);
-	char const* const dll_name_end_max = dll_name + dll_name_len_max;
-	auto const it = std::find(dll_name, dll_name_end_max, '\0');
-	WARN_M_R(it != dll_name && it != dll_name_end_max, L"Could not find import DLL name length.", false);
-	int const dll_name_len = static_cast<int>(it - dll_name);
-	WARN_M_R(pe_is_ascii(dll_name, dll_name_len), L"Import DLL name shall be ASCII.", false);
-	str.m_str = dll_name;
-	str.m_len = dll_name_len;
+	pe_string dll_name;
+	bool const dll_name_parsed = pe_parse_string(file_data, file_size, ide.m_name, dll_name);
+	WARN_M_R(dll_name_parsed, L"Could not find DLL name.", false);
+	WARN_M_R(dll_name.m_len <= 255, L"DLL name is too long.", false);
+	dll_name_out = dll_name;
 	return true;
 }
 
@@ -231,7 +224,7 @@ bool pe_parse_delay_import_table(void const* const& fd, int const& file_size, pe
 	return true;
 }
 
-bool pe_parse_delay_import_dll_name(void const* const& fd, int const& file_size, pe_delay_load_descriptor const& dld, pe_string& str)
+bool pe_parse_delay_import_dll_name(void const* const& fd, int const& file_size, pe_delay_load_descriptor const& dld, pe_string& dll_name_out)
 {
 	char const* const file_data = static_cast<char const*>(fd);
 	pe_dos_header const& dos_hdr = *reinterpret_cast<pe_dos_header const*>(file_data + 0);
@@ -241,18 +234,11 @@ bool pe_parse_delay_import_dll_name(void const* const& fd, int const& file_size,
 	bool const delay_ver_2 = (dld.m_attributes & 1u) != 0;
 	WARN_M_R(is_32 ? true : (delay_ver_2 || (coff_hdr.m_64.m_windows.m_image_base < 0x00000000ffffffffull)), L"Image base is damn too high.", false);
 	std::uint32_t const delay_dll_name_rva = dld.m_dll_name_rva - (delay_ver_2 ? 0u : (is_32 ? coff_hdr.m_32.m_windows.m_image_base : static_cast<std::uint32_t>(coff_hdr.m_64.m_windows.m_image_base)));
-	pe_section_header const* sct;
-	std::uint32_t const dll_name_raw = pe_find_object_in_raw(file_data, file_size, delay_dll_name_rva, 2, sct);
-	WARN_M_R(dll_name_raw != 0, L"Delay import DLL name not found in any section.", false);
-	std::uint32_t const dll_name_len_max = std::min(256u, sct->m_raw_ptr + sct->m_raw_size - dll_name_raw);
-	char const* const dll_name = reinterpret_cast<char const*>(file_data + dll_name_raw);
-	char const* const dll_name_end_max = dll_name + dll_name_len_max;
-	auto const it = std::find(dll_name, dll_name_end_max, '\0');
-	WARN_M_R(it != dll_name && it != dll_name_end_max, L"Could not find delay import DLL name length.", false);
-	int const dll_name_len = static_cast<int>(it - dll_name);
-	WARN_M_R(pe_is_ascii(dll_name, dll_name_len), L"Delay import DLL name shall be ASCII.", false);
-	str.m_str = dll_name;
-	str.m_len = dll_name_len;
+	pe_string dll_name;
+	bool const dll_name_parsed = pe_parse_string(file_data, file_size, delay_dll_name_rva, dll_name);
+	WARN_M_R(dll_name_parsed, L"Could not find delay DLL name.", false);
+	WARN_M_R(dll_name.m_len <= 255, L"Delay DLL name is too long.", false);
+	dll_name_out = dll_name;
 	return true;
 }
 
