@@ -107,7 +107,6 @@ bool pe_parse_export_address_name(void const* const fd, int const file_size, pe_
 	char const* const file_data = static_cast<char const*>(fd);
 	if(enpt.m_count == 0)
 	{
-		hint_out = 0xffff;
 		ean_out.m_str = nullptr;
 		ean_out.m_len = 0;
 		return true;
@@ -115,7 +114,6 @@ bool pe_parse_export_address_name(void const* const fd, int const file_size, pe_
 	auto const it = std::find(eot.m_table, eot.m_table + eot.m_count, pe_export_ordinal_entry{idx});
 	if(it == eot.m_table + eot.m_count)
 	{
-		hint_out = 0xffff;
 		ean_out.m_str = nullptr;
 		ean_out.m_len = 0;
 		return true;
