@@ -48,7 +48,7 @@ struct pe_export_address_table
 
 struct pe_export_name_pointer_entry
 {
-	std::uint32_t m_ptr_to_export_name_table;
+	std::uint32_t m_export_address_name_rva;
 };
 static_assert(sizeof(pe_export_name_pointer_entry) == 4, "");
 static_assert(sizeof(pe_export_name_pointer_entry) == 0x4, "");
@@ -92,3 +92,4 @@ struct pe_export_name_table
 bool pe_parse_export_directory_table(void const* const file_data, int const file_size, pe_export_directory_table& edt_out);
 bool pe_parse_export_name_pointer_table(void const* const file_data, int const file_size, pe_export_directory_table const& edt, pe_export_name_pointer_table& enpt_out);
 bool pe_parse_export_ordinal_table(void const* const file_data, int const file_size, pe_export_directory_table const& edt, pe_export_ordinal_table& eot_out);
+bool pe_parse_export_address_table(void const* const file_data, int const file_size, pe_export_directory_table const& edt, pe_export_address_table& eat_out);
