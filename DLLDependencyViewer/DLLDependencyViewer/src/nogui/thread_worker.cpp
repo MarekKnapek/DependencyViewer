@@ -17,20 +17,22 @@ thread_worker::thread_worker():
 
 thread_worker::~thread_worker()
 {
-	add_task([](thread_worker_param_t const param)
+	thread_worker_function_t const request_stop_fn = [](thread_worker_param_t const param)
 	{
 		assert(param);
 		thread_worker& self = *reinterpret_cast<thread_worker*>(param);
 		self.m_thread_stop_requested = true;
-	}, this);
+	};
+	thread_worker_param_t const param = this;
+	add_task(request_stop_fn, param);
 	m_thread.join();
 }
 
-void thread_worker::add_task(thread_worker_task_t const task, thread_worker_param_t const param)
+void thread_worker::add_task(thread_worker_function_t const func, thread_worker_param_t const param)
 {
 	{
 		std::lock_guard<std::mutex> lck(m_queue_1_mutex);
-		m_queue_1.emplace_back(task, param);
+		m_queue_1.push_back(thread_worker_task{func, param});
 	}
 	m_condition_variable.notify_one();
 }
@@ -48,11 +50,9 @@ void thread_worker::thread_func()
 			using std::swap;
 			swap(m_queue_1, m_queue_2);
 		}
-		for(auto const& e : m_queue_2)
+		for(auto const& task : m_queue_2)
 		{
-			auto const& func = e.first;
-			auto const& param = e.second;
-			(*func)(param);
+			task.m_func(task.m_param);
 		}
 		m_queue_2.clear();
 	}
