@@ -27,7 +27,7 @@ struct pe_export_directory_table
 };
 
 
-struct pe_export_address_entry_2
+struct pe_export_address_entry
 {
 	union export_or_forwarder_rva
 	{
@@ -36,12 +36,12 @@ struct pe_export_address_entry_2
 	};
 	export_or_forwarder_rva m_export_or_forwarder_rva;
 };
-static_assert(sizeof(pe_export_address_entry_2) == 4, "");
-static_assert(sizeof(pe_export_address_entry_2) == 0x4, "");
+static_assert(sizeof(pe_export_address_entry) == 4, "");
+static_assert(sizeof(pe_export_address_entry) == 0x4, "");
 
 struct pe_export_address_table
 {
-	pe_export_address_entry_2 const* m_table;
+	pe_export_address_entry const* m_table;
 	int m_count;
 };
 
