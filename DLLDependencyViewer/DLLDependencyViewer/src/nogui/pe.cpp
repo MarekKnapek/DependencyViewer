@@ -265,23 +265,14 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 	std::uint32_t const export_directory_rva = dta_dir_table[static_cast<int>(data_directory_type::export_table)].m_rva;
 	std::uint32_t const export_directory_size = dta_dir_table[static_cast<int>(data_directory_type::export_table)].m_size;
 
-	// 64k export names should be enough for everybody.
-	VERIFY(edt.m_table->m_names_count <= 64 * 1024);
-	std::uint32_t const* export_name_pointer_table = nullptr;
-	std::uint16_t const* export_ordinal_table = nullptr;
-	if(edt.m_table->m_export_name_table_rva != 0)
-	{
-		auto const export_name_pointer_table_sect_off = convert_rva_to_disk_ptr(edt.m_table->m_export_name_table_rva, hi);
-		section_header const& export_name_pointer_table_sect = *export_name_pointer_table_sect_off.first;
-		std::uint32_t const& export_name_pointer_table_disk_offset = export_name_pointer_table_sect_off.second;
-		VERIFY(export_name_pointer_table_sect.m_raw_ptr + export_name_pointer_table_sect.m_raw_size - export_name_pointer_table_disk_offset >= edt.m_table->m_names_count * sizeof(std::uint32_t));
-		export_name_pointer_table = reinterpret_cast<std::uint32_t const*>(file_data + export_name_pointer_table_disk_offset);
-		auto const export_ordinal_table_sect_off = convert_rva_to_disk_ptr(edt.m_table->m_ordinal_table_rva, hi);
-		section_header const& export_ordinal_table_sect = *export_ordinal_table_sect_off.first;
-		std::uint32_t const& export_ordinal_table_disk_offset = export_ordinal_table_sect_off.second;
-		VERIFY(export_ordinal_table_sect.m_raw_ptr + export_ordinal_table_sect.m_raw_size - export_ordinal_table_disk_offset >= edt.m_table->m_names_count * sizeof(std::uint16_t));
-		export_ordinal_table = reinterpret_cast<std::uint16_t const*>(file_data + export_ordinal_table_disk_offset);
-	}
+	pe_export_name_pointer_table enpt;
+	bool const enpt_parsed = pe_parse_export_name_pointer_table(fd, fs, edt, enpt);
+	VERIFY(enpt_parsed);
+	pe_export_ordinal_table eot;
+	bool const eot_parsed = pe_parse_export_ordinal_table(fd, fs, edt, eot);
+	VERIFY(eot_parsed);
+	VERIFY(enpt.m_count == eot.m_count);
+	VERIFY(enpt.m_count == 0 || (enpt.m_table && eot.m_table));
 
 	// 64k exports should be enough for everybody.
 	VERIFY(edt.m_table->m_export_address_count <= 64 * 1024);
@@ -309,13 +300,13 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 		std::uint16_t hint = 0;
 		char const* export_address_name = nullptr;
 		std::uint32_t export_address_name_len = 0;
-		if(export_ordinal_table)
+		if(eot.m_count != 0)
 		{
-			auto const it = std::find(export_ordinal_table, export_ordinal_table + edt.m_table->m_names_count, i);
-			if(it != export_ordinal_table + edt.m_table->m_names_count)
+			auto const it = std::find(eot.m_table, eot.m_table + eot.m_count, pe_export_ordinal_entry{i});
+			if(it != eot.m_table + eot.m_count)
 			{
-				hint = static_cast<std::uint16_t>(it - export_ordinal_table);
-				std::uint32_t const export_address_name_rva = export_name_pointer_table[hint];
+				hint = static_cast<std::uint16_t>(it - eot.m_table);
+				std::uint32_t const export_address_name_rva = enpt.m_table[hint].m_ptr_to_export_name_table;
 				auto const export_address_name_sect_off = convert_rva_to_disk_ptr(export_address_name_rva, hi);
 				section_header const& export_address_name_sect = *export_address_name_sect_off.first;
 				std::uint32_t const& export_address_name_disk_offset = export_address_name_sect_off.second;

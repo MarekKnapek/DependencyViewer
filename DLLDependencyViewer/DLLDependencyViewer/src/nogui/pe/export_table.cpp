@@ -7,6 +7,12 @@
 #include "../assert.h"
 
 
+bool operator==(pe_export_ordinal_entry const& a, pe_export_ordinal_entry const& b)
+{
+	return a.m_idx_to_eat == b.m_idx_to_eat;
+}
+
+
 bool pe_parse_export_directory_table(void const* const fd, int const file_size, pe_export_directory_table& edt_out)
 {
 	char const* const file_data = static_cast<char const*>(fd);
@@ -34,6 +40,43 @@ bool pe_parse_export_directory_table(void const* const fd, int const file_size, 
 	WARN_M_R(edt->m_export_address_count <= 0xFFFF, L"Too many addresses to export.", false);
 	WARN_M_R(edt->m_ordinal_base + edt->m_export_address_count <= 0xFFFF, L"Biggest ordinal is too high.", false);
 	WARN_M_R(edt->m_names_count <= edt->m_export_address_count, L"More names than exported addresses.", false);
+	WARN_M_R(edt->m_names_count == 0 || (edt->m_export_name_table_rva != 0 && edt->m_ordinal_table_rva != 0), L"Export name pointer table and export ordinal table are actually two columns of single table.", false);
 	edt_out.m_table = edt;
+	return true;
+}
+
+bool pe_parse_export_name_pointer_table(void const* const fd, int const file_size, pe_export_directory_table const& edt, pe_export_name_pointer_table& enpt_out)
+{
+	char const* const file_data = static_cast<char const*>(fd);
+	if(edt.m_table->m_export_name_table_rva == 0)
+	{
+		enpt_out.m_table = nullptr;
+		enpt_out.m_count = 0;
+		return true;
+	}
+	pe_section_header const* sct;
+	std::uint32_t const enpt_raw = pe_find_object_in_raw(file_data, file_size, edt.m_table->m_export_name_table_rva, edt.m_table->m_names_count * sizeof(pe_export_name_pointer_entry), sct);
+	WARN_M_R(enpt_raw != 0, L"Export name pointer table not found in any section.", false);
+	pe_export_name_pointer_entry const* enpt = reinterpret_cast<pe_export_name_pointer_entry const*>(file_data + enpt_raw);
+	enpt_out.m_table = enpt;
+	enpt_out.m_count = static_cast<int>(edt.m_table->m_names_count);
+	return true;
+}
+
+bool pe_parse_export_ordinal_table(void const* const fd, int const file_size, pe_export_directory_table const& edt, pe_export_ordinal_table& eot_out)
+{
+	char const* const file_data = static_cast<char const*>(fd);
+	if(edt.m_table->m_ordinal_table_rva == 0)
+	{
+		eot_out.m_table = nullptr;
+		eot_out.m_count = 0;
+		return true;
+	}
+	pe_section_header const* sct;
+	std::uint32_t const eot_raw = pe_find_object_in_raw(file_data, file_size, edt.m_table->m_ordinal_table_rva, edt.m_table->m_names_count * sizeof(pe_export_ordinal_entry), sct);
+	WARN_M_R(eot_raw != 0, L"Export ordinal table not found in any section.", false);
+	pe_export_ordinal_entry const* eot = reinterpret_cast<pe_export_ordinal_entry const*>(file_data + eot_raw);
+	eot_out.m_table = eot;
+	eot_out.m_count = static_cast<int>(edt.m_table->m_names_count);
 	return true;
 }

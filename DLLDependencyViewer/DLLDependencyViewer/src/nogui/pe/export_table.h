@@ -66,6 +66,7 @@ struct pe_export_ordinal_entry
 };
 static_assert(sizeof(pe_export_ordinal_entry) == 2, "");
 static_assert(sizeof(pe_export_ordinal_entry) == 0x2, "");
+bool operator==(pe_export_ordinal_entry const& a, pe_export_ordinal_entry const& b);
 
 struct pe_export_ordinal_table
 {
@@ -89,3 +90,5 @@ struct pe_export_name_table
 
 
 bool pe_parse_export_directory_table(void const* const file_data, int const file_size, pe_export_directory_table& edt_out);
+bool pe_parse_export_name_pointer_table(void const* const file_data, int const file_size, pe_export_directory_table const& edt, pe_export_name_pointer_table& enpt_out);
+bool pe_parse_export_ordinal_table(void const* const file_data, int const file_size, pe_export_directory_table const& edt, pe_export_ordinal_table& eot_out);
