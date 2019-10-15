@@ -256,10 +256,6 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 	{
 		return ret;
 	}
-	VERIFY(edt.m_table->m_ordinal_base <= 0xFFFF);
-	VERIFY(edt.m_table->m_export_address_count <= 0xFFFF);
-	VERIFY(edt.m_table->m_ordinal_base + edt.m_table->m_export_address_count <= 0xFFFF);
-	VERIFY(edt.m_table->m_names_count <= edt.m_table->m_export_address_count);
 	if(edt.m_table->m_export_address_count == 0)
 	{
 		return ret;
