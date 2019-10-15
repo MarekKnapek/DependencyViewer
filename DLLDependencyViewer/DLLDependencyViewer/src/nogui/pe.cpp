@@ -294,28 +294,10 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 			continue;
 		}
 		std::uint16_t const ordinal = i + ordinal_base;
-		std::uint16_t hint = 0;
-		char const* export_address_name = nullptr;
-		std::uint32_t export_address_name_len = 0;
-		if(eot.m_count != 0)
-		{
-			auto const it = std::find(eot.m_table, eot.m_table + eot.m_count, pe_export_ordinal_entry{i});
-			if(it != eot.m_table + eot.m_count)
-			{
-				hint = static_cast<std::uint16_t>(it - eot.m_table);
-				std::uint32_t const export_address_name_rva = enpt.m_table[hint].m_export_address_name_rva;
-				auto const export_address_name_sect_off = convert_rva_to_disk_ptr(export_address_name_rva, hi);
-				section_header const& export_address_name_sect = *export_address_name_sect_off.first;
-				std::uint32_t const& export_address_name_disk_offset = export_address_name_sect_off.second;
-				export_address_name = reinterpret_cast<char const*>(file_data + export_address_name_disk_offset);
-				// 32k export name length should be enough for everybody.
-				std::uint32_t const export_address_name_len_max = std::min<std::uint32_t>(32 * 1024, export_address_name_sect.m_raw_ptr + export_address_name_sect.m_raw_size - export_address_name_disk_offset);
-				auto const export_address_name_end = std::find(export_address_name, export_address_name + export_address_name_len_max, L'\0');
-				VERIFY(export_address_name_end != export_address_name + export_address_name_len_max);
-				export_address_name_len = static_cast<std::uint32_t>(export_address_name_end - export_address_name);
-				VERIFY(export_address_name_len > 0);
-			}
-		}
+		std::uint16_t hint;
+		pe_string ean;
+		bool const ean_parsed = pe_parse_export_address_name(fd, fs, enpt, eot, i, hint, ean);
+		VERIFY(ean_parsed);
 		if(export_rva >= export_directory_rva && export_rva < export_directory_rva + export_directory_size)
 		{
 			// 32k export forwarder name length should be enough for everybody.
@@ -343,9 +325,9 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 			ret.m_export_address_table[j].m_debug_name = nullptr;
 		}
 		ret.m_export_address_table[j].m_is_used = false;
-		if(export_address_name)
+		if(ean.m_str)
 		{
-			string const* const export_name = mm.m_strs.add_string(export_address_name, export_address_name_len, mm.m_alc);
+			string const* const export_name = mm.m_strs.add_string(ean.m_str, ean.m_len, mm.m_alc);
 			ret.m_export_address_table[j].m_hint = hint;
 			ret.m_export_address_table[j].m_name = export_name;
 			VERIFY(ret.m_enpt[hint] == 0xffff);

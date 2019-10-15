@@ -4,6 +4,9 @@
 #include <cstdint>
 
 
+struct pe_string;
+
+
 struct  pe_export_directory_entry
 {
 	std::uint32_t m_characteristics;
@@ -93,3 +96,4 @@ bool pe_parse_export_directory_table(void const* const file_data, int const file
 bool pe_parse_export_name_pointer_table(void const* const file_data, int const file_size, pe_export_directory_table const& edt, pe_export_name_pointer_table& enpt_out);
 bool pe_parse_export_ordinal_table(void const* const file_data, int const file_size, pe_export_directory_table const& edt, pe_export_ordinal_table& eot_out);
 bool pe_parse_export_address_table(void const* const file_data, int const file_size, pe_export_directory_table const& edt, pe_export_address_table& eat_out);
+bool pe_parse_export_address_name(void const* const file_data, int const file_size, pe_export_name_pointer_table const& enpt, pe_export_ordinal_table const& eot, std::uint16_t const& idx, std::uint16_t& hint_out, pe_string& ean_out);

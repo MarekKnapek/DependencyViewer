@@ -6,6 +6,8 @@
 
 #include "../assert.h"
 
+#include <algorithm>
+
 
 bool operator==(pe_export_ordinal_entry const& a, pe_export_ordinal_entry const& b)
 {
@@ -97,5 +99,42 @@ bool pe_parse_export_address_table(void const* const fd, int const file_size, pe
 	pe_export_address_entry const* eat = reinterpret_cast<pe_export_address_entry const*>(file_data + eot_raw);
 	eat_out.m_table = eat;
 	eat_out.m_count = static_cast<int>(edt.m_table->m_export_address_count);
+	return true;
+}
+
+bool pe_parse_export_address_name(void const* const fd, int const file_size, pe_export_name_pointer_table const& enpt, pe_export_ordinal_table const& eot, std::uint16_t const& idx, std::uint16_t& hint_out, pe_string& ean_out)
+{
+	char const* const file_data = static_cast<char const*>(fd);
+	if(enpt.m_count == 0)
+	{
+		hint_out = 0xffff;
+		ean_out.m_str = nullptr;
+		ean_out.m_len = 0;
+		return true;
+	}
+	auto const it = std::find(eot.m_table, eot.m_table + eot.m_count, pe_export_ordinal_entry{idx});
+	if(it == eot.m_table + eot.m_count)
+	{
+		hint_out = 0xffff;
+		ean_out.m_str = nullptr;
+		ean_out.m_len = 0;
+		return true;
+	}
+	std::uint16_t const hint = static_cast<std::uint16_t>(it - eot.m_table);
+	std::uint32_t const export_address_name_rva = enpt.m_table[hint].m_export_address_name_rva;
+	pe_section_header const* sct;
+	std::uint32_t const export_address_name_raw = pe_find_object_in_raw(file_data, file_size, export_address_name_rva, 2, sct);
+	WARN_M_R(export_address_name_raw != 0, L"Export address name not found in any section.", false);
+	char const* const export_address_name = reinterpret_cast<char const*>(file_data + export_address_name_raw);
+	static constexpr const std::uint32_t s_export_address_name_max_len = 32 * 1024;
+	std::uint32_t const export_address_name_len_max = std::min<std::uint32_t>(s_export_address_name_max_len, sct->m_raw_ptr + sct->m_raw_size - export_address_name_raw);
+	auto const export_address_name_end = std::find(export_address_name, export_address_name + export_address_name_len_max, L'\0');
+	WARN_M_R(export_address_name_end != export_address_name + export_address_name_len_max, L"Could not find export address name length.", false);
+	std::uint16_t const export_address_name_len = static_cast<std::uint16_t>(export_address_name_end - export_address_name);
+	WARN_M_R(export_address_name_len >= 1, L"Export address name is too short.", false);
+	WARN_M_R(pe_is_ascii(export_address_name, export_address_name_len), L"Export address name shall be ASCII.", false);
+	hint_out = hint;
+	ean_out.m_str = export_address_name;
+	ean_out.m_len = export_address_name_len;
 	return true;
 }
