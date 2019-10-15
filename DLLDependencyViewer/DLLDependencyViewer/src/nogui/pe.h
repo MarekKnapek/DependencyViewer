@@ -48,7 +48,7 @@ struct pe_import_table_info
 	int m_nondelay_imports_count = 0;
 };
 
-struct pe_export_address_entry
+struct export_address_entry
 {
 	string const* m_name;
 	wstring const* m_debug_name;
@@ -65,7 +65,7 @@ struct pe_export_address_entry
 
 struct pe_export_table_info
 {
-	my_vector<pe_export_address_entry> m_export_address_table;
+	my_vector<export_address_entry> m_export_address_table;
 	my_vector<uint16_t> m_enpt;
 	std::uint16_t m_ordinal_base;
 };

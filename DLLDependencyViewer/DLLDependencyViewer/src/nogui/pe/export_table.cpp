@@ -29,7 +29,7 @@ bool pe_parse_export_directory_table(void const* const fd, int const file_size, 
 	pe_section_header const* sct;
 	std::uint32_t const exp_dir_tbl_raw = pe_find_object_in_raw(file_data, file_size, exp_tbl.m_va, exp_tbl.m_size, sct);
 	WARN_M_R(exp_dir_tbl_raw != 0, L"Export directory table not found in any section.", false);
-	pe_export_directory_entry_2 const* const edt = reinterpret_cast<pe_export_directory_entry_2 const*>(file_data + exp_dir_tbl_raw);
+	pe_export_directory_entry const* const edt = reinterpret_cast<pe_export_directory_entry const*>(file_data + exp_dir_tbl_raw);
 	edt_out.m_table = edt;
 	return true;
 }

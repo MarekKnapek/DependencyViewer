@@ -24,7 +24,7 @@ struct get_symbols_from_addresses_task_t
 	std::atomic<bool> m_canceled;
 	std::wstring m_module_path;
 	std::vector<std::uint32_t> m_addresses;
-	std::vector<pe_export_address_entry*> m_export_entries;
+	std::vector<export_address_entry*> m_export_entries;
 	std::vector<std::wstring> m_symbol_names;
 	std::atomic<callback_function_t> m_callback_function;
 	void* m_hwnd = nullptr;

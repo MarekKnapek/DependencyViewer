@@ -4,7 +4,7 @@
 #include <cstdint>
 
 
-struct  pe_export_directory_entry_2
+struct  pe_export_directory_entry
 {
 	std::uint32_t m_characteristics;
 	std::uint32_t m_date_time;
@@ -18,12 +18,12 @@ struct  pe_export_directory_entry_2
 	std::uint32_t m_export_name_table_rva;
 	std::uint32_t m_ordinal_table_rva;
 };
-static_assert(sizeof(pe_export_directory_entry_2) == 40, "");
-static_assert(sizeof(pe_export_directory_entry_2) == 0x28, "");
+static_assert(sizeof(pe_export_directory_entry) == 40, "");
+static_assert(sizeof(pe_export_directory_entry) == 0x28, "");
 
 struct pe_export_directory_table
 {
-	pe_export_directory_entry_2 const* m_table; // Single row.
+	pe_export_directory_entry const* m_table; // Single row.
 };
 
 

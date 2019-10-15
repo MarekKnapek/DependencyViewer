@@ -118,7 +118,7 @@ void export_view::on_getdispinfow(NMHDR& nmhdr)
 	file_info const& fi = fi_tmp.m_orig_instance ? *fi_tmp.m_orig_instance : fi_tmp;
 	int const row = nm.item.iItem;
 	int const col = nm.item.iSubItem;
-	pe_export_address_entry const& export_entry = fi.m_export_table.m_export_address_table[row];
+	export_address_entry const& export_entry = fi.m_export_table.m_export_address_table[row];
 	e_export_column const ecol = static_cast<e_export_column>(col);
 	if((nm.item.mask | LVIF_TEXT) != 0)
 	{
@@ -392,7 +392,7 @@ smart_menu export_view::create_menu()
 	return smart_menu{menu};
 }
 
-wchar_t const* export_view::on_get_col_type(pe_export_address_entry const& export_entry)
+wchar_t const* export_view::on_get_col_type(export_address_entry const& export_entry)
 {
 	if(export_entry.m_is_rva)
 	{
@@ -404,14 +404,14 @@ wchar_t const* export_view::on_get_col_type(pe_export_address_entry const& expor
 	}
 }
 
-wchar_t const* export_view::on_get_col_ordinal(pe_export_address_entry const& export_entry)
+wchar_t const* export_view::on_get_col_ordinal(export_address_entry const& export_entry)
 {
 	std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
 	ordinal_to_string(export_entry.m_ordinal, tmpstr);
 	return tmpstr.c_str();
 }
 
-wchar_t const* export_view::on_get_col_hint(pe_export_address_entry const& export_entry)
+wchar_t const* export_view::on_get_col_hint(export_address_entry const& export_entry)
 {
 	if(!export_entry.m_name)
 	{
@@ -425,7 +425,7 @@ wchar_t const* export_view::on_get_col_hint(pe_export_address_entry const& expor
 	}
 }
 
-wchar_t const* export_view::on_get_col_name(pe_export_address_entry const& export_entry)
+wchar_t const* export_view::on_get_col_name(export_address_entry const& export_entry)
 {
 	if(export_entry.m_name)
 	{
@@ -454,7 +454,7 @@ wchar_t const* export_view::on_get_col_name(pe_export_address_entry const& expor
 	}
 }
 
-wchar_t const* export_view::on_get_col_address(pe_export_address_entry const& export_entry)
+wchar_t const* export_view::on_get_col_address(export_address_entry const& export_entry)
 {
 	if(export_entry.m_is_rva)
 	{

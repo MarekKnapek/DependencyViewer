@@ -914,7 +914,7 @@ void dbg_task_callback_2(get_symbols_from_addresses_task_t* const task)
 
 void main_window::request_symbol_traslation(file_info& fi)
 {
-	auto const fn_is_unnamed = [](pe_export_address_entry const& e){ return e.m_is_rva && !e.m_name; };
+	auto const fn_is_unnamed = [](export_address_entry const& e){ return e.m_is_rva && !e.m_name; };
 	int const n = static_cast<int>(std::count_if(fi.m_export_table.m_export_address_table.cbegin(), fi.m_export_table.m_export_address_table.cend(), fn_is_unnamed));
 	if(n == 0)
 	{
