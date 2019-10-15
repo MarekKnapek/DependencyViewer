@@ -301,19 +301,13 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 		if(export_rva >= export_directory_rva && export_rva < export_directory_rva + export_directory_size)
 		{
 			// 32k export forwarder name length should be enough for everybody.
-			auto const forwarder_name_sect_off = convert_rva_to_disk_ptr(export_rva, hi);
-			section_header const& forwarder_name_sect = *forwarder_name_sect_off.first;
-			std::uint32_t const& forwarder_name_dsk = forwarder_name_sect_off.second;
-			char const* const forwarder_name = reinterpret_cast<char const*>(file_data + forwarder_name_dsk);
-			std::uint32_t const forwarder_name_len_max = std::min<std::uint32_t>(32 * 1024, forwarder_name_sect.m_raw_ptr + forwarder_name_sect.m_raw_size - forwarder_name_dsk);
-			char const* const forwarder_name_end = std::find(forwarder_name, forwarder_name + forwarder_name_len_max, '\0');
-			VERIFY(forwarder_name_end != forwarder_name + forwarder_name_len_max);
-			std::uint32_t const forwarder_name_len = static_cast<std::uint32_t>(forwarder_name_end - forwarder_name);
-			VERIFY(forwarder_name_len >= 3);
-			VERIFY(is_ascii(forwarder_name, forwarder_name_len));
-			VERIFY(std::find(forwarder_name, forwarder_name_end, '.') != forwarder_name_end);
+			pe_string forwarder;
+			bool const forwarder_parsed = pe_parse_string(file_data, file_size, export_rva, forwarder);
+			VERIFY(forwarder_parsed);
+			VERIFY(forwarder.m_len >= 3);
+			VERIFY(std::find(forwarder.m_str, forwarder.m_str + forwarder.m_len, '.') != forwarder.m_str + forwarder.m_len);
 			ret.m_export_address_table[j].m_is_rva = false;
-			ret.m_export_address_table[j].rva_or_forwarder.m_forwarder = mm.m_strs.add_string(forwarder_name, forwarder_name_len, mm.m_alc);
+			ret.m_export_address_table[j].rva_or_forwarder.m_forwarder = mm.m_strs.add_string(forwarder.m_str, forwarder.m_len, mm.m_alc);
 			ret.m_export_address_table[j].m_ordinal = ordinal;
 			ret.m_export_address_table[j].m_debug_name = nullptr;
 		}
