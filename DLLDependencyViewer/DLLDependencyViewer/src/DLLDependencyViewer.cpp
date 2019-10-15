@@ -41,6 +41,7 @@
 #include "nogui/pe/coff_full.cpp"
 #include "nogui/pe/coff_optional_standard.cpp"
 #include "nogui/pe/coff_optional_windows.cpp"
+#include "nogui/pe/export_table.cpp"
 #include "nogui/pe/import_table.cpp"
 #include "nogui/pe/mz.cpp"
 #include "nogui/pe/pe_test.cpp"

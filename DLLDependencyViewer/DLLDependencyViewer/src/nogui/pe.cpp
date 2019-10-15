@@ -5,6 +5,7 @@
 #include "unicode.h"
 
 #include "pe/coff_full.h"
+#include "pe/export_table.h"
 #include "pe/import_table.h"
 #include "pe/mz.h"
 
@@ -266,62 +267,58 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 	pe_export_table_info ret;
 
 	data_directory const* const dta_dir_table = reinterpret_cast<data_directory const*>(file_data + hi.m_data_directory_start);
-
 	std::uint32_t const export_directory_rva = dta_dir_table[static_cast<int>(data_directory_type::export_table)].m_rva;
 	std::uint32_t const export_directory_size = dta_dir_table[static_cast<int>(data_directory_type::export_table)].m_size;
-	if(export_directory_size == 0)
+
+	pe_export_directory_table edt;
+	bool const edt_parsed = pe_parse_export_directory_table(fd, fs, edt);
+	VERIFY(edt_parsed);
+	if(!edt.m_table)
 	{
 		return ret;
 	}
-
-	auto const export_directory_sect_off = convert_rva_to_disk_ptr(export_directory_rva, hi);
-	section_header const& export_directory_section = *export_directory_sect_off.first;
-	std::uint32_t const& export_directory_disk_offset = export_directory_sect_off.second;
-	VERIFY(export_directory_disk_offset + export_directory_size <= export_directory_section.m_raw_ptr + export_directory_section.m_raw_size);
-	VERIFY(export_directory_size >= sizeof(export_directory));
-	export_directory const& export_dir = *reinterpret_cast<export_directory const*>(file_data + export_directory_disk_offset);
-	VERIFY(export_dir.m_ordinal_base <= 0xFFFF);
-	VERIFY(export_dir.m_export_address_count <= 0xFFFF);
-	VERIFY(export_dir.m_ordinal_base + export_dir.m_export_address_count <= 0xFFFF);
-	VERIFY(export_dir.m_names_count <= export_dir.m_export_address_count);
-	if(export_dir.m_export_address_count == 0)
+	VERIFY(edt.m_table->m_ordinal_base <= 0xFFFF);
+	VERIFY(edt.m_table->m_export_address_count <= 0xFFFF);
+	VERIFY(edt.m_table->m_ordinal_base + edt.m_table->m_export_address_count <= 0xFFFF);
+	VERIFY(edt.m_table->m_names_count <= edt.m_table->m_export_address_count);
+	if(edt.m_table->m_export_address_count == 0)
 	{
 		return ret;
 	}
 
 	// 64k export names should be enough for everybody.
-	VERIFY(export_dir.m_names_count <= 64 * 1024);
+	VERIFY(edt.m_table->m_names_count <= 64 * 1024);
 	std::uint32_t const* export_name_pointer_table = nullptr;
 	std::uint16_t const* export_ordinal_table = nullptr;
-	if(export_dir.m_export_name_table_rva != 0)
+	if(edt.m_table->m_export_name_table_rva != 0)
 	{
-		auto const export_name_pointer_table_sect_off = convert_rva_to_disk_ptr(export_dir.m_export_name_table_rva, hi);
+		auto const export_name_pointer_table_sect_off = convert_rva_to_disk_ptr(edt.m_table->m_export_name_table_rva, hi);
 		section_header const& export_name_pointer_table_sect = *export_name_pointer_table_sect_off.first;
 		std::uint32_t const& export_name_pointer_table_disk_offset = export_name_pointer_table_sect_off.second;
-		VERIFY(export_name_pointer_table_sect.m_raw_ptr + export_name_pointer_table_sect.m_raw_size - export_name_pointer_table_disk_offset >= export_dir.m_names_count * sizeof(std::uint32_t));
+		VERIFY(export_name_pointer_table_sect.m_raw_ptr + export_name_pointer_table_sect.m_raw_size - export_name_pointer_table_disk_offset >= edt.m_table->m_names_count * sizeof(std::uint32_t));
 		export_name_pointer_table = reinterpret_cast<std::uint32_t const*>(file_data + export_name_pointer_table_disk_offset);
-		auto const export_ordinal_table_sect_off = convert_rva_to_disk_ptr(export_dir.m_ordinal_table_rva, hi);
+		auto const export_ordinal_table_sect_off = convert_rva_to_disk_ptr(edt.m_table->m_ordinal_table_rva, hi);
 		section_header const& export_ordinal_table_sect = *export_ordinal_table_sect_off.first;
 		std::uint32_t const& export_ordinal_table_disk_offset = export_ordinal_table_sect_off.second;
-		VERIFY(export_ordinal_table_sect.m_raw_ptr + export_ordinal_table_sect.m_raw_size - export_ordinal_table_disk_offset >= export_dir.m_names_count * sizeof(std::uint16_t));
+		VERIFY(export_ordinal_table_sect.m_raw_ptr + export_ordinal_table_sect.m_raw_size - export_ordinal_table_disk_offset >= edt.m_table->m_names_count * sizeof(std::uint16_t));
 		export_ordinal_table = reinterpret_cast<std::uint16_t const*>(file_data + export_ordinal_table_disk_offset);
 	}
 
 	// 64k exports should be enough for everybody.
-	VERIFY(export_dir.m_export_address_count <= 64 * 1024);
-	auto const export_address_table_sect_off = convert_rva_to_disk_ptr(export_dir.m_export_address_table_rva, hi);
+	VERIFY(edt.m_table->m_export_address_count <= 64 * 1024);
+	auto const export_address_table_sect_off = convert_rva_to_disk_ptr(edt.m_table->m_export_address_table_rva, hi);
 	section_header const& export_address_table_section = *export_address_table_sect_off.first;
 	std::uint32_t const& export_address_table_disk_off = export_address_table_sect_off.second;
-	VERIFY(export_address_table_section.m_raw_ptr + export_address_table_section.m_raw_size - export_address_table_disk_off >= export_dir.m_export_address_count * sizeof(std::uint32_t));
+	VERIFY(export_address_table_section.m_raw_ptr + export_address_table_section.m_raw_size - export_address_table_disk_off >= edt.m_table->m_export_address_count * sizeof(std::uint32_t));
 	std::uint32_t const* export_address_table = reinterpret_cast<std::uint32_t const*>(file_data + export_address_table_disk_off);
-	int const export_address_count_proper = static_cast<int>(std::count_if(export_address_table, export_address_table + export_dir.m_export_address_count, [](std::uint32_t const& e){ return e != 0; }));
+	int const export_address_count_proper = static_cast<int>(std::count_if(export_address_table, export_address_table + edt.m_table->m_export_address_count, [](std::uint32_t const& e){ return e != 0; }));
 	my_vector_resize(ret.m_export_address_table, mm.m_alc, export_address_count_proper);
-	my_vector_resize(ret.m_enpt, mm.m_alc, export_dir.m_names_count);
+	my_vector_resize(ret.m_enpt, mm.m_alc, edt.m_table->m_names_count);
 	std::fill(ret.m_enpt.begin(), ret.m_enpt.end(), static_cast<std::uint16_t>(0xffff));
-	ret.m_ordinal_base = static_cast<std::uint16_t>(export_dir.m_ordinal_base);
+	ret.m_ordinal_base = static_cast<std::uint16_t>(edt.m_table->m_ordinal_base);
 	std::uint16_t j = 0;
 	int hint_idx = 0;
-	std::uint16_t const n = static_cast<std::uint16_t>(export_dir.m_export_address_count);
+	std::uint16_t const n = static_cast<std::uint16_t>(edt.m_table->m_export_address_count);
 	for(std::uint16_t i = 0; i != n; ++i)
 	{
 		std::uint32_t const export_rva = export_address_table[i];
@@ -329,14 +326,14 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 		{
 			continue;
 		}
-		std::uint16_t const ordinal = i + static_cast<std::uint16_t>(export_dir.m_ordinal_base);
+		std::uint16_t const ordinal = i + static_cast<std::uint16_t>(edt.m_table->m_ordinal_base);
 		std::uint16_t hint = 0;
 		char const* export_address_name = nullptr;
 		std::uint32_t export_address_name_len = 0;
 		if(export_ordinal_table)
 		{
-			auto const it = std::find(export_ordinal_table, export_ordinal_table + export_dir.m_names_count, i);
-			if(it != export_ordinal_table + export_dir.m_names_count)
+			auto const it = std::find(export_ordinal_table, export_ordinal_table + edt.m_table->m_names_count, i);
+			if(it != export_ordinal_table + edt.m_table->m_names_count)
 			{
 				hint = static_cast<std::uint16_t>(it - export_ordinal_table);
 				std::uint32_t const export_address_name_rva = export_name_pointer_table[hint];
@@ -395,7 +392,7 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 		}
 		++j;
 	}
-	VERIFY(hint_idx == static_cast<int>(export_dir.m_names_count));
+	VERIFY(hint_idx == static_cast<int>(edt.m_table->m_names_count));
 	VERIFY(std::is_sorted(ret.m_enpt.cbegin(), ret.m_enpt.cend(), [&](auto const& a, auto const& b)
 	{
 		auto const& aa = ret.m_export_address_table[a].m_name;
