@@ -61,23 +61,6 @@ struct section_header
 static_assert(sizeof(section_header) == 40, "");
 static_assert(sizeof(section_header) == 0x28, "");
 
-struct export_directory
-{
-	std::uint32_t m_characteristics;
-	std::uint32_t m_date_time;
-	std::uint16_t m_major;
-	std::uint16_t m_minor;
-	std::uint32_t m_name_rva;
-	std::uint32_t m_ordinal_base;
-	std::uint32_t m_export_address_count;
-	std::uint32_t m_names_count;
-	std::uint32_t m_export_address_table_rva;
-	std::uint32_t m_export_name_table_rva;
-	std::uint32_t m_ordinal_table_rva;
-};
-static_assert(sizeof(export_directory) == 40, "");
-static_assert(sizeof(export_directory) == 0x28, "");
-
 struct resource_directory_table
 {
 	std::uint32_t m_characteristics;

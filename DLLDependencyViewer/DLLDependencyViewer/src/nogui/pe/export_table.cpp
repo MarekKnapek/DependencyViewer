@@ -1,7 +1,7 @@
 #include "export_table.h"
 
-#include "mz.h"
 #include "coff_full.h"
+#include "mz.h"
 #include "pe_util.h"
 
 #include "../assert.h"
