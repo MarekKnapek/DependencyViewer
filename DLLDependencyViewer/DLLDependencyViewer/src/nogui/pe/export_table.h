@@ -32,12 +32,7 @@ struct pe_export_directory_table
 
 struct pe_export_address_entry
 {
-	union export_or_forwarder_rva
-	{
-		std::uint32_t m_export_rva;
-		std::uint32_t m_forwarder_rva;
-	};
-	export_or_forwarder_rva m_export_or_forwarder_rva;
+	std::uint32_t m_export_rva;
 };
 static_assert(sizeof(pe_export_address_entry) == 4, "");
 static_assert(sizeof(pe_export_address_entry) == 0x4, "");

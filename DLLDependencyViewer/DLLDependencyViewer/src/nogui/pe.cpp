@@ -277,7 +277,7 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 	bool eat_parsed = pe_parse_export_address_table(fd, fs, edt, eat);
 	VERIFY(eat_parsed);
 
-	std::uint16_t const eat_count_proper = static_cast<std::uint16_t>(std::count_if(eat.m_table, eat.m_table + eat.m_count, [](pe_export_address_entry const& eae){ return eae.m_export_or_forwarder_rva.m_export_rva != 0; }));
+	std::uint16_t const eat_count_proper = static_cast<std::uint16_t>(std::count_if(eat.m_table, eat.m_table + eat.m_count, [](pe_export_address_entry const& eae){ return eae.m_export_rva != 0; }));
 	my_vector_resize(ret.m_export_address_table, mm.m_alc, eat_count_proper);
 	my_vector_resize(ret.m_enpt, mm.m_alc, enpt.m_count);
 	std::fill(ret.m_enpt.begin(), ret.m_enpt.end(), static_cast<std::uint16_t>(0xffff));
@@ -288,7 +288,7 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 	std::uint16_t const n = static_cast<std::uint16_t>(eat.m_count);
 	for(std::uint16_t i = 0; i != n; ++i)
 	{
-		std::uint32_t const export_rva = eat.m_table[i].m_export_or_forwarder_rva.m_export_rva;
+		std::uint32_t const export_rva = eat.m_table[i].m_export_rva;
 		if(export_rva == 0)
 		{
 			continue;
