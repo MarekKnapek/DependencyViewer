@@ -168,10 +168,10 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 		int const file_size = static_cast<int>(fs);
 
 		pe_import_directory_table idt;
-		bool const import_descriptor_parsed = pe_parse_import_table(file_data, file_size, idt);
+		bool const import_descriptor_parsed = pe_parse_import_table(file_data, file_size, &idt);
 		WARN_M_R(import_descriptor_parsed, L"Failed to parse import descriptor", false);
 		pe_delay_import_table dlit;
-		bool const delay_descriptor_parsed = pe_parse_delay_import_table(file_data, file_size, dlit);
+		bool const delay_descriptor_parsed = pe_parse_delay_import_table(file_data, file_size, &dlit);
 		WARN_M_R(delay_descriptor_parsed, L"Failed to parse delay import descriptor", false);
 		my_vector_resize(ret.m_dlls, mm.m_alc, idt.m_count + dlit.m_count);
 		ret.m_nondelay_imports_count = idt.m_count;
@@ -179,10 +179,10 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 		for(int i = 0; i != idt.m_count; ++i, ++ii)
 		{
 			pe_string dll;
-			bool const dll_parsed = pe_parse_import_dll_name(file_data, file_size, idt.m_table[i], dll);
+			bool const dll_parsed = pe_parse_import_dll_name(file_data, file_size, idt.m_table[i], &dll);
 			WARN_M_R(dll_parsed, L"Failed to parse import DLL name.", false);
 			pe_import_address_table iat;
-			bool const iat_parsed = pe_parse_import_address_table(file_data, file_size, idt.m_table[i], iat);
+			bool const iat_parsed = pe_parse_import_address_table(file_data, file_size, idt.m_table[i], &iat);
 			WARN_M_R(iat_parsed, L"Failed to parse import address table.", false);
 			ret.m_dlls[ii].m_dll_name = mm.m_strs.add_string(dll.m_str, dll.m_len, mm.m_alc);
 			my_vector_resize(ret.m_dlls[ii].m_entries, mm.m_alc, iat.m_count);
@@ -191,7 +191,7 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 				bool is_ordinal;
 				std::uint16_t ordinal;
 				pe_hint_name hint_name;
-				bool const ia_parsed = pe_parse_import_address(file_data, file_size, iat, j, is_ordinal, ordinal, hint_name);
+				bool const ia_parsed = pe_parse_import_address(file_data, file_size, iat, j, &is_ordinal, &ordinal, &hint_name);
 				WARN_M_R(ia_parsed, L"Failed to parse address import.", false);
 				ret.m_dlls[ii].m_entries[j].m_is_ordinal = is_ordinal;
 				if(is_ordinal)
@@ -208,10 +208,10 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 		for(int i = 0; i != dlit.m_count; ++i, ++ii)
 		{
 			pe_string dldll;
-			bool const dldll_parsed = pe_parse_delay_import_dll_name(file_data, file_size, dlit.m_table[i], dldll);
+			bool const dldll_parsed = pe_parse_delay_import_dll_name(file_data, file_size, dlit.m_table[i], &dldll);
 			WARN_M_R(dldll_parsed, L"Failed to parse delay load DLL name.", false);
 			pe_delay_load_import_address_table dliat;
-			bool const dliat_parsed = pe_parse_delay_import_address_table(file_data, file_size, dlit.m_table[i], dliat);
+			bool const dliat_parsed = pe_parse_delay_import_address_table(file_data, file_size, dlit.m_table[i], &dliat);
 			WARN_M_R(dliat_parsed, L"Failed to parse delay load import address table.", false);
 			ret.m_dlls[ii].m_dll_name = mm.m_strs.add_string(dldll.m_str, dldll.m_len, mm.m_alc);
 			my_vector_resize(ret.m_dlls[ii].m_entries, mm.m_alc, dliat.m_count);
@@ -220,7 +220,7 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 				bool is_ordinal;
 				std::uint16_t ordinal;
 				pe_hint_name hint_name;
-				bool const dlia_parsed = pe_parse_delay_import_address(file_data, file_size, dlit.m_table[i], dliat, j, is_ordinal, ordinal, hint_name);
+				bool const dlia_parsed = pe_parse_delay_import_address(file_data, file_size, dlit.m_table[i], dliat, j, &is_ordinal, &ordinal, &hint_name);
 				WARN_M_R(dlia_parsed, L"Failed to parse delay load address import.", false);
 				ret.m_dlls[ii].m_entries[j].m_is_ordinal = is_ordinal;
 				if(is_ordinal)
@@ -250,7 +250,7 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 	pe_export_table_info ret;
 
 	pe_export_directory_table edt;
-	bool const edt_parsed = pe_parse_export_directory_table(fd, fs, edt);
+	bool const edt_parsed = pe_parse_export_directory_table(fd, fs, &edt);
 	VERIFY(edt_parsed);
 	if(!edt.m_table)
 	{
@@ -266,15 +266,15 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 	std::uint32_t const export_directory_size = dta_dir_table[static_cast<int>(data_directory_type::export_table)].m_size;
 
 	pe_export_name_pointer_table enpt;
-	bool const enpt_parsed = pe_parse_export_name_pointer_table(fd, fs, edt, enpt);
+	bool const enpt_parsed = pe_parse_export_name_pointer_table(fd, fs, edt, &enpt);
 	VERIFY(enpt_parsed);
 	pe_export_ordinal_table eot;
-	bool const eot_parsed = pe_parse_export_ordinal_table(fd, fs, edt, eot);
+	bool const eot_parsed = pe_parse_export_ordinal_table(fd, fs, edt, &eot);
 	VERIFY(eot_parsed);
 	VERIFY(enpt.m_count == eot.m_count);
 	VERIFY(enpt.m_count == 0 || (enpt.m_table && eot.m_table));
 	pe_export_address_table eat;
-	bool eat_parsed = pe_parse_export_address_table(fd, fs, edt, eat);
+	bool eat_parsed = pe_parse_export_address_table(fd, fs, edt, &eat);
 	VERIFY(eat_parsed);
 
 	std::uint16_t const eat_count_proper = static_cast<std::uint16_t>(std::count_if(eat.m_table, eat.m_table + eat.m_count, [](pe_export_address_entry const& eae){ return eae.m_export_rva != 0; }));
@@ -296,13 +296,13 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 		std::uint16_t const ordinal = i + ordinal_base;
 		std::uint16_t hint;
 		pe_string ean;
-		bool const ean_parsed = pe_parse_export_address_name(fd, fs, enpt, eot, i, hint, ean);
+		bool const ean_parsed = pe_parse_export_address_name(fd, fs, enpt, eot, i, &hint, &ean);
 		VERIFY(ean_parsed);
 		if(export_rva >= export_directory_rva && export_rva < export_directory_rva + export_directory_size)
 		{
 			// 32k export forwarder name length should be enough for everybody.
 			pe_string forwarder;
-			bool const forwarder_parsed = pe_parse_string(file_data, file_size, export_rva, forwarder);
+			bool const forwarder_parsed = pe_parse_string(file_data, file_size, export_rva, &forwarder);
 			VERIFY(forwarder_parsed);
 			VERIFY(forwarder.m_len >= 3);
 			VERIFY(std::find(forwarder.m_str, forwarder.m_str + forwarder.m_len, '.') != forwarder.m_str + forwarder.m_len);

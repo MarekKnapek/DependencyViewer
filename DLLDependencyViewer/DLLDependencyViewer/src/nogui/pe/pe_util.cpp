@@ -30,8 +30,9 @@ std::uint32_t pe_find_object_in_raw(void const* const& fd, int const& /*file_siz
 	WARN_M_R(false, L"Object not found in any section.", 0);
 }
 
-bool pe_parse_string(void const* const fd, int const file_size, std::uint32_t const str_rva, pe_string& str_out)
+bool pe_parse_string(void const* const fd, int const file_size, std::uint32_t const str_rva, pe_string* const str_out)
 {
+	assert(str_out);
 	char const* const file_data = static_cast<char const*>(fd);
 	WARN_M_R(str_rva != 0, L"Invalid string.", false);
 	pe_section_header const* sct;
@@ -45,8 +46,8 @@ bool pe_parse_string(void const* const fd, int const file_size, std::uint32_t co
 	std::uint16_t const str_len = static_cast<std::uint16_t>(str_end - str);
 	WARN_M_R(str_len >= 1, L"String is too short.", false);
 	WARN_M_R(pe_is_ascii(str, str_len), L"String is not in ASCII.", false);
-	str_out.m_str = str;
-	str_out.m_len = str_len;
+	str_out->m_str = str;
+	str_out->m_len = str_len;
 	return true;
 }
 
