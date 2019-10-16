@@ -34,7 +34,7 @@ void test()
 	{
 		return;
 	}
-	std::filesystem::recursive_directory_iterator dir_it(argv[2]);
+	std::filesystem::recursive_directory_iterator dir_it(argv[2], std::filesystem::directory_options::skip_permission_denied);
 	for(auto const& e : dir_it)
 	{
 		auto const& p = e.path();
