@@ -233,7 +233,6 @@
     <ClInclude Include="src\nogui\pe\export_table.h" />
     <ClInclude Include="src\nogui\pe\import_table.h" />
     <ClInclude Include="src\nogui\pe\mz.h" />
-    <ClInclude Include="src\nogui\pe\pe_test.h" />
     <ClInclude Include="src\nogui\pe\pe_util.h" />
     <ClInclude Include="src\nogui\scope_exit.h" />
     <ClInclude Include="src\nogui\smart_com_interface.h" />
@@ -390,10 +389,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\nogui\pe\mz.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="src\nogui\pe\pe_test.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>

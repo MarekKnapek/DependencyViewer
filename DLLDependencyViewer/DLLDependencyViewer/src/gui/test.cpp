@@ -3,7 +3,6 @@
 #include "../nogui/memory_manager.h"
 #include "../nogui/memory_mapped_file.h"
 #include "../nogui/pe.h"
-#include "../nogui/pe/pe_test.h"
 #include "../nogui/smart_local_free.h"
 
 #include <cassert>
@@ -100,14 +99,6 @@ void test()
 		{
 			continue;
 		}
-		/**/
-		bool const pe_parsed = pe_test(mmf.begin(), mmf.size());
-		if(!pe_parsed)
-		{
-			OutputDebugStringW(p.c_str());
-			OutputDebugStringW(L"\n");
-		}
-		/**/
 		memory_manager mm;
 		pe_header_info hi;
 		pe_import_table_info it;

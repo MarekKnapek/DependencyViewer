@@ -213,9 +213,6 @@
     <ClInclude Include="src\nogui\pe\coff_full.h">
       <Filter>src\nogui\pe</Filter>
     </ClInclude>
-    <ClInclude Include="src\nogui\pe\pe_test.h">
-      <Filter>src\nogui\pe</Filter>
-    </ClInclude>
     <ClInclude Include="src\nogui\pe\import_table.h">
       <Filter>src\nogui\pe</Filter>
     </ClInclude>
@@ -366,9 +363,6 @@
       <Filter>src\nogui\pe</Filter>
     </ClCompile>
     <ClCompile Include="src\nogui\pe\coff_full.cpp">
-      <Filter>src\nogui\pe</Filter>
-    </ClCompile>
-    <ClCompile Include="src\nogui\pe\pe_test.cpp">
       <Filter>src\nogui\pe</Filter>
     </ClCompile>
     <ClCompile Include="src\nogui\pe\import_table.cpp">

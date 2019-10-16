@@ -44,5 +44,4 @@
 #include "nogui/pe/export_table.cpp"
 #include "nogui/pe/import_table.cpp"
 #include "nogui/pe/mz.cpp"
-#include "nogui/pe/pe_test.cpp"
 #include "nogui/pe/pe_util.cpp"
