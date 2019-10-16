@@ -3,6 +3,7 @@
 #include "constants.h"
 #include "main.h"
 #include "smart_dc.h"
+#include "test.h"
 
 #include "../nogui/dbg.h"
 #include "../nogui/dbg_provider.h"
@@ -888,6 +889,10 @@ void main_window::process_command_line()
 	wchar_t** const argv = CommandLineToArgvW(cmd_line, &argc);
 	smart_local_free const sp_argv(reinterpret_cast<void*>(argv));
 	if(argc == 1)
+	{
+		return;
+	}
+	if(argc == 3 && std::wcsncmp(argv[1], s_cmd_arg_test, std::size(s_cmd_arg_test) - 1) == 0)
 	{
 		return;
 	}
