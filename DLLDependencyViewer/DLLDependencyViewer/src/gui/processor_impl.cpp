@@ -2,7 +2,7 @@
 
 #include "search.h"
 
-#include "../nogui/file_name.h"
+#include "../nogui/file_name_provider.h"
 #include "../nogui/manifest_parser.h"
 #include "../nogui/memory_mapped_file.h"
 #include "../nogui/unicode.h"
@@ -93,7 +93,7 @@ void process_e(processor_impl& prcsr, file_info& fi, file_info& sub_fi, string c
 		sub_fi.m_file_path = get_not_found_string();
 		return;
 	}
-	wstring const* const wstr = file_name::get_correct_file_name(sch.m_mo->m_tmpw.c_str(), static_cast<int>(sch.m_mo->m_tmpw.size()), prcsr.m_mo->m_mm.m_wstrs, prcsr.m_mo->m_mm.m_alc);
+	wstring const* const wstr = file_name_provider::get_correct_file_name(sch.m_mo->m_tmpw.c_str(), static_cast<int>(sch.m_mo->m_tmpw.size()), prcsr.m_mo->m_mm.m_wstrs, prcsr.m_mo->m_mm.m_alc);
 	if(wstr)
 	{
 		sub_fi.m_file_path = wstr;

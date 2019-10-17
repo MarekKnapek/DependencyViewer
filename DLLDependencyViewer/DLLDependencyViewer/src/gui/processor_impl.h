@@ -3,8 +3,6 @@
 
 #include "processor.h"
 
-#include "../nogui/file_name.h"
-
 #include <queue>
 #include <string>
 #include <unordered_map>

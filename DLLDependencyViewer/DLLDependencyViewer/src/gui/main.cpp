@@ -7,7 +7,7 @@
 #include "../nogui/activation_context.h"
 #include "../nogui/dbg.h"
 #include "../nogui/scope_exit.h"
-#include "../nogui/file_name.h"
+#include "../nogui/file_name_provider.h"
 
 #include <cassert>
 
@@ -19,8 +19,8 @@ static HINSTANCE g_instance;
 
 int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE /*hPrevInstance*/, _In_ PWSTR /*pCmdLine*/, _In_ int nCmdShow)
 {
-	file_name::init();
-	auto const file_name_deinit = mk::make_scope_exit([](){ file_name::deinit(); });
+	file_name_provider::init();
+	auto const file_name_deinit = mk::make_scope_exit([](){ file_name_provider::deinit(); });
 	test();
 	dbg_start();
 	auto const fn_dbg_stop = mk::make_scope_exit([](){ dbg_stop(); });

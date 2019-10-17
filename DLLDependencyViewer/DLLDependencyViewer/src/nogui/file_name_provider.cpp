@@ -1,4 +1,4 @@
-#include "file_name.h"
+#include "file_name_provider.h"
 
 #include <cassert>
 
@@ -6,29 +6,29 @@
 static constexpr wchar_t const s_file_name_err[] = L"Error.";
 
 
-static file_name* g_file_name = nullptr;
+static file_name_provider* g_file_name_provider = nullptr;
 
 
-void file_name::init()
+void file_name_provider::init()
 {
-	assert(!g_file_name);
-	g_file_name = new file_name();
+	assert(!g_file_name_provider);
+	g_file_name_provider = new file_name_provider();
 }
 
-void file_name::deinit()
+void file_name_provider::deinit()
 {
-	assert(g_file_name);
-	delete g_file_name;
-	g_file_name = nullptr;
+	assert(g_file_name_provider);
+	delete g_file_name_provider;
+	g_file_name_provider = nullptr;
 }
 
-wstring const* file_name::get_correct_file_name(wchar_t const* const& file_name, int const& file_name_len, wunique_strings& us, allocator& alc)
+wstring const* file_name_provider::get_correct_file_name(wchar_t const* const& file_name, int const& file_name_len, wunique_strings& us, allocator& alc)
 {
-	assert(g_file_name);
-	return g_file_name->get_correct_file_name_(file_name, file_name_len, us, alc);
+	assert(g_file_name_provider);
+	return g_file_name_provider->get_correct_file_name_(file_name, file_name_len, us, alc);
 }
 
-file_name::file_name()
+file_name_provider::file_name_provider()
 {
 	HRESULT const com_inited = OleInitialize(nullptr);
 	if(!(com_inited == S_OK || com_inited == S_FALSE))
@@ -54,13 +54,13 @@ file_name::file_name()
 	}
 }
 
-file_name::~file_name()
+file_name_provider::~file_name_provider()
 {
 	m_object->lpVtbl->Release(m_object);
 	OleUninitialize();
 }
 
-wstring const* file_name::get_correct_file_name_(wchar_t const* const& file_name, int const& file_name_len, wunique_strings& us, allocator& alc)
+wstring const* file_name_provider::get_correct_file_name_(wchar_t const* const& file_name, int const& file_name_len, wunique_strings& us, allocator& alc)
 {
 	VARIANT input_1;
 	input_1.vt = VT_BSTR;

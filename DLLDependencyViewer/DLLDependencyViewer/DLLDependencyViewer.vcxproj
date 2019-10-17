@@ -217,7 +217,7 @@
     <ClInclude Include="src\nogui\dbg.h" />
     <ClInclude Include="src\nogui\dbghelp.h" />
     <ClInclude Include="src\nogui\dbg_provider.h" />
-    <ClInclude Include="src\nogui\file_name.h" />
+    <ClInclude Include="src\nogui\file_name_provider.h" />
     <ClInclude Include="src\nogui\int_to_string.h" />
     <ClInclude Include="src\nogui\manifest_parser.h" />
     <ClInclude Include="src\nogui\manifest_parser_impl.h" />
@@ -336,7 +336,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="src\nogui\file_name.cpp">
+    <ClCompile Include="src\nogui\file_name_provider.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>

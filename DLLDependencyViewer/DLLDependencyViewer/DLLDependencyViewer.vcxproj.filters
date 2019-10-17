@@ -192,9 +192,6 @@
     <ClInclude Include="src\nogui\manifest_parser_impl.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
-    <ClInclude Include="src\nogui\file_name.h">
-      <Filter>src\nogui</Filter>
-    </ClInclude>
     <ClInclude Include="src\gui\processor_impl.h">
       <Filter>src\gui</Filter>
     </ClInclude>
@@ -279,6 +276,9 @@
     <ClInclude Include="src\nogui\pe\export_table.h">
       <Filter>src\nogui\pe</Filter>
     </ClInclude>
+    <ClInclude Include="src\nogui\file_name_provider.h">
+      <Filter>src\nogui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\main.cpp">
@@ -339,9 +339,6 @@
       <Filter>src\nogui</Filter>
     </ClCompile>
     <ClCompile Include="src\nogui\manifest_parser_impl.cpp">
-      <Filter>src\nogui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\nogui\file_name.cpp">
       <Filter>src\nogui</Filter>
     </ClCompile>
     <ClCompile Include="src\gui\processor_impl.cpp">
@@ -418,6 +415,9 @@
     </ClCompile>
     <ClCompile Include="src\nogui\pe\export_table.cpp">
       <Filter>src\nogui\pe</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nogui\file_name_provider.cpp">
+      <Filter>src\nogui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
