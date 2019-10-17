@@ -595,7 +595,7 @@ void main_window::on_menu_open()
 
 void main_window::on_menu_exit()
 {
-	LRESULT const sent = SendMessageW(m_hwnd, WM_CLOSE, 0, 0);
+	exit();
 }
 
 void main_window::on_menu_paths()
@@ -615,7 +615,7 @@ void main_window::on_accel_open()
 
 void main_window::on_accel_exit()
 {
-	LRESULT const sent = SendMessageW(m_hwnd, WM_CLOSE, 0, 0);
+	exit();
 }
 
 void main_window::on_accel_paths()
@@ -733,6 +733,11 @@ void main_window::open_files(std::vector<std::wstring> const& file_paths)
 		return;
 	}
 	refresh(std::move(mo));
+}
+
+void main_window::exit()
+{
+	LRESULT const sent = SendMessageW(m_hwnd, WM_CLOSE, 0, 0);
 }
 
 void main_window::refresh(main_type&& mo)

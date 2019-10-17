@@ -84,6 +84,7 @@ private:
 	void on_toolbar_full_paths();
 	void open();
 	void open_files(std::vector<std::wstring> const& file_paths);
+	void exit();
 	void refresh(main_type&& mo);
 	void full_paths();
 	void refresh();
