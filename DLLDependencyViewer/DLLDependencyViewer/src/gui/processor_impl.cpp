@@ -22,11 +22,9 @@
 main_type process_impl(std::vector<std::wstring> const& file_paths)
 {
 	main_type mo;
-	file_name fn;
 	manifest_parser mp(mo.m_mm);
 	processor_impl prcsr;
 	prcsr.m_mo = &mo;
-	prcsr.m_file_name = &fn;
 	prcsr.m_manifest_parser = &mp;
 
 	file_info& fi = mo.m_fi;
@@ -95,7 +93,7 @@ void process_e(processor_impl& prcsr, file_info& fi, file_info& sub_fi, string c
 		sub_fi.m_file_path = get_not_found_string();
 		return;
 	}
-	wstring const* const wstr = prcsr.m_file_name->get_correct_file_name(sch.m_mo->m_tmpw.c_str(), static_cast<int>(sch.m_mo->m_tmpw.size()), prcsr.m_mo->m_mm.m_wstrs, prcsr.m_mo->m_mm.m_alc);
+	wstring const* const wstr = file_name::get_correct_file_name(sch.m_mo->m_tmpw.c_str(), static_cast<int>(sch.m_mo->m_tmpw.size()), prcsr.m_mo->m_mm.m_wstrs, prcsr.m_mo->m_mm.m_alc);
 	if(wstr)
 	{
 		sub_fi.m_file_path = wstr;

@@ -1,8 +1,32 @@
 #include "file_name.h"
 
+#include <cassert>
+
 
 static constexpr wchar_t const s_file_name_err[] = L"Error.";
 
+
+static file_name* g_file_name = nullptr;
+
+
+void file_name::init()
+{
+	assert(!g_file_name);
+	g_file_name = new file_name();
+}
+
+void file_name::deinit()
+{
+	assert(g_file_name);
+	delete g_file_name;
+	g_file_name = nullptr;
+}
+
+wstring const* file_name::get_correct_file_name(wchar_t const* const& file_name, int const& file_name_len, wunique_strings& us, allocator& alc)
+{
+	assert(g_file_name);
+	return g_file_name->get_correct_file_name_(file_name, file_name_len, us, alc);
+}
 
 file_name::file_name()
 {
@@ -36,7 +60,7 @@ file_name::~file_name()
 	OleUninitialize();
 }
 
-wstring const* file_name::get_correct_file_name(wchar_t const* const& file_name, int const& file_name_len, wunique_strings& us, allocator& alc)
+wstring const* file_name::get_correct_file_name_(wchar_t const* const& file_name, int const& file_name_len, wunique_strings& us, allocator& alc)
 {
 	VARIANT input_1;
 	input_1.vt = VT_BSTR;

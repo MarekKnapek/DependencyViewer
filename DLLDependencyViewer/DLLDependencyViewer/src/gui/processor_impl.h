@@ -22,7 +22,6 @@ struct processor_impl
 	main_type* m_mo = nullptr;
 	std::queue<file_info*> m_queue;
 	std::unordered_map<string const*, file_info_big, string_case_insensitive_hash, string_case_insensitive_equal> m_map;
-	file_name* m_file_name = nullptr;
 	manifest_parser* m_manifest_parser = nullptr;
 	my_vector<std::uint16_t>* m_curr_enpt;
 	allocator m_entp_alloc;
