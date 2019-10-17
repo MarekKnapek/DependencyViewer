@@ -8,15 +8,24 @@
 #include <queue>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
+
+struct file_info_big
+{
+	file_info* m_fi;
+	my_vector<std::uint16_t> m_enpt;
+};
 
 struct processor_impl
 {
 	main_type* m_mo = nullptr;
 	std::queue<file_info*> m_queue;
-	std::unordered_map<string const*, file_info*, string_case_insensitive_hash, string_case_insensitive_equal> m_map;
+	std::unordered_map<string const*, file_info_big, string_case_insensitive_hash, string_case_insensitive_equal> m_map;
 	file_name* m_file_name = nullptr;
 	manifest_parser* m_manifest_parser = nullptr;
+	my_vector<std::uint16_t>* m_curr_enpt;
+	allocator m_entp_alloc;
 };
 
 
@@ -25,5 +34,5 @@ void process_r(processor_impl& prcsr);
 void process_e(processor_impl& prcsr, file_info& fi, file_info& sub_fi, string const* const& dll_name);
 manifest_data process_manifest(processor_impl& prcsr, file_info const& fi);
 std::pair<char const*, int> find_manifest(file_info const& fi);
-void pair_imports_with_exports(file_info& fi, file_info& sub_fi);
+void pair_imports_with_exports(processor_impl& prcsr, file_info& fi, file_info& sub_fi);
 void pair_exports_with_imports(processor_impl& prcsr, file_info& fi, file_info& sub_fi);

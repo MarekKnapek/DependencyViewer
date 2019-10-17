@@ -66,7 +66,6 @@ struct export_address_entry
 struct pe_export_table_info
 {
 	my_vector<export_address_entry> m_export_address_table;
-	my_vector<uint16_t> m_enpt;
 	std::uint16_t m_ordinal_base;
 };
 
@@ -98,7 +97,7 @@ struct pe_resources_table_info
 
 pe_header_info pe_process_header(void const* const file_data, int const file_size);
 pe_import_table_info pe_process_import_table(void const* const file_data, int const file_size, pe_header_info const& hi, memory_manager& mm);
-pe_export_table_info pe_process_export_table(void const* const file_data, int const file_size, pe_header_info const& hi, memory_manager& mm);
+pe_export_table_info pe_process_export_table(void const* const file_data, int const file_size, pe_header_info const& hi, memory_manager& mm, my_vector<std::uint16_t>* enpt_out, allocator& enpt_alloc);
 pe_resources_table_info pe_process_resource_table(void const* const file_data, int const file_size, pe_header_info const& hi, memory_manager& mm);
 
 std::pair<section_header const*, std::uint32_t> convert_rva_to_disk_ptr(std::uint32_t const rva, pe_header_info const& hi, section_header const* const section = nullptr);

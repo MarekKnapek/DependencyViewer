@@ -67,16 +67,18 @@ void process_r(processor_impl& prcsr)
 			auto const it = prcsr.m_map.find(sub_name);
 			if(it != prcsr.m_map.cend())
 			{
-				sub_fi.m_orig_instance = it->second;
+				sub_fi.m_orig_instance = it->second.m_fi;
+				prcsr.m_curr_enpt = &it->second.m_enpt;
 			}
 			else
 			{
+				auto& e = (prcsr.m_map[sub_name] = {&sub_fi, {}});
+				prcsr.m_curr_enpt = &e.m_enpt;
 				process_e(prcsr, fi, sub_fi, sub_name);
-				prcsr.m_map[sub_name] = &sub_fi;
 				my_vector_resize(sub_fi.m_sub_file_infos, prcsr.m_mo->m_mm.m_alc, static_cast<int>(sub_fi.m_import_table.m_dlls.size()));
 				prcsr.m_queue.push(&sub_fi);
 			}
-			pair_imports_with_exports(fi, sub_fi);
+			pair_imports_with_exports(prcsr, fi, sub_fi);
 			pair_exports_with_imports(prcsr, fi, sub_fi);
 		}
 	}
@@ -107,7 +109,7 @@ void process_e(processor_impl& prcsr, file_info& fi, file_info& sub_fi, string c
 	pe_header_info const hi = pe_process_header(mmf.begin(), mmf.size());
 	sub_fi.m_is_32_bit = hi.m_is_pe32;
 	sub_fi.m_import_table = pe_process_import_table(mmf.begin(), mmf.size(), hi, prcsr.m_mo->m_mm);
-	sub_fi.m_export_table = pe_process_export_table(mmf.begin(), mmf.size(), hi, prcsr.m_mo->m_mm);
+	sub_fi.m_export_table = pe_process_export_table(mmf.begin(), mmf.size(), hi, prcsr.m_mo->m_mm, prcsr.m_curr_enpt, prcsr.m_entp_alloc);
 	sub_fi.m_resources_table = pe_process_resource_table(mmf.begin(), mmf.size(), hi, prcsr.m_mo->m_mm);
 	sub_fi.m_manifest_data = process_manifest(prcsr, sub_fi);
 }
@@ -150,7 +152,7 @@ std::pair<char const*, int> find_manifest(file_info const& fi)
 	return {};
 }
 
-void pair_imports_with_exports(file_info& fi, file_info& sub_fi)
+void pair_imports_with_exports(processor_impl& prcsr, file_info& fi, file_info& sub_fi)
 {
 	file_info& sub_fi_proper = sub_fi.m_orig_instance ? *sub_fi.m_orig_instance : sub_fi;
 	pe_export_table_info& exp = sub_fi_proper.m_export_table;
@@ -186,7 +188,7 @@ void pair_imports_with_exports(file_info& fi, file_info& sub_fi)
 		{
 			std::uint16_t const& hint = impe.m_ordinal_or_hint;
 			string const* const& name = impe.m_name;
-			auto const& enpt = exp.m_enpt;
+			auto const& enpt = *prcsr.m_curr_enpt;
 			if(hint < enpt.size() && string_equal{}(eat[enpt[hint]].m_name, name))
 			{
 				impe.m_matched_export = enpt[hint];

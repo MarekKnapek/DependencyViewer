@@ -243,7 +243,7 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 	return ret;
 }
 
-pe_export_table_info pe_process_export_table(void const* const fd, int const fs, pe_header_info const& hi, memory_manager& mm)
+pe_export_table_info pe_process_export_table(void const* const fd, int const fs, pe_header_info const& hi, memory_manager& mm, my_vector<std::uint16_t>* enpt_out, allocator& enpt_alloc)
 {
 	char const* const file_data = static_cast<char const*>(fd);
 	std::uint32_t const file_size = static_cast<std::uint32_t>(fs);
@@ -279,8 +279,8 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 
 	std::uint16_t const eat_count_proper = static_cast<std::uint16_t>(std::count_if(eat.m_table, eat.m_table + eat.m_count, [](pe_export_address_entry const& eae){ return eae.m_export_rva != 0; }));
 	my_vector_resize(ret.m_export_address_table, mm.m_alc, eat_count_proper);
-	my_vector_resize(ret.m_enpt, mm.m_alc, enpt.m_count);
-	std::fill(ret.m_enpt.begin(), ret.m_enpt.end(), static_cast<std::uint16_t>(0xffff));
+	my_vector_resize(*enpt_out, enpt_alloc, enpt.m_count);
+	std::fill(enpt_out->begin(), enpt_out->end(), static_cast<std::uint16_t>(0xffff));
 	std::uint16_t const ordinal_base = static_cast<std::uint16_t>(edt.m_table->m_ordinal_base);
 	ret.m_ordinal_base = ordinal_base;
 	std::uint16_t j = 0;
@@ -324,8 +324,8 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 			string const* const export_name = mm.m_strs.add_string(ean.m_str, ean.m_len, mm.m_alc);
 			ret.m_export_address_table[j].m_hint = hint;
 			ret.m_export_address_table[j].m_name = export_name;
-			VERIFY(ret.m_enpt[hint] == 0xffff);
-			ret.m_enpt[hint] = j;
+			VERIFY((*enpt_out)[hint] == 0xffff);
+			(*enpt_out)[hint] = j;
 			++hint_idx;
 		}
 		else
@@ -336,7 +336,7 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 		++j;
 	}
 	VERIFY(hint_idx == static_cast<int>(edt.m_table->m_names_count));
-	VERIFY(std::is_sorted(ret.m_enpt.cbegin(), ret.m_enpt.cend(), [&](auto const& a, auto const& b)
+	VERIFY(std::is_sorted(enpt_out->cbegin(), enpt_out->cend(), [&](auto const& a, auto const& b)
 	{
 		auto const& aa = ret.m_export_address_table[a].m_name;
 		auto const& bb = ret.m_export_address_table[b].m_name;

@@ -104,6 +104,8 @@ void test()
 		pe_import_table_info it;
 		pe_export_table_info et;
 		pe_resources_table_info rs;
+		my_vector<std::uint16_t> enpt;
+		allocator enpt_alloc;
 		try
 		{
 			hi = pe_process_header(mmf.begin(), mmf.size());
@@ -125,7 +127,7 @@ void test()
 		}
 		try
 		{
-			et = pe_process_export_table(mmf.begin(), mmf.size(), hi, mm);
+			et = pe_process_export_table(mmf.begin(), mmf.size(), hi, mm, &enpt, enpt_alloc);
 		}
 		catch(wchar_t const* const&)
 		{
