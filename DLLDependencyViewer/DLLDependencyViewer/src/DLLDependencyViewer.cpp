@@ -28,6 +28,7 @@
 #include "nogui/memory_manager.cpp"
 #include "nogui/memory_mapped_file.cpp"
 #include "nogui/pe.cpp"
+#include "nogui/pe2.cpp"
 #include "nogui/smart_com_interface.cpp"
 #include "nogui/smart_handle.cpp"
 #include "nogui/smart_library.cpp"

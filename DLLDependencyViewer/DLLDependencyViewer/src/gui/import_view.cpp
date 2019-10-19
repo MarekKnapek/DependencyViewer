@@ -5,15 +5,16 @@
 #include "main_window.h"
 #include "smart_dc.h"
 
-#include "../nogui/pe.h"
+#include "../nogui/array_bool.h"
 #include "../nogui/int_to_string.h"
+#include "../nogui/pe.h"
 #include "../nogui/scope_exit.h"
 
 #include "../res/resources.h"
 
 #include <algorithm>
-#include <iterator>
 #include <cassert>
+#include <iterator>
 
 #include <windowsx.h>
 #include <commctrl.h>
@@ -124,10 +125,10 @@ void import_view::on_getdispinfow(NMHDR& nmhdr)
 	assert(got_selected == TRUE);
 	file_info const& fi_tmp = *reinterpret_cast<file_info*>(ti.lParam);
 	file_info const& fi = fi_tmp.m_orig_instance ? *fi_tmp.m_orig_instance : fi_tmp;
-	int const dll_idx = static_cast<int>(&fi_tmp - parent_fi.m_sub_file_infos.data());
+	std::uint16_t const dll_idx = static_cast<std::uint16_t>(&fi_tmp - parent_fi.m_sub_file_infos.data());
 	int const row = nm.item.iItem;
 	int const col = nm.item.iSubItem;
-	pe_import_entry const& import_entry = parent_fi.m_import_table.m_dlls[dll_idx].m_entries[row];
+	std::uint16_t const imp_idx = static_cast<std::uint16_t>(row);
 	e_import_column const ecol = static_cast<e_import_column>(col);
 	if((nm.item.mask | LVIF_TEXT) != 0)
 	{
@@ -140,22 +141,22 @@ void import_view::on_getdispinfow(NMHDR& nmhdr)
 			break;
 			case e_import_column::e_type:
 			{
-				nm.item.pszText = const_cast<wchar_t*>(on_get_col_type(import_entry));
+				nm.item.pszText = const_cast<wchar_t*>(on_get_col_type(parent_fi.m_import_table, dll_idx, imp_idx));
 			}
 			break;
 			case e_import_column::e_ordinal:
 			{
-				nm.item.pszText = const_cast<wchar_t*>(on_get_col_ordinal(import_entry, fi));
+				nm.item.pszText = const_cast<wchar_t*>(on_get_col_ordinal(parent_fi.m_import_table, dll_idx, imp_idx, fi));
 			}
 			break;
 			case e_import_column::e_hint:
 			{
-				nm.item.pszText = const_cast<wchar_t*>(on_get_col_hint(import_entry, fi));
+				nm.item.pszText = const_cast<wchar_t*>(on_get_col_hint(parent_fi.m_import_table, dll_idx, imp_idx, fi));
 			}
 			break;
 			case e_import_column::e_name:
 			{
-				nm.item.pszText = const_cast<wchar_t*>(on_get_col_name(import_entry, fi));
+				nm.item.pszText = const_cast<wchar_t*>(on_get_col_name(parent_fi.m_import_table, dll_idx, imp_idx, fi));
 			}
 			break;
 			default:
@@ -167,8 +168,10 @@ void import_view::on_getdispinfow(NMHDR& nmhdr)
 	}
 	if((nm.item.mask & LVIF_IMAGE) != 0)
 	{
-		bool const matched = import_entry.m_matched_export != 0xffff;
-		bool const ordinal = import_entry.m_is_ordinal;
+		std::uint16_t const matched_export = parent_fi.m_import_table.m_matched_exports[dll_idx][imp_idx];
+		bool const is_ordinal = array_bool_tst(parent_fi.m_import_table.m_are_ordinals[dll_idx], imp_idx);
+		bool const matched = matched_export != 0xffff;
+		bool const ordinal = is_ordinal;
 		if(matched && ordinal)
 		{
 			nm.item.iImage = s_res_icon_import_found_o;
@@ -259,8 +262,8 @@ void import_view::on_context_menu(LPARAM const lparam)
 	assert(got_item_2 == TRUE);
 	file_info const& parent_fi = *reinterpret_cast<file_info*>(ti_2.lParam);
 	int const ith_dll = static_cast<int>(&fi - parent_fi.m_sub_file_infos.data());
-	std::uint16_t const& matched = parent_fi.m_import_table.m_dlls[ith_dll].m_entries[ith_import].m_matched_export;
-	bool const enable_goto_orig = matched != 0xffff;
+	std::uint16_t const matched_export = parent_fi.m_import_table.m_matched_exports[ith_dll][ith_import];
+	bool const enable_goto_orig = matched_export != 0xffff;
 	HMENU const menu = reinterpret_cast<HMENU>(m_menu.get());
 	BOOL const enabled = EnableMenuItem(menu, static_cast<std::uint16_t>(e_import_menu_id::e_matching), MF_BYCOMMAND | (enable_goto_orig ? MF_ENABLED : MF_GRAYED));
 	assert(enabled != -1 && (enabled == MF_ENABLED || enabled == MF_GRAYED));
@@ -330,7 +333,7 @@ void import_view::refresh()
 		file_info const& parent_fi = *reinterpret_cast<file_info*>(ti_2.lParam);
 		int const idx = static_cast<int>(&fi_tmp - parent_fi.m_sub_file_infos.data());
 
-		LRESULT const set_size = SendMessageW(m_hwnd, LVM_SETITEMCOUNT, parent_fi.m_import_table.m_dlls[idx].m_entries.size(), 0);
+		LRESULT const set_size = SendMessageW(m_hwnd, LVM_SETITEMCOUNT, parent_fi.m_import_table.m_import_counts[idx], 0);
 		assert(set_size != 0);
 	}
 
@@ -386,9 +389,10 @@ smart_menu import_view::create_menu()
 	return smart_menu{menu};
 }
 
-wchar_t const* import_view::on_get_col_type(pe_import_entry const& import_entry)
+wchar_t const* import_view::on_get_col_type(pe_import_table_info const& iti, std::uint16_t const dll_idx, std::uint16_t const imp_idx)
 {
-	if(import_entry.m_is_ordinal)
+	bool const is_ordinal = array_bool_tst(iti.m_are_ordinals[dll_idx], imp_idx);
+	if(is_ordinal)
 	{
 		return s_import_type_true;
 	}
@@ -398,19 +402,22 @@ wchar_t const* import_view::on_get_col_type(pe_import_entry const& import_entry)
 	}
 }
 
-wchar_t const* import_view::on_get_col_ordinal(pe_import_entry const& import_entry, file_info const& fi)
+wchar_t const* import_view::on_get_col_ordinal(pe_import_table_info const& iti, std::uint16_t const dll_idx, std::uint16_t const imp_idx, file_info const& fi)
 {
-	if(import_entry.m_is_ordinal)
+	bool const is_ordinal = array_bool_tst(iti.m_are_ordinals[dll_idx], imp_idx);
+	if(is_ordinal)
 	{
+		std::uint16_t const ordinal = iti.m_ordinals_or_hints[dll_idx][imp_idx];
 		std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-		ordinal_to_string(import_entry.m_ordinal_or_hint, tmpstr);
+		ordinal_to_string(ordinal, tmpstr);
 		return tmpstr.c_str();
 	}
 	else
 	{
-		if(import_entry.m_matched_export != 0xffff)
+		std::uint16_t const matched_export = iti.m_matched_exports[dll_idx][imp_idx];
+		if(matched_export != 0xffff)
 		{
-			return m_main_window.m_export_view.on_get_col_ordinal(fi.m_export_table.m_export_address_table[import_entry.m_matched_export]);
+			return m_main_window.m_export_view.on_get_col_ordinal(fi.m_export_table.m_export_address_table[matched_export]);
 		}
 		else
 		{
@@ -419,13 +426,15 @@ wchar_t const* import_view::on_get_col_ordinal(pe_import_entry const& import_ent
 	}
 }
 
-wchar_t const* import_view::on_get_col_hint(pe_import_entry const& import_entry, file_info const& fi)
+wchar_t const* import_view::on_get_col_hint(pe_import_table_info const& iti, std::uint16_t const dll_idx, std::uint16_t const imp_idx, file_info const& fi)
 {
-	if(import_entry.m_is_ordinal)
+	bool const is_ordinal = array_bool_tst(iti.m_are_ordinals[dll_idx], imp_idx);
+	if(is_ordinal)
 	{
-		if(import_entry.m_matched_export != 0xffff)
+		std::uint16_t const matched_export = iti.m_matched_exports[dll_idx][imp_idx];
+		if(matched_export != 0xffff)
 		{
-			return m_main_window.m_export_view.on_get_col_hint(fi.m_export_table.m_export_address_table[import_entry.m_matched_export]);
+			return m_main_window.m_export_view.on_get_col_hint(fi.m_export_table.m_export_address_table[matched_export]);
 		}
 		else
 		{
@@ -434,19 +443,22 @@ wchar_t const* import_view::on_get_col_hint(pe_import_entry const& import_entry,
 	}
 	else
 	{
+		std::uint16_t const hint = iti.m_ordinals_or_hints[dll_idx][imp_idx];
 		std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-		ordinal_to_string(import_entry.m_ordinal_or_hint, tmpstr);
+		ordinal_to_string(hint, tmpstr);
 		return tmpstr.c_str();
 	}
 }
 
-wchar_t const* import_view::on_get_col_name(pe_import_entry const& import_entry, file_info const& fi)
+wchar_t const* import_view::on_get_col_name(pe_import_table_info const& iti, std::uint16_t const dll_idx, std::uint16_t const imp_idx, file_info const& fi)
 {
-	if(import_entry.m_is_ordinal)
+	bool const is_ordinal = array_bool_tst(iti.m_are_ordinals[dll_idx], imp_idx);
+	if(is_ordinal)
 	{
-		if(import_entry.m_matched_export != 0xffff)
+		std::uint16_t const matched_export = iti.m_matched_exports[dll_idx][imp_idx];
+		if(matched_export != 0xffff)
 		{
-			return m_main_window.m_export_view.on_get_col_name(fi.m_export_table.m_export_address_table[import_entry.m_matched_export]);
+			return m_main_window.m_export_view.on_get_col_name(fi.m_export_table.m_export_address_table[matched_export]);
 		}
 		else
 		{
@@ -455,9 +467,10 @@ wchar_t const* import_view::on_get_col_name(pe_import_entry const& import_entry,
 	}
 	else
 	{
+		string const* const name = iti.m_names[dll_idx][imp_idx];
 		std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-		tmpstr.resize(import_entry.m_name->m_len);
-		std::transform(cbegin(import_entry.m_name), cend(import_entry.m_name), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
+		tmpstr.resize(name->m_len);
+		std::transform(cbegin(name), cend(name), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
 		return tmpstr.c_str();
 	}
 }
@@ -494,7 +507,7 @@ void import_view::select_matching_instance()
 	assert(got_item_2 == TRUE);
 	file_info const& parent_fi = *reinterpret_cast<file_info*>(ti_2.lParam);
 	int const ith_dll = static_cast<int>(&fi - parent_fi.m_sub_file_infos.data());
-	std::uint16_t const& matched = parent_fi.m_import_table.m_dlls[ith_dll].m_entries[ith_import].m_matched_export;
+	std::uint16_t const matched = parent_fi.m_import_table.m_matched_exports[ith_dll][ith_import];
 	if(matched == 0xffff)
 	{
 		return;

@@ -89,10 +89,10 @@ void tree_view::on_getdispinfow(NMHDR& nmhdr)
 			if(parent_fi)
 			{
 				int const idx = static_cast<int>(&tmp_fi - parent_fi->m_sub_file_infos.data());
-				string const& my_name = *parent_fi->m_import_table.m_dlls[idx].m_dll_name;
+				string const* const my_name = parent_fi->m_import_table.m_dll_names[idx];
 				std::wstring& tmp = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-				tmp.resize(my_name.m_len);
-				std::transform(my_name.m_str, my_name.m_str + my_name.m_len, tmp.begin(), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
+				tmp.resize(my_name->m_len);
+				std::transform(my_name->m_str, my_name->m_str + my_name->m_len, tmp.begin(), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
 				di.item.pszText = const_cast<wchar_t*>(tmp.c_str());
 			}
 			else
@@ -108,7 +108,7 @@ void tree_view::on_getdispinfow(NMHDR& nmhdr)
 		if(parent_fi)
 		{
 			std::uint16_t const idx = static_cast<std::uint16_t>(&tmp_fi - parent_fi->m_sub_file_infos.data());
-			delay = idx >= parent_fi->m_import_table.m_nondelay_imports_count;
+			delay = idx >= parent_fi->m_import_table.m_non_delay_dll_count;
 		}
 		else
 		{

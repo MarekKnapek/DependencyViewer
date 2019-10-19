@@ -91,24 +91,24 @@ bool pe_parse_import_address_table(void const* const& fd, int const& file_size, 
 	WARN_M_R(iat_raw != 0, L"Could not find import address table in any section.", false);
 	if(is_32)
 	{
-		std::uint32_t const iat_cnt_max = std::min(64u * 1024u, (sct->m_raw_ptr + sct->m_raw_size - iat_raw) / static_cast<int>(sizeof(pe_import_lookup_entry_32)));
+		std::uint32_t const iat_cnt_max = std::min<std::uint32_t>(0xffff, (sct->m_raw_ptr + sct->m_raw_size - iat_raw) / static_cast<int>(sizeof(pe_import_lookup_entry_32)));
 		pe_import_lookup_entry_32 const* const iat = reinterpret_cast<pe_import_lookup_entry_32 const*>(file_data + iat_raw);
 		pe_import_lookup_entry_32 const* const iat_end_max = iat + iat_cnt_max;
 		auto const it = std::find(iat, iat_end_max, pe_import_lookup_entry_32{});
 		WARN_M_R(it != iat_end_max, L"Could not find import address table size.", false);
-		int const iat_cnt = static_cast<int>(it - iat);
+		std::uint16_t const iat_cnt = static_cast<std::uint16_t>(it - iat);
 		iat_out->m_raw = iat_raw;
 		iat_out->m_count = iat_cnt;
 		return true;
 	}
 	else
 	{
-		std::uint32_t const iat_cnt_max = std::min(64u * 1024u, (sct->m_raw_ptr + sct->m_raw_size - iat_raw) / static_cast<int>(sizeof(pe_import_lookup_entry_64)));
+		std::uint32_t const iat_cnt_max = std::min<std::uint32_t>(0xffff, (sct->m_raw_ptr + sct->m_raw_size - iat_raw) / static_cast<int>(sizeof(pe_import_lookup_entry_64)));
 		pe_import_lookup_entry_64 const* const iat = reinterpret_cast<pe_import_lookup_entry_64 const*>(file_data + iat_raw);
 		pe_import_lookup_entry_64 const* const iat_end_max = iat + iat_cnt_max;
 		auto const it = std::find(iat, iat_end_max, pe_import_lookup_entry_64{});
 		WARN_M_R(it != iat_end_max, L"Could not find import address table size.", false);
-		int const iat_cnt = static_cast<int>(it - iat);
+		std::uint16_t const iat_cnt = static_cast<std::uint16_t>(it - iat);
 		iat_out->m_raw = iat_raw;
 		iat_out->m_count = iat_cnt;
 		return true;
@@ -255,24 +255,24 @@ bool pe_parse_delay_import_address_table(void const* const& fd, int const& file_
 	WARN_M_R(dliat_raw != 0, L"Could not find delay load import address table in any section.", false);
 	if(is_32)
 	{
-		std::uint32_t const dliat_cnt_max = std::min(64u * 1024u, (sct->m_raw_ptr + sct->m_raw_size - dliat_raw) / static_cast<int>(sizeof(pe_import_lookup_entry_32)));
+		std::uint32_t const dliat_cnt_max = std::min<std::uint32_t>(0xffff, (sct->m_raw_ptr + sct->m_raw_size - dliat_raw) / static_cast<int>(sizeof(pe_import_lookup_entry_32)));
 		pe_import_lookup_entry_32 const* const dliat = reinterpret_cast<pe_import_lookup_entry_32 const*>(file_data + dliat_raw);
 		pe_import_lookup_entry_32 const* const dliat_end_max = dliat + dliat_cnt_max;
 		auto const it = std::find(dliat, dliat_end_max, pe_import_lookup_entry_32{});
 		WARN_M_R(it != dliat_end_max, L"Could not find delay import address table size.", false);
-		int const dliat_cnt = static_cast<int>(it - dliat);
+		std::uint16_t const dliat_cnt = static_cast<std::uint16_t>(it - dliat);
 		dliat_out->m_raw = dliat_raw;
 		dliat_out->m_count = dliat_cnt;
 		return true;
 	}
 	else
 	{
-		std::uint32_t const dliat_cnt_max = std::min(64u * 1024u, (sct->m_raw_ptr + sct->m_raw_size - dliat_raw) / static_cast<int>(sizeof(pe_import_lookup_entry_64)));
+		std::uint32_t const dliat_cnt_max = std::min<std::uint32_t>(0xffff, (sct->m_raw_ptr + sct->m_raw_size - dliat_raw) / static_cast<int>(sizeof(pe_import_lookup_entry_64)));
 		pe_import_lookup_entry_64 const* const dliat = reinterpret_cast<pe_import_lookup_entry_64 const*>(file_data + dliat_raw);
 		pe_import_lookup_entry_64 const* const dliat_end_max = dliat + dliat_cnt_max;
 		auto const it = std::find(dliat, dliat_end_max, pe_import_lookup_entry_64{});
 		WARN_M_R(it != dliat_end_max, L"Could not find delay import address table size.", false);
-		int const dliat_cnt = static_cast<int>(it - dliat);
+		std::uint16_t const dliat_cnt = static_cast<std::uint16_t>(it - dliat);
 		dliat_out->m_raw = dliat_raw;
 		dliat_out->m_count = dliat_cnt;
 		return true;

@@ -2,9 +2,11 @@
 
 #include "search.h"
 
+#include "../nogui/array_bool.h"
 #include "../nogui/file_name_provider.h"
 #include "../nogui/manifest_parser.h"
 #include "../nogui/memory_mapped_file.h"
+#include "../nogui/pe2.h"
 #include "../nogui/unicode.h"
 #include "../nogui/unique_strings.h"
 #include "../nogui/utils.h"
@@ -30,22 +32,27 @@ main_type process_impl(std::vector<std::wstring> const& file_paths)
 	file_info& fi = mo.m_fi;
 	fi.m_orig_instance = nullptr;
 	fi.m_file_path = nullptr;
-	int const n = static_cast<int>(file_paths.size());
+	assert(file_paths.size() <= 0xffff);
+	std::uint16_t const n = static_cast<std::uint16_t>(file_paths.size());
 	my_vector_resize(fi.m_sub_file_infos, mo.m_mm.m_alc, n);
-	my_vector_resize(fi.m_import_table.m_dlls, mo.m_mm.m_alc, n);
 	for(int i = 0; i != n; ++i)
 	{
 		std::wstring p = std::filesystem::path(file_paths[i]).replace_filename(L"xxx.xxx");
 		int const len = static_cast<int>(file_paths[i].size());
 		fi.m_sub_file_infos[i].m_file_path = mo.m_mm.m_wstrs.add_string(p.c_str(), static_cast<int>(p.size()), mo.m_mm.m_alc);
 		my_vector_resize(fi.m_sub_file_infos[i].m_sub_file_infos, mo.m_mm.m_alc, 1);
-		my_vector_resize(fi.m_sub_file_infos[i].m_import_table.m_dlls, mo.m_mm.m_alc, 1);
 		wchar_t const* const name = find_file_name(file_paths[i].c_str(), len);
 		int const name_len = static_cast<int>(file_paths[i].c_str() + len - name);
 		assert(is_ascii(name, name_len));
 		mo.m_tmpn.resize(name_len);
 		std::transform(name, name + name_len, begin(mo.m_tmpn), [](wchar_t const& e) -> char { return static_cast<char>(e); });
-		fi.m_sub_file_infos[i].m_import_table.m_dlls[0].m_dll_name = mo.m_mm.m_strs.add_string(mo.m_tmpn.c_str(), name_len, mo.m_mm.m_alc);
+		string const** const dll_names = mo.m_mm.m_alc.allocate_objects<string const*>(1);
+		dll_names[0] = mo.m_mm.m_strs.add_string(mo.m_tmpn.c_str(), name_len, mo.m_mm.m_alc);
+		fi.m_sub_file_infos[i].m_import_table.m_dll_count = 1;
+		fi.m_sub_file_infos[i].m_import_table.m_non_delay_dll_count = 0;
+		fi.m_sub_file_infos[i].m_import_table.m_dll_names = dll_names;
+		static constexpr const std::uint16_t s_zero_imports = 0;
+		fi.m_sub_file_infos[i].m_import_table.m_import_counts = &s_zero_imports;
 		prcsr.m_queue.push(&fi.m_sub_file_infos[i]);
 	}
 	process_r(prcsr);
@@ -58,11 +65,11 @@ void process_r(processor_impl& prcsr)
 	{
 		file_info& fi = *prcsr.m_queue.front();
 		prcsr.m_queue.pop();
-		int const n = static_cast<int>(fi.m_import_table.m_dlls.size());
-		for(int i = 0; i != n; ++i)
+		std::uint16_t const n = fi.m_import_table.m_dll_count;
+		for(std::uint16_t i = 0; i != n; ++i)
 		{
 			file_info& sub_fi = fi.m_sub_file_infos[i];
-			string const* const& sub_name = fi.m_import_table.m_dlls[i].m_dll_name;
+			string const* const& sub_name = fi.m_import_table.m_dll_names[i];
 			auto const it = prcsr.m_map.find(sub_name);
 			if(it != prcsr.m_map.cend())
 			{
@@ -74,7 +81,7 @@ void process_r(processor_impl& prcsr)
 				auto& e = (prcsr.m_map[sub_name] = {&sub_fi, {}});
 				prcsr.m_curr_enpt = &e.m_enpt;
 				process_e(prcsr, fi, sub_fi, sub_name);
-				my_vector_resize(sub_fi.m_sub_file_infos, prcsr.m_mo->m_mm.m_alc, static_cast<int>(sub_fi.m_import_table.m_dlls.size()));
+				my_vector_resize(sub_fi.m_sub_file_infos, prcsr.m_mo->m_mm.m_alc, sub_fi.m_import_table.m_dll_count);
 				prcsr.m_queue.push(&sub_fi);
 			}
 			pair_imports_with_exports(prcsr, fi, sub_fi);
@@ -107,7 +114,12 @@ void process_e(processor_impl& prcsr, file_info& fi, file_info& sub_fi, string c
 	memory_mapped_file const mmf = memory_mapped_file(sub_fi.m_file_path->m_str);
 	pe_header_info const hi = pe_process_header(mmf.begin(), mmf.size());
 	sub_fi.m_is_32_bit = hi.m_is_pe32;
-	sub_fi.m_import_table = pe_process_import_table(mmf.begin(), mmf.size(), hi, prcsr.m_mo->m_mm);
+	bool const iti_processed = pe_process_all(mmf.begin(), mmf.size(), prcsr.m_mo->m_mm, &sub_fi.m_import_table);
+	if(!iti_processed)
+	{
+		wchar_t const err[] = L"Failed to process import tables.";
+		throw static_cast<wchar_t const*>(err);
+	}
 	sub_fi.m_export_table = pe_process_export_table(mmf.begin(), mmf.size(), hi, prcsr.m_mo->m_mm, prcsr.m_curr_enpt, prcsr.m_entp_alloc);
 	sub_fi.m_resources_table = pe_process_resource_table(mmf.begin(), mmf.size(), hi, prcsr.m_mo->m_mm);
 	sub_fi.m_manifest_data = process_manifest(prcsr, sub_fi);
@@ -156,56 +168,60 @@ void pair_imports_with_exports(processor_impl& prcsr, file_info& fi, file_info& 
 	file_info& sub_fi_proper = sub_fi.m_orig_instance ? *sub_fi.m_orig_instance : sub_fi;
 	pe_export_table_info& exp = sub_fi_proper.m_export_table;
 	auto const& eat = exp.m_export_address_table;
-	int const dll_idx = static_cast<int>(&sub_fi - fi.m_sub_file_infos.data());
-	auto& impes = fi.m_import_table.m_dlls[dll_idx].m_entries;
-	int const n = static_cast<int>(impes.size());
+	std::uint16_t const dll_idx = static_cast<std::uint16_t>(&sub_fi - fi.m_sub_file_infos.data());
+	std::uint16_t const n = fi.m_import_table.m_import_counts[dll_idx];
 	for(int i = 0; i != n; ++i)
 	{
-		auto& impe = impes[i];
-		if(impe.m_is_ordinal)
+		std::uint16_t& matched_export = fi.m_import_table.m_matched_exports[dll_idx][i];
+		bool const is_ordinal = array_bool_tst(fi.m_import_table.m_are_ordinals[dll_idx], i);
+		if(is_ordinal)
 		{
-			std::uint16_t const ordinal = impe.m_ordinal_or_hint;
+			std::uint16_t const ordinal = fi.m_import_table.m_ordinals_or_hints[dll_idx][i];
 			std::uint16_t const ordinal_as_idx = ordinal - exp.m_ordinal_base;
 			if(ordinal_as_idx < eat.size() && eat[ordinal_as_idx].m_ordinal == ordinal)
 			{
-				impe.m_matched_export = ordinal_as_idx;
+				matched_export = ordinal_as_idx;
 			}
 			else
 			{
 				auto const it = std::lower_bound(eat.cbegin(), eat.cend(), ordinal, [](auto const& e, auto const& v){ return e.m_ordinal < v; });
 				if(it != eat.cend() && it->m_ordinal == ordinal)
 				{
-					impe.m_matched_export = static_cast<std::uint16_t>(it - eat.cbegin());
+					matched_export = static_cast<std::uint16_t>(it - eat.cbegin());
 				}
 				else
 				{
-					impe.m_matched_export = 0xffff;
+					matched_export = 0xffff;
 				}
 			}
 		}
 		else
 		{
-			std::uint16_t const& hint = impe.m_ordinal_or_hint;
-			string const* const& name = impe.m_name;
+			std::uint16_t const hint = fi.m_import_table.m_ordinals_or_hints[dll_idx][i];
+			string const* const name = fi.m_import_table.m_names[dll_idx][i];
 			auto const& enpt = *prcsr.m_curr_enpt;
 			if(hint < enpt.size() && string_equal{}(eat[enpt[hint]].m_name, name))
 			{
-				impe.m_matched_export = enpt[hint];
+				matched_export = enpt[hint];
 			}
 			else
 			{
 				auto const it = std::lower_bound(enpt.cbegin(), enpt.cend(), name, [&](auto const& e, auto const& v){ return string_less{}(eat[e].m_name, v); });
 				if(it != enpt.cend() && string_equal{}(eat[*it].m_name, name))
 				{
-					impe.m_matched_export = *it;
+					matched_export = *it;
 				}
 				else
 				{
-					impe.m_matched_export = 0xffff;
+					matched_export = 0xffff;
 				}
 			}
 		}
-		assert(impe.m_matched_export == 0xffff || (impe.m_is_ordinal ? (impe.m_ordinal_or_hint == eat[impe.m_matched_export].m_ordinal) : (string_equal{}(impe.m_name, eat[impe.m_matched_export].m_name))));
+		#define ordinal_macro (fi.m_import_table.m_ordinals_or_hints[dll_idx][i])
+		#define name_macro (fi.m_import_table.m_names[dll_idx][i])
+		assert(matched_export == 0xffff || (is_ordinal ? (ordinal_macro == eat[matched_export].m_ordinal) : (string_equal{}(name_macro, eat[matched_export].m_name))));
+		#undef name_macro
+		#undef ordinal_macro
 	}
 }
 
@@ -217,11 +233,10 @@ void pair_exports_with_imports(processor_impl& prcsr, file_info& fi, file_info& 
 	sub_fi.m_matched_imports = prcsr.m_mo->m_mm.m_alc.allocate_objects<std::uint16_t>(n_exports);
 	std::fill(sub_fi.m_matched_imports, sub_fi.m_matched_imports + n_exports, static_cast<std::uint16_t>(0xffff));
 	int const dll_idx = static_cast<int>(&sub_fi - fi.m_sub_file_infos.data());
-	auto const& imports = fi.m_import_table.m_dlls[dll_idx].m_entries;
-	std::uint16_t const n_imports = static_cast<std::uint16_t>(imports.size());
+	std::uint16_t const n_imports = fi.m_import_table.m_import_counts[dll_idx];
 	for(std::uint16_t i = 0; i != n_imports; ++i)
 	{
-		std::uint16_t const& matched_export = imports[i].m_matched_export;
+		std::uint16_t const matched_export = fi.m_import_table.m_matched_exports[dll_idx][i];
 		if(matched_export == 0xffff)
 		{
 			continue;

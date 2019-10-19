@@ -28,24 +28,16 @@ struct pe_header_info
 	std::uint32_t m_section_headers_start;
 };
 
-struct pe_import_entry
-{
-	string const* m_name;
-	std::uint16_t m_ordinal_or_hint;
-	std::uint16_t m_matched_export;
-	bool m_is_ordinal;
-};
-
-struct pe_import_dll_with_entries
-{
-	string const* m_dll_name = nullptr;
-	my_vector<pe_import_entry> m_entries;
-};
-
 struct pe_import_table_info
 {
-	my_vector<pe_import_dll_with_entries> m_dlls;
-	std::uint16_t m_nondelay_imports_count = 0;
+	std::uint16_t m_dll_count;
+	std::uint16_t m_non_delay_dll_count;
+	string const* const* m_dll_names;
+	std::uint16_t const* m_import_counts;
+	unsigned const* const* m_are_ordinals;
+	std::uint16_t const* const* m_ordinals_or_hints;
+	string const* const* const* m_names;
+	std::uint16_t* const* m_matched_exports;
 };
 
 struct export_address_entry
@@ -96,7 +88,6 @@ struct pe_resources_table_info
 
 
 pe_header_info pe_process_header(void const* const file_data, int const file_size);
-pe_import_table_info pe_process_import_table(void const* const file_data, int const file_size, pe_header_info const& hi, memory_manager& mm);
 pe_export_table_info pe_process_export_table(void const* const file_data, int const file_size, pe_header_info const& hi, memory_manager& mm, my_vector<std::uint16_t>* enpt_out, allocator& enpt_alloc);
 pe_resources_table_info pe_process_resource_table(void const* const file_data, int const file_size, pe_header_info const& hi, memory_manager& mm);
 

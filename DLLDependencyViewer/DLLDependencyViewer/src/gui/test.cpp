@@ -3,6 +3,7 @@
 #include "../nogui/memory_manager.h"
 #include "../nogui/memory_mapped_file.h"
 #include "../nogui/pe.h"
+#include "../nogui/pe2.h"
 #include "../nogui/smart_local_free.h"
 
 #include <cassert>
@@ -101,7 +102,6 @@ void test()
 		}
 		memory_manager mm;
 		pe_header_info hi;
-		pe_import_table_info it;
 		pe_export_table_info et;
 		pe_resources_table_info rs;
 		my_vector<std::uint16_t> enpt;
@@ -116,11 +116,9 @@ void test()
 			OutputDebugStringW(L"\n");
 			continue;
 		}
-		try
-		{
-			it = pe_process_import_table(mmf.begin(), mmf.size(), hi, mm);
-		}
-		catch(wchar_t const* const&)
+		pe_import_table_info iti;
+		bool const iti_processed = pe_process_all(mmf.begin(), mmf.size(), mm, &iti);
+		if(!iti_processed)
 		{
 			OutputDebugStringW(p.c_str());
 			OutputDebugStringW(L"\n");

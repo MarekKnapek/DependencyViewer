@@ -27,7 +27,7 @@ struct pe_import_directory_table
 struct pe_import_address_table
 {
 	std::uint32_t m_raw;
-	int m_count;
+	std::uint16_t m_count;
 };
 
 struct pe_import_lookup_entry_32
@@ -76,7 +76,7 @@ struct pe_delay_import_table
 struct pe_delay_load_import_address_table
 {
 	std::uint32_t m_raw;
-	int m_count;
+	std::uint16_t m_count;
 };
 
 

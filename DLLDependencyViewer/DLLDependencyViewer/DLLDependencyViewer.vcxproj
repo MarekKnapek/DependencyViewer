@@ -227,6 +227,7 @@
     <ClInclude Include="src\nogui\my_vector.h" />
     <ClInclude Include="src\nogui\my_windows.h" />
     <ClInclude Include="src\nogui\pe.h" />
+    <ClInclude Include="src\nogui\pe2.h" />
     <ClInclude Include="src\nogui\pe\coff.h" />
     <ClInclude Include="src\nogui\pe\coff_full.h" />
     <ClInclude Include="src\nogui\pe\coff_optional_standard.h" />
@@ -366,6 +367,10 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\nogui\pe.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="src\nogui\pe2.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
