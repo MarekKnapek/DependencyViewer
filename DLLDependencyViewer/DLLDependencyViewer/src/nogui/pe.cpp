@@ -138,13 +138,13 @@ pe_header_info pe_process_header(void const* const fd, int const file_size)
 	char const* const file_data = static_cast<char const*>(fd);
 
 	pe_dos_header const* dos_hdr;
-	pe_e_parse_mz_header const mz_parsed = pe_parse_mz_header(file_data, file_size, dos_hdr);
+	pe_e_parse_mz_header const mz_parsed = pe_parse_mz_header(file_data, file_size, &dos_hdr);
 	VERIFY(mz_parsed == pe_e_parse_mz_header::ok);
 
 	pe_coff_full_32_64 const* coff_hdr;
-	bool const coff_parsed = pe_parse_coff_full_32_64(file_data, file_size, coff_hdr);
+	bool const coff_parsed = pe_parse_coff_full_32_64(file_data, file_size, &coff_hdr);
 	VERIFY(coff_parsed);
-	bool const is_32 = coff_hdr->m_32.m_standard.m_signature == s_pe_coff_optional_sig_32;
+	bool const is_32 = pe_is_32_bit(coff_hdr->m_32.m_standard);
 
 	pe_header_info ret;
 	ret.m_file_data = file_data;

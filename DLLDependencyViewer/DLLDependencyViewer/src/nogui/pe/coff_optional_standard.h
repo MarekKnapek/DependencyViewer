@@ -52,8 +52,5 @@ struct pe_coff_optional_header_standard_32_64
 };
 
 
-static constexpr std::uint16_t const s_pe_coff_optional_sig_32 = 0x010b;
-static constexpr std::uint16_t const s_pe_coff_optional_sig_64 = 0x020b;
-
-
-pe_e_parse_coff_optional_header_standard_32_64 pe_parse_coff_optional_header_standard_32_64(void const* const& file_data, int const& file_size, pe_coff_optional_header_standard_32_64 const*& header);
+pe_e_parse_coff_optional_header_standard_32_64 pe_parse_coff_optional_header_standard_32_64(void const* const& file_data, int const& file_size, pe_coff_optional_header_standard_32_64 const** const header_out);
+bool pe_is_32_bit(pe_coff_optional_header_standard_32 const& header);

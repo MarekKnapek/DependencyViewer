@@ -11,7 +11,7 @@ std::uint32_t pe_find_object_in_raw(void const* const& fd, int const& /*file_siz
 	char const* const file_data = static_cast<char const*>(fd);
 	pe_dos_header const& dos_hdr = *reinterpret_cast<pe_dos_header const*>(file_data + 0);
 	pe_coff_full_32_64 const& coff_hdr = *reinterpret_cast<pe_coff_full_32_64 const*>(file_data + dos_hdr.m_pe_offset);
-	bool const is_32 = coff_hdr.m_32.m_standard.m_signature == s_pe_coff_optional_sig_32;
+	bool const is_32 = pe_is_32_bit(coff_hdr.m_32.m_standard);
 	std::uint32_t const data_dir_cnt = is_32 ? coff_hdr.m_32.m_windows.m_data_directory_count : coff_hdr.m_64.m_windows.m_data_directory_count;
 	std::uint32_t const sect_tbl_cnt = is_32 ? coff_hdr.m_32.m_coff.m_section_count : coff_hdr.m_64.m_coff.m_section_count;
 	pe_section_header const* const sect_tbl = reinterpret_cast<pe_section_header const*>(file_data + dos_hdr.m_pe_offset + (is_32 ? sizeof(pe_coff_full_32) : sizeof(pe_coff_full_64)) + data_dir_cnt * sizeof(pe_data_directory));

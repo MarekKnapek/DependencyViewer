@@ -81,4 +81,4 @@ enum class pe_e_directory_table
 };
 
 
-bool pe_parse_coff_full_32_64(void const* const& file_data, int const& file_size, pe_coff_full_32_64 const*& header);
+bool pe_parse_coff_full_32_64(void const* const& file_data, int const& file_size, pe_coff_full_32_64 const** const header_out);

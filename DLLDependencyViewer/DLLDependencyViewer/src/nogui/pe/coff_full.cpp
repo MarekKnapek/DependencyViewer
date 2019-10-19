@@ -4,29 +4,30 @@
 #include "mz.h"
 
 
-bool pe_parse_coff_full_32_64(void const* const& fd, int const& file_size, pe_coff_full_32_64 const*& hd)
+bool pe_parse_coff_full_32_64(void const* const& fd, int const& file_size, pe_coff_full_32_64 const** const header_out)
 {
+	assert(header_out);
 	char const* const file_data = static_cast<char const*>(fd);
 	pe_dos_header const& dosheader = *reinterpret_cast<pe_dos_header const*>(file_data);
 
 	pe_coff_header const* coff_hdr;
-	pe_e_parse_coff_header const coff = pe_parse_coff_header(file_data, file_size, coff_hdr);
+	pe_e_parse_coff_header const coff = pe_parse_coff_header(file_data, file_size, &coff_hdr);
 	WARN_M_R(coff == pe_e_parse_coff_header::ok, L"Failed to pe_parse_coff_header.", false);
 
 	pe_coff_optional_header_standard_32_64 const* coff_opt_std;
-	pe_e_parse_coff_optional_header_standard_32_64 const coff_optional = pe_parse_coff_optional_header_standard_32_64(file_data, file_size, coff_opt_std);
+	pe_e_parse_coff_optional_header_standard_32_64 const coff_optional = pe_parse_coff_optional_header_standard_32_64(file_data, file_size, &coff_opt_std);
 	WARN_M_R(coff_optional == pe_e_parse_coff_optional_header_standard_32_64::ok, L"Failed to pe_parse_coff_optional_header_standard_32_64.", false);
 
 	pe_coff_optional_header_windows_32_64 const* coff_opt_win;
-	pe_e_parse_coff_optional_header_windows_32_64 const coff_windows = pe_parse_coff_optional_header_windows_32_64(file_data, file_size, coff_opt_win);
+	pe_e_parse_coff_optional_header_windows_32_64 const coff_windows = pe_parse_coff_optional_header_windows_32_64(file_data, file_size, &coff_opt_win);
 	WARN_M_R(coff_windows == pe_e_parse_coff_optional_header_windows_32_64::ok, L"Failed to pe_parse_coff_optional_header_windows_32_64.", false);
 
-	bool const is_32 = coff_opt_std->m_32.m_signature == s_pe_coff_optional_sig_32;
+	bool const is_32 = pe_is_32_bit(coff_opt_std->m_32);
 	std::uint32_t const& dir_cnt = is_32 ? coff_opt_win->m_32.m_data_directory_count : coff_opt_win->m_64.m_data_directory_count;
 	WARN_M_R(dir_cnt <= 16, L"Too many data directories.", false);
 	WARN_M_R(coff_hdr->m_optional_header_size == (is_32 ? (sizeof(pe_coff_optional_header_standard_32) + sizeof(pe_coff_optional_header_windows_32)) : (sizeof(pe_coff_optional_header_standard_64) + sizeof(pe_coff_optional_header_windows_64))) + dir_cnt * sizeof(pe_data_directory), L"Optional header size is too small to contain coff_full_32_64.", false);
 	WARN_M_R(file_size >= static_cast<int>(dosheader.m_pe_offset + sizeof(pe_coff_full_32_64)), L"File too small to contain coff_full_32_64.", false);
-	hd = reinterpret_cast<pe_coff_full_32_64 const*>(coff_hdr);
+	pe_coff_full_32_64 const& header = *reinterpret_cast<pe_coff_full_32_64 const*>(coff_hdr);
 	WARN_M_R(file_size >= static_cast<int>(dosheader.m_pe_offset + (is_32 ? sizeof(pe_coff_full_32) : sizeof(pe_coff_full_64) + dir_cnt * sizeof(pe_data_directory))), L"File too small to contain all directories.", false);
 	pe_data_directory const* const directories = reinterpret_cast<pe_data_directory const*>(file_data + dosheader.m_pe_offset + (is_32 ? sizeof(pe_coff_full_32) : sizeof(pe_coff_full_64)));
 	WARN_M(dir_cnt < static_cast<std::uint32_t>(pe_e_directory_table::architecture) || (directories[static_cast<int>(pe_e_directory_table::architecture)].m_va == 0 && directories[static_cast<int>(pe_e_directory_table::architecture)].m_size == 0), L"Architecture is reserved, must be 0.");
@@ -46,5 +47,6 @@ bool pe_parse_coff_full_32_64(void const* const& fd, int const& file_size, pe_co
 		WARN_M_R(file_size >= static_cast<int>(sections[i].m_raw_ptr), L"File too small to contain section.", false);
 		WARN_M_R(file_size >= static_cast<int>(sections[i].m_raw_ptr) + static_cast<int>(sections[i].m_raw_size), L"File too small to contain section.", false);
 	}
+	*header_out = &header;
 	return true;
 }

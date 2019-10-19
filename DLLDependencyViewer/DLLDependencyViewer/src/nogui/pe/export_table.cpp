@@ -21,7 +21,7 @@ bool pe_parse_export_directory_table(void const* const fd, int const file_size, 
 	char const* const file_data = static_cast<char const*>(fd);
 	pe_dos_header const& dos_hdr = *reinterpret_cast<pe_dos_header const*>(file_data + 0);
 	pe_coff_full_32_64 const& coff_hdr = *reinterpret_cast<pe_coff_full_32_64 const*>(file_data + dos_hdr.m_pe_offset);
-	bool const is_32 = coff_hdr.m_32.m_standard.m_signature == s_pe_coff_optional_sig_32;
+	bool const is_32 = pe_is_32_bit(coff_hdr.m_32.m_standard);
 	std::uint32_t const dir_tbl_cnt = is_32 ? coff_hdr.m_32.m_windows.m_data_directory_count : coff_hdr.m_64.m_windows.m_data_directory_count;
 	if(static_cast<int>(pe_e_directory_table::export_table) >= dir_tbl_cnt)
 	{

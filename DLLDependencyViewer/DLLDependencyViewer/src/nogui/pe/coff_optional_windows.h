@@ -76,4 +76,4 @@ struct pe_coff_optional_header_windows_32_64
 };
 
 
-pe_e_parse_coff_optional_header_windows_32_64 pe_parse_coff_optional_header_windows_32_64(void const* const& file_data, int const& file_size, pe_coff_optional_header_windows_32_64 const*& header);
+pe_e_parse_coff_optional_header_windows_32_64 pe_parse_coff_optional_header_windows_32_64(void const* const& file_data, int const& file_size, pe_coff_optional_header_windows_32_64 const** const header_out);

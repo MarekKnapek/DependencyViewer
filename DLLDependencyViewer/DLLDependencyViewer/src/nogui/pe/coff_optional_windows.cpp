@@ -72,17 +72,16 @@ static constexpr std::uint16_t s_image_dllcharacteristics[] =
 bool is_power_of_two(std::uint32_t const& n);
 
 
-pe_e_parse_coff_optional_header_windows_32_64 pe_parse_coff_optional_header_windows_32_64(void const* const& fd, int const& file_size, pe_coff_optional_header_windows_32_64 const*& hd)
+pe_e_parse_coff_optional_header_windows_32_64 pe_parse_coff_optional_header_windows_32_64(void const* const& fd, int const& file_size, pe_coff_optional_header_windows_32_64 const** const header_out)
 {
 	char const* const file_data = static_cast<char const*>(fd);
 	pe_dos_header const& dosheader = *reinterpret_cast<pe_dos_header const*>(file_data + 0);
 	pe_coff_header const& coff_hdr = *reinterpret_cast<pe_coff_header const*>(file_data + dosheader.m_pe_offset);
 	pe_coff_optional_header_standard_32_64 const& coff_opt_std = *reinterpret_cast<pe_coff_optional_header_standard_32_64 const*>(file_data + dosheader.m_pe_offset + sizeof(pe_coff_header));
-	bool const is_32 = coff_opt_std.m_32.m_signature == s_pe_coff_optional_sig_32;
+	bool const is_32 = pe_is_32_bit(coff_opt_std.m_32);
 	WARN_M_R(coff_hdr.m_optional_header_size >= sizeof(pe_coff_optional_header_standard_32_64) + sizeof(pe_coff_optional_header_windows_32_64), L"COFF header contains too small size of coff_optional_header_windows_32_64.", pe_e_parse_coff_optional_header_windows_32_64::coff_has_wrong_optional);
 	WARN_M_R(file_size >= static_cast<int>(dosheader.m_pe_offset + sizeof(pe_coff_header) + sizeof(pe_coff_optional_header_standard_32_64) + sizeof(pe_coff_optional_header_windows_32_64)), L"File is too small to contain coff_optional_header_windows_32_64.", pe_e_parse_coff_optional_header_windows_32_64::file_too_small);
-	hd = reinterpret_cast<pe_coff_optional_header_windows_32_64 const*>(file_data + dosheader.m_pe_offset + sizeof(pe_coff_header) + (is_32 ? sizeof(pe_coff_optional_header_standard_32) : sizeof(pe_coff_optional_header_standard_64)));
-	pe_coff_optional_header_windows_32_64 const& header = *hd;
+	pe_coff_optional_header_windows_32_64 const& header = *reinterpret_cast<pe_coff_optional_header_windows_32_64 const*>(file_data + dosheader.m_pe_offset + sizeof(pe_coff_header) + (is_32 ? sizeof(pe_coff_optional_header_standard_32) : sizeof(pe_coff_optional_header_standard_64)));
 	WARN_M(((is_32 ? header.m_32.m_image_base : header.m_64.m_image_base) & (64 * 1024 - 1)) == 0, L"ImageBase must a multiple of 64kB.");
 	WARN_M((is_32 ? header.m_32.m_section_alignment : header.m_64.m_section_alignment) >= (is_32 ? header.m_32.m_file_alignment : header.m_64.m_file_alignment), L"SectionAlignment must be greater or equal to FileAlignment.");
 	WARN_M(is_power_of_two(is_32 ? header.m_32.m_file_alignment : header.m_64.m_file_alignment), L"FileAlignment should be a power of 2 between 512 and 64 K, inclusive.");
@@ -93,6 +92,7 @@ pe_e_parse_coff_optional_header_windows_32_64 pe_parse_coff_optional_header_wind
 	WARN_M(std::find(std::cbegin(s_image_subsystems), std::cend(s_image_subsystems), is_32 ? header.m_32.m_subsystem : header.m_64.m_subsystem) != std::end(s_image_subsystems), L"Unknown subsystem.");
 	WARN_M(std::find(std::cbegin(s_image_dllcharacteristics), std::cend(s_image_dllcharacteristics), is_32 ? header.m_32.m_dll_characteristics : header.m_64.m_dll_characteristics) == std::end(s_image_dllcharacteristics), L"Unknown DLL characteristics.");
 	WARN_M((is_32 ? header.m_32.m_loader_flags : header.m_64.m_loader_flags) == 0, L"LoaderFlags is reserved, must be zero.");
+	*header_out = &header;
 	return pe_e_parse_coff_optional_header_windows_32_64::ok;
 }
 

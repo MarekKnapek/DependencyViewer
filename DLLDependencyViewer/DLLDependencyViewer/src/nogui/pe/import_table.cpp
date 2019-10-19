@@ -34,7 +34,7 @@ bool pe_parse_import_table(void const* const& fd, int const& file_size, pe_impor
 	char const* const file_data = static_cast<char const*>(fd);
 	pe_dos_header const& dos_hdr = *reinterpret_cast<pe_dos_header const*>(file_data + 0);
 	pe_coff_full_32_64 const& coff_hdr = *reinterpret_cast<pe_coff_full_32_64 const*>(file_data + dos_hdr.m_pe_offset);
-	bool const is_32 = coff_hdr.m_32.m_standard.m_signature == s_pe_coff_optional_sig_32;
+	bool const is_32 = pe_is_32_bit(coff_hdr.m_32.m_standard);
 	std::uint32_t const dir_tbl_cnt = is_32 ? coff_hdr.m_32.m_windows.m_data_directory_count : coff_hdr.m_64.m_windows.m_data_directory_count;
 	if(!(static_cast<int>(pe_e_directory_table::import_table) < dir_tbl_cnt))
 	{
@@ -81,7 +81,7 @@ bool pe_parse_import_address_table(void const* const& fd, int const& file_size, 
 	char const* const file_data = static_cast<char const*>(fd);
 	pe_dos_header const& dos_hdr = *reinterpret_cast<pe_dos_header const*>(file_data + 0);
 	pe_coff_full_32_64 const& coff_hdr = *reinterpret_cast<pe_coff_full_32_64 const*>(file_data + dos_hdr.m_pe_offset);
-	bool const is_32 = coff_hdr.m_32.m_standard.m_signature == s_pe_coff_optional_sig_32;
+	bool const is_32 = pe_is_32_bit(coff_hdr.m_32.m_standard);
 	std::uint32_t const iat_rva = ide.m_import_lookup_table != 0 ? ide.m_import_lookup_table : ide.m_import_adress_table;
 	WARN_M_R(iat_rva != 0, L"Import address table not found.", false);
 	pe_section_header const* sct;
@@ -121,7 +121,7 @@ bool pe_parse_import_address(void const* const& fd, int const& file_size, pe_imp
 	char const* const file_data = static_cast<char const*>(fd);
 	pe_dos_header const& dos_hdr = *reinterpret_cast<pe_dos_header const*>(file_data + 0);
 	pe_coff_full_32_64 const& coff_hdr = *reinterpret_cast<pe_coff_full_32_64 const*>(file_data + dos_hdr.m_pe_offset);
-	bool const is_32 = coff_hdr.m_32.m_standard.m_signature == s_pe_coff_optional_sig_32;
+	bool const is_32 = pe_is_32_bit(coff_hdr.m_32.m_standard);
 	if(is_32)
 	{
 		pe_import_lookup_entry_32 const* const iat = reinterpret_cast<pe_import_lookup_entry_32 const*>(file_data + iat_in.m_raw);
@@ -199,7 +199,7 @@ bool pe_parse_delay_import_table(void const* const& fd, int const& file_size, pe
 	char const* const file_data = static_cast<char const*>(fd);
 	pe_dos_header const& dos_hdr = *reinterpret_cast<pe_dos_header const*>(file_data + 0);
 	pe_coff_full_32_64 const& coff_hdr = *reinterpret_cast<pe_coff_full_32_64 const*>(file_data + dos_hdr.m_pe_offset);
-	bool const is_32 = coff_hdr.m_32.m_standard.m_signature == s_pe_coff_optional_sig_32;
+	bool const is_32 = pe_is_32_bit(coff_hdr.m_32.m_standard);
 	std::uint32_t const dir_tbl_cnt = is_32 ? coff_hdr.m_32.m_windows.m_data_directory_count : coff_hdr.m_64.m_windows.m_data_directory_count;
 	if(!(static_cast<int>(pe_e_directory_table::delay_import_descriptor) < dir_tbl_cnt))
 	{
@@ -234,7 +234,7 @@ bool pe_parse_delay_import_dll_name(void const* const& fd, int const& file_size,
 	pe_dos_header const& dos_hdr = *reinterpret_cast<pe_dos_header const*>(file_data + 0);
 	pe_coff_full_32_64 const& coff_hdr = *reinterpret_cast<pe_coff_full_32_64 const*>(file_data + dos_hdr.m_pe_offset);
 	WARN_M_R(dld.m_dll_name_rva != 0, L"Delay import directory entry has no DLL name.", false);
-	bool const is_32 = coff_hdr.m_32.m_standard.m_signature == s_pe_coff_optional_sig_32;
+	bool const is_32 = pe_is_32_bit(coff_hdr.m_32.m_standard);
 	bool const delay_ver_2 = (dld.m_attributes & 1u) != 0;
 	WARN_M_R(is_32 ? true : (delay_ver_2 || (coff_hdr.m_64.m_windows.m_image_base < 0x00000000ffffffffull)), L"Image base is damn too high.", false);
 	std::uint32_t const delay_dll_name_rva = dld.m_dll_name_rva - (delay_ver_2 ? 0u : (is_32 ? coff_hdr.m_32.m_windows.m_image_base : static_cast<std::uint32_t>(coff_hdr.m_64.m_windows.m_image_base)));
@@ -254,7 +254,7 @@ bool pe_parse_delay_import_address_table(void const* const& fd, int const& file_
 	pe_coff_full_32_64 const& coff_hdr = *reinterpret_cast<pe_coff_full_32_64 const*>(file_data + dos_hdr.m_pe_offset);
 	WARN_M_R(dld.m_import_name_table_rva != 0, L"Delay import address table not found.", false);
 	bool const delay_ver_2 = (dld.m_attributes & 1u) != 0;
-	bool const is_32 = coff_hdr.m_32.m_standard.m_signature == s_pe_coff_optional_sig_32;
+	bool const is_32 = pe_is_32_bit(coff_hdr.m_32.m_standard);
 	std::uint32_t const dliat_rva = dld.m_import_name_table_rva - (delay_ver_2 ? 0u : (is_32 ? coff_hdr.m_32.m_windows.m_image_base : static_cast<std::uint32_t>(coff_hdr.m_64.m_windows.m_image_base)));
 	pe_section_header const* sct;
 	std::uint32_t const dliat_raw = pe_find_object_in_raw(file_data, file_size, dliat_rva, is_32 ? sizeof(pe_import_lookup_entry_32) : sizeof(pe_import_lookup_entry_64), sct);
@@ -293,7 +293,7 @@ bool pe_parse_delay_import_address(void const* const& fd, int const& file_size, 
 	char const* const file_data = static_cast<char const*>(fd);
 	pe_dos_header const& dos_hdr = *reinterpret_cast<pe_dos_header const*>(file_data + 0);
 	pe_coff_full_32_64 const& coff_hdr = *reinterpret_cast<pe_coff_full_32_64 const*>(file_data + dos_hdr.m_pe_offset);
-	bool const is_32 = coff_hdr.m_32.m_standard.m_signature == s_pe_coff_optional_sig_32;
+	bool const is_32 = pe_is_32_bit(coff_hdr.m_32.m_standard);
 	if(is_32)
 	{
 		pe_import_lookup_entry_32 const* const dliat = reinterpret_cast<pe_import_lookup_entry_32 const*>(file_data + dliat_in.m_raw);

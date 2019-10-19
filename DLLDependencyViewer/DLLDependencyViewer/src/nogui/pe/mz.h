@@ -38,4 +38,4 @@ static_assert(sizeof(pe_dos_header) == 62, "");
 static_assert(sizeof(pe_dos_header) == 0x3e, "");
 
 
-pe_e_parse_mz_header pe_parse_mz_header(void const* const& file_data, int const& file_size, pe_dos_header const*& header);
+pe_e_parse_mz_header pe_parse_mz_header(void const* const& file_data, int const& file_size, pe_dos_header const** const header_out);
