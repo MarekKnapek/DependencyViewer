@@ -68,7 +68,7 @@ bool pe_parse_import_dll_name(void const* const& fd, int const& file_size, pe_im
 	char const* const file_data = static_cast<char const*>(fd);
 	WARN_M_R(ide.m_name != 0, L"Import directory entry has no DLL name.", false);
 	pe_string dll_name;
-	bool const dll_name_parsed = pe_parse_string(file_data, file_size, ide.m_name, &dll_name);
+	bool const dll_name_parsed = pe_parse_string_rva(file_data, file_size, ide.m_name, &dll_name);
 	WARN_M_R(dll_name_parsed, L"Could not find DLL name.", false);
 	WARN_M_R(dll_name.m_len <= 255, L"DLL name is too long.", false);
 	*dll_name_out = dll_name;
@@ -239,7 +239,7 @@ bool pe_parse_delay_import_dll_name(void const* const& fd, int const& file_size,
 	WARN_M_R(is_32 ? true : (delay_ver_2 || (coff_hdr.m_64.m_windows.m_image_base < 0x00000000ffffffffull)), L"Image base is damn too high.", false);
 	std::uint32_t const delay_dll_name_rva = dld.m_dll_name_rva - (delay_ver_2 ? 0u : (is_32 ? coff_hdr.m_32.m_windows.m_image_base : static_cast<std::uint32_t>(coff_hdr.m_64.m_windows.m_image_base)));
 	pe_string dll_name;
-	bool const dll_name_parsed = pe_parse_string(file_data, file_size, delay_dll_name_rva, &dll_name);
+	bool const dll_name_parsed = pe_parse_string_rva(file_data, file_size, delay_dll_name_rva, &dll_name);
 	WARN_M_R(dll_name_parsed, L"Could not find delay DLL name.", false);
 	WARN_M_R(dll_name.m_len <= 255, L"Delay DLL name is too long.", false);
 	*dll_name_out = dll_name;

@@ -302,7 +302,7 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 		{
 			// 32k export forwarder name length should be enough for everybody.
 			pe_string forwarder;
-			bool const forwarder_parsed = pe_parse_string(file_data, file_size, export_rva, &forwarder);
+			bool const forwarder_parsed = pe_parse_string_rva(file_data, file_size, export_rva, &forwarder);
 			VERIFY(forwarder_parsed);
 			VERIFY(forwarder.m_len >= 3);
 			VERIFY(std::find(forwarder.m_str, forwarder.m_str + forwarder.m_len, '.') != forwarder.m_str + forwarder.m_len);

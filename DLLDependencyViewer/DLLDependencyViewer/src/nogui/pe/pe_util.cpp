@@ -30,7 +30,7 @@ std::uint32_t pe_find_object_in_raw(void const* const& fd, int const& /*file_siz
 	WARN_M_R(false, L"Object not found in any section.", 0);
 }
 
-bool pe_parse_string(void const* const fd, int const file_size, std::uint32_t const str_rva, pe_string* const str_out)
+bool pe_parse_string_rva(void const* const fd, int const file_size, std::uint32_t const str_rva, pe_string* const str_out)
 {
 	assert(str_out);
 	char const* const file_data = static_cast<char const*>(fd);
@@ -38,14 +38,22 @@ bool pe_parse_string(void const* const fd, int const file_size, std::uint32_t co
 	pe_section_header const* sct;
 	std::uint32_t const str_raw = pe_find_object_in_raw(file_data, file_size, str_rva, 2, sct);
 	WARN_M_R(str_raw != 0, L"Could not find string in any section.", false);
+	return pe_parse_string_raw(file_data, file_size, str_raw, *sct, str_out);
+}
+
+bool pe_parse_string_raw(void const* const fd, int const file_size, std::uint32_t const str_raw, pe_section_header const& sct, pe_string* const str_out)
+{
+	assert(str_out);
+	char const* const file_data = static_cast<char const*>(fd);
+	WARN_M_R(str_raw != 0, L"Invalid string.", false);
 	char const* const str = reinterpret_cast<char const*>(file_data + str_raw);
 	static constexpr const std::uint32_t s_str_len_max = 32 * 1024;
-	std::uint32_t const str_len_max = std::min<std::uint32_t>(s_str_len_max, sct->m_raw_ptr + sct->m_raw_size - str_raw);
+	std::uint32_t const str_len_max = std::min<std::uint32_t>(s_str_len_max, sct.m_raw_ptr + sct.m_raw_size - str_raw);
 	auto const str_end = std::find(str, str + str_len_max, '\0');
 	WARN_M_R(str_end != str + str_len_max, L"Could not find string length.", false);
 	std::uint16_t const str_len = static_cast<std::uint16_t>(str_end - str);
 	WARN_M_R(str_len >= 1, L"String is too short.", false);
-	WARN_M_R(pe_is_ascii(str, str_len), L"String is not in ASCII.", false);
+	WARN_M_R(pe_is_ascii(str, str_len), L"String is not ASCII.", false);
 	str_out->m_str = str;
 	str_out->m_len = str_len;
 	return true;

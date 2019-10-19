@@ -124,7 +124,7 @@ bool pe_parse_export_address_name(void const* const fd, int const file_size, pe_
 	std::uint16_t const hint = static_cast<std::uint16_t>(it - eot.m_table);
 	std::uint32_t const export_address_name_rva = enpt.m_table[hint].m_export_address_name_rva;
 	pe_string ean;
-	bool const ean_parsed = pe_parse_string(file_data, file_size, export_address_name_rva, &ean);
+	bool const ean_parsed = pe_parse_string_rva(file_data, file_size, export_address_name_rva, &ean);
 	WARN_M_R(ean_parsed, L"Could not parse export address name.", false);
 	*hint_out = hint;
 	*ean_out = ean;
