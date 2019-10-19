@@ -1,11 +1,9 @@
-#pragma once
-
-
 #include "static_vector.h"
 
 #include "allocator.h"
 
 #include <cassert>
+#include <type_traits>
 
 
 template<typename T>
@@ -40,9 +38,12 @@ void static_vector<T>::swap(static_vector<T>& other) noexcept
 template<typename T>
 static_vector<T>::~static_vector()
 {
-	for(int i = 0; i != m_size; ++i)
+	if constexpr(!std::is_trivial_v<T>)
 	{
-		m_data[m_size - i - 1].~T();
+		for(int i = 0; i != m_size; ++i)
+		{
+			m_data[m_size - i - 1].~T();
+		}
 	}
 }
 
@@ -52,6 +53,13 @@ void static_vector<T>::resize(allocator& alc, int const size)
 	assert(m_data == nullptr);
 	assert(m_size == 0);
 	m_data = alc.allocate_objects<T>(size);
+	if constexpr(!std::is_trivial_v<T>)
+	{
+		for(int i = 0; i != size; ++i)
+		{
+			new(m_data + i) T();
+		}
+	}
 	m_size = size;
 }
 
