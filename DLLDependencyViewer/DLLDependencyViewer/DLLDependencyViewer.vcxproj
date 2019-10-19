@@ -213,6 +213,7 @@
     <ClInclude Include="src\nogui\allocator.h" />
     <ClInclude Include="src\nogui\allocator_big.h" />
     <ClInclude Include="src\nogui\allocator_small.h" />
+    <ClInclude Include="src\nogui\array_bool.h" />
     <ClInclude Include="src\nogui\assert.h" />
     <ClInclude Include="src\nogui\dbg.h" />
     <ClInclude Include="src\nogui\dbghelp.h" />
@@ -317,6 +318,10 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\nogui\allocator_small.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="src\nogui\array_bool.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
