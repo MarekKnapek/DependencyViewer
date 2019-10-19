@@ -1,4 +1,4 @@
-﻿#include "manifest_parser.h"
+#include "manifest_parser.h"
 
 #include "assert.h"
 #include "manifest_parser_impl.h"
