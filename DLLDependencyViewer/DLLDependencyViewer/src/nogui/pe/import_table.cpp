@@ -142,17 +142,12 @@ bool pe_parse_import_address(void const* const& fd, int const& file_size, pe_imp
 			std::uint32_t const hint_name_raw = pe_find_object_in_raw(file_data, file_size, hint_name_rva, sizeof(std::uint16_t) + 2 * sizeof(char), sct);
 			WARN_M_R(hint_name_raw != 0, L"Could not parse import address name.", false);
 			std::uint16_t const hint = *reinterpret_cast<std::uint16_t const*>(file_data + hint_name_raw + 0);
-			std::uint32_t const name_len_max = std::min(64u * 1024u, (sct->m_raw_ptr + sct->m_raw_size - (hint_name_raw + static_cast<int>(sizeof(std::uint16_t)))) / static_cast<int>(sizeof(char)));
-			char const* const name = reinterpret_cast<char const*>(file_data + hint_name_raw + sizeof(std::uint16_t));
-			char const* const name_end_max = name + name_len_max;
-			auto const it = std::find(name, name_end_max, '\0');
-			WARN_M_R(it != name_end_max, L"Could not find import address name length.", false);
-			int const name_len = static_cast<int>(it - name);
-			WARN_M_R(pe_is_ascii(name, static_cast<int>(name_len)), L"Import name shall be ASCII.", false);
+			pe_string name;
+			bool const name_parsed = pe_parse_string_raw(file_data, file_size, hint_name_raw + sizeof(std::uint16_t), *sct, &name);
+			WARN_M_R(name_parsed, L"Failed to parse import name.", false);
 			*is_ordinal_out = false;
 			hint_name_out->m_hint = hint;
-			hint_name_out->m_name.m_str = name;
-			hint_name_out->m_name.m_len = name_len;
+			hint_name_out->m_name = name;
 			return true;
 		}
 	}
@@ -177,17 +172,12 @@ bool pe_parse_import_address(void const* const& fd, int const& file_size, pe_imp
 			std::uint32_t const hint_name_raw = pe_find_object_in_raw(file_data, file_size, hint_name_rva, sizeof(std::uint16_t) + 2 * sizeof(char), sct);
 			WARN_M_R(hint_name_raw != 0, L"Could not parse import address name.", false);
 			std::uint16_t const hint = *reinterpret_cast<std::uint16_t const*>(file_data + hint_name_raw + 0);
-			std::uint32_t const name_len_max = std::min(64u * 1024u, (sct->m_raw_ptr + sct->m_raw_size - (hint_name_raw + static_cast<int>(sizeof(std::uint16_t)))) / static_cast<int>(sizeof(char)));
-			char const* const name = reinterpret_cast<char const*>(file_data + hint_name_raw + sizeof(std::uint16_t));
-			char const* const name_end_max = name + name_len_max;
-			auto const it = std::find(name, name_end_max, '\0');
-			WARN_M_R(it != name_end_max, L"Could not find import address name length.", false);
-			int const name_len = static_cast<int>(it - name);
-			WARN_M_R(pe_is_ascii(name, static_cast<int>(name_len)), L"Import name shall be ASCII.", false);
+			pe_string name;
+			bool const name_parsed = pe_parse_string_raw(file_data, file_size, hint_name_raw + sizeof(std::uint16_t), *sct, &name);
+			WARN_M_R(name_parsed, L"Failed to parse import name.", false);
 			*is_ordinal_out = false;
 			hint_name_out->m_hint = hint;
-			hint_name_out->m_name.m_str = name;
-			hint_name_out->m_name.m_len = name_len;
+			hint_name_out->m_name = name;
 			return true;
 		}
 	}
@@ -315,17 +305,12 @@ bool pe_parse_delay_import_address(void const* const& fd, int const& file_size, 
 			std::uint32_t const hint_name_raw = pe_find_object_in_raw(file_data, file_size, hint_name_rva, sizeof(std::uint16_t) + 2 * sizeof(char), sct);
 			WARN_M_R(hint_name_raw != 0, L"Could not parse delay import address name.", false);
 			std::uint16_t const hint = *reinterpret_cast<std::uint16_t const*>(file_data + hint_name_raw + 0);
-			std::uint32_t const name_len_max = std::min(64u * 1024u, (sct->m_raw_ptr + sct->m_raw_size - (hint_name_raw + static_cast<int>(sizeof(std::uint16_t)))) / static_cast<int>(sizeof(char)));
-			char const* const name = reinterpret_cast<char const*>(file_data + hint_name_raw + sizeof(std::uint16_t));
-			char const* const name_end_max = name + name_len_max;
-			auto const it = std::find(name, name_end_max, '\0');
-			WARN_M_R(it != name_end_max, L"Could not find delay import address name length.", false);
-			int const name_len = static_cast<int>(it - name);
-			WARN_M_R(pe_is_ascii(name, static_cast<int>(name_len)), L"Import name shall be ASCII.", false);
+			pe_string name;
+			bool const name_parsed = pe_parse_string_raw(file_data, file_size, hint_name_raw + sizeof(std::uint16_t), *sct, &name);
+			WARN_M_R(name_parsed, L"Failed to parse delay import name.", false);
 			*is_ordinal_out = false;
 			hint_name_out->m_hint = hint;
-			hint_name_out->m_name.m_str = name;
-			hint_name_out->m_name.m_len = name_len;
+			hint_name_out->m_name = name;
 			return true;
 		}
 	}
@@ -351,17 +336,12 @@ bool pe_parse_delay_import_address(void const* const& fd, int const& file_size, 
 			std::uint32_t const hint_name_raw = pe_find_object_in_raw(file_data, file_size, hint_name_rva, sizeof(std::uint16_t) + 2, sct);
 			WARN_M_R(hint_name_raw != 0, L"Could not parse delay import address name.", false);
 			std::uint16_t const hint = *reinterpret_cast<std::uint16_t const*>(file_data + hint_name_raw + 0);
-			std::uint32_t const name_len_max = std::min(64u * 1024u, (sct->m_raw_ptr + sct->m_raw_size - (hint_name_raw + static_cast<int>(sizeof(std::uint16_t)))) / static_cast<int>(sizeof(char)));
-			char const* const name = reinterpret_cast<char const*>(file_data + hint_name_raw + sizeof(std::uint16_t));
-			char const* const name_end_max = name + name_len_max;
-			auto const it = std::find(name, name_end_max, '\0');
-			WARN_M_R(it != name_end_max, L"Could not find import address name length.", false);
-			int const name_len = static_cast<int>(it - name);
-			WARN_M_R(pe_is_ascii(name, static_cast<int>(name_len)), L"Import name shall be ASCII.", false);
+			pe_string name;
+			bool const name_parsed = pe_parse_string_raw(file_data, file_size, hint_name_raw + sizeof(std::uint16_t), *sct, &name);
+			WARN_M_R(name_parsed, L"Failed to parse delay import name.", false);
 			*is_ordinal_out = false;
 			hint_name_out->m_hint = hint;
-			hint_name_out->m_name.m_str = name;
-			hint_name_out->m_name.m_len = name_len;
+			hint_name_out->m_name = name;
 			return true;
 		}
 	}

@@ -41,7 +41,7 @@ bool pe_parse_string_rva(void const* const fd, int const file_size, std::uint32_
 	return pe_parse_string_raw(file_data, file_size, str_raw, *sct, str_out);
 }
 
-bool pe_parse_string_raw(void const* const fd, int const file_size, std::uint32_t const str_raw, pe_section_header const& sct, pe_string* const str_out)
+bool pe_parse_string_raw(void const* const fd, int const /* file_size */, std::uint32_t const str_raw, pe_section_header const& sct, pe_string* const str_out)
 {
 	assert(str_out);
 	char const* const file_data = static_cast<char const*>(fd);
