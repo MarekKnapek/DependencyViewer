@@ -285,6 +285,9 @@
     <ClInclude Include="src\nogui\pe2.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
+    <ClInclude Include="src\nogui\allocator_malloc.h">
+      <Filter>src\nogui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\main.cpp">
@@ -429,6 +432,9 @@
       <Filter>src\nogui</Filter>
     </ClCompile>
     <ClCompile Include="src\nogui\pe2.cpp">
+      <Filter>src\nogui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nogui\allocator_malloc.cpp">
       <Filter>src\nogui</Filter>
     </ClCompile>
   </ItemGroup>

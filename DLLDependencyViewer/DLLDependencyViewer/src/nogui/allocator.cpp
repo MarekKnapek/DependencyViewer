@@ -8,8 +8,12 @@
 
 
 allocator::allocator() noexcept :
+	#if WANT_STANDARD_ALLOCATOR == 1
+	m_mallocator()
+	#else
 	m_small(),
 	m_big()
+	#endif
 {
 }
 
@@ -32,12 +36,19 @@ allocator::~allocator() noexcept
 void allocator::swap(allocator& other) noexcept
 {
 	using std::swap;
+	#if WANT_STANDARD_ALLOCATOR == 1
+	swap(m_mallocator, other.m_mallocator);
+	#else
 	swap(m_small, other.m_small);
 	swap(m_big, other.m_big);
+	#endif
 }
 
 void* allocator::allocate_bytes(int const size, int const align)
 {
+	#if WANT_STANDARD_ALLOCATOR == 1
+	return m_mallocator.allocate_bytes(size, align);
+	#else
 	assert(align <= alignof(std::max_align_t));
 	if(size < 64 * 1024)
 	{
@@ -47,4 +58,5 @@ void* allocator::allocate_bytes(int const size, int const align)
 	{
 		return m_big.allocate_bytes(size, align);
 	}
+	#endif
 }
