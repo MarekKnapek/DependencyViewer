@@ -35,8 +35,9 @@ main_type process_impl(std::vector<std::wstring> const& file_paths)
 	my_vector_resize(fi.m_import_table.m_dlls, mo.m_mm.m_alc, n);
 	for(int i = 0; i != n; ++i)
 	{
+		std::wstring p = std::filesystem::path(file_paths[i]).replace_filename(L"xxx.xxx");
 		int const len = static_cast<int>(file_paths[i].size());
-		fi.m_sub_file_infos[i].m_file_path = mo.m_mm.m_wstrs.add_string(file_paths[i].c_str(), len, mo.m_mm.m_alc);
+		fi.m_sub_file_infos[i].m_file_path = mo.m_mm.m_wstrs.add_string(p.c_str(), static_cast<int>(p.size()), mo.m_mm.m_alc);
 		my_vector_resize(fi.m_sub_file_infos[i].m_sub_file_infos, mo.m_mm.m_alc, 1);
 		my_vector_resize(fi.m_sub_file_infos[i].m_import_table.m_dlls, mo.m_mm.m_alc, 1);
 		wchar_t const* const name = find_file_name(file_paths[i].c_str(), len);

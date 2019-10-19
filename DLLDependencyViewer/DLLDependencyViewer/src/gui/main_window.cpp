@@ -769,7 +769,8 @@ void main_window::refresh()
 	file_paths.resize(n);
 	for(int i = 0; i != n; ++i)
 	{
-		wstring const* const& name = m_mo.m_fi.m_sub_file_infos[i].m_file_path;
+		assert(m_mo.m_fi.m_sub_file_infos[i].m_sub_file_infos.size() == 1);
+		wstring const* const& name = m_mo.m_fi.m_sub_file_infos[i].m_sub_file_infos[0].m_file_path;
 		assert(name->m_str);
 		assert(name->m_len > 0);
 		file_paths[i].assign(name->m_str, name->m_str + name->m_len);
