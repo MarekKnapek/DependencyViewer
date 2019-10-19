@@ -198,6 +198,7 @@ basic_string<char_t> const* const& basic_unique_strings<char_t>::add_string(char
 	{
 		char_t* const new_buff = alc.allocate_objects<char_t>(len + 1);
 		std::memcpy(new_buff, str, len * sizeof(char_t));
+		new_buff[len] = char_t{'\0'};
 		basic_string<char_t>* const new_str = alc.allocate_objects<basic_string<char_t>>(1);
 		new_str->m_str = new_buff;
 		new_str->m_len = len;
