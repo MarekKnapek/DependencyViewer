@@ -21,7 +21,7 @@ bool operator==(pe_import_directory_entry const& a, pe_import_directory_entry co
 struct pe_import_directory_table
 {
 	pe_import_directory_entry const* m_table;
-	int m_count;
+	std::uint16_t m_count;
 };
 
 struct pe_import_address_table
@@ -70,7 +70,7 @@ bool operator==(pe_delay_load_descriptor const& a, pe_delay_load_descriptor cons
 struct pe_delay_import_table
 {
 	pe_delay_load_descriptor const* m_table;
-	int m_count;
+	std::uint16_t m_count;
 };
 
 struct pe_delay_load_import_address_table

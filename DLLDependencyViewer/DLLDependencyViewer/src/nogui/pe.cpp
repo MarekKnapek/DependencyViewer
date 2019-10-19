@@ -173,10 +173,11 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 		pe_delay_import_table dlit;
 		bool const delay_descriptor_parsed = pe_parse_delay_import_table(file_data, file_size, &dlit);
 		WARN_M_R(delay_descriptor_parsed, L"Failed to parse delay import descriptor", false);
+		WARN_M_R(static_cast<int>(idt.m_count) + static_cast<int>(dlit.m_count) < 0xffff, L"Too many DLLs.", false);
 		my_vector_resize(ret.m_dlls, mm.m_alc, idt.m_count + dlit.m_count);
 		ret.m_nondelay_imports_count = idt.m_count;
-		int ii = 0;
-		for(int i = 0; i != idt.m_count; ++i, ++ii)
+		std::uint16_t ii = 0;
+		for(std::uint16_t i = 0; i != idt.m_count; ++i, ++ii)
 		{
 			pe_string dll;
 			bool const dll_parsed = pe_parse_import_dll_name(file_data, file_size, idt.m_table[i], &dll);
@@ -205,7 +206,7 @@ pe_import_table_info pe_process_import_table(void const* const fd, int const fs,
 				}
 			}
 		}
-		for(int i = 0; i != dlit.m_count; ++i, ++ii)
+		for(std::uint16_t i = 0; i != dlit.m_count; ++i, ++ii)
 		{
 			pe_string dldll;
 			bool const dldll_parsed = pe_parse_delay_import_dll_name(file_data, file_size, dlit.m_table[i], &dldll);

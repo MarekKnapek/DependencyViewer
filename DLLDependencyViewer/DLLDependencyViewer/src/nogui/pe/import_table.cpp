@@ -56,7 +56,9 @@ bool pe_parse_import_table(void const* const& fd, int const& file_size, pe_impor
 	pe_import_directory_entry const* const d_tbl_end_max = d_tbl + imp_dir_tbl_cnt_max;
 	auto const it = std::find(d_tbl, d_tbl_end_max, pe_import_directory_entry{});
 	WARN_M_R(it != d_tbl_end_max, L"Could not found import directory table size.", false);
-	int const imp_dir_tbl_cnt = static_cast<int>(it - d_tbl);
+	auto const imp_dir_tbl_cnt_big = it - d_tbl;
+	WARN_M_R(imp_dir_tbl_cnt_big <= 0xffff, L"Too many DLLs.", false);
+	std::uint16_t const imp_dir_tbl_cnt = static_cast<std::uint16_t>(imp_dir_tbl_cnt_big);
 	idt_out->m_table = d_tbl;
 	idt_out->m_count = imp_dir_tbl_cnt;
 	return true;
@@ -211,7 +213,9 @@ bool pe_parse_delay_import_table(void const* const& fd, int const& file_size, pe
 	pe_delay_load_descriptor const* const dld_tbl_end_max = dld_tbl + dimp_dir_tbl_cnt_max;
 	auto const it = std::find(dld_tbl, dld_tbl_end_max, pe_delay_load_descriptor{});
 	WARN_M_R(it != dld_tbl_end_max, L"Could not found delay import directory table size.", false);
-	int const dimp_dir_tbl_cnt = static_cast<int>(it - dld_tbl);
+	auto const dimp_dir_tbl_cnt_big = it - dld_tbl;
+	WARN_M_R(dimp_dir_tbl_cnt_big <= 0xffff, L"Too many delay DLLs.", false);
+	std::uint16_t const dimp_dir_tbl_cnt = static_cast<std::uint16_t>(dimp_dir_tbl_cnt_big);
 	dlit_out->m_table = dld_tbl;
 	dlit_out->m_count = dimp_dir_tbl_cnt;
 	return true;

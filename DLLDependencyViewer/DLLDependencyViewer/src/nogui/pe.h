@@ -45,7 +45,7 @@ struct pe_import_dll_with_entries
 struct pe_import_table_info
 {
 	my_vector<pe_import_dll_with_entries> m_dlls;
-	int m_nondelay_imports_count = 0;
+	std::uint16_t m_nondelay_imports_count = 0;
 };
 
 struct export_address_entry

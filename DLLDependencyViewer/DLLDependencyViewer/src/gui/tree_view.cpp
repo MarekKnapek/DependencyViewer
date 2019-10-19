@@ -104,11 +104,15 @@ void tree_view::on_getdispinfow(NMHDR& nmhdr)
 	}
 	if((di.item.mask & (TVIF_IMAGE | TVIF_SELECTEDIMAGE)) != 0)
 	{
-		bool delay = false;
+		bool delay;
 		if(parent_fi)
 		{
-			int const idx = static_cast<int>(&tmp_fi - parent_fi->m_sub_file_infos.data());
+			std::uint16_t const idx = static_cast<std::uint16_t>(&tmp_fi - parent_fi->m_sub_file_infos.data());
 			delay = idx >= parent_fi->m_import_table.m_nondelay_imports_count;
+		}
+		else
+		{
+			delay = false;
 		}
 		bool const is_32_bit = fi.m_is_32_bit;
 		bool const is_duplicate = tmp_fi.m_orig_instance != nullptr;
