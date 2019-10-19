@@ -75,7 +75,9 @@ bool pe_process_import_iat(void const* const fd, int const file_size, pe_import_
 		pe_import_address_table iat;
 		bool const iat_parsed = pe_parse_import_address_table(file_data, file_size, iat_in_out->m_tables->m_idt.m_table[i], &iat);
 		WARN_M_R(iat_parsed, L"Failed to parse import address table.", false);
-		unsigned* are_ordinals = iat_in_out->m_alc->allocate_objects<unsigned>(array_bool_space_needed(iat.m_count));
+		int const bits_to_dwords = array_bool_space_needed(iat.m_count);
+		unsigned* are_ordinals = iat_in_out->m_alc->allocate_objects<unsigned>(bits_to_dwords);
+		std::fill(are_ordinals, are_ordinals + bits_to_dwords, 0u);
 		std::uint16_t* ordinals_or_hints = iat_in_out->m_alc->allocate_objects<std::uint16_t>(iat.m_count);
 		string const** names = iat_in_out->m_alc->allocate_objects<string const*>(iat.m_count);
 		std::uint16_t* matched_exports = iat_in_out->m_alc->allocate_objects<std::uint16_t>(iat.m_count);
@@ -93,7 +95,6 @@ bool pe_process_import_iat(void const* const fd, int const file_size, pe_import_
 			}
 			else
 			{
-				array_bool_clr(are_ordinals, j);
 				ordinals_or_hints[j] = hint_name.m_hint;
 				names[j] = iat_in_out->m_ustrings->add_string(hint_name.m_name.m_str, hint_name.m_name.m_len, *iat_in_out->m_alc);
 			}
@@ -109,7 +110,9 @@ bool pe_process_import_iat(void const* const fd, int const file_size, pe_import_
 		pe_delay_load_import_address_table iat;
 		bool const iat_parsed = pe_parse_delay_import_address_table(file_data, file_size, iat_in_out->m_tables->m_didt.m_table[i], &iat);
 		WARN_M_R(iat_parsed, L"Failed to parse delay import address table.", false);
-		unsigned* are_ordinals = iat_in_out->m_alc->allocate_objects<unsigned>(array_bool_space_needed(iat.m_count));
+		int const bits_to_dwords = array_bool_space_needed(iat.m_count);
+		unsigned* are_ordinals = iat_in_out->m_alc->allocate_objects<unsigned>(bits_to_dwords);
+		std::fill(are_ordinals, are_ordinals + bits_to_dwords, 0u);
 		std::uint16_t* ordinals_or_hints = iat_in_out->m_alc->allocate_objects<std::uint16_t>(iat.m_count);
 		string const** names = iat_in_out->m_alc->allocate_objects<string const*>(iat.m_count);
 		std::uint16_t* matched_exports = iat_in_out->m_alc->allocate_objects<std::uint16_t>(iat.m_count);
@@ -127,7 +130,6 @@ bool pe_process_import_iat(void const* const fd, int const file_size, pe_import_
 			}
 			else
 			{
-				array_bool_clr(are_ordinals, j);
 				ordinals_or_hints[j] = hint_name.m_hint;
 				names[j] = iat_in_out->m_ustrings->add_string(hint_name.m_name.m_str, hint_name.m_name.m_len, *iat_in_out->m_alc);
 			}
