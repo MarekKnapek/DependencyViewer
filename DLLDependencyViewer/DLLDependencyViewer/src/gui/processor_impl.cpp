@@ -79,6 +79,7 @@ void process_r(processor_impl& prcsr)
 			else
 			{
 				auto& e = (prcsr.m_map[sub_name] = {&sub_fi, {}});
+				sub_fi.m_orig_instance = nullptr;
 				prcsr.m_curr_enpt = &e.m_enpt;
 				process_e(prcsr, fi, sub_fi, sub_name);
 				my_vector_resize(sub_fi.m_sub_file_infos, prcsr.m_mo->m_mm.m_alc, sub_fi.m_import_table.m_dll_count);

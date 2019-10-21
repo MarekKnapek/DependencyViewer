@@ -16,10 +16,10 @@ typedef my_vector<file_info> file_infos;
 
 struct file_info
 {
-	void* m_tree_item = nullptr;
-	file_info* m_orig_instance = nullptr;
-	wstring const* m_file_path = nullptr;
-	bool m_is_32_bit = true;
+	void* m_tree_item;
+	file_info* m_orig_instance;
+	wstring const* m_file_path;
+	bool m_is_32_bit;
 	pe_import_table_info m_import_table;
 	pe_export_table_info m_export_table;
 	std::uint16_t* m_matched_imports;
