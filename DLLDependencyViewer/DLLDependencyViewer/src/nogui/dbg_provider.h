@@ -27,7 +27,7 @@ struct get_symbols_from_addresses_task_t
 	std::vector<std::uint16_t> m_indexes;
 	std::vector<std::wstring> m_symbol_names;
 	std::atomic<callback_function_t> m_callback_function;
-	void* m_hwnd = nullptr;
+	void* m_data = nullptr;
 };
 
 

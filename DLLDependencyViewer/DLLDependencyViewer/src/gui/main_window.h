@@ -30,7 +30,6 @@ struct get_symbols_from_addresses_task_t;
 
 #define wm_main_window_add_idle_task (WM_USER + 0)
 #define wm_main_window_process_on_idle (WM_USER + 1)
-#define wm_main_window_take_finished_dbg_task (WM_USER + 2)
 
 
 class main_window
@@ -64,7 +63,6 @@ private:
 	LRESULT on_wm_dropfiles(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_main_window_add_idle_task(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_main_window_process_on_idle(WPARAM wparam, LPARAM lparam);
-	LRESULT on_wm_main_window_take_finished_dbg_task(WPARAM wparam, LPARAM lparam);
 	void on_menu(WPARAM const wparam);
 	void on_menu(std::uint16_t const menu_id);
 	void on_accelerator(WPARAM const wparam);
@@ -85,7 +83,7 @@ private:
 	void open();
 	void open_files(std::vector<std::wstring> const& file_paths);
 	void exit();
-	void refresh(main_type&& mo);
+	void refresh(main_type mo);
 	void full_paths();
 	void refresh();
 	int get_ordinal_column_max_width();
@@ -96,6 +94,7 @@ private:
 	void request_symbol_traslation(file_info& fi);
 	void request_cancellation_of_all_dbg_tasks();
 	void process_finished_dbg_task(get_symbols_from_addresses_task_t* const task);
+	void schedule_deletion(std::unique_ptr<main_type> mo);
 private:
 	static ATOM g_class;
 	static HACCEL g_accel;
