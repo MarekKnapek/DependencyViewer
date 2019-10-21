@@ -40,25 +40,23 @@ struct pe_import_table_info
 	std::uint16_t* const* m_matched_exports;
 };
 
-struct export_address_entry
+union pe_rva_or_forwarder
 {
-	string const* m_name;
-	wstring const* m_debug_name;
-	union rva_or_forwarder_t
-	{
-		string const* m_forwarder;
-		std::uint32_t m_rva;
-	} rva_or_forwarder;
-	std::uint16_t m_ordinal;
-	std::uint16_t m_hint;
-	bool m_is_rva;
-	bool m_is_used;
+	std::uint32_t m_rva;
+	string const* m_forwarder;
 };
 
 struct pe_export_table_info
 {
-	my_vector<export_address_entry> m_export_address_table;
+	std::uint16_t m_count;
 	std::uint16_t m_ordinal_base;
+	std::uint16_t const* m_ordinals;
+	unsigned const* m_are_rvas;
+	pe_rva_or_forwarder const* m_rvas_or_forwarders;
+	std::uint16_t const* m_hints;
+	string const* const* m_names;
+	wstring const** m_debug_names;
+	unsigned* m_are_used;
 };
 
 struct pe_resource_string_or_id
@@ -88,7 +86,6 @@ struct pe_resources_table_info
 
 
 pe_header_info pe_process_header(void const* const file_data, int const file_size);
-pe_export_table_info pe_process_export_table(void const* const file_data, int const file_size, pe_header_info const& hi, memory_manager& mm, my_vector<std::uint16_t>* enpt_out, allocator& enpt_alloc);
 pe_resources_table_info pe_process_resource_table(void const* const file_data, int const file_size, pe_header_info const& hi, memory_manager& mm);
 
 std::pair<section_header const*, std::uint32_t> convert_rva_to_disk_ptr(std::uint32_t const rva, pe_header_info const& hi, section_header const* const section = nullptr);

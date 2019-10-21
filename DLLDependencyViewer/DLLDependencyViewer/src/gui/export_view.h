@@ -12,6 +12,7 @@
 
 class main_window;
 struct export_address_entry;
+struct pe_export_table_info;
 
 
 class export_view
@@ -37,11 +38,11 @@ public:
 	void select_item(std::uint16_t const item_idx);
 private:
 	smart_menu create_menu();
-	wchar_t const* on_get_col_type(export_address_entry const& export_entry);
-	wchar_t const* on_get_col_ordinal(export_address_entry const& export_entry);
-	wchar_t const* on_get_col_hint(export_address_entry const& export_entry);
-	wchar_t const* on_get_col_name(export_address_entry const& export_entry);
-	wchar_t const* on_get_col_address(export_address_entry const& export_entry);
+	wchar_t const* on_get_col_type(pe_export_table_info const& eti, std::uint16_t const exp_idx);
+	wchar_t const* on_get_col_ordinal(pe_export_table_info const& eti, std::uint16_t const exp_idx);
+	wchar_t const* on_get_col_hint(pe_export_table_info const& eti, std::uint16_t const exp_idx);
+	wchar_t const* on_get_col_name(pe_export_table_info const& eti, std::uint16_t const exp_idx);
+	wchar_t const* on_get_col_address(pe_export_table_info const& eti, std::uint16_t const exp_idx);
 	void select_matching_instance();
 	int get_type_column_max_width();
 private:

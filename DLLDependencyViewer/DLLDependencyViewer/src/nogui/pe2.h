@@ -9,6 +9,7 @@
 #include "pe/coff_full.h"
 #include "pe/import_table.h"
 #include "pe/mz.h"
+#include "pe/export_table.h"
 
 
 struct pe_headers
@@ -40,10 +41,33 @@ struct pe_import_iat
 	pe_import_table_info* m_iti_out;
 };
 
+struct pe_export_eat
+{
+	pe_headers* m_headers;
+	unique_strings* m_ustrings;
+	allocator* m_alc;
+	allocator* m_tmp_alc;
+	pe_export_table_info* m_eti_out;
+	std::uint16_t* m_enpt_count_out;
+	std::uint16_t const** m_enpt_out;
+};
+
+struct pe_tables
+{
+	allocator* m_tmp_alc;
+	pe_import_table_info* m_iti_out;
+	pe_export_table_info* m_eti_out;
+	std::uint16_t* m_enpt_count_out;
+	std::uint16_t const** m_enpt_out;
+};
+
 
 bool pe_process_headers(void const* const file_data, int const file_size, pe_headers* const headers_out);
+
 bool pe_process_import_tables(void const* const file_data, int const file_size, pe_import_tables* const tables_out);
 bool pe_process_import_names(void const* const file_data, int const file_size, pe_import_names* const names_in_out);
 bool pe_process_import_iat(void const* const file_data, int const file_size, pe_import_iat* const iat_in_out);
 
-bool pe_process_all(void const* const file_data, int const file_size, memory_manager& mm, pe_import_table_info* const iti_in_out);
+bool pe_process_export_eat(void const* const file_data, int const file_size, pe_export_eat* const eat_in_out);
+
+bool pe_process_all(void const* const file_data, int const file_size, memory_manager& mm, pe_tables* const tables_in_out);

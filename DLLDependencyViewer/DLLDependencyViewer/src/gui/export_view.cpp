@@ -5,6 +5,7 @@
 #include "main_window.h"
 #include "smart_dc.h"
 
+#include "../nogui/array_bool.h"
 #include "../nogui/pe.h"
 #include "../nogui/int_to_string.h"
 #include "../nogui/scope_exit.h"
@@ -118,7 +119,8 @@ void export_view::on_getdispinfow(NMHDR& nmhdr)
 	file_info const& fi = fi_tmp.m_orig_instance ? *fi_tmp.m_orig_instance : fi_tmp;
 	int const row = nm.item.iItem;
 	int const col = nm.item.iSubItem;
-	export_address_entry const& export_entry = fi.m_export_table.m_export_address_table[row];
+	pe_export_table_info const& eti = fi.m_export_table;
+	std::uint16_t const exp_idx = static_cast<std::uint16_t>(row);
 	e_export_column const ecol = static_cast<e_export_column>(col);
 	if((nm.item.mask | LVIF_TEXT) != 0)
 	{
@@ -131,27 +133,27 @@ void export_view::on_getdispinfow(NMHDR& nmhdr)
 			break;
 			case e_export_column::e_type:
 			{
-				nm.item.pszText = const_cast<wchar_t*>(on_get_col_type(export_entry));
+				nm.item.pszText = const_cast<wchar_t*>(on_get_col_type(eti, exp_idx));
 			}
 			break;
 			case e_export_column::e_ordinal:
 			{
-				nm.item.pszText = const_cast<wchar_t*>(on_get_col_ordinal(export_entry));
+				nm.item.pszText = const_cast<wchar_t*>(on_get_col_ordinal(eti, exp_idx));
 			}
 			break;
 			case e_export_column::e_hint:
 			{
-				nm.item.pszText = const_cast<wchar_t*>(on_get_col_hint(export_entry));
+				nm.item.pszText = const_cast<wchar_t*>(on_get_col_hint(eti, exp_idx));
 			}
 			break;
 			case e_export_column::e_name:
 			{
-				nm.item.pszText = const_cast<wchar_t*>(on_get_col_name(export_entry));
+				nm.item.pszText = const_cast<wchar_t*>(on_get_col_name(eti, exp_idx));
 			}
 			break;
 			case e_export_column::e_entry_point:
 			{
-				nm.item.pszText = const_cast<wchar_t*>(on_get_col_address(export_entry));
+				nm.item.pszText = const_cast<wchar_t*>(on_get_col_address(eti, exp_idx));
 			}
 			break;
 			default:
@@ -163,10 +165,10 @@ void export_view::on_getdispinfow(NMHDR& nmhdr)
 	}
 	if((nm.item.mask & LVIF_IMAGE) != 0)
 	{
-		bool const used = fi.m_export_table.m_export_address_table[row].m_is_used;
-		bool const matched = fi_tmp.m_matched_imports[row] != 0xffff;
-		bool const address = fi.m_export_table.m_export_address_table[row].m_is_rva;
-		bool const name = fi.m_export_table.m_export_address_table[row].m_name != nullptr;
+		bool const is_used = array_bool_tst(eti.m_are_used, exp_idx);
+		bool const is_matched = fi_tmp.m_matched_imports[exp_idx] != 0xffff;
+		bool const is_rva = array_bool_tst(eti.m_are_rvas, exp_idx);
+		bool const has_name = eti.m_names[exp_idx] != nullptr;
 		static constexpr std::int8_t const s_export_images[2][2][2][2] =
 		{
 			{
@@ -214,7 +216,7 @@ void export_view::on_getdispinfow(NMHDR& nmhdr)
 				},
 			},
 		};
-		std::int8_t const img = s_export_images[used ? 1 : 0][matched ? 1 : 0][address ? 1 : 0][name ? 1 : 0];
+		std::int8_t const img = s_export_images[is_used ? 1 : 0][is_matched ? 1 : 0][is_rva ? 1 : 0][has_name ? 1 : 0];
 		assert(img != -1);
 		nm.item.iImage = img;
 	}
@@ -337,7 +339,7 @@ void export_view::refresh()
 	file_info const& fi_tmp = *reinterpret_cast<file_info*>(ti.lParam);
 	file_info const& fi = fi_tmp.m_orig_instance ? *fi_tmp.m_orig_instance : fi_tmp;
 
-	LRESULT const set_size = SendMessageW(m_hwnd, LVM_SETITEMCOUNT, fi.m_export_table.m_export_address_table.size(), 0);
+	LRESULT const set_size = SendMessageW(m_hwnd, LVM_SETITEMCOUNT, fi.m_export_table.m_count, 0);
 	assert(set_size != 0);
 
 	int const export_type_column_max_width = get_type_column_max_width();
@@ -392,9 +394,10 @@ smart_menu export_view::create_menu()
 	return smart_menu{menu};
 }
 
-wchar_t const* export_view::on_get_col_type(export_address_entry const& export_entry)
+wchar_t const* export_view::on_get_col_type(pe_export_table_info const& eti, std::uint16_t const exp_idx)
 {
-	if(export_entry.m_is_rva)
+	bool const is_rva = array_bool_tst(eti.m_are_rvas, exp_idx);
+	if(is_rva)
 	{
 		return s_export_type_true;
 	}
@@ -404,43 +407,49 @@ wchar_t const* export_view::on_get_col_type(export_address_entry const& export_e
 	}
 }
 
-wchar_t const* export_view::on_get_col_ordinal(export_address_entry const& export_entry)
+wchar_t const* export_view::on_get_col_ordinal(pe_export_table_info const& eti, std::uint16_t const exp_idx)
 {
 	std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-	ordinal_to_string(export_entry.m_ordinal, tmpstr);
+	std::uint16_t const ordinal = eti.m_ordinals[exp_idx];
+	ordinal_to_string(ordinal, tmpstr);
 	return tmpstr.c_str();
 }
 
-wchar_t const* export_view::on_get_col_hint(export_address_entry const& export_entry)
+wchar_t const* export_view::on_get_col_hint(pe_export_table_info const& eti, std::uint16_t const exp_idx)
 {
-	if(!export_entry.m_name)
+	string const* const name = eti.m_names[exp_idx];
+	if(name)
+	{
+		std::uint16_t const hint = eti.m_hints[exp_idx];
+		std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
+		ordinal_to_string(hint, tmpstr);
+		return tmpstr.c_str();
+	}
+	else
 	{
 		return s_export_hint_na;
 	}
-	else
-	{
-		std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-		ordinal_to_string(export_entry.m_hint, tmpstr);
-		return tmpstr.c_str();
-	}
 }
 
-wchar_t const* export_view::on_get_col_name(export_address_entry const& export_entry)
+wchar_t const* export_view::on_get_col_name(pe_export_table_info const& eti, std::uint16_t const exp_idx)
 {
-	if(export_entry.m_name)
+	string const* const name = eti.m_names[exp_idx];
+	if(name)
 	{
 		std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-		tmpstr.resize(export_entry.m_name->m_len);
-		std::transform(cbegin(export_entry.m_name), cend(export_entry.m_name), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
+		tmpstr.resize(name->m_len);
+		std::transform(cbegin(name), cend(name), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
 		return tmpstr.c_str();
 	}
 	else
 	{
-		if(export_entry.m_is_rva)
+		bool const is_rva = array_bool_tst(eti.m_are_rvas, exp_idx);
+		if(is_rva)
 		{
-			if(export_entry.m_debug_name)
+			wstring const* const debug_name = eti.m_debug_names[exp_idx];
+			if(debug_name)
 			{
-				return export_entry.m_debug_name->m_str;
+				return debug_name->m_str;
 			}
 			else
 			{
@@ -454,19 +463,22 @@ wchar_t const* export_view::on_get_col_name(export_address_entry const& export_e
 	}
 }
 
-wchar_t const* export_view::on_get_col_address(export_address_entry const& export_entry)
+wchar_t const* export_view::on_get_col_address(pe_export_table_info const& eti, std::uint16_t const exp_idx)
 {
-	if(export_entry.m_is_rva)
+	bool const is_rva = array_bool_tst(eti.m_are_rvas, exp_idx);
+	if(is_rva)
 	{
+		std::uint32_t const rva = eti.m_rvas_or_forwarders[exp_idx].m_rva;
 		std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-		rva_to_string(export_entry.rva_or_forwarder.m_rva, tmpstr);
+		rva_to_string(rva, tmpstr);
 		return tmpstr.c_str();
 	}
 	else
 	{
+		string const* const forwarder = eti.m_rvas_or_forwarders[exp_idx].m_forwarder;
 		std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-		tmpstr.resize(export_entry.rva_or_forwarder.m_forwarder->m_len);
-		std::transform(cbegin(export_entry.rva_or_forwarder.m_forwarder), cend(export_entry.rva_or_forwarder.m_forwarder), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
+		tmpstr.resize(forwarder->m_len);
+		std::transform(cbegin(forwarder), cend(forwarder), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
 		return tmpstr.c_str();
 	}
 }

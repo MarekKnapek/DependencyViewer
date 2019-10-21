@@ -417,7 +417,7 @@ wchar_t const* import_view::on_get_col_ordinal(pe_import_table_info const& iti, 
 		std::uint16_t const matched_export = iti.m_matched_exports[dll_idx][imp_idx];
 		if(matched_export != 0xffff)
 		{
-			return m_main_window.m_export_view.on_get_col_ordinal(fi.m_export_table.m_export_address_table[matched_export]);
+			return m_main_window.m_export_view.on_get_col_ordinal(fi.m_export_table, matched_export);
 		}
 		else
 		{
@@ -434,7 +434,7 @@ wchar_t const* import_view::on_get_col_hint(pe_import_table_info const& iti, std
 		std::uint16_t const matched_export = iti.m_matched_exports[dll_idx][imp_idx];
 		if(matched_export != 0xffff)
 		{
-			return m_main_window.m_export_view.on_get_col_hint(fi.m_export_table.m_export_address_table[matched_export]);
+			return m_main_window.m_export_view.on_get_col_hint(fi.m_export_table, matched_export);
 		}
 		else
 		{
@@ -458,7 +458,7 @@ wchar_t const* import_view::on_get_col_name(pe_import_table_info const& iti, std
 		std::uint16_t const matched_export = iti.m_matched_exports[dll_idx][imp_idx];
 		if(matched_export != 0xffff)
 		{
-			return m_main_window.m_export_view.on_get_col_name(fi.m_export_table.m_export_address_table[matched_export]);
+			return m_main_window.m_export_view.on_get_col_name(fi.m_export_table, matched_export);
 		}
 		else
 		{

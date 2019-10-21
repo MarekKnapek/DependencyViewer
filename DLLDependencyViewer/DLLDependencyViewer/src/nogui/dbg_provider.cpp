@@ -103,9 +103,9 @@ void dbg_provider::get_symbols_from_addresses_task(dbg_provider_param_t const pa
 		BOOL const unloaded = m_dbghelp.m_fn_SymUnloadModule64(GetCurrentProcess(), sym_module);
 		assert(unloaded != FALSE);
 	});
-	assert(task->m_addresses.size() == task->m_symbol_names.size());
-	int const n = static_cast<int>(task->m_addresses.size());
-	for(int i = 0; i != n; ++i)
+	assert(task->m_indexes.size() == task->m_symbol_names.size());
+	std::uint16_t const n = static_cast<std::uint16_t>(task->m_indexes.size());
+	for(std::uint16_t i = 0; i != n; ++i)
 	{
 		DWORD64 displacement;
 		union symbol_info_t
@@ -117,7 +117,8 @@ void dbg_provider::get_symbols_from_addresses_task(dbg_provider_param_t const pa
 		SYMBOL_INFOW& symbol_info = symbol_info_v.sym_info;
 		symbol_info.SizeOfStruct = sizeof(SYMBOL_INFOW);
 		symbol_info.MaxNameLen = MAX_SYM_NAME;
-		DWORD64 const address64 = sym_module + task->m_addresses[i];
+		std::uint32_t const address = task->m_eti->m_rvas_or_forwarders[task->m_indexes[i]].m_rva;
+		DWORD64 const address64 = sym_module + address;
 		BOOL const got_sym = m_dbghelp.m_fn_SymFromAddrW(GetCurrentProcess(), address64, &displacement, &symbol_info);
 		if(got_sym != FALSE)
 		{

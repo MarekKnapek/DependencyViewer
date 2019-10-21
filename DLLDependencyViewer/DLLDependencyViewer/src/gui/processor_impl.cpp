@@ -115,13 +115,18 @@ void process_e(processor_impl& prcsr, file_info& fi, file_info& sub_fi, string c
 	memory_mapped_file const mmf = memory_mapped_file(sub_fi.m_file_path->m_str);
 	pe_header_info const hi = pe_process_header(mmf.begin(), mmf.size());
 	sub_fi.m_is_32_bit = hi.m_is_pe32;
-	bool const iti_processed = pe_process_all(mmf.begin(), mmf.size(), prcsr.m_mo->m_mm, &sub_fi.m_import_table);
-	if(!iti_processed)
+	pe_tables tables;
+	tables.m_tmp_alc = &prcsr.m_entp_alloc;
+	tables.m_iti_out = &sub_fi.m_import_table;
+	tables.m_eti_out = &sub_fi.m_export_table;
+	tables.m_enpt_count_out = &prcsr.m_curr_enpt->m_count;
+	tables.m_enpt_out = &prcsr.m_curr_enpt->m_enpt;
+	bool const tables_processed = pe_process_all(mmf.begin(), mmf.size(), prcsr.m_mo->m_mm, &tables);
+	if(!tables_processed)
 	{
 		wchar_t const err[] = L"Failed to process import tables.";
 		throw static_cast<wchar_t const*>(err);
 	}
-	sub_fi.m_export_table = pe_process_export_table(mmf.begin(), mmf.size(), hi, prcsr.m_mo->m_mm, prcsr.m_curr_enpt, prcsr.m_entp_alloc);
 	sub_fi.m_resources_table = pe_process_resource_table(mmf.begin(), mmf.size(), hi, prcsr.m_mo->m_mm);
 	sub_fi.m_manifest_data = process_manifest(prcsr, sub_fi);
 }
@@ -168,7 +173,6 @@ void pair_imports_with_exports(processor_impl& prcsr, file_info& fi, file_info& 
 {
 	file_info& sub_fi_proper = sub_fi.m_orig_instance ? *sub_fi.m_orig_instance : sub_fi;
 	pe_export_table_info& exp = sub_fi_proper.m_export_table;
-	auto const& eat = exp.m_export_address_table;
 	std::uint16_t const dll_idx = static_cast<std::uint16_t>(&sub_fi - fi.m_sub_file_infos.data());
 	std::uint16_t const n = fi.m_import_table.m_import_counts[dll_idx];
 	for(int i = 0; i != n; ++i)
@@ -179,16 +183,17 @@ void pair_imports_with_exports(processor_impl& prcsr, file_info& fi, file_info& 
 		{
 			std::uint16_t const ordinal = fi.m_import_table.m_ordinals_or_hints[dll_idx][i];
 			std::uint16_t const ordinal_as_idx = ordinal - exp.m_ordinal_base;
-			if(ordinal_as_idx < eat.size() && eat[ordinal_as_idx].m_ordinal == ordinal)
+			if(ordinal_as_idx < exp.m_count && exp.m_ordinals[ordinal_as_idx] == ordinal)
 			{
 				matched_export = ordinal_as_idx;
 			}
 			else
 			{
-				auto const it = std::lower_bound(eat.cbegin(), eat.cend(), ordinal, [](auto const& e, auto const& v){ return e.m_ordinal < v; });
-				if(it != eat.cend() && it->m_ordinal == ordinal)
+				auto const ordinals_end = exp.m_ordinals + exp.m_count;
+				auto const it = std::lower_bound(exp.m_ordinals, ordinals_end, ordinal, [](auto const& e, auto const& v){ return e < v; });
+				if(it != ordinals_end && *it == ordinal)
 				{
-					matched_export = static_cast<std::uint16_t>(it - eat.cbegin());
+					matched_export = static_cast<std::uint16_t>(it - exp.m_ordinals);
 				}
 				else
 				{
@@ -201,14 +206,15 @@ void pair_imports_with_exports(processor_impl& prcsr, file_info& fi, file_info& 
 			std::uint16_t const hint = fi.m_import_table.m_ordinals_or_hints[dll_idx][i];
 			string const* const name = fi.m_import_table.m_names[dll_idx][i];
 			auto const& enpt = *prcsr.m_curr_enpt;
-			if(hint < enpt.size() && string_equal{}(eat[enpt[hint]].m_name, name))
+			if(hint < enpt.m_count && string_equal{}(exp.m_names[enpt.m_enpt[hint]], name))
 			{
-				matched_export = enpt[hint];
+				matched_export = enpt.m_enpt[hint];
 			}
 			else
 			{
-				auto const it = std::lower_bound(enpt.cbegin(), enpt.cend(), name, [&](auto const& e, auto const& v){ return string_less{}(eat[e].m_name, v); });
-				if(it != enpt.cend() && string_equal{}(eat[*it].m_name, name))
+				auto const enpt_end = enpt.m_enpt + enpt.m_count;
+				auto const it = std::lower_bound(enpt.m_enpt, enpt_end, name, [&](auto const& e, auto const& v){ return string_less{}(exp.m_names[e], v); });
+				if(it != enpt_end && string_equal{}(exp.m_names[*it], name))
 				{
 					matched_export = *it;
 				}
@@ -220,7 +226,7 @@ void pair_imports_with_exports(processor_impl& prcsr, file_info& fi, file_info& 
 		}
 		#define ordinal_macro (fi.m_import_table.m_ordinals_or_hints[dll_idx][i])
 		#define name_macro (fi.m_import_table.m_names[dll_idx][i])
-		assert(matched_export == 0xffff || (is_ordinal ? (ordinal_macro == eat[matched_export].m_ordinal) : (string_equal{}(name_macro, eat[matched_export].m_name))));
+		assert(matched_export == 0xffff || (is_ordinal ? (ordinal_macro == exp.m_ordinals[matched_export]) : (string_equal{}(name_macro, exp.m_names[matched_export]))));
 		#undef name_macro
 		#undef ordinal_macro
 	}
@@ -230,9 +236,8 @@ void pair_exports_with_imports(processor_impl& prcsr, file_info& fi, file_info& 
 {
 	file_info& sub_fi_proper = sub_fi.m_orig_instance ? *sub_fi.m_orig_instance : sub_fi;
 	pe_export_table_info& exp = sub_fi_proper.m_export_table;
-	int const n_exports = static_cast<int>(exp.m_export_address_table.size());
-	sub_fi.m_matched_imports = prcsr.m_mo->m_mm.m_alc.allocate_objects<std::uint16_t>(n_exports);
-	std::fill(sub_fi.m_matched_imports, sub_fi.m_matched_imports + n_exports, static_cast<std::uint16_t>(0xffff));
+	sub_fi.m_matched_imports = prcsr.m_mo->m_mm.m_alc.allocate_objects<std::uint16_t>(exp.m_count);
+	std::fill(sub_fi.m_matched_imports, sub_fi.m_matched_imports + exp.m_count, static_cast<std::uint16_t>(0xffff));
 	int const dll_idx = static_cast<int>(&sub_fi - fi.m_sub_file_infos.data());
 	std::uint16_t const n_imports = fi.m_import_table.m_import_counts[dll_idx];
 	for(std::uint16_t i = 0; i != n_imports; ++i)
@@ -243,9 +248,9 @@ void pair_exports_with_imports(processor_impl& prcsr, file_info& fi, file_info& 
 			continue;
 		}
 		sub_fi.m_matched_imports[matched_export] = i;
-		if(!exp.m_export_address_table[matched_export].m_is_used)
+		if(!array_bool_tst(exp.m_are_used, matched_export))
 		{
-			exp.m_export_address_table[matched_export].m_is_used = true;
+			array_bool_set(exp.m_are_used, matched_export);
 		}
 	}
 }

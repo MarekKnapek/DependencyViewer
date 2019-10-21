@@ -102,9 +102,9 @@ void test()
 		}
 		memory_manager mm;
 		pe_header_info hi;
-		pe_export_table_info et;
 		pe_resources_table_info rs;
-		my_vector<std::uint16_t> enpt;
+		std::uint16_t enpt_count;
+		std::uint16_t const* enpt;
 		allocator enpt_alloc;
 		try
 		{
@@ -117,17 +117,15 @@ void test()
 			continue;
 		}
 		pe_import_table_info iti;
-		bool const iti_processed = pe_process_all(mmf.begin(), mmf.size(), mm, &iti);
-		if(!iti_processed)
-		{
-			OutputDebugStringW(p.c_str());
-			OutputDebugStringW(L"\n");
-		}
-		try
-		{
-			et = pe_process_export_table(mmf.begin(), mmf.size(), hi, mm, &enpt, enpt_alloc);
-		}
-		catch(wchar_t const* const&)
+		pe_export_table_info eti;
+		pe_tables tables;
+		tables.m_tmp_alc = &enpt_alloc;
+		tables.m_iti_out = &iti;
+		tables.m_eti_out = &eti;
+		tables.m_enpt_count_out = &enpt_count;
+		tables.m_enpt_out = &enpt;
+		bool const tables_processed = pe_process_all(mmf.begin(), mmf.size(), mm, &tables);
+		if(!tables_processed)
 		{
 			OutputDebugStringW(p.c_str());
 			OutputDebugStringW(L"\n");

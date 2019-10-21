@@ -23,8 +23,8 @@ struct get_symbols_from_addresses_task_t
 	typedef void(* callback_function_t)(get_symbols_from_addresses_task_t* const);
 	std::atomic<bool> m_canceled;
 	std::wstring m_module_path;
-	std::vector<std::uint32_t> m_addresses;
-	std::vector<export_address_entry*> m_export_entries;
+	pe_export_table_info* m_eti;
+	std::vector<std::uint16_t> m_indexes;
 	std::vector<std::wstring> m_symbol_names;
 	std::atomic<callback_function_t> m_callback_function;
 	void* m_hwnd = nullptr;

@@ -12,6 +12,7 @@
 #include "../nogui/scope_exit.h"
 #include "../nogui/smart_local_free.h"
 #include "../nogui/utils.h"
+#include "../nogui/array_bool.h"
 
 #include "../res/resources.h"
 
@@ -925,8 +926,17 @@ void dbg_task_callback_2(get_symbols_from_addresses_task_t* const task)
 
 void main_window::request_symbol_traslation(file_info& fi)
 {
-	auto const fn_is_unnamed = [](export_address_entry const& e){ return e.m_is_rva && !e.m_name; };
-	int const n = static_cast<int>(std::count_if(fi.m_export_table.m_export_address_table.cbegin(), fi.m_export_table.m_export_address_table.cend(), fn_is_unnamed));
+	auto const fn_is_unnamed = [](bool const is_rva, string const* const name){ return is_rva && !name; };
+	std::uint16_t n = 0;
+	for(std::uint16_t i = 0; i != fi.m_export_table.m_count; ++i)
+	{
+		bool const is_rva = array_bool_tst(fi.m_export_table.m_are_rvas, i);
+		string const* const name = fi.m_export_table.m_names[i];
+		if(fn_is_unnamed(is_rva, name))
+		{
+			++n;
+		}
+	}
 	if(n == 0)
 	{
 		return;
@@ -934,19 +944,20 @@ void main_window::request_symbol_traslation(file_info& fi)
 	auto task = std::make_unique<get_symbols_from_addresses_task_t>();
 	task->m_canceled.store(false);
 	task->m_module_path.assign(fi.m_file_path->m_str, fi.m_file_path->m_len);
-	task->m_addresses.resize(n);
-	task->m_export_entries.resize(n);
+	task->m_eti = &fi.m_export_table;
+	task->m_indexes.resize(n);
 	task->m_symbol_names.resize(n);
-	int i = 0;
-	for(auto& e : fi.m_export_table.m_export_address_table)
+	std::uint16_t j = 0;
+	for(std::uint16_t i = 0; i != fi.m_export_table.m_count; ++i)
 	{
-		if(!fn_is_unnamed(e))
+		bool const is_rva = array_bool_tst(fi.m_export_table.m_are_rvas, i);
+		string const* const name = fi.m_export_table.m_names[i];
+		if(!fn_is_unnamed(is_rva, name))
 		{
 			continue;
 		}
-		task->m_addresses[i] = e.rva_or_forwarder.m_rva;
-		task->m_export_entries[i] = &e;
-		++i;
+		task->m_indexes[j] = i;
+		++j;
 	}
 	task->m_callback_function.store(&dbg_task_callback_1);
 	task->m_hwnd = reinterpret_cast<void*>(m_hwnd);
@@ -988,17 +999,20 @@ void main_window::process_finished_dbg_task(get_symbols_from_addresses_task_t* c
 	{
 		return;
 	}
-	assert(task->m_export_entries.size() == task->m_symbol_names.size());
-	int const n = static_cast<int>(task->m_export_entries.size());
-	for(int i = 0; i != n; ++i)
+	assert(task->m_indexes.size() == task->m_symbol_names.size());
+	std::uint16_t const n = static_cast<std::uint16_t>(task->m_indexes.size());
+	for(std::uint16_t i = 0; i != n; ++i)
 	{
+		std::uint16_t const idx = task->m_indexes[i];
+		wstring const*& dbg_name = task->m_eti->m_debug_names[idx];
 		if(!task->m_symbol_names[i].empty())
 		{
-			task->m_export_entries[i]->m_debug_name = m_mo.m_mm.m_wstrs.add_string(task->m_symbol_names[i].c_str(), static_cast<int>(task->m_symbol_names[i].size()), m_mo.m_mm.m_alc);
+			dbg_name = m_mo.m_mm.m_wstrs.add_string(task->m_symbol_names[i].c_str(), static_cast<int>(task->m_symbol_names[i].size()), m_mo.m_mm.m_alc);
+
 		}
 		else
 		{
-			task->m_export_entries[i]->m_debug_name = &s_export_name_debug_na2;
+			dbg_name = &s_export_name_debug_na2;
 		}
 	}
 	HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree_view.get_hwnd(), TVM_GETNEXTITEM, TVGN_CARET, 0));

@@ -9,10 +9,16 @@
 #include <vector>
 
 
+struct enpt_t
+{
+	std::uint16_t const* m_enpt;
+	std::uint16_t m_count;
+};
+
 struct file_info_big
 {
 	file_info* m_fi;
-	my_vector<std::uint16_t> m_enpt;
+	enpt_t m_enpt;
 };
 
 struct processor_impl
@@ -21,7 +27,7 @@ struct processor_impl
 	std::queue<file_info*> m_queue;
 	std::unordered_map<string const*, file_info_big, string_case_insensitive_hash, string_case_insensitive_equal> m_map;
 	manifest_parser* m_manifest_parser = nullptr;
-	my_vector<std::uint16_t>* m_curr_enpt;
+	enpt_t* m_curr_enpt;
 	allocator m_entp_alloc;
 };
 
