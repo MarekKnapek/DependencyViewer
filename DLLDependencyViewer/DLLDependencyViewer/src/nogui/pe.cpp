@@ -201,7 +201,7 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 	ret.m_ordinal_base = ordinal_base;
 	std::uint16_t j = 0;
 	int hint_idx = 0;
-	std::uint16_t const n = static_cast<std::uint16_t>(eat.m_count);
+	std::uint16_t const n = eat.m_count;
 	for(std::uint16_t i = 0; i != n; ++i)
 	{
 		std::uint32_t const export_rva = eat.m_table[i].m_export_rva;
@@ -251,7 +251,7 @@ pe_export_table_info pe_process_export_table(void const* const fd, int const fs,
 		}
 		++j;
 	}
-	VERIFY(hint_idx == static_cast<int>(edt.m_table->m_names_count));
+	VERIFY(hint_idx == static_cast<std::uint16_t>(edt.m_table->m_names_count));
 	VERIFY(std::is_sorted(enpt_out->cbegin(), enpt_out->cend(), [&](auto const& a, auto const& b)
 	{
 		auto const& aa = ret.m_export_address_table[a].m_name;

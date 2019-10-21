@@ -63,7 +63,7 @@ bool pe_parse_export_name_pointer_table(void const* const fd, int const file_siz
 	WARN_M_R(enpt_raw != 0, L"Export name pointer table not found in any section.", false);
 	pe_export_name_pointer_entry const* enpt = reinterpret_cast<pe_export_name_pointer_entry const*>(file_data + enpt_raw);
 	enpt_out->m_table = enpt;
-	enpt_out->m_count = static_cast<int>(edt.m_table->m_names_count);
+	enpt_out->m_count = static_cast<std::uint16_t>(edt.m_table->m_names_count);
 	return true;
 }
 
@@ -81,7 +81,7 @@ bool pe_parse_export_ordinal_table(void const* const fd, int const file_size, pe
 	WARN_M_R(eot_raw != 0, L"Export ordinal table not found in any section.", false);
 	pe_export_ordinal_entry const* eot = reinterpret_cast<pe_export_ordinal_entry const*>(file_data + eot_raw);
 	eot_out->m_table = eot;
-	eot_out->m_count = static_cast<int>(edt.m_table->m_names_count);
+	eot_out->m_count = static_cast<std::uint16_t>(edt.m_table->m_names_count);
 	return true;
 }
 
@@ -99,7 +99,7 @@ bool pe_parse_export_address_table(void const* const fd, int const file_size, pe
 	WARN_M_R(eot_raw != 0, L"Export address table not found in any section.", false);
 	pe_export_address_entry const* eat = reinterpret_cast<pe_export_address_entry const*>(file_data + eot_raw);
 	eat_out->m_table = eat;
-	eat_out->m_count = static_cast<int>(edt.m_table->m_export_address_count);
+	eat_out->m_count = static_cast<std::uint16_t>(edt.m_table->m_export_address_count);
 	return true;
 }
 

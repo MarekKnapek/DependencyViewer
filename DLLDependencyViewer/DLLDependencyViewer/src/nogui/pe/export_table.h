@@ -40,7 +40,7 @@ static_assert(sizeof(pe_export_address_entry) == 0x4, "");
 struct pe_export_address_table
 {
 	pe_export_address_entry const* m_table;
-	int m_count;
+	std::uint16_t m_count;
 };
 
 
@@ -54,7 +54,7 @@ static_assert(sizeof(pe_export_name_pointer_entry) == 0x4, "");
 struct pe_export_name_pointer_table
 {
 	pe_export_name_pointer_entry const* m_table;
-	int m_count;
+	std::uint16_t m_count;
 };
 
 
@@ -69,21 +69,7 @@ bool operator==(pe_export_ordinal_entry const& a, pe_export_ordinal_entry const&
 struct pe_export_ordinal_table
 {
 	pe_export_ordinal_entry const* m_table;
-	int m_count;
-};
-
-
-struct pe_export_name_entry
-{
-	std::uint32_t m_string_rva;
-};
-static_assert(sizeof(pe_export_name_entry) == 4, "");
-static_assert(sizeof(pe_export_name_entry) == 0x4, "");
-
-struct pe_export_name_table
-{
-	pe_export_name_entry const* m_table;
-	int m_count;
+	std::uint16_t m_count;
 };
 
 
