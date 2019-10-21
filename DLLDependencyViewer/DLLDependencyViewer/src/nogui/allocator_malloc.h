@@ -1,6 +1,9 @@
 #pragma once
 
 
+#include <vector>
+
+
 class allocator_malloc
 {
 public:
@@ -14,7 +17,7 @@ public:
 public:
 	void* allocate_bytes(int const size, int const align);
 private:
-	void* m_state;
+	std::vector<void*> m_state;
 };
 
 inline void swap(allocator_malloc& a, allocator_malloc& b) noexcept { a.swap(b); }
