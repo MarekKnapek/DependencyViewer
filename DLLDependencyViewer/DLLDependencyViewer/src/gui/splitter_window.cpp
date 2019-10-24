@@ -240,5 +240,5 @@ template<> wchar_t const* const splitter_window<splitter_window_orientation::ver
 template<splitter_window_orientation orientation>
 ATOM splitter_window<orientation>::g_class = 0;
 
-template splitter_window<splitter_window_orientation::horizontal>;
-template splitter_window<splitter_window_orientation::vertical>;
+template class splitter_window<splitter_window_orientation::horizontal>;
+template class splitter_window<splitter_window_orientation::vertical>;

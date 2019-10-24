@@ -124,6 +124,7 @@ template struct basic_string_case_insensitive_equal<char>;
 template struct basic_string_case_insensitive_equal<wchar_t>;
 
 
+template<>
 bool basic_string_less<char>::operator()(basic_string<char> const* const& a, basic_string<char> const* const& b) const
 {
 	if(a == b)
