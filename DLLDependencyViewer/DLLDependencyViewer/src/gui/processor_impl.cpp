@@ -124,7 +124,7 @@ void process_e(processor_impl& prcsr, file_info& fi, file_info& sub_fi, string c
 	bool const tables_processed = pe_process_all(mmf.begin(), mmf.size(), prcsr.m_mo->m_mm, &tables);
 	if(!tables_processed)
 	{
-		wchar_t const err[] = L"Failed to process import tables.";
+		wchar_t const err[] = L"Failed to process file.";
 		throw static_cast<wchar_t const*>(err);
 	}
 	sub_fi.m_resources_table = pe_process_resource_table(mmf.begin(), mmf.size(), hi, prcsr.m_mo->m_mm);
