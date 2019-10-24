@@ -5,6 +5,8 @@
 #include "smart_library.h"
 #include "unique_strings.h"
 
+#include <vector>
+
 #include "my_windows.h"
 
 
