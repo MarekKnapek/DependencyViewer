@@ -234,8 +234,8 @@ LRESULT splitter_window<orientation>::on_wm_lbuttonup(WPARAM wparam, LPARAM lpar
 
 template<> wchar_t const splitter_window<splitter_window_orientation::horizontal>::s_window_class_name[] = L"splitter_window_hor";
 template<> wchar_t const splitter_window<splitter_window_orientation::vertical>::s_window_class_name[] = L"splitter_window_ver";
-template<> wchar_t const* const splitter_window<splitter_window_orientation::horizontal>::s_cursor_id = IDC_SIZEWE;
-template<> wchar_t const* const splitter_window<splitter_window_orientation::vertical>::s_cursor_id = IDC_SIZENS;
+template<> wchar_t const* const splitter_window<splitter_window_orientation::horizontal>::s_cursor_id = reinterpret_cast<wchar_t const*>(IDC_SIZEWE);
+template<> wchar_t const* const splitter_window<splitter_window_orientation::vertical>::s_cursor_id = reinterpret_cast<wchar_t const*>(IDC_SIZENS);
 
 template<splitter_window_orientation orientation>
 ATOM splitter_window<orientation>::g_class = 0;

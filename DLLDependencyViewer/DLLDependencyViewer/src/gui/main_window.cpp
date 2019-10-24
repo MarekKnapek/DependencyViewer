@@ -86,12 +86,12 @@ void main_window::register_class()
 	wc.cbClsExtra = 0;
 	wc.cbWndExtra = 0;
 	wc.hInstance = get_instance();
-	wc.hIcon = LoadIconW(nullptr, IDI_APPLICATION);
-	wc.hCursor = LoadCursorW(nullptr, IDC_ARROW);
+	wc.hIcon = LoadIconW(nullptr, reinterpret_cast<wchar_t const*>(IDI_APPLICATION));
+	wc.hCursor = LoadCursorW(nullptr, reinterpret_cast<wchar_t const*>(IDC_ARROW));
 	wc.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_WINDOW + 1);
 	wc.lpszMenuName = nullptr;
 	wc.lpszClassName = s_window_class_name;
-	wc.hIconSm = LoadIconW(nullptr, IDI_APPLICATION);
+	wc.hIconSm = LoadIconW(nullptr, reinterpret_cast<wchar_t const*>(IDI_APPLICATION));
 
 	ATOM const klass = RegisterClassExW(&wc);
 
