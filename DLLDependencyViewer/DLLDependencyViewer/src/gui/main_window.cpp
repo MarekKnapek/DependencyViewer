@@ -916,8 +916,8 @@ void main_window::request_symbol_traslation(file_info& fi)
 		idle_task_param_t const cllbck_prm = task;
 
 		assert(task);
-		assert(task->m_data);
-		HWND const self = reinterpret_cast<HWND>(task->m_data);
+		assert(task->m_callback_data);
+		HWND const self = reinterpret_cast<HWND>(task->m_callback_data);
 		LRESULT const sent = SendMessageW(self, wm_main_window_add_idle_task, reinterpret_cast<WPARAM>(cllbck), reinterpret_cast<LPARAM>(cllbck_prm));
 	};
 	get_symbols_from_addresses_task_t::callback_function_t const cllbck = callback;
@@ -939,7 +939,7 @@ void main_window::request_symbol_traslation(file_info& fi)
 	}
 	auto task = std::make_unique<get_symbols_from_addresses_task_t>();
 	task->m_canceled.store(false);
-	task->m_module_path.assign(fi.m_file_path->m_str, fi.m_file_path->m_len);
+	task->m_module_path = fi.m_file_path;
 	task->m_eti = &fi.m_export_table;
 	task->m_indexes.resize(n);
 	task->m_symbol_names.resize(n);
@@ -955,8 +955,8 @@ void main_window::request_symbol_traslation(file_info& fi)
 		task->m_indexes[j] = i;
 		++j;
 	}
-	task->m_callback_function.store(cllbck);
-	task->m_data = reinterpret_cast<void*>(m_hwnd);
+	task->m_callback_function = cllbck;
+	task->m_callback_data = reinterpret_cast<void*>(m_hwnd);
 	get_symbols_from_addresses_task_t* const task_ptr = task.release();
 	m_symbol_tasks.push_back(task_ptr);
 	dbg_get_symbols_from_addresses(task_ptr);
@@ -1004,7 +1004,7 @@ void main_window::process_finished_dbg_task(get_symbols_from_addresses_task_t* c
 		assert(got == TRUE);
 		file_info const& fi_tmp = *reinterpret_cast<file_info*>(ti.lParam);
 		file_info const& fi = fi_tmp.m_orig_instance ? *fi_tmp.m_orig_instance : fi_tmp;
-		if(fi.m_file_path->m_len == static_cast<int>(task->m_module_path.size()) && std::wcscmp(fi.m_file_path->m_str, task->m_module_path.c_str()) == 0)
+		if(wstring_equal{}(fi.m_file_path, task->m_module_path))
 		{
 			m_import_view.repaint();
 			m_export_view.repaint();
@@ -1026,15 +1026,15 @@ void main_window::schedule_deletion(std::unique_ptr<main_type> mo)
 		{
 			assert(param);
 			get_symbols_from_addresses_task_t* const task = static_cast<get_symbols_from_addresses_task_t*>(param);
-			big_param_t* const big_param = static_cast<big_param_t*>(task->m_data);
+			big_param_t* const big_param = static_cast<big_param_t*>(task->m_callback_data);
 			std::unique_ptr<big_param_t> const sp_big_param(big_param);
 			main_type* const mo = static_cast<main_type*>(big_param->m_mo);
 			std::unique_ptr<main_type> const sp_mo(mo);
 			self.process_finished_dbg_task(task);
 		};
 		assert(task);
-		assert(task->m_data);
-		big_param_t* const big_param = static_cast<big_param_t*>(task->m_data);
+		assert(task->m_callback_data);
+		big_param_t* const big_param = static_cast<big_param_t*>(task->m_callback_data);
 		idle_task_t const idl_cllbck = idle_callback;
 		idle_task_param_t const idl_cllbck_prm = task;
 		LRESULT const added = SendMessageW(big_param->m_hwnd, wm_main_window_add_idle_task, reinterpret_cast<WPARAM>(idl_cllbck), reinterpret_cast<LPARAM>(idl_cllbck_prm));
@@ -1046,8 +1046,8 @@ void main_window::schedule_deletion(std::unique_ptr<main_type> mo)
 	big_param->m_mo = mo.release();
 	auto task = std::make_unique<get_symbols_from_addresses_task_t>();
 	task->m_canceled.store(true);
-	task->m_callback_function.store(cllbck);
-	task->m_data = big_param.release();
+	task->m_callback_function = cllbck;
+	task->m_callback_data = big_param.release();
 	get_symbols_from_addresses_task_t* const task_ptr = task.release();
 	m_symbol_tasks.push_back(task_ptr);
 	dbg_get_symbols_from_addresses(task_ptr);
