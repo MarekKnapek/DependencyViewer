@@ -19,7 +19,6 @@
 #include "nogui/allocator_small.cpp"
 #include "nogui/array_bool.cpp"
 #include "nogui/assert.cpp"
-#include "nogui/dbg.cpp"
 #include "nogui/dbg_provider.cpp"
 #include "nogui/dbghelp.cpp"
 #include "nogui/file_name_provider.cpp"

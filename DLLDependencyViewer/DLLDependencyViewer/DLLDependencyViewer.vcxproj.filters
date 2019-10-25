@@ -234,9 +234,6 @@
     <ClInclude Include="src\nogui\dbg_provider.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
-    <ClInclude Include="src\nogui\dbg.h">
-      <Filter>src\nogui</Filter>
-    </ClInclude>
     <ClInclude Include="src\nogui\my_windows.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
@@ -390,9 +387,6 @@
       <Filter>src\nogui</Filter>
     </ClCompile>
     <ClCompile Include="src\nogui\dbg_provider.cpp">
-      <Filter>src\nogui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\nogui\dbg.cpp">
       <Filter>src\nogui</Filter>
     </ClCompile>
     <ClCompile Include="src\gui\smart_menu.cpp">

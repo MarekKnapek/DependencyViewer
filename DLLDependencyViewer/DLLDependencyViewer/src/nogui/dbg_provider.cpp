@@ -3,52 +3,111 @@
 #include "scope_exit.h"
 
 #include <cassert>
-#include <memory>
 
 
-struct dbg_provider_data_marshaller
+static dbg_provider* g_dbg_provider = nullptr;
+
+
+void dbg_provider::init()
 {
-	dbg_provider* m_self;
-	dbg_provider_task_t m_task;
-	dbg_provider_param_t m_param;
-};
+	assert(!g_dbg_provider);
+	g_dbg_provider = new dbg_provider();
+}
 
+void dbg_provider::deinit()
+{
+	assert(g_dbg_provider);
+	delete g_dbg_provider;
+	g_dbg_provider = nullptr;
+}
+
+dbg_provider* dbg_provider::get()
+{
+	assert(g_dbg_provider);;
+	return g_dbg_provider;
+}
 
 dbg_provider::dbg_provider():
 	m_sym_inited(false),
 	m_dbghelp(),
 	m_thread_worker()
 {
-	add_task(&dbg_provider::init_task, nullptr);
+	auto const init_task = [](thread_worker_param_t const param)
+	{
+		assert(param);
+		dbg_provider& self = *static_cast<dbg_provider*>(param);
+		self.init_task();
+	};
+	thread_worker_function_t const init_tsk = init_task;
+	thread_worker_param_t const init_tsk_param = this;
+
+	add_task(init_tsk, init_tsk_param);
 }
 
 dbg_provider::~dbg_provider()
 {
-	add_task(&dbg_provider::deinit_task, nullptr);
-}
-
-void dbg_provider::get_symbols_from_addresses(get_symbols_from_addresses_task_t* const param)
-{
-	add_task(&dbg_provider::get_symbols_from_addresses_task, param);
-}
-
-void dbg_provider::add_task(dbg_provider_task_t const task, dbg_provider_param_t const param)
-{
-	dbg_provider_data_marshaller* const m = new dbg_provider_data_marshaller;
-	m->m_self = this;
-	m->m_task = task;
-	m->m_param = param;
-	thread_worker_param_t const thread_worker_param = m;
-	m_thread_worker.add_task([](thread_worker_param_t const param)
+	auto const deinit_task = [](thread_worker_param_t const param)
 	{
 		assert(param);
-		dbg_provider_data_marshaller* const m = reinterpret_cast<dbg_provider_data_marshaller*>(param);
-		std::unique_ptr<dbg_provider_data_marshaller> const sp_m(m);
-		(m->m_self->*m->m_task)(m->m_param);
-	}, thread_worker_param);
+		dbg_provider& self = *static_cast<dbg_provider*>(param);
+		self.deinit_task();
+	};
+	thread_worker_function_t const deinit_tsk = deinit_task;
+	thread_worker_param_t const deinit_tsk_param = this;
+
+	add_task(deinit_tsk, deinit_tsk_param);
 }
 
-void dbg_provider::init_task(dbg_provider_param_t const /*param*/)
+void dbg_provider::add_task(thread_worker_function_t const func, thread_worker_param_t const param)
+{
+	m_thread_worker.add_task(func, param);
+}
+
+void dbg_provider::get_symbols_from_addresses_task(get_symbols_from_addresses_param_t& param)
+{
+	if(!m_sym_inited)
+	{
+		return;
+	}
+	DWORD64 const sym_module = m_dbghelp.m_fn_SymLoadModuleExW(GetCurrentProcess(), nullptr, param.m_module_path->m_str, nullptr, 0, 0, nullptr, 0);
+	if(sym_module == 0)
+	{
+		return;
+	}
+	auto const fn_unload_module = mk::make_scope_exit([&]()
+	{
+		BOOL const unloaded = m_dbghelp.m_fn_SymUnloadModule64(GetCurrentProcess(), sym_module);
+		assert(unloaded != FALSE);
+	});
+	assert(param.m_indexes.size() == param.m_symbol_names.size());
+	std::uint16_t const n = static_cast<std::uint16_t>(param.m_indexes.size());
+	for(std::uint16_t i = 0; i != n; ++i)
+	{
+		DWORD64 displacement;
+		union symbol_info_t
+		{
+			SYMBOL_INFOW sym_info;
+			char buff[sizeof(SYMBOL_INFOW) + MAX_SYM_NAME * sizeof(wchar_t)];
+		};
+		symbol_info_t symbol_info_v;
+		SYMBOL_INFOW& symbol_info = symbol_info_v.sym_info;
+		symbol_info.SizeOfStruct = sizeof(SYMBOL_INFOW);
+		symbol_info.MaxNameLen = MAX_SYM_NAME;
+		std::uint32_t const address = param.m_eti->m_rvas_or_forwarders[param.m_indexes[i]].m_rva;
+		DWORD64 const address64 = sym_module + address;
+		BOOL const got_sym = m_dbghelp.m_fn_SymFromAddrW(GetCurrentProcess(), address64, &displacement, &symbol_info);
+		if(got_sym != FALSE)
+		{
+			param.m_symbol_names[i].assign(symbol_info.Name, symbol_info.Name + symbol_info.NameLen);
+		}
+		else
+		{
+			param.m_symbol_names[i].clear();
+		}
+	}
+}
+
+void dbg_provider::init_task()
 {
 	bool const dbghelp_inited = m_dbghelp.init();
 	if(!dbghelp_inited)
@@ -65,7 +124,7 @@ void dbg_provider::init_task(dbg_provider_param_t const /*param*/)
 	m_sym_inited = true;
 }
 
-void dbg_provider::deinit_task(dbg_provider_param_t const /*param*/)
+void dbg_provider::deinit_task()
 {
 	if(!m_sym_inited)
 	{
@@ -74,58 +133,4 @@ void dbg_provider::deinit_task(dbg_provider_param_t const /*param*/)
 	BOOL const cleaned = m_dbghelp.m_fn_SymCleanup(GetCurrentProcess());
 	assert(cleaned != FALSE);
 	m_dbghelp.m_dbghelp_dll.reset();
-}
-
-void dbg_provider::get_symbols_from_addresses_task(dbg_provider_param_t const param)
-{
-	assert(param);
-	get_symbols_from_addresses_task_t* const task = reinterpret_cast<get_symbols_from_addresses_task_t*>(param);
-	auto const fn_call_callback = mk::make_scope_exit([&]()
-	{
-		task->m_callback_function(task);
-	});
-	if(task->m_canceled.load() == true)
-	{
-		return;
-	}
-	if(!m_sym_inited)
-	{
-		return;
-	}
-	DWORD64 const sym_module = m_dbghelp.m_fn_SymLoadModuleExW(GetCurrentProcess(), nullptr, task->m_module_path->m_str, nullptr, 0, 0, nullptr, 0);
-	if(sym_module == 0)
-	{
-		return;
-	}
-	auto const fn_unload_module = mk::make_scope_exit([&]()
-	{
-		BOOL const unloaded = m_dbghelp.m_fn_SymUnloadModule64(GetCurrentProcess(), sym_module);
-		assert(unloaded != FALSE);
-	});
-	assert(task->m_indexes.size() == task->m_symbol_names.size());
-	std::uint16_t const n = static_cast<std::uint16_t>(task->m_indexes.size());
-	for(std::uint16_t i = 0; i != n; ++i)
-	{
-		DWORD64 displacement;
-		union symbol_info_t
-		{
-			SYMBOL_INFOW sym_info;
-			char buff[sizeof(SYMBOL_INFOW) + MAX_SYM_NAME * sizeof(wchar_t)];
-		};
-		symbol_info_t symbol_info_v;
-		SYMBOL_INFOW& symbol_info = symbol_info_v.sym_info;
-		symbol_info.SizeOfStruct = sizeof(SYMBOL_INFOW);
-		symbol_info.MaxNameLen = MAX_SYM_NAME;
-		std::uint32_t const address = task->m_eti->m_rvas_or_forwarders[task->m_indexes[i]].m_rva;
-		DWORD64 const address64 = sym_module + address;
-		BOOL const got_sym = m_dbghelp.m_fn_SymFromAddrW(GetCurrentProcess(), address64, &displacement, &symbol_info);
-		if(got_sym != FALSE)
-		{
-			task->m_symbol_names[i].assign(symbol_info.Name, symbol_info.Name + symbol_info.NameLen);
-		}
-		else
-		{
-			task->m_symbol_names[i].clear();
-		}
-	}
 }

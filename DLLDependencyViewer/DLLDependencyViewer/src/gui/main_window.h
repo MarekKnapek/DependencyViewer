@@ -10,6 +10,7 @@
 #include "tree_view.h"
 
 #include "../nogui/pe.h"
+#include "../nogui/thread_worker.h"
 
 #include <array>
 #include <queue>
@@ -23,9 +24,11 @@
 struct _TREEITEM;
 typedef struct _TREEITEM* HTREEITEM;
 class main_window;
+struct get_symbols_from_addresses_param_t;
+
+
 typedef void* idle_task_param_t;
 typedef void(* idle_task_t)(main_window&, idle_task_param_t const);
-struct get_symbols_from_addresses_task_t;
 
 
 #define wm_main_window_add_idle_task (WM_USER + 0)
@@ -91,10 +94,13 @@ private:
 	void add_idle_task(idle_task_t const task, idle_task_param_t const param);
 	void on_idle();
 	void process_command_line();
+	void register_dbg_task(thread_worker_function_t const fnc, thread_worker_param_t const param);
+	void unregister_dbg_task(thread_worker_function_t const fnc, thread_worker_param_t const param);
 	void request_symbol_traslation(file_info& fi);
-	void request_cancellation_of_all_dbg_tasks();
-	void process_finished_dbg_task(get_symbols_from_addresses_task_t* const task);
-	void schedule_deletion(std::unique_ptr<main_type> mo);
+	void cancel_all_dbg_tasks();
+	void process_finished_dbg_task(get_symbols_from_addresses_param_t const& param);
+	void request_close();
+	void request_mo_deletion(std::unique_ptr<main_type> mo);
 private:
 	static ATOM g_class;
 	static HACCEL g_accel;
@@ -107,7 +113,7 @@ private:
 	import_view m_import_view;
 	export_view m_export_view;
 	std::queue<std::pair<idle_task_t, idle_task_param_t>> m_idle_tasks;
-	std::deque<get_symbols_from_addresses_task_t*> m_symbol_tasks;
+	std::deque<thread_worker_task> m_dbg_tasks;
 private:
 	main_type m_mo;
 	settings m_settings;

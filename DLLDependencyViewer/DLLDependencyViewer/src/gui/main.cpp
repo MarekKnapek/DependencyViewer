@@ -5,7 +5,7 @@
 #include "test.h"
 
 #include "../nogui/activation_context.h"
-#include "../nogui/dbg.h"
+#include "../nogui/dbg_provider.h"
 #include "../nogui/file_name_provider.h"
 #include "../nogui/scope_exit.h"
 
@@ -22,8 +22,8 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE /*hPrevInstance
 	file_name_provider::init();
 	auto const file_name_deinit = mk::make_scope_exit([](){ file_name_provider::deinit(); });
 	test();
-	dbg_start();
-	auto const fn_dbg_stop = mk::make_scope_exit([](){ dbg_stop(); });
+	dbg_provider::init();
+	auto const dbg_provider_deinit = mk::make_scope_exit([](){ dbg_provider::deinit(); });
 	auto const fn_clean_actctx = mk::make_scope_exit([](){ activation_context::free_system_default_manifests(); });
 	g_instance = hInstance;
 	InitCommonControls();

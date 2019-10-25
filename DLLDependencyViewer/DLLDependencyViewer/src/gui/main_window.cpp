@@ -6,7 +6,6 @@
 #include "test.h"
 
 #include "../nogui/array_bool.h"
-#include "../nogui/dbg.h"
 #include "../nogui/dbg_provider.h"
 #include "../nogui/memory_mapped_file.h"
 #include "../nogui/pe.h"
@@ -16,6 +15,7 @@
 
 #include "../res/resources.h"
 
+#include <atomic>
 #include <cassert>
 #include <cassert>
 #include <cstdint>
@@ -77,6 +77,12 @@ static constexpr ACCEL const s_accel_table[] =
 static int g_ordinal_column_max_width = 0;
 
 
+struct cancellable_task_param
+{
+	std::atomic<bool> m_canceled;
+};
+
+
 void main_window::register_class()
 {
 	WNDCLASSEXW wc;
@@ -129,7 +135,7 @@ main_window::main_window() :
 	m_import_view(m_splitter_ver.get_hwnd(), *this),
 	m_export_view(m_splitter_ver.get_hwnd(), *this),
 	m_idle_tasks(),
-	m_symbol_tasks(),
+	m_dbg_tasks(),
 	m_mo(),
 	m_settings()
 {
@@ -152,7 +158,7 @@ main_window::main_window() :
 main_window::~main_window()
 {
 	assert(m_idle_tasks.empty());
-	assert(m_symbol_tasks.empty());
+	assert(m_dbg_tasks.empty());
 }
 
 HWND main_window::get_hwnd() const
@@ -313,42 +319,14 @@ LRESULT main_window::on_wm_size(WPARAM wparam, LPARAM lparam)
 
 LRESULT main_window::on_wm_close(WPARAM wparam, LPARAM lparam)
 {
-	request_cancellation_of_all_dbg_tasks();
-	if(m_idle_tasks.empty() && m_symbol_tasks.empty())
+	cancel_all_dbg_tasks();
+	if(m_idle_tasks.empty() && m_dbg_tasks.empty())
 	{
 		return DefWindowProcW(m_hwnd, WM_CLOSE, wparam, lparam);
 	}
 	else
 	{
-		auto const callback = [](get_symbols_from_addresses_task_t* const task)
-		{
-			auto const callback = [](main_window& self, idle_task_param_t const param)
-			{
-				assert(param);
-				get_symbols_from_addresses_task_t* const task = reinterpret_cast<get_symbols_from_addresses_task_t*>(param);
-				self.process_finished_dbg_task(task);
-				BOOL const posted = PostMessageW(self.m_hwnd, WM_CLOSE, 0, 0);
-				assert(posted != 0);
-			};
-			idle_task_t const cllbck = callback;
-			idle_task_param_t const cllbck_param = task;
-
-			assert(task);
-			assert(task->m_callback_data);
-			HWND const mw = reinterpret_cast<HWND>(task->m_callback_data);
-			LRESULT const submited = SendMessageW(mw, wm_main_window_add_idle_task, reinterpret_cast<WPARAM>(cllbck), reinterpret_cast<LPARAM>(cllbck_param));
-		};
-		get_symbols_from_addresses_task_t::callback_function_t const cllbck = callback;
-
-		auto task = std::make_unique<get_symbols_from_addresses_task_t>();
-		task->m_canceled.store(true);
-		task->m_callback_function = cllbck;
-		task->m_callback_data = reinterpret_cast<void*>(m_hwnd);
-
-		get_symbols_from_addresses_task_t* const task_ptr = task.release();
-		m_symbol_tasks.push_back(task_ptr);
-		dbg_get_symbols_from_addresses(task_ptr);
-
+		request_close();
 		BOOL const hidden = ShowWindow(m_hwnd, SW_HIDE);
 		return 0;
 	}
@@ -761,12 +739,12 @@ void main_window::exit()
 
 void main_window::refresh(main_type mo)
 {
-	request_cancellation_of_all_dbg_tasks();
+	cancel_all_dbg_tasks();
 
 	auto tmp = std::make_unique<main_type>();
 	tmp->swap(m_mo);
 	m_mo.swap(mo);
-	schedule_deletion(std::move(tmp));
+	request_mo_deletion(std::move(tmp));
 
 	m_tree_view.refresh();
 	SetFocus(m_tree_view.get_hwnd());
@@ -934,26 +912,63 @@ void main_window::process_command_line()
 	open_files(file_paths);
 }
 
+void main_window::register_dbg_task(thread_worker_function_t const fnc, thread_worker_param_t const param)
+{
+	assert(fnc);
+	assert(param);
+	m_dbg_tasks.push_back(thread_worker_task{fnc, param});
+}
+
+void main_window::unregister_dbg_task(thread_worker_function_t const fnc, thread_worker_param_t const param)
+{
+	assert(fnc);
+	assert(param);
+	assert(!m_dbg_tasks.empty());
+	assert(fnc == m_dbg_tasks.front().m_func);
+	assert(param == m_dbg_tasks.front().m_param);
+	(void)fnc;
+	(void)param;
+	m_dbg_tasks.pop_front();
+}
+
 void main_window::request_symbol_traslation(file_info& fi)
 {
-	auto const callback = [](get_symbols_from_addresses_task_t* const task)
+	struct marshaller : public cancellable_task_param
 	{
-		auto const callback = [](main_window& self, idle_task_param_t const param)
+		thread_worker_function_t m_func;
+		dbg_provider* m_dbg_provider;
+		HWND m_mw;
+		get_symbols_from_addresses_param_t m_get_symbols_param;
+	};
+
+	auto const func = [](thread_worker_param_t const param)
+	{
+		auto const func = [](main_window& self, idle_task_param_t const param)
 		{
 			assert(param);
-			get_symbols_from_addresses_task_t* const task = static_cast<get_symbols_from_addresses_task_t*>(param);
-			self.process_finished_dbg_task(task);
+			marshaller* const m = static_cast<marshaller*>(param);
+			std::unique_ptr<marshaller> const mrshllr(m);
+			auto const unregister_task = mk::make_scope_exit([&](){ self.unregister_dbg_task(m->m_func, param); });
+			if(mrshllr->m_canceled.load() == false)
+			{
+				self.process_finished_dbg_task(m->m_get_symbols_param);
+			}
 		};
-		idle_task_t const cllbck = callback;
-		idle_task_param_t const cllbck_prm = task;
 
-		assert(task);
-		assert(task->m_callback_data);
-		HWND const self = reinterpret_cast<HWND>(task->m_callback_data);
-		LRESULT const sent = SendMessageW(self, wm_main_window_add_idle_task, reinterpret_cast<WPARAM>(cllbck), reinterpret_cast<LPARAM>(cllbck_prm));
+		assert(param);
+		marshaller* const mrshllr = static_cast<marshaller*>(param);
+		if(mrshllr->m_canceled.load() == false)
+		{
+			mrshllr->m_dbg_provider->get_symbols_from_addresses_task(mrshllr->m_get_symbols_param);
+		}
+
+		idle_task_t const fnc = func;
+		idle_task_param_t const fnc_param = mrshllr;
+		LRESULT const sent = SendMessageW(mrshllr->m_mw, wm_main_window_add_idle_task, reinterpret_cast<WPARAM>(fnc), reinterpret_cast<LPARAM>(fnc_param));
 	};
-	get_symbols_from_addresses_task_t::callback_function_t const cllbck = callback;
 
+	wstring const* const module_path = fi.m_file_path;
+	pe_export_table_info* const eti = &fi.m_export_table;
 	auto const fn_is_unnamed = [](bool const is_rva, string const* const name){ return is_rva && !name; };
 	std::uint16_t n = 0;
 	for(std::uint16_t i = 0; i != fi.m_export_table.m_count; ++i)
@@ -983,44 +998,40 @@ void main_window::request_symbol_traslation(file_info& fi)
 		indexes[j] = i;
 		++j;
 	}
-	auto task = std::make_unique<get_symbols_from_addresses_task_t>();
-	task->m_canceled.store(false);
-	task->m_module_path = fi.m_file_path;
-	task->m_eti = &fi.m_export_table;
-	task->m_indexes.swap(indexes);
-	task->m_symbol_names.resize(n);
-	task->m_callback_function = cllbck;
-	task->m_callback_data = reinterpret_cast<void*>(m_hwnd);
-	get_symbols_from_addresses_task_t* const task_ptr = task.release();
-	m_symbol_tasks.push_back(task_ptr);
-	dbg_get_symbols_from_addresses(task_ptr);
+
+	dbg_provider* const dbg_prvdr = dbg_provider::get();
+	std::unique_ptr<marshaller> mrshllr = std::make_unique<marshaller>();
+	mrshllr->m_canceled.store(false);
+	mrshllr->m_func = func;
+	mrshllr->m_dbg_provider = dbg_prvdr;
+	mrshllr->m_mw = m_hwnd;
+	mrshllr->m_get_symbols_param.m_module_path = module_path;
+	mrshllr->m_get_symbols_param.m_eti = eti;
+	mrshllr->m_get_symbols_param.m_indexes.swap(indexes);
+	mrshllr->m_get_symbols_param.m_symbol_names.resize(n);
+
+	thread_worker_function_t const fnc = func;
+	thread_worker_param_t const fnc_param = mrshllr.release();
+	register_dbg_task(fnc, fnc_param);
+	dbg_prvdr->add_task(fnc, fnc_param);
 }
 
-void main_window::request_cancellation_of_all_dbg_tasks()
+void main_window::cancel_all_dbg_tasks()
 {
-	std::for_each(m_symbol_tasks.begin(), m_symbol_tasks.end(), [](auto const& e){ e->m_canceled.store(true); });
+	std::for_each(m_dbg_tasks.begin(), m_dbg_tasks.end(), [](auto& e){ static_cast<cancellable_task_param*>(e.m_param)->m_canceled.store(true); });
 }
 
-void main_window::process_finished_dbg_task(get_symbols_from_addresses_task_t* const task)
+void main_window::process_finished_dbg_task(get_symbols_from_addresses_param_t const& param)
 {
-	assert(task);
-	assert(!m_symbol_tasks.empty());
-	assert(task == m_symbol_tasks.front());
-	std::unique_ptr<get_symbols_from_addresses_task_t> sp_task(task);
-	auto const fn_destroy_task = mk::make_scope_exit([&](){ m_symbol_tasks.pop_front(); });
-	if(task->m_canceled.load() == true)
-	{
-		return;
-	}
-	assert(task->m_indexes.size() == task->m_symbol_names.size());
-	std::uint16_t const n = static_cast<std::uint16_t>(task->m_indexes.size());
+	assert(param.m_indexes.size() == param.m_symbol_names.size());
+	std::uint16_t const n = static_cast<std::uint16_t>(param.m_indexes.size());
 	for(std::uint16_t i = 0; i != n; ++i)
 	{
-		std::uint16_t const idx = task->m_indexes[i];
-		wstring const*& dbg_name = task->m_eti->m_debug_names[idx];
-		if(!task->m_symbol_names[i].empty())
+		std::uint16_t const idx = param.m_indexes[i];
+		wstring const*& dbg_name = param.m_eti->m_debug_names[idx];
+		if(!param.m_symbol_names[i].empty())
 		{
-			dbg_name = m_mo.m_mm.m_wstrs.add_string(task->m_symbol_names[i].c_str(), static_cast<int>(task->m_symbol_names[i].size()), m_mo.m_mm.m_alc);
+			dbg_name = m_mo.m_mm.m_wstrs.add_string(param.m_symbol_names[i].c_str(), static_cast<int>(param.m_symbol_names[i].size()), m_mo.m_mm.m_alc);
 
 		}
 		else
@@ -1038,7 +1049,7 @@ void main_window::process_finished_dbg_task(get_symbols_from_addresses_task_t* c
 		assert(got == TRUE);
 		file_info const& fi_tmp = *reinterpret_cast<file_info*>(ti.lParam);
 		file_info const& fi = fi_tmp.m_orig_instance ? *fi_tmp.m_orig_instance : fi_tmp;
-		if(wstring_equal{}(fi.m_file_path, task->m_module_path))
+		if(wstring_equal{}(fi.m_file_path, param.m_module_path))
 		{
 			m_import_view.repaint();
 			m_export_view.repaint();
@@ -1046,45 +1057,85 @@ void main_window::process_finished_dbg_task(get_symbols_from_addresses_task_t* c
 	}
 }
 
-void main_window::schedule_deletion(std::unique_ptr<main_type> mo)
+void main_window::request_close()
 {
-	struct big_param_t
+	struct marshaller : public cancellable_task_param
 	{
-		HWND m_hwnd;
-		main_type* m_mo;
+		thread_worker_function_t m_func;
+		HWND m_mw;
 	};
 
-	auto const callback = [](get_symbols_from_addresses_task_t* const task)
+	auto const func = [](thread_worker_param_t const param)
 	{
-		auto const idle_callback = [](main_window& self, idle_task_param_t const param)
+		auto const func = [](main_window& self, idle_task_param_t const param)
 		{
 			assert(param);
-			get_symbols_from_addresses_task_t* const task = static_cast<get_symbols_from_addresses_task_t*>(param);
-			big_param_t* const big_param = static_cast<big_param_t*>(task->m_callback_data);
-			std::unique_ptr<big_param_t> const sp_big_param(big_param);
-			main_type* const mo = static_cast<main_type*>(big_param->m_mo);
-			std::unique_ptr<main_type> const sp_mo(mo);
-			self.process_finished_dbg_task(task);
+			marshaller* const m = static_cast<marshaller*>(param);
+			std::unique_ptr<marshaller> const mrshllr(m);
+			auto const unregister_task = mk::make_scope_exit([&](){ self.unregister_dbg_task(m->m_func, param); });
+			BOOL const posted = PostMessageW(self.m_hwnd, WM_CLOSE, 0, 0);
+			assert(posted != 0);
 		};
-		assert(task);
-		assert(task->m_callback_data);
-		big_param_t* const big_param = static_cast<big_param_t*>(task->m_callback_data);
-		idle_task_t const idl_cllbck = idle_callback;
-		idle_task_param_t const idl_cllbck_prm = task;
-		LRESULT const added = SendMessageW(big_param->m_hwnd, wm_main_window_add_idle_task, reinterpret_cast<WPARAM>(idl_cllbck), reinterpret_cast<LPARAM>(idl_cllbck_prm));
-	};
-	get_symbols_from_addresses_task_t::callback_function_t const cllbck = callback;
 
-	auto big_param = std::make_unique<big_param_t>();
-	big_param->m_hwnd = m_hwnd;
-	big_param->m_mo = mo.release();
-	auto task = std::make_unique<get_symbols_from_addresses_task_t>();
-	task->m_canceled.store(true);
-	task->m_callback_function = cllbck;
-	task->m_callback_data = big_param.release();
-	get_symbols_from_addresses_task_t* const task_ptr = task.release();
-	m_symbol_tasks.push_back(task_ptr);
-	dbg_get_symbols_from_addresses(task_ptr);
+		assert(param);
+		marshaller* const mrshllr = static_cast<marshaller*>(param);
+
+		idle_task_t const fnc = func;
+		idle_task_param_t const fnc_param = mrshllr;
+		LRESULT const sent = SendMessageW(mrshllr->m_mw, wm_main_window_add_idle_task, reinterpret_cast<WPARAM>(fnc), reinterpret_cast<LPARAM>(fnc_param));
+	};
+
+	dbg_provider* const dbg_prvdr = dbg_provider::get();
+	std::unique_ptr<marshaller> mrshllr = std::make_unique<marshaller>();
+	mrshllr->m_canceled.store(false);
+	mrshllr->m_func = func;
+	mrshllr->m_mw = m_hwnd;
+
+	thread_worker_function_t const fnc = func;
+	thread_worker_param_t const fnc_param = mrshllr.release();
+	register_dbg_task(fnc, fnc_param);
+	dbg_prvdr->add_task(fnc, fnc_param);
+}
+
+void main_window::request_mo_deletion(std::unique_ptr<main_type> mo)
+{
+	struct marshaller : public cancellable_task_param
+	{
+		thread_worker_function_t m_func;
+		HWND m_mw;
+		std::unique_ptr<main_type> m_mo;
+	};
+
+	auto const func = [](thread_worker_param_t const param)
+	{
+		auto const func = [](main_window& self, idle_task_param_t const param)
+		{
+			assert(param);
+			marshaller* const m = static_cast<marshaller*>(param);
+			std::unique_ptr<marshaller> const mrshllr(m);
+			auto const unregister_task = mk::make_scope_exit([&](){ self.unregister_dbg_task(m->m_func, param); });
+			m->m_mo.reset();
+		};
+
+		assert(param);
+		marshaller* const mrshllr = static_cast<marshaller*>(param);
+
+		idle_task_t const fnc = func;
+		idle_task_param_t const fnc_param = mrshllr;
+		LRESULT const sent = SendMessageW(mrshllr->m_mw, wm_main_window_add_idle_task, reinterpret_cast<WPARAM>(fnc), reinterpret_cast<LPARAM>(fnc_param));
+	};
+
+	dbg_provider* const dbg_prvdr = dbg_provider::get();
+	std::unique_ptr<marshaller> mrshllr = std::make_unique<marshaller>();
+	mrshllr->m_canceled.store(false);
+	mrshllr->m_func = func;
+	mrshllr->m_mw = m_hwnd;
+	mrshllr->m_mo.swap(mo);
+
+	thread_worker_function_t const fnc = func;
+	thread_worker_param_t const fnc_param = mrshllr.release();
+	register_dbg_task(fnc, fnc_param);
+	dbg_prvdr->add_task(fnc, fnc_param);
 }
 
 ATOM main_window::g_class = 0;
