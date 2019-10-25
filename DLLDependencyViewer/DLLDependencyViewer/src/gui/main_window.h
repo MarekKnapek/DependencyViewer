@@ -25,6 +25,7 @@ struct _TREEITEM;
 typedef struct _TREEITEM* HTREEITEM;
 class main_window;
 struct get_symbols_from_addresses_param_t;
+class dbg_provider;
 
 
 typedef void* idle_task_param_t;
@@ -121,4 +122,6 @@ private:
 	friend class tree_view;
 	friend class import_view;
 	friend class export_view;
+	template<typename A, typename B, typename C>
+	friend void request_helper(main_window* const, dbg_provider*, A&&, B, C);
 };

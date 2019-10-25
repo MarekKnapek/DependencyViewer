@@ -79,8 +79,64 @@ static int g_ordinal_column_max_width = 0;
 
 struct cancellable_task_param
 {
+	cancellable_task_param() : m_canceled(false){}
 	std::atomic<bool> m_canceled;
 };
+
+struct generic_marshaller : public cancellable_task_param
+{
+public:
+	generic_marshaller(HWND const mw, thread_worker_function_t const fnc) : cancellable_task_param(), m_mw(mw), m_fnc(fnc){}
+public:
+	HWND m_mw;
+	thread_worker_function_t m_fnc;
+};
+
+template<typename marshaller_t, typename fn_worker_t, typename fn_main_t>
+void request_helper(main_window* const self, dbg_provider* const dbg, marshaller_t&& mrshllr, fn_worker_t fn_worker_, fn_main_t fn_main_)
+{
+	using fn_worker_tt = void(*)(marshaller_t&, std::atomic<bool>&);
+	fn_worker_tt fn_worker = fn_worker_;
+	using fn_main_tt = void(*)(main_window&, marshaller_t&, std::atomic<bool>&);
+	fn_main_tt fn_main = fn_main_;
+
+	struct marshaller_concrete : public generic_marshaller, public marshaller_t
+	{
+	public:
+		marshaller_concrete(HWND const hwnd, thread_worker_function_t const fnc, marshaller_t&& m, fn_worker_tt const fn_worker, fn_main_tt const fn_main) : generic_marshaller(hwnd, fnc), marshaller_t(std::move(m)), m_fn_worker(fn_worker), m_fn_main(fn_main){}
+	public:
+		fn_worker_tt m_fn_worker;
+		fn_main_tt m_fn_main;
+	};
+
+	auto const fn_thread_generic = [](thread_worker_param_t const param)
+	{
+		auto const fn_main_generic = [](main_window& self, idle_task_param_t const param)
+		{
+			assert(param);
+			marshaller_concrete* const mc = static_cast<marshaller_concrete*>(param);
+			std::unique_ptr<marshaller_concrete> const sp_mc(mc);
+			auto const unregister_task = mk::make_scope_exit([&](){ self.unregister_dbg_task(mc->m_fnc, param); });
+			marshaller_t& m = *mc;
+			mc->m_fn_main(self, m, mc->m_canceled);
+		};
+
+		assert(param);
+		marshaller_concrete* const mc = static_cast<marshaller_concrete*>(param);
+		marshaller_t& m = *mc;
+		mc->m_fn_worker(m, mc->m_canceled);
+		idle_task_t const fn_main_generic_ = fn_main_generic;
+		idle_task_param_t const fn_main_generic_param = mc;
+		LRESULT const sent = SendMessageW(mc->m_mw, wm_main_window_add_idle_task, reinterpret_cast<WPARAM>(fn_main_generic_), reinterpret_cast<LPARAM>(fn_main_generic_param));
+	};
+
+	auto mc = std::make_unique<marshaller_concrete>(self->m_hwnd, fn_thread_generic, std::move(mrshllr), fn_worker, fn_main);
+
+	thread_worker_function_t const fn_thread_generic_ = fn_thread_generic;
+	thread_worker_param_t const fn_thread_generic_param = mc.release();
+	self->register_dbg_task(fn_thread_generic_, fn_thread_generic_param);
+	dbg->add_task(fn_thread_generic_, fn_thread_generic_param);
+}
 
 
 void main_window::register_class()
@@ -933,40 +989,6 @@ void main_window::unregister_dbg_task(thread_worker_function_t const fnc, thread
 
 void main_window::request_symbol_traslation(file_info& fi)
 {
-	struct marshaller : public cancellable_task_param
-	{
-		thread_worker_function_t m_func;
-		dbg_provider* m_dbg_provider;
-		HWND m_mw;
-		get_symbols_from_addresses_param_t m_get_symbols_param;
-	};
-
-	auto const func = [](thread_worker_param_t const param)
-	{
-		auto const func = [](main_window& self, idle_task_param_t const param)
-		{
-			assert(param);
-			marshaller* const m = static_cast<marshaller*>(param);
-			std::unique_ptr<marshaller> const mrshllr(m);
-			auto const unregister_task = mk::make_scope_exit([&](){ self.unregister_dbg_task(m->m_func, param); });
-			if(mrshllr->m_canceled.load() == false)
-			{
-				self.process_finished_dbg_task(m->m_get_symbols_param);
-			}
-		};
-
-		assert(param);
-		marshaller* const mrshllr = static_cast<marshaller*>(param);
-		if(mrshllr->m_canceled.load() == false)
-		{
-			mrshllr->m_dbg_provider->get_symbols_from_addresses_task(mrshllr->m_get_symbols_param);
-		}
-
-		idle_task_t const fnc = func;
-		idle_task_param_t const fnc_param = mrshllr;
-		LRESULT const sent = SendMessageW(mrshllr->m_mw, wm_main_window_add_idle_task, reinterpret_cast<WPARAM>(fnc), reinterpret_cast<LPARAM>(fnc_param));
-	};
-
 	wstring const* const module_path = fi.m_file_path;
 	pe_export_table_info* const eti = &fi.m_export_table;
 	auto const fn_is_unnamed = [](bool const is_rva, string const* const name){ return is_rva && !name; };
@@ -999,21 +1021,32 @@ void main_window::request_symbol_traslation(file_info& fi)
 		++j;
 	}
 
-	dbg_provider* const dbg_prvdr = dbg_provider::get();
-	std::unique_ptr<marshaller> mrshllr = std::make_unique<marshaller>();
-	mrshllr->m_canceled.store(false);
-	mrshllr->m_func = func;
-	mrshllr->m_dbg_provider = dbg_prvdr;
-	mrshllr->m_mw = m_hwnd;
-	mrshllr->m_get_symbols_param.m_module_path = module_path;
-	mrshllr->m_get_symbols_param.m_eti = eti;
-	mrshllr->m_get_symbols_param.m_indexes.swap(indexes);
-	mrshllr->m_get_symbols_param.m_symbol_names.resize(n);
-
-	thread_worker_function_t const fnc = func;
-	thread_worker_param_t const fnc_param = mrshllr.release();
-	register_dbg_task(fnc, fnc_param);
-	dbg_prvdr->add_task(fnc, fnc_param);
+	struct marshaller
+	{
+		dbg_provider* m_dbg_provider;
+		get_symbols_from_addresses_param_t m_get_symbols_param;
+	};
+	marshaller m;
+	m.m_dbg_provider = dbg_provider::get();
+	m.m_get_symbols_param.m_module_path = module_path;
+	m.m_get_symbols_param.m_eti = eti;
+	m.m_get_symbols_param.m_indexes.swap(indexes);
+	m.m_get_symbols_param.m_symbol_names.resize(n);
+	auto const fn_worker = [](marshaller& m, std::atomic<bool>& canceled)
+	{
+		if(canceled.load() == false)
+		{
+			m.m_dbg_provider->get_symbols_from_addresses_task(m.m_get_symbols_param);
+		}
+	};
+	auto const fn_main = [](main_window& self, marshaller& m, std::atomic<bool>& canceled)
+	{
+		if(canceled.load() == false)
+		{
+			self.process_finished_dbg_task(m.m_get_symbols_param);
+		}
+	};
+	request_helper(this, dbg_provider::get(), std::move(m), fn_worker, fn_main);
 }
 
 void main_window::cancel_all_dbg_tasks()
@@ -1059,83 +1092,37 @@ void main_window::process_finished_dbg_task(get_symbols_from_addresses_param_t c
 
 void main_window::request_close()
 {
-	struct marshaller : public cancellable_task_param
+	struct marshaller
 	{
-		thread_worker_function_t m_func;
-		HWND m_mw;
 	};
-
-	auto const func = [](thread_worker_param_t const param)
+	marshaller m;
+	auto const fn_worker = [](marshaller&, std::atomic<bool>&)
 	{
-		auto const func = [](main_window& self, idle_task_param_t const param)
-		{
-			assert(param);
-			marshaller* const m = static_cast<marshaller*>(param);
-			std::unique_ptr<marshaller> const mrshllr(m);
-			auto const unregister_task = mk::make_scope_exit([&](){ self.unregister_dbg_task(m->m_func, param); });
-			BOOL const posted = PostMessageW(self.m_hwnd, WM_CLOSE, 0, 0);
-			assert(posted != 0);
-		};
-
-		assert(param);
-		marshaller* const mrshllr = static_cast<marshaller*>(param);
-
-		idle_task_t const fnc = func;
-		idle_task_param_t const fnc_param = mrshllr;
-		LRESULT const sent = SendMessageW(mrshllr->m_mw, wm_main_window_add_idle_task, reinterpret_cast<WPARAM>(fnc), reinterpret_cast<LPARAM>(fnc_param));
 	};
-
-	dbg_provider* const dbg_prvdr = dbg_provider::get();
-	std::unique_ptr<marshaller> mrshllr = std::make_unique<marshaller>();
-	mrshllr->m_canceled.store(false);
-	mrshllr->m_func = func;
-	mrshllr->m_mw = m_hwnd;
-
-	thread_worker_function_t const fnc = func;
-	thread_worker_param_t const fnc_param = mrshllr.release();
-	register_dbg_task(fnc, fnc_param);
-	dbg_prvdr->add_task(fnc, fnc_param);
+	auto const fn_main = [](main_window& self, marshaller&, std::atomic<bool>&)
+	{
+		BOOL const posted = PostMessageW(self.m_hwnd, WM_CLOSE, 0, 0);
+		assert(posted != 0);
+	};
+	request_helper(this, dbg_provider::get(), std::move(m), fn_worker, fn_main);
 }
 
 void main_window::request_mo_deletion(std::unique_ptr<main_type> mo)
 {
-	struct marshaller : public cancellable_task_param
+	struct marshaller
 	{
-		thread_worker_function_t m_func;
-		HWND m_mw;
 		std::unique_ptr<main_type> m_mo;
 	};
-
-	auto const func = [](thread_worker_param_t const param)
+	marshaller m;
+	m.m_mo.swap(mo);
+	auto const fn_worker = [](marshaller&, std::atomic<bool>&)
 	{
-		auto const func = [](main_window& self, idle_task_param_t const param)
-		{
-			assert(param);
-			marshaller* const m = static_cast<marshaller*>(param);
-			std::unique_ptr<marshaller> const mrshllr(m);
-			auto const unregister_task = mk::make_scope_exit([&](){ self.unregister_dbg_task(m->m_func, param); });
-			m->m_mo.reset();
-		};
-
-		assert(param);
-		marshaller* const mrshllr = static_cast<marshaller*>(param);
-
-		idle_task_t const fnc = func;
-		idle_task_param_t const fnc_param = mrshllr;
-		LRESULT const sent = SendMessageW(mrshllr->m_mw, wm_main_window_add_idle_task, reinterpret_cast<WPARAM>(fnc), reinterpret_cast<LPARAM>(fnc_param));
 	};
-
-	dbg_provider* const dbg_prvdr = dbg_provider::get();
-	std::unique_ptr<marshaller> mrshllr = std::make_unique<marshaller>();
-	mrshllr->m_canceled.store(false);
-	mrshllr->m_func = func;
-	mrshllr->m_mw = m_hwnd;
-	mrshllr->m_mo.swap(mo);
-
-	thread_worker_function_t const fnc = func;
-	thread_worker_param_t const fnc_param = mrshllr.release();
-	register_dbg_task(fnc, fnc_param);
-	dbg_prvdr->add_task(fnc, fnc_param);
+	auto const fn_main = [](main_window&, marshaller& m, std::atomic<bool>&)
+	{
+		m.m_mo.reset();
+	};
+	request_helper(this, dbg_provider::get(), std::move(m), fn_worker, fn_main);
 }
 
 ATOM main_window::g_class = 0;
