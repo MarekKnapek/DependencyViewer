@@ -314,12 +314,44 @@ LRESULT main_window::on_wm_size(WPARAM wparam, LPARAM lparam)
 LRESULT main_window::on_wm_close(WPARAM wparam, LPARAM lparam)
 {
 	request_cancellation_of_all_dbg_tasks();
-	if(!m_idle_tasks.empty() || !m_symbol_tasks.empty())
+	if(m_idle_tasks.empty() && m_symbol_tasks.empty())
 	{
-		MessageBoxW(m_hwnd, L"Please wait for background tasks to finish.", L"Could not close.", MB_OK);
+		return DefWindowProcW(m_hwnd, WM_CLOSE, wparam, lparam);
+	}
+	else
+	{
+		auto const callback = [](get_symbols_from_addresses_task_t* const task)
+		{
+			auto const callback = [](main_window& self, idle_task_param_t const param)
+			{
+				assert(param);
+				get_symbols_from_addresses_task_t* const task = reinterpret_cast<get_symbols_from_addresses_task_t*>(param);
+				self.process_finished_dbg_task(task);
+				BOOL const posted = PostMessageW(self.m_hwnd, WM_CLOSE, 0, 0);
+				assert(posted != 0);
+			};
+			idle_task_t const cllbck = callback;
+			idle_task_param_t const cllbck_param = task;
+
+			assert(task);
+			assert(task->m_callback_data);
+			HWND const mw = reinterpret_cast<HWND>(task->m_callback_data);
+			LRESULT const submited = SendMessageW(mw, wm_main_window_add_idle_task, reinterpret_cast<WPARAM>(cllbck), reinterpret_cast<LPARAM>(cllbck_param));
+		};
+		get_symbols_from_addresses_task_t::callback_function_t const cllbck = callback;
+
+		auto task = std::make_unique<get_symbols_from_addresses_task_t>();
+		task->m_canceled.store(true);
+		task->m_callback_function = cllbck;
+		task->m_callback_data = reinterpret_cast<void*>(m_hwnd);
+
+		get_symbols_from_addresses_task_t* const task_ptr = task.release();
+		m_symbol_tasks.push_back(task_ptr);
+		dbg_get_symbols_from_addresses(task_ptr);
+
+		BOOL const hidden = ShowWindow(m_hwnd, SW_HIDE);
 		return 0;
 	}
-	return DefWindowProcW(m_hwnd, WM_CLOSE, wparam, lparam);
 }
 
 LRESULT main_window::on_wm_notify(WPARAM wparam, LPARAM lparam)
