@@ -1,9 +1,8 @@
 #pragma once
 
 
-#include "smart_handle.h"
-
 #include <memory>
+#include <cstddef>
 
 
 struct mapped_view_deleter
@@ -26,14 +25,12 @@ public:
 	~memory_mapped_file() noexcept;
 	void swap(memory_mapped_file& other) noexcept;
 public:
-	void const* begin() const;
-	void const* end() const;
+	std::byte const* begin() const;
+	std::byte const* end() const;
 	int size() const;
 private:
-	smart_handle m_file;
-	smart_handle m_mapping;
 	smart_mapped_view m_view;
-	void const* m_end;
+	int m_size;
 };
 
 inline void swap(memory_mapped_file& a, memory_mapped_file& b) noexcept { a.swap(b); }

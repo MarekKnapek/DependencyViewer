@@ -5,6 +5,7 @@
 #include "../nogui/pe.h"
 #include "../nogui/pe2.h"
 #include "../nogui/smart_local_free.h"
+#include "../nogui/smart_handle.h"
 
 #include <cassert>
 #include <cwchar>
@@ -78,11 +79,11 @@ void test()
 		{
 			continue;
 		}
-		if(static_cast<char const*>(mmf.begin())[0] != 'M')
+		if(reinterpret_cast<char const*>(mmf.begin())[0] != 'M')
 		{
 			continue;
 		}
-		if(static_cast<char const*>(mmf.begin())[1] != 'Z')
+		if(reinterpret_cast<char const*>(mmf.begin())[1] != 'Z')
 		{
 			continue;
 		}
@@ -90,12 +91,12 @@ void test()
 		{
 			continue;
 		}
-		std::uint16_t const& new_header_offset = *reinterpret_cast<std::uint16_t const*>(reinterpret_cast<char const*>(mmf.begin()) + 60);
+		std::uint16_t const& new_header_offset = *reinterpret_cast<std::uint16_t const*>(mmf.begin() + 60);
 		if(len < new_header_offset + 4)
 		{
 			continue;
 		}
-		std::uint32_t const& new_header_header = *reinterpret_cast<std::uint32_t const*>(reinterpret_cast<char const*>(mmf.begin()) + new_header_offset);
+		std::uint32_t const& new_header_header = *reinterpret_cast<std::uint32_t const*>(mmf.begin() + new_header_offset);
 		if(new_header_header != 0x00004550)
 		{
 			continue;

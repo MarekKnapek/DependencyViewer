@@ -1,5 +1,7 @@
 #include "memory_mapped_file.h"
 
+#include "smart_handle.h"
+
 #include <algorithm>
 #include <cassert>
 #include <utility>
@@ -7,10 +9,11 @@
 #include "my_windows.h"
 
 
-static constexpr int const s_max_file_size = 1 * 1024 * 1024 * 1024;
+#define s_very_big_int (2'147'483'647)
+static constexpr int const s_max_file_size = s_very_big_int;
 static constexpr wchar_t const s_mmf_open[] = L"Could not open file.";
 static constexpr wchar_t const s_mmf_empty[] = L"File is empty.";
-static constexpr wchar_t const s_mmf_big[] = L"File too big, maximum file size is 1024 MB.";
+static constexpr wchar_t const s_mmf_big[] = L"File is too big.";
 static constexpr wchar_t const s_mmf_mapping[] = L"Failed to create file mapping.";
 static constexpr wchar_t const s_mmf_view[] = L"Failed to create file view.";
 
@@ -23,10 +26,8 @@ void mapped_view_deleter::operator()(void const* const ptr) const
 
 
 memory_mapped_file::memory_mapped_file() noexcept :
-	m_file(),
-	m_mapping(),
 	m_view(),
-	m_end()
+	m_size()
 {
 }
 
@@ -38,7 +39,7 @@ memory_mapped_file::memory_mapped_file(wchar_t const* const file_name) :
 	{
 		throw s_mmf_open;
 	}
-	smart_handle s_file(file);
+	smart_handle const s_file(file);
 	LARGE_INTEGER size;
 	BOOL const got_size = GetFileSizeEx(file, &size);
 	assert(got_size != 0);
@@ -59,7 +60,7 @@ memory_mapped_file::memory_mapped_file(wchar_t const* const file_name) :
 	{
 		throw s_mmf_mapping;
 	}
-	smart_handle s_mapping(mapping);
+	smart_handle const s_mapping(mapping);
 	void const* const ptr = MapViewOfFile(mapping, FILE_MAP_READ, 0, 0, 0);
 	if(!ptr)
 	{
@@ -67,10 +68,8 @@ memory_mapped_file::memory_mapped_file(wchar_t const* const file_name) :
 	}
 	smart_mapped_view s_view(ptr);
 
-	m_file = std::move(s_file);
-	m_mapping = std::move(s_mapping);
 	m_view = std::move(s_view);
-	m_end = static_cast<char const*>(m_view.get()) + static_cast<int>(size.LowPart);
+	m_size = static_cast<int>(size.LowPart);
 }
 
 memory_mapped_file::memory_mapped_file(memory_mapped_file&& other) noexcept :
@@ -92,23 +91,21 @@ memory_mapped_file::~memory_mapped_file() noexcept
 void memory_mapped_file::swap(memory_mapped_file& other) noexcept
 {
 	using std::swap;
-	swap(m_file, other.m_file);
-	swap(m_mapping, other.m_mapping);
 	swap(m_view, other.m_view);
-	swap(m_end, other.m_end);
+	swap(m_size, other.m_size);
 }
 
-void const* memory_mapped_file::begin() const
+std::byte const* memory_mapped_file::begin() const
 {
-	return m_view.get();
+	return static_cast<std::byte const*>(m_view.get());
 }
 
-void const* memory_mapped_file::end() const
+std::byte const* memory_mapped_file::end() const
 {
-	return m_end;
+	return begin() + m_size;
 }
 
 int memory_mapped_file::size() const
 {
-	return static_cast<int>(static_cast<char const*>(end()) - static_cast<char const*>(begin()));
+	return m_size;
 }
