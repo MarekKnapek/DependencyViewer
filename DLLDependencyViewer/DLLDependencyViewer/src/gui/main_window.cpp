@@ -937,12 +937,8 @@ void main_window::request_symbol_traslation(file_info& fi)
 	{
 		return;
 	}
-	auto task = std::make_unique<get_symbols_from_addresses_task_t>();
-	task->m_canceled.store(false);
-	task->m_module_path = fi.m_file_path;
-	task->m_eti = &fi.m_export_table;
-	task->m_indexes.resize(n);
-	task->m_symbol_names.resize(n);
+	std::vector<std::uint16_t> indexes;
+	indexes.resize(n);
 	std::uint16_t j = 0;
 	for(std::uint16_t i = 0; i != fi.m_export_table.m_count; ++i)
 	{
@@ -952,9 +948,15 @@ void main_window::request_symbol_traslation(file_info& fi)
 		{
 			continue;
 		}
-		task->m_indexes[j] = i;
+		indexes[j] = i;
 		++j;
 	}
+	auto task = std::make_unique<get_symbols_from_addresses_task_t>();
+	task->m_canceled.store(false);
+	task->m_module_path = fi.m_file_path;
+	task->m_eti = &fi.m_export_table;
+	task->m_indexes.swap(indexes);
+	task->m_symbol_names.resize(n);
 	task->m_callback_function = cllbck;
 	task->m_callback_data = reinterpret_cast<void*>(m_hwnd);
 	get_symbols_from_addresses_task_t* const task_ptr = task.release();
