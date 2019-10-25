@@ -1,13 +1,13 @@
 #pragma once
 
 
+#include "export_view.h"
+#include "import_view.h"
 #include "processor.h"
+#include "settings.h"
 #include "smart_menu.h"
 #include "splitter_window.h"
 #include "tree_view.h"
-#include "settings.h"
-#include "export_view.h"
-#include "import_view.h"
 
 #include "../nogui/pe.h"
 

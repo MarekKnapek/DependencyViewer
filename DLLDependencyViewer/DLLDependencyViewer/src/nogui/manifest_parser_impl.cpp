@@ -105,7 +105,7 @@ manifest_parser_impl::~manifest_parser_impl()
 {
 }
 
-manifest_data manifest_parser_impl::parse(char const* const& data, int const& len)
+manifest_data manifest_parser_impl::parse(std::byte const* const data, int const len)
 {
 	IStream* const stream = SHCreateMemStream(reinterpret_cast<BYTE const*>(data), static_cast<UINT>(len));
 	WARN_M_R(stream, L"Failed to SHCreateMemStream.", {});

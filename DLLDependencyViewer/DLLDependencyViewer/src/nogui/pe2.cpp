@@ -6,9 +6,8 @@
 #include <algorithm>
 
 
-bool pe_process_headers(void const* const fd, int const file_size, pe_headers* const headers_out)
+bool pe_process_headers(std::byte const* const file_data, int const file_size, pe_headers* const headers_out)
 {
-	char const* const file_data = static_cast<char const*>(fd);
 	pe_dos_header const* dos_header;
 	pe_e_parse_mz_header const dos_parsed = pe_parse_mz_header(file_data, file_size, &dos_header);
 	WARN_M_R(dos_parsed == pe_e_parse_mz_header::ok, L"Failed to parse MZ header.", false);
@@ -21,9 +20,8 @@ bool pe_process_headers(void const* const fd, int const file_size, pe_headers* c
 }
 
 
-bool pe_process_import_tables(void const* const fd, int const file_size, pe_import_tables* const tables_out)
+bool pe_process_import_tables(std::byte const* const file_data, int const file_size, pe_import_tables* const tables_out)
 {
-	char const* const file_data = static_cast<char const*>(fd);
 	pe_import_directory_table idt;
 	bool const import_table_parsed = pe_parse_import_table(file_data, file_size, &idt);
 	WARN_M_R(import_table_parsed, L"Failed to parse import table.", false);
@@ -35,10 +33,9 @@ bool pe_process_import_tables(void const* const fd, int const file_size, pe_impo
 	return true;
 }
 
-bool pe_process_import_names(void const* const fd, int const file_size, pe_import_names* const names_in_out)
+bool pe_process_import_names(std::byte const* const file_data, int const file_size, pe_import_names* const names_in_out)
 {
 	assert(names_in_out);
-	char const* const file_data = static_cast<char const*>(fd);
 	std::uint16_t const n1 = names_in_out->m_tables->m_idt.m_count;
 	std::uint16_t const n2 = names_in_out->m_tables->m_didt.m_count;
 	std::uint16_t const n = n1 + n2;
@@ -62,10 +59,9 @@ bool pe_process_import_names(void const* const fd, int const file_size, pe_impor
 	return true;
 }
 
-bool pe_process_import_iat(void const* const fd, int const file_size, pe_import_iat* const iat_in_out)
+bool pe_process_import_iat(std::byte const* const file_data, int const file_size, pe_import_iat* const iat_in_out)
 {
 	assert(iat_in_out);
-	char const* const file_data = static_cast<char const*>(fd);
 	int const n_dlls = iat_in_out->m_tables->m_idt.m_count + iat_in_out->m_tables->m_didt.m_count;
 	std::uint16_t* import_counts = iat_in_out->m_alc->allocate_objects<std::uint16_t>(n_dlls);
 	unsigned** are_ordinals_all = iat_in_out->m_alc->allocate_objects<unsigned*>(n_dlls);
@@ -159,7 +155,7 @@ bool pe_process_import_iat(void const* const fd, int const file_size, pe_import_
 // potentially uninitialized local pointer variable 'name' used
 // potentially uninitialized local variable 'frwrdr' used
 // potentially uninitialized local pointer variable 'frwrdr' used
-bool pe_process_export_eat(void const* const fd, int const file_size, pe_export_eat* const eat_in_out)
+bool pe_process_export_eat(std::byte const* const file_data, int const file_size, pe_export_eat* const eat_in_out)
 {
 	assert(eat_in_out);
 	assert(eat_in_out->m_headers);
@@ -169,7 +165,6 @@ bool pe_process_export_eat(void const* const fd, int const file_size, pe_export_
 	assert(eat_in_out->m_eti_out);
 	assert(eat_in_out->m_enpt_count_out);
 	assert(eat_in_out->m_enpt_out);
-	char const* const file_data = static_cast<char const*>(fd);
 
 	pe_export_directory_table edt;
 	bool const edt_parsed = pe_parse_export_directory_table(file_data, file_size, &edt);
@@ -287,7 +282,7 @@ bool pe_process_export_eat(void const* const fd, int const file_size, pe_export_
 #pragma warning(pop)
 
 
-bool pe_process_all(void const* const fd, int const file_size, memory_manager& mm, pe_tables* const tables_in_out)
+bool pe_process_all(std::byte const* const file_data, int const file_size, memory_manager& mm, pe_tables* const tables_in_out)
 {
 	assert(tables_in_out);
 	assert(tables_in_out->m_tmp_alc);
@@ -295,7 +290,6 @@ bool pe_process_all(void const* const fd, int const file_size, memory_manager& m
 	assert(tables_in_out->m_eti_out);
 	assert(tables_in_out->m_enpt_count_out);
 	assert(tables_in_out->m_enpt_out);
-	char const* const file_data = static_cast<char const*>(fd);
 
 	pe_headers headers;
 	bool const headers_parsed = pe_process_headers(file_data, file_size, &headers);

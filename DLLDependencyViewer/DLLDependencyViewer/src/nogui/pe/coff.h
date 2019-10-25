@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include <cstddef>
 #include <cstdint>
 
 
@@ -29,4 +30,4 @@ static_assert(sizeof(pe_coff_header) == 24, "");
 static_assert(sizeof(pe_coff_header) == 0x18, "");
 
 
-pe_e_parse_coff_header pe_parse_coff_header(void const* const& file_data, int const& file_size, pe_coff_header const** const header_out);
+pe_e_parse_coff_header pe_parse_coff_header(std::byte const* const file_data, int const file_size, pe_coff_header const** const header_out);

@@ -4,8 +4,8 @@
 #include "../nogui/memory_mapped_file.h"
 #include "../nogui/pe.h"
 #include "../nogui/pe2.h"
-#include "../nogui/smart_local_free.h"
 #include "../nogui/smart_handle.h"
+#include "../nogui/smart_local_free.h"
 
 #include <cassert>
 #include <cwchar>

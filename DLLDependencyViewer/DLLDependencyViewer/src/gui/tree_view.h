@@ -4,8 +4,8 @@
 #include "smart_menu.h"
 
 #include <array>
-#include <string>
 #include <cstdint>
+#include <string>
 
 #include "../nogui/my_windows.h"
 

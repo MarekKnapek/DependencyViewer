@@ -28,10 +28,9 @@ bool operator==(pe_delay_load_descriptor const& a, pe_delay_load_descriptor cons
 }
 
 
-bool pe_parse_import_table(void const* const& fd, int const& file_size, pe_import_directory_table* const idt_out)
+bool pe_parse_import_table(std::byte const* const file_data, int const file_size, pe_import_directory_table* const idt_out)
 {
 	assert(idt_out);
-	char const* const file_data = static_cast<char const*>(fd);
 	pe_dos_header const& dos_hdr = *reinterpret_cast<pe_dos_header const*>(file_data + 0);
 	pe_coff_full_32_64 const& coff_hdr = *reinterpret_cast<pe_coff_full_32_64 const*>(file_data + dos_hdr.m_pe_offset);
 	bool const is_32 = pe_is_32_bit(coff_hdr.m_32.m_standard);
@@ -64,10 +63,9 @@ bool pe_parse_import_table(void const* const& fd, int const& file_size, pe_impor
 	return true;
 }
 
-bool pe_parse_import_dll_name(void const* const& fd, int const& file_size, pe_import_directory_entry const& ide, pe_string* const dll_name_out)
+bool pe_parse_import_dll_name(std::byte const* const file_data, int const file_size, pe_import_directory_entry const& ide, pe_string* const dll_name_out)
 {
 	assert(dll_name_out);
-	char const* const file_data = static_cast<char const*>(fd);
 	WARN_M_R(ide.m_name != 0, L"Import directory entry has no DLL name.", false);
 	pe_string dll_name;
 	bool const dll_name_parsed = pe_parse_string_rva(file_data, file_size, ide.m_name, &dll_name);
@@ -77,10 +75,9 @@ bool pe_parse_import_dll_name(void const* const& fd, int const& file_size, pe_im
 	return true;
 }
 
-bool pe_parse_import_address_table(void const* const& fd, int const& file_size, pe_import_directory_entry const& ide, pe_import_address_table* const iat_out)
+bool pe_parse_import_address_table(std::byte const* const file_data, int const file_size, pe_import_directory_entry const& ide, pe_import_address_table* const iat_out)
 {
 	assert(iat_out);
-	char const* const file_data = static_cast<char const*>(fd);
 	pe_dos_header const& dos_hdr = *reinterpret_cast<pe_dos_header const*>(file_data + 0);
 	pe_coff_full_32_64 const& coff_hdr = *reinterpret_cast<pe_coff_full_32_64 const*>(file_data + dos_hdr.m_pe_offset);
 	bool const is_32 = pe_is_32_bit(coff_hdr.m_32.m_standard);
@@ -115,12 +112,11 @@ bool pe_parse_import_address_table(void const* const& fd, int const& file_size, 
 	}
 }
 
-bool pe_parse_import_address(void const* const& fd, int const& file_size, pe_import_address_table const& iat_in, int const& idx, bool* const is_ordinal_out, std::uint16_t* const ordinal_out, pe_hint_name* const hint_name_out)
+bool pe_parse_import_address(std::byte const* const file_data, int const file_size, pe_import_address_table const& iat_in, int const& idx, bool* const is_ordinal_out, std::uint16_t* const ordinal_out, pe_hint_name* const hint_name_out)
 {
 	assert(is_ordinal_out);
 	assert(ordinal_out);
 	assert(hint_name_out);
-	char const* const file_data = static_cast<char const*>(fd);
 	pe_dos_header const& dos_hdr = *reinterpret_cast<pe_dos_header const*>(file_data + 0);
 	pe_coff_full_32_64 const& coff_hdr = *reinterpret_cast<pe_coff_full_32_64 const*>(file_data + dos_hdr.m_pe_offset);
 	bool const is_32 = pe_is_32_bit(coff_hdr.m_32.m_standard);
@@ -185,10 +181,9 @@ bool pe_parse_import_address(void const* const& fd, int const& file_size, pe_imp
 	}
 }
 
-bool pe_parse_delay_import_table(void const* const& fd, int const& file_size, pe_delay_import_table* const dlit_out)
+bool pe_parse_delay_import_table(std::byte const* const file_data, int const file_size, pe_delay_import_table* const dlit_out)
 {
 	assert(dlit_out);
-	char const* const file_data = static_cast<char const*>(fd);
 	pe_dos_header const& dos_hdr = *reinterpret_cast<pe_dos_header const*>(file_data + 0);
 	pe_coff_full_32_64 const& coff_hdr = *reinterpret_cast<pe_coff_full_32_64 const*>(file_data + dos_hdr.m_pe_offset);
 	bool const is_32 = pe_is_32_bit(coff_hdr.m_32.m_standard);
@@ -221,10 +216,9 @@ bool pe_parse_delay_import_table(void const* const& fd, int const& file_size, pe
 	return true;
 }
 
-bool pe_parse_delay_import_dll_name(void const* const& fd, int const& file_size, pe_delay_load_descriptor const& dld, pe_string* const dll_name_out)
+bool pe_parse_delay_import_dll_name(std::byte const* const file_data, int const file_size, pe_delay_load_descriptor const& dld, pe_string* const dll_name_out)
 {
 	assert(dll_name_out);
-	char const* const file_data = static_cast<char const*>(fd);
 	pe_dos_header const& dos_hdr = *reinterpret_cast<pe_dos_header const*>(file_data + 0);
 	pe_coff_full_32_64 const& coff_hdr = *reinterpret_cast<pe_coff_full_32_64 const*>(file_data + dos_hdr.m_pe_offset);
 	WARN_M_R(dld.m_dll_name_rva != 0, L"Delay import directory entry has no DLL name.", false);
@@ -240,10 +234,9 @@ bool pe_parse_delay_import_dll_name(void const* const& fd, int const& file_size,
 	return true;
 }
 
-bool pe_parse_delay_import_address_table(void const* const& fd, int const& file_size, pe_delay_load_descriptor const& dld, pe_delay_load_import_address_table* const dliat_out)
+bool pe_parse_delay_import_address_table(std::byte const* const file_data, int const file_size, pe_delay_load_descriptor const& dld, pe_delay_load_import_address_table* const dliat_out)
 {
 	assert(dliat_out);
-	char const* const file_data = static_cast<char const*>(fd);
 	pe_dos_header const& dos_hdr = *reinterpret_cast<pe_dos_header const*>(file_data + 0);
 	pe_coff_full_32_64 const& coff_hdr = *reinterpret_cast<pe_coff_full_32_64 const*>(file_data + dos_hdr.m_pe_offset);
 	WARN_M_R(dld.m_import_name_table_rva != 0, L"Delay import address table not found.", false);
@@ -279,12 +272,11 @@ bool pe_parse_delay_import_address_table(void const* const& fd, int const& file_
 	}
 }
 
-bool pe_parse_delay_import_address(void const* const& fd, int const& file_size, pe_delay_load_descriptor const& dld, pe_delay_load_import_address_table const& dliat_in, int const& idx, bool* const is_ordinal_out, std::uint16_t* const ordinal_out, pe_hint_name* const hint_name_out)
+bool pe_parse_delay_import_address(std::byte const* const file_data, int const file_size, pe_delay_load_descriptor const& dld, pe_delay_load_import_address_table const& dliat_in, int const& idx, bool* const is_ordinal_out, std::uint16_t* const ordinal_out, pe_hint_name* const hint_name_out)
 {
 	assert(is_ordinal_out);
 	assert(ordinal_out);
 	assert(hint_name_out);
-	char const* const file_data = static_cast<char const*>(fd);
 	pe_dos_header const& dos_hdr = *reinterpret_cast<pe_dos_header const*>(file_data + 0);
 	pe_coff_full_32_64 const& coff_hdr = *reinterpret_cast<pe_coff_full_32_64 const*>(file_data + dos_hdr.m_pe_offset);
 	bool const is_32 = pe_is_32_bit(coff_hdr.m_32.m_standard);

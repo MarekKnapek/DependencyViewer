@@ -6,18 +6,18 @@
 #include "smart_dc.h"
 
 #include "../nogui/array_bool.h"
-#include "../nogui/pe.h"
 #include "../nogui/int_to_string.h"
+#include "../nogui/pe.h"
 #include "../nogui/scope_exit.h"
 
 #include "../res/resources.h"
 
 #include <algorithm>
-#include <iterator>
 #include <cassert>
+#include <iterator>
 
-#include <windowsx.h>
 #include <commctrl.h>
+#include <windowsx.h>
 
 
 enum class e_export_menu_id : std::uint16_t

@@ -5,6 +5,7 @@
 #include "smart_library.h"
 #include "unique_strings.h"
 
+#include <cstddef>
 #include <vector>
 
 #include "my_windows.h"
@@ -42,7 +43,7 @@ public:
 	manifest_parser(memory_manager& mm);
 	~manifest_parser();
 public:
-	manifest_data parse(char const* const& data, int const& len);
+	manifest_data parse(std::byte const* const data, int const len);
 private:
 	memory_manager& m_mm;
 	friend manifest_parser_impl;

@@ -4,6 +4,8 @@
 #include "manifest_parser.h"
 #include "smart_com_interface.h"
 
+#include <cstddef>
+
 #include <xmllite.h>
 
 
@@ -12,7 +14,7 @@ class manifest_parser_impl
 public:
 	manifest_parser_impl(manifest_parser& parent);
 	~manifest_parser_impl();
-	manifest_data parse(char const* const& data, int const& len);
+	manifest_data parse(std::byte const* const data, int const len);
 public:
 	bool parse_1();
 	bool parse_2();

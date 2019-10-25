@@ -16,8 +16,8 @@
 #include <cassert>
 #include <iterator>
 
-#include <windowsx.h>
 #include <commctrl.h>
+#include <windowsx.h>
 
 
 enum class e_import_menu_id : std::uint16_t

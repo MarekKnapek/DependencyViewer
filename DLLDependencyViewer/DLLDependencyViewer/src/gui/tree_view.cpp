@@ -9,11 +9,11 @@
 
 #include "../res/resources.h"
 
-#include <cstdint>
 #include <cassert>
+#include <cstdint>
 
-#include <windowsx.h>
 #include <commctrl.h>
+#include <windowsx.h>
 
 
 enum class e_tree_menu_id : std::uint16_t

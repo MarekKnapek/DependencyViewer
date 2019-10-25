@@ -1,7 +1,7 @@
 #include "allocator_malloc.h"
 
-#include <cstdlib>
 #include <cassert>
+#include <cstdlib>
 
 
 allocator_malloc::allocator_malloc() noexcept :

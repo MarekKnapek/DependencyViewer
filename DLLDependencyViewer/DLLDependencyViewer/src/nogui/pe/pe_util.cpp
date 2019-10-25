@@ -6,9 +6,8 @@
 #include <algorithm>
 
 
-std::uint32_t pe_find_object_in_raw(void const* const& fd, int const& /*file_size*/, std::uint32_t const& obj_va, std::uint32_t const& obj_size, pe_section_header const*& sct)
+std::uint32_t pe_find_object_in_raw(std::byte const* const file_data, int const /* file_size */, std::uint32_t const obj_va, std::uint32_t const obj_size, pe_section_header const*& sct)
 {
-	char const* const file_data = static_cast<char const*>(fd);
 	pe_dos_header const& dos_hdr = *reinterpret_cast<pe_dos_header const*>(file_data + 0);
 	pe_coff_full_32_64 const& coff_hdr = *reinterpret_cast<pe_coff_full_32_64 const*>(file_data + dos_hdr.m_pe_offset);
 	bool const is_32 = pe_is_32_bit(coff_hdr.m_32.m_standard);
@@ -30,10 +29,9 @@ std::uint32_t pe_find_object_in_raw(void const* const& fd, int const& /*file_siz
 	WARN_M_R(false, L"Object not found in any section.", 0);
 }
 
-bool pe_parse_string_rva(void const* const fd, int const file_size, std::uint32_t const str_rva, pe_string* const str_out)
+bool pe_parse_string_rva(std::byte const* const file_data, int const file_size, std::uint32_t const str_rva, pe_string* const str_out)
 {
 	assert(str_out);
-	char const* const file_data = static_cast<char const*>(fd);
 	WARN_M_R(str_rva != 0, L"Invalid string.", false);
 	pe_section_header const* sct;
 	std::uint32_t const str_raw = pe_find_object_in_raw(file_data, file_size, str_rva, 2, sct);
@@ -41,10 +39,9 @@ bool pe_parse_string_rva(void const* const fd, int const file_size, std::uint32_
 	return pe_parse_string_raw(file_data, file_size, str_raw, *sct, str_out);
 }
 
-bool pe_parse_string_raw(void const* const fd, int const /* file_size */, std::uint32_t const str_raw, pe_section_header const& sct, pe_string* const str_out)
+bool pe_parse_string_raw(std::byte const* const file_data, int const /* file_size */, std::uint32_t const str_raw, pe_section_header const& sct, pe_string* const str_out)
 {
 	assert(str_out);
-	char const* const file_data = static_cast<char const*>(fd);
 	WARN_M_R(str_raw != 0, L"Invalid string.", false);
 	char const* const str = reinterpret_cast<char const*>(file_data + str_raw);
 	static constexpr const std::uint32_t s_str_len_max = 32 * 1024;

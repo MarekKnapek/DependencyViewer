@@ -15,10 +15,9 @@ bool operator==(pe_export_ordinal_entry const& a, pe_export_ordinal_entry const&
 }
 
 
-bool pe_parse_export_directory_table(void const* const fd, int const file_size, pe_export_directory_table* const edt_out)
+bool pe_parse_export_directory_table(std::byte const* const file_data, int const file_size, pe_export_directory_table* const edt_out)
 {
 	assert(edt_out);
-	char const* const file_data = static_cast<char const*>(fd);
 	pe_dos_header const& dos_hdr = *reinterpret_cast<pe_dos_header const*>(file_data + 0);
 	pe_coff_full_32_64 const& coff_hdr = *reinterpret_cast<pe_coff_full_32_64 const*>(file_data + dos_hdr.m_pe_offset);
 	bool const is_32 = pe_is_32_bit(coff_hdr.m_32.m_standard);
@@ -49,10 +48,9 @@ bool pe_parse_export_directory_table(void const* const fd, int const file_size, 
 	return true;
 }
 
-bool pe_parse_export_name_pointer_table(void const* const fd, int const file_size, pe_export_directory_table const& edt, pe_export_name_pointer_table* const enpt_out)
+bool pe_parse_export_name_pointer_table(std::byte const* const file_data, int const file_size, pe_export_directory_table const& edt, pe_export_name_pointer_table* const enpt_out)
 {
 	assert(enpt_out);
-	char const* const file_data = static_cast<char const*>(fd);
 	if(edt.m_table->m_export_name_table_rva == 0)
 	{
 		enpt_out->m_count = 0;
@@ -67,10 +65,9 @@ bool pe_parse_export_name_pointer_table(void const* const fd, int const file_siz
 	return true;
 }
 
-bool pe_parse_export_ordinal_table(void const* const fd, int const file_size, pe_export_directory_table const& edt, pe_export_ordinal_table* const eot_out)
+bool pe_parse_export_ordinal_table(std::byte const* const file_data, int const file_size, pe_export_directory_table const& edt, pe_export_ordinal_table* const eot_out)
 {
 	assert(eot_out);
-	char const* const file_data = static_cast<char const*>(fd);
 	if(edt.m_table->m_ordinal_table_rva == 0)
 	{
 		eot_out->m_count = 0;
@@ -85,10 +82,9 @@ bool pe_parse_export_ordinal_table(void const* const fd, int const file_size, pe
 	return true;
 }
 
-bool pe_parse_export_address_table(void const* const fd, int const file_size, pe_export_directory_table const& edt, pe_export_address_table* const eat_out)
+bool pe_parse_export_address_table(std::byte const* const file_data, int const file_size, pe_export_directory_table const& edt, pe_export_address_table* const eat_out)
 {
 	assert(eat_out);
-	char const* const file_data = static_cast<char const*>(fd);
 	if(edt.m_table->m_export_address_table_rva == 0)
 	{
 		eat_out->m_count = 0;
@@ -103,11 +99,10 @@ bool pe_parse_export_address_table(void const* const fd, int const file_size, pe
 	return true;
 }
 
-bool pe_parse_export_address_name(void const* const fd, int const file_size, pe_export_name_pointer_table const& enpt, pe_export_ordinal_table const& eot, std::uint16_t const& idx, std::uint16_t* const hint_out, pe_string* const ean_out)
+bool pe_parse_export_address_name(std::byte const* const file_data, int const file_size, pe_export_name_pointer_table const& enpt, pe_export_ordinal_table const& eot, std::uint16_t const& idx, std::uint16_t* const hint_out, pe_string* const ean_out)
 {
 	assert(hint_out);
 	assert(ean_out);
-	char const* const file_data = static_cast<char const*>(fd);
 	if(enpt.m_count == 0)
 	{
 		ean_out->m_str = nullptr;

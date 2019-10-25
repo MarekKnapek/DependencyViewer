@@ -83,9 +83,8 @@ static constexpr std::uint16_t s_image_file_up_system_only         	= 0x4000; //
 static constexpr std::uint16_t s_image_file_bytes_reversed_hi      	= 0x8000; // IMAGE_FILE_BYTES_REVERSED_HI      	Big endian: the MSB precedes the LSB in memory. This flag is deprecated and should be zero.
 
 
-pe_e_parse_coff_header pe_parse_coff_header(void const* const& fd, int const& file_size, pe_coff_header const** const header_out)
+pe_e_parse_coff_header pe_parse_coff_header(std::byte const* const file_data, int const file_size, pe_coff_header const** const header_out)
 {
-	char const* const file_data = static_cast<char const*>(fd);
 	pe_dos_header const& dosheader = *reinterpret_cast<pe_dos_header const*>(file_data + 0);
 	WARN_M_R(file_size >= static_cast<int>(dosheader.m_pe_offset + sizeof(pe_coff_header)), L"File is too small to contain coff_header.", pe_e_parse_coff_header::file_too_small);
 	pe_coff_header const& header = *reinterpret_cast<pe_coff_header const*>(file_data + dosheader.m_pe_offset);

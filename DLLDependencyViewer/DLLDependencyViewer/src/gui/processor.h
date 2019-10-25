@@ -3,8 +3,8 @@
 
 #include "../nogui/manifest_parser.h"
 #include "../nogui/memory_manager.h"
-#include "../nogui/pe.h"
 #include "../nogui/my_vector.h"
+#include "../nogui/pe.h"
 
 #include <filesystem>
 #include <string>

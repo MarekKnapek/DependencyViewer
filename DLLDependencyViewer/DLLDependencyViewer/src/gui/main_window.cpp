@@ -5,6 +5,7 @@
 #include "smart_dc.h"
 #include "test.h"
 
+#include "../nogui/array_bool.h"
 #include "../nogui/dbg.h"
 #include "../nogui/dbg_provider.h"
 #include "../nogui/memory_mapped_file.h"
@@ -12,7 +13,6 @@
 #include "../nogui/scope_exit.h"
 #include "../nogui/smart_local_free.h"
 #include "../nogui/utils.h"
-#include "../nogui/array_bool.h"
 
 #include "../res/resources.h"
 
@@ -22,10 +22,10 @@
 #include <cstdlib>
 #include <iterator>
 
-#include <windowsx.h>
 #include <commctrl.h>
 #include <commdlg.h>
 #include <shellapi.h>
+#include <windowsx.h>
 
 
 static constexpr wchar_t const s_window_class_name[] = L"main_window";

@@ -129,14 +129,12 @@ static constexpr wchar_t const s_bad_format[] = L"Bad format.";
 #define WARN(X) do{ if(!(X)){ assert((OutputDebugStringW(L"Warning: " L ## #X L"\x0D\x0A"), true)); } }while(false)
 
 
-pe_resource_name_string_or_id_internal pe_resources_process_string(char const* const& file_data, std::uint32_t const& resource_directory_disk_offset, std::uint32_t const& resource_directory_size, bool const& is_string, resource_directory_entry const& dir_entry);
+pe_resource_name_string_or_id_internal pe_resources_process_string(std::byte const* const file_data, std::uint32_t const resource_directory_disk_offset, std::uint32_t const resource_directory_size, bool const is_string, resource_directory_entry const dir_entry);
 pe_resource_string_or_id convert_pe_string_to_string(pe_resource_name_string_or_id_internal const& str, memory_manager& mm);
 
 
-pe_header_info pe_process_header(void const* const fd, int const file_size)
+pe_header_info pe_process_header(std::byte const* const file_data, int const file_size)
 {
-	char const* const file_data = static_cast<char const*>(fd);
-
 	pe_dos_header const* dos_hdr;
 	pe_e_parse_mz_header const mz_parsed = pe_parse_mz_header(file_data, file_size, &dos_hdr);
 	VERIFY(mz_parsed == pe_e_parse_mz_header::ok);
@@ -165,15 +163,14 @@ using resource_visitor_t = void(*)
 	pe_resource_name_string_or_id_internal const& type_string,
 	pe_resource_name_string_or_id_internal const& name_string,
 	pe_resource_name_string_or_id_internal const& lang_string,
-	char const* const& res_data,
+	std::byte const* const& res_data,
 	std::uint32_t const& res_data_size,
 	std::uint32_t const& code_page
 );
 
-void pe_process_resource_table(void const* const fd, int const fs, pe_header_info const& hi, memory_manager& /*mm*/, resource_visitor_t const& visitor, void* const& self)
+void pe_process_resource_table(std::byte const* const file_data, int const file_size, pe_header_info const& hi, memory_manager& /*mm*/, resource_visitor_t const& visitor, void* const& self)
 {
-	char const* const file_data = static_cast<char const*>(fd);
-	std::uint32_t const file_size = static_cast<std::uint32_t>(fs);
+	std::uint32_t const fs = static_cast<std::uint32_t>(file_size);
 
 	data_directory const* const dta_dir_table = reinterpret_cast<data_directory const*>(file_data + hi.m_data_directory_start);
 	std::uint32_t const resource_directory_rva = dta_dir_table[static_cast<int>(data_directory_type::resource_table)].m_rva;
@@ -234,10 +231,10 @@ void pe_process_resource_table(void const* const fd, int const fs, pe_header_inf
 				auto const data_section_and_offset = convert_rva_to_disk_ptr(resource_leaf_data.m_data_rva, hi);
 				section_header const& data_sct = *data_section_and_offset.first;
 				std::uint32_t const& data_dsk = data_section_and_offset.second;
-				VERIFY(file_size >= data_dsk);
-				VERIFY(file_size >= data_dsk + resource_leaf_data.m_size);
+				VERIFY(fs >= data_dsk);
+				VERIFY(fs >= data_dsk + resource_leaf_data.m_size);
 				VERIFY(data_sct.m_raw_size >= resource_leaf_data.m_size);
-				char const* const res_data = file_data + data_dsk;
+				std::byte const* const res_data = file_data + data_dsk;
 				(*visitor)(self, type_string, name_string, lang_string, res_data, resource_leaf_data.m_size, resource_leaf_data.m_code_page);
 			}
 		}
@@ -250,7 +247,7 @@ void resource_visitor_1
 	pe_resource_name_string_or_id_internal const& /*type_string*/,
 	pe_resource_name_string_or_id_internal const& /*name_string*/,
 	pe_resource_name_string_or_id_internal const& /*lang_string*/,
-	char const* const& /*res_data*/,
+	std::byte const* const& /*res_data*/,
 	std::uint32_t const& /*res_data_size*/,
 	std::uint32_t const& /*code_page*/
 )
@@ -265,7 +262,7 @@ void resource_visitor_2
 	pe_resource_name_string_or_id_internal const& type_string,
 	pe_resource_name_string_or_id_internal const& name_string,
 	pe_resource_name_string_or_id_internal const& lang_string,
-	char const* const& res_data,
+	std::byte const* const& res_data,
 	std::uint32_t const& res_data_size,
 	std::uint32_t const& code_page
 )
@@ -283,14 +280,14 @@ void resource_visitor_2
 	ret.m_resources.push_back(resource);
 }
 
-pe_resources_table_info pe_process_resource_table(void const* const fd, int const fs, pe_header_info const& hi, memory_manager& mm)
+pe_resources_table_info pe_process_resource_table(std::byte const* const file_data, int const file_size, pe_header_info const& hi, memory_manager& mm)
 {
 	pe_resources_table_info ret;
 	int resource_count = 0;
-	pe_process_resource_table(fd, fs, hi, mm, &resource_visitor_1, &resource_count);
+	pe_process_resource_table(file_data, file_size, hi, mm, &resource_visitor_1, &resource_count);
 	ret.m_resources.reserve(resource_count);
 	std::pair<pe_resources_table_info&, memory_manager&> visitor_2_data(ret, mm);
-	pe_process_resource_table(fd, fs, hi, mm, &resource_visitor_2, &visitor_2_data);
+	pe_process_resource_table(file_data, file_size, hi, mm, &resource_visitor_2, &visitor_2_data);
 	return ret;
 }
 
@@ -325,7 +322,7 @@ std::pair<section_header const*, std::uint32_t> convert_rva_to_disk_ptr(std::uin
 }
 
 
-pe_resource_name_string_or_id_internal pe_resources_process_string(char const* const& file_data, std::uint32_t const& resource_directory_disk_offset, std::uint32_t const& resource_directory_size, bool const& is_string, resource_directory_entry const& dir_entry)
+pe_resource_name_string_or_id_internal pe_resources_process_string(std::byte const* const file_data, std::uint32_t const resource_directory_disk_offset, std::uint32_t const resource_directory_size, bool const is_string, resource_directory_entry const dir_entry)
 {
 	pe_resource_name_string_or_id_internal ret;
 	ret.m_is_string = is_string;

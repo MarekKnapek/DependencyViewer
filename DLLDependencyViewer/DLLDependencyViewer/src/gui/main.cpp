@@ -6,8 +6,8 @@
 
 #include "../nogui/activation_context.h"
 #include "../nogui/dbg.h"
-#include "../nogui/scope_exit.h"
 #include "../nogui/file_name_provider.h"
+#include "../nogui/scope_exit.h"
 
 #include <cassert>
 

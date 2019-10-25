@@ -1,8 +1,8 @@
 #include "int_to_string.h"
 
 #include <array>
-#include <cwchar>
 #include <cassert>
+#include <cwchar>
 
 
 void ordinal_to_string(std::uint16_t const ordinal, std::wstring& str)

@@ -141,7 +141,7 @@ manifest_data process_manifest(processor_impl& prcsr, file_info const& fi)
 	return prcsr.m_manifest_parser->parse(manifest.first, manifest.second);
 }
 
-std::pair<char const*, int> find_manifest(file_info const& fi)
+std::pair<std::byte const*, int> find_manifest(file_info const& fi)
 {
 	for(auto&& e : fi.m_resources_table.m_resources)
 	{

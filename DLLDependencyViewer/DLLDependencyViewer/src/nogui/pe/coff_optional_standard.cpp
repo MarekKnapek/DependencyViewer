@@ -9,9 +9,8 @@ static constexpr std::uint16_t const s_pe_coff_optional_sig_32 = 0x010b;
 static constexpr std::uint16_t const s_pe_coff_optional_sig_64 = 0x020b;
 
 
-pe_e_parse_coff_optional_header_standard_32_64 pe_parse_coff_optional_header_standard_32_64(void const* const& fd, int const& file_size, pe_coff_optional_header_standard_32_64 const** const header_out)
+pe_e_parse_coff_optional_header_standard_32_64 pe_parse_coff_optional_header_standard_32_64(std::byte const* const file_data, int const file_size, pe_coff_optional_header_standard_32_64 const** const header_out)
 {
-	char const* const file_data = static_cast<char const*>(fd);
 	pe_dos_header const& dosheader = *reinterpret_cast<pe_dos_header const*>(file_data + 0);
 	pe_coff_header const& coff_hdr = *reinterpret_cast<pe_coff_header const*>(file_data + dosheader.m_pe_offset);
 	WARN_M_R(coff_hdr.m_optional_header_size >= sizeof(pe_coff_optional_header_standard_32_64), L"COFF header contains too small size of coff_optional_header_standard_32_64.", pe_e_parse_coff_optional_header_standard_32_64::coff_has_wrong_optional);

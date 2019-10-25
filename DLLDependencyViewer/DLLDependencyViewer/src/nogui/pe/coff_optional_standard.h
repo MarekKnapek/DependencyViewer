@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include <cstddef>
 #include <cstdint>
 
 
@@ -52,5 +53,5 @@ struct pe_coff_optional_header_standard_32_64
 };
 
 
-pe_e_parse_coff_optional_header_standard_32_64 pe_parse_coff_optional_header_standard_32_64(void const* const& file_data, int const& file_size, pe_coff_optional_header_standard_32_64 const** const header_out);
+pe_e_parse_coff_optional_header_standard_32_64 pe_parse_coff_optional_header_standard_32_64(std::byte const* const file_data, int const file_size, pe_coff_optional_header_standard_32_64 const** const header_out);
 bool pe_is_32_bit(pe_coff_optional_header_standard_32 const& header);

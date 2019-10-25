@@ -4,10 +4,9 @@
 #include "mz.h"
 
 
-bool pe_parse_coff_full_32_64(void const* const& fd, int const& file_size, pe_coff_full_32_64 const** const header_out)
+bool pe_parse_coff_full_32_64(std::byte const* const file_data, int const file_size, pe_coff_full_32_64 const** const header_out)
 {
 	assert(header_out);
-	char const* const file_data = static_cast<char const*>(fd);
 	pe_dos_header const& dosheader = *reinterpret_cast<pe_dos_header const*>(file_data);
 
 	pe_coff_header const* coff_hdr;
