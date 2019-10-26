@@ -101,7 +101,7 @@ private:
 	void cancel_all_dbg_tasks();
 	void process_finished_dbg_task(get_symbols_from_addresses_param_t const& param);
 	void request_close();
-	void request_mo_deletion(std::unique_ptr<main_type> mo);
+	void request_mo_deletion(std::unique_ptr<main_type>&& mo);
 private:
 	static ATOM g_class;
 	static HACCEL g_accel;
@@ -122,6 +122,6 @@ private:
 	friend class tree_view;
 	friend class import_view;
 	friend class export_view;
-	template<typename A, typename B, typename C>
-	friend void request_helper(main_window* const, dbg_provider*, A&&, B, C);
+	template<typename marshaller_t, typename fn_worker_t, typename fn_main_t>
+	friend void request_helper(main_window* const self, dbg_provider* const dbg, marshaller_t&& mrshllr, fn_worker_t const fn_worker_, fn_main_t const fn_main_);
 };

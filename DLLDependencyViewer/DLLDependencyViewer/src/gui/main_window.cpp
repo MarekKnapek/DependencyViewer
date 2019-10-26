@@ -93,7 +93,7 @@ public:
 };
 
 template<typename marshaller_t, typename fn_worker_t, typename fn_main_t>
-void request_helper(main_window* const self, dbg_provider* const dbg, marshaller_t&& mrshllr, fn_worker_t fn_worker_, fn_main_t fn_main_)
+void request_helper(main_window* const self, dbg_provider* const dbg, marshaller_t&& mrshllr, fn_worker_t const fn_worker_, fn_main_t const fn_main_)
 {
 	using fn_worker_tt = void(*)(marshaller_t&);
 	using fn_main_tt = void(*)(main_window&, marshaller_t&);
@@ -1107,7 +1107,7 @@ void main_window::request_close()
 	request_helper(this, dbg_provider::get(), std::move(m), fn_worker, fn_main);
 }
 
-void main_window::request_mo_deletion(std::unique_ptr<main_type> mo)
+void main_window::request_mo_deletion(std::unique_ptr<main_type>&& mo)
 {
 	struct marshaller
 	{
@@ -1118,9 +1118,8 @@ void main_window::request_mo_deletion(std::unique_ptr<main_type> mo)
 	auto const fn_worker = [](marshaller&)
 	{
 	};
-	auto const fn_main = [](main_window&, marshaller& m)
+	auto const fn_main = [](main_window&, marshaller&)
 	{
-		m.m_mo.reset();
 	};
 	request_helper(this, dbg_provider::get(), std::move(m), fn_worker, fn_main);
 }
