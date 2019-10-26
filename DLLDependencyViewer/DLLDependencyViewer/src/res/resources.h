@@ -48,6 +48,7 @@
 
 #define s_res_icon_open 0
 #define s_res_icon_full_paths 4
+#define s_res_icon_undecorate 5
 
 
 
