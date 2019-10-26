@@ -200,6 +200,7 @@ main_window::main_window() :
 	m_splitter_ver(m_splitter_hor.get_hwnd()),
 	m_import_view(m_splitter_ver.get_hwnd(), *this),
 	m_export_view(m_splitter_ver.get_hwnd(), *this),
+	m_status_bar(CreateWindowExW(0, reinterpret_cast<wchar_t const*>(STATUSCLASSNAMEW), L"", SBARS_SIZEGRIP | WS_BORDER | WS_VISIBLE | WS_CHILD, 0, 0, 0, 0, m_hwnd, nullptr, get_instance(), nullptr)),
 	m_idle_tasks(),
 	m_dbg_tasks(),
 	m_mo(),
@@ -384,12 +385,23 @@ LRESULT main_window::on_wm_size(WPARAM wparam, LPARAM lparam)
 {
 	int const w = LOWORD(lparam);
 	int const h = HIWORD(lparam);
-	SendMessageW(m_toolbar, TB_AUTOSIZE, 0, 0);
-	RECT toolbar_rect;
-	BOOL const got_toolbar_rect = GetClientRect(m_toolbar, &toolbar_rect);
-	assert(toolbar_rect.left == 0);
-	assert(toolbar_rect.top == 0);
-	BOOL const moved = MoveWindow(m_splitter_hor.get_hwnd(), 0, 0 + toolbar_rect.bottom, w, h - toolbar_rect.bottom, TRUE);
+
+	LRESULT const sent_tb = SendMessageW(m_toolbar, TB_AUTOSIZE, 0, 0);
+
+	RECT tb_rect;
+	BOOL const got_tb_rect = GetWindowRect(m_toolbar, &tb_rect);
+	assert(got_tb_rect != 0);
+	LONG const tb_height = tb_rect.bottom - tb_rect.top;
+
+	LRESULT const sent_sb_size = SendMessageW(m_status_bar, WM_SIZE, wparam, lparam);
+
+	RECT sb_rect;
+	BOOL const got_sb_rect = GetWindowRect(m_status_bar, &sb_rect);
+	assert(got_sb_rect != 0);
+	LONG const sb_height = sb_rect.bottom - sb_rect.top;
+
+	LONG const total_height = tb_height + sb_height;
+	BOOL const moved = MoveWindow(m_splitter_hor.get_hwnd(), 0, 0 + tb_height, w, h - total_height, TRUE);
 	return DefWindowProcW(m_hwnd, WM_SIZE, wparam, lparam);
 }
 
@@ -1010,6 +1022,7 @@ std::pair<file_info const*, POINT> main_window::get_file_info_under_cursor()
 void main_window::add_idle_task(idle_task_t const task, idle_task_param_t const param)
 {
 	m_idle_tasks.push({task, param});
+	update_staus_bar();
 	BOOL const posted = PostMessageW(m_hwnd, wm_main_window_process_on_idle, 0, 0);
 	assert(posted != 0);
 }
@@ -1022,6 +1035,7 @@ void main_window::on_idle()
 	}
 	auto const task_with_param = m_idle_tasks.front();
 	m_idle_tasks.pop();
+	update_staus_bar();
 	auto const& task = task_with_param.first;
 	auto const& param = task_with_param.second;
 	(*task)(*this, param);
@@ -1059,6 +1073,7 @@ void main_window::register_dbg_task(thread_worker_param_t const param)
 {
 	assert(param);
 	m_dbg_tasks.push_back(param);
+	update_staus_bar();
 }
 
 void main_window::unregister_dbg_task(thread_worker_param_t const param)
@@ -1068,6 +1083,27 @@ void main_window::unregister_dbg_task(thread_worker_param_t const param)
 	assert(m_dbg_tasks.front() == param);
 	(void)param;
 	m_dbg_tasks.pop_front();
+	update_staus_bar();
+}
+
+void main_window::update_staus_bar()
+{
+	int const idles = static_cast<int>(m_idle_tasks.size());
+	int const dbgs = static_cast<int>(m_dbg_tasks.size());
+	if(idles == 0 && dbgs == 0)
+	{
+		static constexpr wchar_t const* const empty = L"";
+		LRESULT const sent = SendMessageW(m_status_bar, SB_SETTEXTW, 0, reinterpret_cast<LPARAM>(empty));
+		assert(sent == TRUE);
+	}
+	else
+	{
+		std::array<wchar_t, 64> buff;
+		int const printed = std::swprintf(buff.data(), buff.size(), L"Idle tasks: %d, Symbol tasks: %d.", idles, dbgs);
+		assert(printed >= 0);
+		LRESULT const sent = SendMessageW(m_status_bar, SB_SETTEXTW, 0, reinterpret_cast<LPARAM>(buff.data()));
+		assert(sent == TRUE);
+	}
 }
 
 void main_window::cancel_all_dbg_tasks()

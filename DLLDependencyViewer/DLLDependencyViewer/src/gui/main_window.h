@@ -103,6 +103,7 @@ private:
 	void process_command_line();
 	void register_dbg_task(thread_worker_param_t const param);
 	void unregister_dbg_task(thread_worker_param_t const param);
+	void update_staus_bar();
 	void cancel_all_dbg_tasks();
 	void request_mo_deletion(std::unique_ptr<main_type>&& mo);
 	void request_close();
@@ -124,6 +125,7 @@ private:
 	splitter_window_ver m_splitter_ver;
 	import_view m_import_view;
 	export_view m_export_view;
+	HWND m_status_bar;
 	std::queue<std::pair<idle_task_t, idle_task_param_t>> m_idle_tasks;
 	std::deque<thread_worker_param_t> m_dbg_tasks;
 private:
