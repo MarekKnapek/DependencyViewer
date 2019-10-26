@@ -48,6 +48,7 @@ static constexpr wchar_t const s_export_type_false[] = L"forwarder";
 static constexpr wchar_t const s_export_hint_na[] = L"N/A";
 static constexpr wchar_t const s_export_name_processing[] = L"Processing...";
 static constexpr wchar_t const s_export_name_na[] = L"N/A";
+static constexpr wchar_t const s_export_name_undecorating[] = L"Undecorating...";
 
 
 static int g_export_type_column_max_width = 0;
@@ -431,8 +432,36 @@ wchar_t const* export_view::on_get_col_name(pe_export_table_info const& eti, std
 	bool const has_name = eti.m_hints[exp_idx] != 0xFFFF;
 	if(has_name)
 	{
-		string const* const name = eti.m_names[exp_idx];
-		return m_string_converter.convert(name);
+		bool const undecorate = m_main_window.m_settings.m_undecorate;
+		if(!undecorate)
+		{
+			string const* const name = eti.m_names[exp_idx];
+			return m_string_converter.convert(name);
+		}
+		else
+		{
+			string const* const name = eti.m_names[exp_idx];
+			if(name->m_str[0] != '?')
+			{
+				return m_string_converter.convert(name);
+			}
+			else
+			{
+				string const* const undecorated_name = eti.m_undecorated_names[exp_idx];
+				if(!undecorated_name)
+				{
+					return s_export_name_undecorating;
+				}
+				else if(undecorated_name == static_cast<string const*>(nullptr) + 1)
+				{
+					return m_string_converter.convert(name);
+				}
+				else
+				{
+					return m_string_converter.convert(undecorated_name);
+				}
+			}
+		}
 	}
 	else
 	{
@@ -440,13 +469,44 @@ wchar_t const* export_view::on_get_col_name(pe_export_table_info const& eti, std
 		if(is_rva)
 		{
 			string const* const debug_name = eti.m_names[exp_idx];
-			if(debug_name)
+			if(!debug_name)
 			{
-				return m_string_converter.convert(debug_name);
+				return s_export_name_processing;
+			}
+			else if(debug_name == static_cast<string const*>(nullptr) + 1)
+			{
+				return s_export_name_na;
 			}
 			else
 			{
-				return s_export_name_processing;
+				bool const undecorate = m_main_window.m_settings.m_undecorate;
+				if(!undecorate)
+				{
+					return m_string_converter.convert(debug_name);
+				}
+				else
+				{
+					if(debug_name->m_str[0] != '?')
+					{
+						return m_string_converter.convert(debug_name);
+					}
+					else
+					{
+						string const* const undecorated_name = eti.m_undecorated_names[exp_idx];
+						if(!undecorated_name)
+						{
+							return s_export_name_undecorating;
+						}
+						else if(undecorated_name == static_cast<string const*>(nullptr) + 1)
+						{
+							return m_string_converter.convert(debug_name);
+						}
+						else
+						{
+							return m_string_converter.convert(undecorated_name);
+						}
+					}
+				}
 			}
 		}
 		else

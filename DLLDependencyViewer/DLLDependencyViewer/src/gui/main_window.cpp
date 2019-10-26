@@ -213,6 +213,7 @@ main_window::main_window() :
 	add_idle_task(process_cmd_line_task, nullptr);
 
 	m_settings.m_full_paths = false;
+	m_settings.m_undecorate = false;
 }
 
 main_window::~main_window()

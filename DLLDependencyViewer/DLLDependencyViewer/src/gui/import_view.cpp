@@ -46,6 +46,7 @@ static constexpr wchar_t const s_import_type_false[] = L"name";
 static constexpr wchar_t const s_import_ordinal_na[] = L"N/A";
 static constexpr wchar_t const s_import_hint_na[] = L"N/A";
 static constexpr wchar_t const s_import_name_na[] = L"N/A";
+static constexpr wchar_t const s_import_name_undecorating[] = L"Undecorating...";
 
 
 static int g_import_type_column_max_width = 0;
@@ -463,7 +464,34 @@ wchar_t const* import_view::on_get_col_name(pe_import_table_info const& iti, std
 	else
 	{
 		string const* const name = iti.m_names[dll_idx][imp_idx];
-		return m_string_converter.convert(name);
+		bool const undecorate = m_main_window.m_settings.m_undecorate;
+		if(!undecorate)
+		{
+			return m_string_converter.convert(name);
+		}
+		else
+		{
+			if(name->m_str[0] != '?')
+			{
+				return m_string_converter.convert(name);
+			}
+			else
+			{
+				string const* const undecorated_name = iti.m_undecorated_names[dll_idx][imp_idx];
+				if(!undecorated_name)
+				{
+					return s_import_name_undecorating;
+				}
+				else if(undecorated_name == static_cast<string const*>(nullptr) + 1)
+				{
+					return m_string_converter.convert(name);
+				}
+				else
+				{
+					return m_string_converter.convert(undecorated_name);
+				}
+			}
+		}
 	}
 }
 
