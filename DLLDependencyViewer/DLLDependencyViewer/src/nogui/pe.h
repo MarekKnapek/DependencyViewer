@@ -38,6 +38,7 @@ struct pe_import_table_info
 	unsigned const* const* m_are_ordinals;
 	std::uint16_t const* const* m_ordinals_or_hints;
 	string const* const* const* m_names;
+	string const** const* m_undecorated_names;
 	std::uint16_t* const* m_matched_exports;
 };
 

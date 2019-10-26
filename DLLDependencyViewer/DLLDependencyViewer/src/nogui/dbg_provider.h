@@ -27,6 +27,15 @@ struct undecorated_from_decorated_e_param_t
 	void* m_data;
 };
 
+struct undecorated_from_decorated_i_param_t
+{
+	pe_import_table_info const* m_iti;
+	std::uint16_t m_dll_idx;
+	std::vector<std::uint16_t> m_indexes;
+	std::vector<std::string> m_strings;
+	void* m_data;
+};
+
 
 class dbg_provider
 {
@@ -41,6 +50,7 @@ public:
 	void add_task(thread_worker_function_t const func, thread_worker_param_t const param);
 	void get_symbols_from_addresses_task(symbols_from_addresses_param_t& param);
 	void get_undecorated_from_decorated_e_task(undecorated_from_decorated_e_param_t& param);
+	void get_undecorated_from_decorated_i_task(undecorated_from_decorated_i_param_t& param);
 private:
 	void init_task();
 	void deinit_task();

@@ -125,6 +125,27 @@ void dbg_provider::get_undecorated_from_decorated_e_task(undecorated_from_decora
 	}
 }
 
+void dbg_provider::get_undecorated_from_decorated_i_task(undecorated_from_decorated_i_param_t& param)
+{
+	if(!m_sym_inited)
+	{
+		return;
+	}
+	assert(param.m_indexes.size() == param.m_strings.size());
+	std::uint16_t const n = static_cast<std::uint16_t>(param.m_indexes.size());
+	for(std::uint16_t i = 0; i != n; ++i)
+	{
+		std::uint16_t const idx = param.m_indexes[i];
+		string const* const name = param.m_iti->m_names[param.m_dll_idx][idx];
+		std::array<char, 8 * 1024> buff;
+		DWORD const undecorated = m_dbghelp.m_fn_UnDecorateSymbolName(name->m_str, buff.data(), static_cast<int>(buff.size()), UNDNAME_COMPLETE);
+		if(undecorated != 0)
+		{
+			param.m_strings[i].assign(buff.data(), buff.data() + undecorated);
+		}
+	}
+}
+
 void dbg_provider::init_task()
 {
 	bool const dbghelp_inited = m_dbghelp.init();

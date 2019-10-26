@@ -1120,6 +1120,11 @@ void main_window::request_symbol_undecoration(file_info& fi)
 {
 	std::vector<std::uint16_t> const empty_indexes;
 	request_symbol_undecoration_e(fi, empty_indexes);
+	std::uint16_t const n = fi.m_import_table.m_dll_count;
+	for(std::uint16_t i = 0; i != n; ++i)
+	{
+		request_symbol_undecoration_i(fi, i);
+	}
 }
 
 void main_window::request_symbol_undecoration_e(file_info& fi, std::vector<std::uint16_t> const& input_indexes)
@@ -1217,6 +1222,105 @@ void main_window::finish_symbol_undecoration_e(undecorated_from_decorated_e_para
 	{
 		std::uint16_t const idx = param.m_indexes[i];
 		string const*& undecorated_name = param.m_eti->m_undecorated_names[idx];
+		assert(!undecorated_name);
+		if(!param.m_strings[i].empty())
+		{
+			undecorated_name = m_mo.m_mm.m_strs.add_string(param.m_strings[i].c_str(), static_cast<int>(param.m_strings[i].size()), m_mo.m_mm.m_alc);
+		}
+		else
+		{
+			undecorated_name = static_cast<string const*>(nullptr) + 1;
+		}
+	}
+	HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree_view.get_hwnd(), TVM_GETNEXTITEM, TVGN_CARET, 0));
+	if(selected)
+	{
+		TVITEMW ti;
+		ti.mask = TVIF_PARAM;
+		ti.hItem = selected;
+		LRESULT const got = SendMessageW(m_tree_view.get_hwnd(), TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
+		assert(got == TRUE);
+		file_info const* const fi = reinterpret_cast<file_info*>(ti.lParam);
+		if(fi == param.m_data)
+		{
+			m_import_view.repaint();
+			m_export_view.repaint();
+		}
+	}
+}
+
+void main_window::request_symbol_undecoration_i(file_info& fi, std::uint16_t const dll_idx)
+{
+	pe_import_table_info const& iti = fi.m_import_table;
+	std::uint16_t n = 0;
+	for(std::uint16_t i = 0; i != fi.m_import_table.m_import_counts[dll_idx]; ++i)
+	{
+		bool const is_ordinal = array_bool_tst(fi.m_import_table.m_are_ordinals[dll_idx], i);
+		if(is_ordinal)
+		{
+			continue;
+		}
+		string const* const name = fi.m_import_table.m_names[dll_idx][i];
+		if(name->m_str[0] != '?')
+		{
+			continue;
+		}
+		++n;
+	}
+	if(n == 0)
+	{
+		return;
+	}
+	std::vector<std::uint16_t> indexes;
+	indexes.resize(n);
+	std::uint16_t j = 0;
+	for(std::uint16_t i = 0; i != fi.m_import_table.m_import_counts[dll_idx]; ++i)
+	{
+		bool const is_ordinal = array_bool_tst(fi.m_import_table.m_are_ordinals[dll_idx], i);
+		if(is_ordinal)
+		{
+			continue;
+		}
+		string const* const name = fi.m_import_table.m_names[dll_idx][i];
+		if(name->m_str[0] != '?')
+		{
+			continue;
+		}
+		indexes[j] = i;
+		++j;
+	}
+
+	struct marshaller
+	{
+		dbg_provider* m_dbg_provider;
+		undecorated_from_decorated_i_param_t m_param;
+	};
+	marshaller m;
+	m.m_dbg_provider = dbg_provider::get();
+	m.m_param.m_iti = &iti;
+	m.m_param.m_dll_idx = dll_idx;
+	m.m_param.m_indexes.swap(indexes);
+	m.m_param.m_strings.resize(n);
+	m.m_param.m_data = &fi;
+	auto const fn_worker = [](marshaller& m)
+	{
+		m.m_dbg_provider->get_undecorated_from_decorated_i_task(m.m_param);
+	};
+	auto const fn_main = [](main_window& self, marshaller& m)
+	{
+		self.finish_symbol_undecoration_i(m.m_param);
+	};
+	request_helper(this, dbg_provider::get(), std::move(m), fn_worker, fn_main);
+}
+
+void main_window::finish_symbol_undecoration_i(undecorated_from_decorated_i_param_t const& param)
+{
+	assert(param.m_indexes.size() == param.m_strings.size());
+	std::uint16_t const n = static_cast<std::uint16_t>(param.m_indexes.size());
+	for(std::uint16_t i = 0; i != n; ++i)
+	{
+		std::uint16_t const idx = param.m_indexes[i];
+		string const*& undecorated_name = param.m_iti->m_undecorated_names[param.m_dll_idx][idx];
 		assert(!undecorated_name);
 		if(!param.m_strings[i].empty())
 		{

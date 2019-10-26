@@ -67,6 +67,7 @@ bool pe_process_import_iat(std::byte const* const file_data, int const file_size
 	unsigned** are_ordinals_all = iat_in_out->m_alc->allocate_objects<unsigned*>(n_dlls);
 	std::uint16_t** ordinals_or_hints_all = iat_in_out->m_alc->allocate_objects<std::uint16_t*>(n_dlls);
 	string const*** names_all = iat_in_out->m_alc->allocate_objects<string const**>(n_dlls);
+	string const*** undecorated_names_all = iat_in_out->m_alc->allocate_objects<string const**>(n_dlls);
 	std::uint16_t** matched_exports_all = iat_in_out->m_alc->allocate_objects<std::uint16_t*>(n_dlls);
 	int ii = 0;
 	for(int i = 0; i != iat_in_out->m_tables->m_idt.m_count; ++i, ++ii)
@@ -79,6 +80,7 @@ bool pe_process_import_iat(std::byte const* const file_data, int const file_size
 		std::fill(are_ordinals, are_ordinals + bits_to_dwords, 0u);
 		std::uint16_t* ordinals_or_hints = iat_in_out->m_alc->allocate_objects<std::uint16_t>(iat.m_count);
 		string const** names = iat_in_out->m_alc->allocate_objects<string const*>(iat.m_count);
+		string const** undecorated_names = iat_in_out->m_alc->allocate_objects<string const*>(iat.m_count);
 		std::uint16_t* matched_exports = iat_in_out->m_alc->allocate_objects<std::uint16_t>(iat.m_count);
 		for(int j = 0; j != iat.m_count; ++j)
 		{
@@ -102,6 +104,7 @@ bool pe_process_import_iat(std::byte const* const file_data, int const file_size
 		are_ordinals_all[ii] = are_ordinals;
 		ordinals_or_hints_all[ii] = ordinals_or_hints;
 		names_all[ii] = names;
+		undecorated_names_all[ii] = undecorated_names;
 		matched_exports_all[ii] = matched_exports;
 	}
 	for(int i = 0; i != iat_in_out->m_tables->m_didt.m_count; ++i, ++ii)
@@ -114,6 +117,7 @@ bool pe_process_import_iat(std::byte const* const file_data, int const file_size
 		std::fill(are_ordinals, are_ordinals + bits_to_dwords, 0u);
 		std::uint16_t* ordinals_or_hints = iat_in_out->m_alc->allocate_objects<std::uint16_t>(iat.m_count);
 		string const** names = iat_in_out->m_alc->allocate_objects<string const*>(iat.m_count);
+		string const** undecorated_names = iat_in_out->m_alc->allocate_objects<string const*>(iat.m_count);
 		std::uint16_t* matched_exports = iat_in_out->m_alc->allocate_objects<std::uint16_t>(iat.m_count);
 		for(int j = 0; j != iat.m_count; ++j)
 		{
@@ -137,12 +141,14 @@ bool pe_process_import_iat(std::byte const* const file_data, int const file_size
 		are_ordinals_all[ii] = are_ordinals;
 		ordinals_or_hints_all[ii] = ordinals_or_hints;
 		names_all[ii] = names;
+		undecorated_names_all[ii] = undecorated_names;
 		matched_exports_all[ii] = matched_exports;
 	}
 	iat_in_out->m_iti_out->m_import_counts = import_counts;
 	iat_in_out->m_iti_out->m_are_ordinals = are_ordinals_all;
 	iat_in_out->m_iti_out->m_ordinals_or_hints = ordinals_or_hints_all;
 	iat_in_out->m_iti_out->m_names = names_all;
+	iat_in_out->m_iti_out->m_undecorated_names = undecorated_names_all;
 	iat_in_out->m_iti_out->m_matched_exports = matched_exports_all;
 	return true;
 }

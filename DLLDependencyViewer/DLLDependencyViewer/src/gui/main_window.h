@@ -26,6 +26,7 @@ typedef struct _TREEITEM* HTREEITEM;
 class main_window;
 struct symbols_from_addresses_param_t;
 struct undecorated_from_decorated_e_param_t;
+struct undecorated_from_decorated_i_param_t;
 class dbg_provider;
 
 
@@ -106,6 +107,8 @@ private:
 	void request_symbol_undecoration(file_info& fi);
 	void request_symbol_undecoration_e(file_info& fi, std::vector<std::uint16_t> const& input_indexes);
 	void finish_symbol_undecoration_e(undecorated_from_decorated_e_param_t const& param);
+	void request_symbol_undecoration_i(file_info& fi, std::uint16_t const dll_idx);
+	void finish_symbol_undecoration_i(undecorated_from_decorated_i_param_t const& param);
 private:
 	static ATOM g_class;
 	static HACCEL g_accel;
