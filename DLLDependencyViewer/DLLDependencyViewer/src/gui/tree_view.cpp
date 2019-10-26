@@ -348,7 +348,7 @@ void tree_view::refresh_view_recursive(file_info& parent_fi, void* const parent_
 		HTREEITEM const ti = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_INSERTITEMW, 0, reinterpret_cast<LPARAM>(&tvi)));
 		assert(ti != nullptr);
 		fi.m_tree_item = ti;
-		m_main_window.request_symbol_traslation(fi);
+		m_main_window.request_symbols_from_addresses(fi);
 		refresh_view_recursive(fi, ti);
 	}
 }

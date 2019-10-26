@@ -24,7 +24,7 @@
 struct _TREEITEM;
 typedef struct _TREEITEM* HTREEITEM;
 class main_window;
-struct get_symbols_from_addresses_param_t;
+struct symbols_from_addresses_param_t;
 class dbg_provider;
 
 
@@ -100,8 +100,8 @@ private:
 	void cancel_all_dbg_tasks();
 	void request_mo_deletion(std::unique_ptr<main_type>&& mo);
 	void request_close();
-	void request_symbol_traslation(file_info& fi);
-	void finish_symbol_traslation(get_symbols_from_addresses_param_t const& param);
+	void request_symbols_from_addresses(file_info& fi);
+	void finish_symbols_from_addresses(symbols_from_addresses_param_t const& param);
 private:
 	static ATOM g_class;
 	static HACCEL g_accel;

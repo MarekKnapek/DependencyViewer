@@ -63,7 +63,7 @@ void dbg_provider::add_task(thread_worker_function_t const func, thread_worker_p
 	m_thread_worker.add_task(func, param);
 }
 
-void dbg_provider::get_symbols_from_addresses_task(get_symbols_from_addresses_param_t& param)
+void dbg_provider::get_symbols_from_addresses_task(symbols_from_addresses_param_t& param)
 {
 	if(!m_sym_inited)
 	{
@@ -79,7 +79,7 @@ void dbg_provider::get_symbols_from_addresses_task(get_symbols_from_addresses_pa
 		BOOL const unloaded = m_dbghelp.m_fn_SymUnloadModule64(GetCurrentProcess(), sym_module);
 		assert(unloaded != FALSE);
 	});
-	assert(param.m_indexes.size() == param.m_symbol_names.size());
+	assert(param.m_indexes.size() == param.m_strings.size());
 	std::uint16_t const n = static_cast<std::uint16_t>(param.m_indexes.size());
 	for(std::uint16_t i = 0; i != n; ++i)
 	{
@@ -98,7 +98,7 @@ void dbg_provider::get_symbols_from_addresses_task(get_symbols_from_addresses_pa
 		BOOL const got_sym = m_dbghelp.m_fn_SymFromAddr(GetCurrentProcess(), address64, &displacement, &symbol_info);
 		if(got_sym != FALSE)
 		{
-			param.m_symbol_names[i].assign(symbol_info.Name, symbol_info.Name + symbol_info.NameLen);
+			param.m_strings[i].assign(symbol_info.Name, symbol_info.Name + symbol_info.NameLen);
 		}
 	}
 }

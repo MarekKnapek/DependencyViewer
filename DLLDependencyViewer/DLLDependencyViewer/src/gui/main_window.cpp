@@ -1028,9 +1028,8 @@ void main_window::request_close()
 	request_helper(this, dbg_provider::get(), std::move(m), fn_worker, fn_main);
 }
 
-void main_window::request_symbol_traslation(file_info& fi)
+void main_window::request_symbols_from_addresses(file_info& fi)
 {
-	wstring const* const module_path = fi.m_file_path;
 	pe_export_table_info* const eti = &fi.m_export_table;
 	auto const fn_is_unnamed = [](bool const is_rva, string const* const name){ return is_rva && !name; };
 	std::uint16_t n = 0;
@@ -1065,36 +1064,36 @@ void main_window::request_symbol_traslation(file_info& fi)
 	struct marshaller
 	{
 		dbg_provider* m_dbg_provider;
-		get_symbols_from_addresses_param_t m_get_symbols_param;
+		symbols_from_addresses_param_t m_param;
 	};
 	marshaller m;
 	m.m_dbg_provider = dbg_provider::get();
-	m.m_get_symbols_param.m_module_path = module_path;
-	m.m_get_symbols_param.m_eti = eti;
-	m.m_get_symbols_param.m_indexes.swap(indexes);
-	m.m_get_symbols_param.m_symbol_names.resize(n);
+	m.m_param.m_module_path = fi.m_file_path;
+	m.m_param.m_eti = eti;
+	m.m_param.m_indexes.swap(indexes);
+	m.m_param.m_strings.resize(n);
 	auto const fn_worker = [](marshaller& m)
 	{
-		m.m_dbg_provider->get_symbols_from_addresses_task(m.m_get_symbols_param);
+		m.m_dbg_provider->get_symbols_from_addresses_task(m.m_param);
 	};
 	auto const fn_main = [](main_window& self, marshaller& m)
 	{
-		self.finish_symbol_traslation(m.m_get_symbols_param);
+		self.finish_symbols_from_addresses(m.m_param);
 	};
 	request_helper(this, dbg_provider::get(), std::move(m), fn_worker, fn_main);
 }
 
-void main_window::finish_symbol_traslation(get_symbols_from_addresses_param_t const& param)
+void main_window::finish_symbols_from_addresses(symbols_from_addresses_param_t const& param)
 {
-	assert(param.m_indexes.size() == param.m_symbol_names.size());
+	assert(param.m_indexes.size() == param.m_strings.size());
 	std::uint16_t const n = static_cast<std::uint16_t>(param.m_indexes.size());
 	for(std::uint16_t i = 0; i != n; ++i)
 	{
 		std::uint16_t const idx = param.m_indexes[i];
 		string const*& dbg_name = param.m_eti->m_debug_names[idx];
-		if(!param.m_symbol_names[i].empty())
+		if(!param.m_strings[i].empty())
 		{
-			dbg_name = m_mo.m_mm.m_strs.add_string(param.m_symbol_names[i].c_str(), static_cast<int>(param.m_symbol_names[i].size()), m_mo.m_mm.m_alc);
+			dbg_name = m_mo.m_mm.m_strs.add_string(param.m_strings[i].c_str(), static_cast<int>(param.m_strings[i].size()), m_mo.m_mm.m_alc);
 		}
 		else
 		{

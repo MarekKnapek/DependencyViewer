@@ -10,12 +10,12 @@
 #include <vector>
 
 
-struct get_symbols_from_addresses_param_t
+struct symbols_from_addresses_param_t
 {
 	wstring const* m_module_path;
 	pe_export_table_info* m_eti;
 	std::vector<std::uint16_t> m_indexes;
-	std::vector<std::string> m_symbol_names;
+	std::vector<std::string> m_strings;
 };
 
 
@@ -30,7 +30,7 @@ private:
 	~dbg_provider();
 public:
 	void add_task(thread_worker_function_t const func, thread_worker_param_t const param);
-	void get_symbols_from_addresses_task(get_symbols_from_addresses_param_t& param);
+	void get_symbols_from_addresses_task(symbols_from_addresses_param_t& param);
 private:
 	void init_task();
 	void deinit_task();
