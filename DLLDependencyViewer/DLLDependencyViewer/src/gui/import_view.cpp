@@ -55,8 +55,7 @@ import_view::import_view(HWND const parent, main_window& mw) :
 	m_hwnd(CreateWindowExW(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE, WC_LISTVIEWW, nullptr, WS_VISIBLE | WS_CHILD | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA, 0, 0, 0, 0, parent, nullptr, get_instance(), nullptr)),
 	m_main_window(mw),
 	m_menu(create_menu()),
-	m_tmp_strings(),
-	m_tmp_string_idx()
+	m_string_converter()
 {
 	static constexpr unsigned const extended_lv_styles = LVS_EX_FULLROWSELECT | LVS_EX_LABELTIP | LVS_EX_DOUBLEBUFFER;
 	LRESULT const set_import = SendMessageW(m_hwnd, LVM_SETEXTENDEDLISTVIEWSTYLE, extended_lv_styles, extended_lv_styles);
@@ -408,9 +407,7 @@ wchar_t const* import_view::on_get_col_ordinal(pe_import_table_info const& iti, 
 	if(is_ordinal)
 	{
 		std::uint16_t const ordinal = iti.m_ordinals_or_hints[dll_idx][imp_idx];
-		std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-		ordinal_to_string(ordinal, tmpstr);
-		return tmpstr.c_str();
+		return ordinal_to_string(ordinal, m_string_converter);
 	}
 	else
 	{
@@ -444,9 +441,7 @@ wchar_t const* import_view::on_get_col_hint(pe_import_table_info const& iti, std
 	else
 	{
 		std::uint16_t const hint = iti.m_ordinals_or_hints[dll_idx][imp_idx];
-		std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-		ordinal_to_string(hint, tmpstr);
-		return tmpstr.c_str();
+		return ordinal_to_string(hint, m_string_converter);
 	}
 }
 
@@ -468,10 +463,7 @@ wchar_t const* import_view::on_get_col_name(pe_import_table_info const& iti, std
 	else
 	{
 		string const* const name = iti.m_names[dll_idx][imp_idx];
-		std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-		tmpstr.resize(name->m_len);
-		std::transform(cbegin(name), cend(name), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
-		return tmpstr.c_str();
+		return m_string_converter.convert(name);
 	}
 }
 

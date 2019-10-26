@@ -57,8 +57,7 @@ export_view::export_view(HWND const parent, main_window& mw) :
 	m_hwnd(CreateWindowExW(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE, WC_LISTVIEWW, nullptr, WS_VISIBLE | WS_CHILD | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA, 0, 0, 0, 0, parent, nullptr, get_instance(), nullptr)),
 	m_main_window(mw),
 	m_menu(create_menu()),
-	m_tmp_strings(),
-	m_tmp_string_idx()
+	m_string_converter()
 {
 	static constexpr unsigned const extended_lv_styles = LVS_EX_FULLROWSELECT | LVS_EX_LABELTIP | LVS_EX_DOUBLEBUFFER;
 	LRESULT const set_export = SendMessageW(m_hwnd, LVM_SETEXTENDEDLISTVIEWSTYLE, extended_lv_styles, extended_lv_styles);
@@ -409,10 +408,8 @@ wchar_t const* export_view::on_get_col_type(pe_export_table_info const& eti, std
 
 wchar_t const* export_view::on_get_col_ordinal(pe_export_table_info const& eti, std::uint16_t const exp_idx)
 {
-	std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
 	std::uint16_t const ordinal = eti.m_ordinals[exp_idx];
-	ordinal_to_string(ordinal, tmpstr);
-	return tmpstr.c_str();
+	return ordinal_to_string(ordinal, m_string_converter);
 }
 
 wchar_t const* export_view::on_get_col_hint(pe_export_table_info const& eti, std::uint16_t const exp_idx)
@@ -421,9 +418,7 @@ wchar_t const* export_view::on_get_col_hint(pe_export_table_info const& eti, std
 	if(name)
 	{
 		std::uint16_t const hint = eti.m_hints[exp_idx];
-		std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-		ordinal_to_string(hint, tmpstr);
-		return tmpstr.c_str();
+		return ordinal_to_string(hint, m_string_converter);
 	}
 	else
 	{
@@ -436,10 +431,7 @@ wchar_t const* export_view::on_get_col_name(pe_export_table_info const& eti, std
 	string const* const name = eti.m_names[exp_idx];
 	if(name)
 	{
-		std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-		tmpstr.resize(name->m_len);
-		std::transform(cbegin(name), cend(name), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
-		return tmpstr.c_str();
+		return m_string_converter.convert(name);
 	}
 	else
 	{
@@ -449,10 +441,7 @@ wchar_t const* export_view::on_get_col_name(pe_export_table_info const& eti, std
 			string const* const debug_name = eti.m_debug_names[exp_idx];
 			if(debug_name)
 			{
-				std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-				tmpstr.resize(debug_name->m_len);
-				std::transform(cbegin(debug_name), cend(debug_name), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
-				return tmpstr.c_str();
+				return m_string_converter.convert(debug_name);
 			}
 			else
 			{
@@ -472,17 +461,12 @@ wchar_t const* export_view::on_get_col_address(pe_export_table_info const& eti, 
 	if(is_rva)
 	{
 		std::uint32_t const rva = eti.m_rvas_or_forwarders[exp_idx].m_rva;
-		std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-		rva_to_string(rva, tmpstr);
-		return tmpstr.c_str();
+		return rva_to_string(rva, m_string_converter);
 	}
 	else
 	{
 		string const* const forwarder = eti.m_rvas_or_forwarders[exp_idx].m_forwarder;
-		std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-		tmpstr.resize(forwarder->m_len);
-		std::transform(cbegin(forwarder), cend(forwarder), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
-		return tmpstr.c_str();
+		return m_string_converter.convert(forwarder);
 	}
 }
 

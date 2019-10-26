@@ -27,8 +27,7 @@ tree_view::tree_view(HWND const parent, main_window& mw) :
 	m_hwnd(CreateWindowExW(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE, WC_TREEVIEWW, nullptr, WS_VISIBLE | WS_CHILD, 0, 0, 0, 0, parent, nullptr, get_instance(), nullptr)),
 	m_main_window(mw),
 	m_menu(create_menu()),
-	m_tmp_strings(),
-	m_tmp_string_idx()
+	m_string_converter()
 {
 	LRESULT const set_dbl_bfr = SendMessageW(m_hwnd, TVM_SETEXTENDEDSTYLE, TVS_EX_DOUBLEBUFFER, TVS_EX_DOUBLEBUFFER);
 	assert(set_dbl_bfr == S_OK);
@@ -90,10 +89,7 @@ void tree_view::on_getdispinfow(NMHDR& nmhdr)
 			{
 				int const idx = static_cast<int>(&tmp_fi - parent_fi->m_sub_file_infos.data());
 				string const* const my_name = parent_fi->m_import_table.m_dll_names[idx];
-				std::wstring& tmp = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
-				tmp.resize(my_name->m_len);
-				std::transform(my_name->m_str, my_name->m_str + my_name->m_len, tmp.begin(), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
-				di.item.pszText = const_cast<wchar_t*>(tmp.c_str());
+				di.item.pszText = const_cast<wchar_t*>(m_string_converter.convert(my_name));
 			}
 			else
 			{

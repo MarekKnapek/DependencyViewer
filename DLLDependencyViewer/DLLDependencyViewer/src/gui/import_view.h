@@ -3,9 +3,10 @@
 
 #include "smart_menu.h"
 
-#include <array>
 #include <cstdint>
 #include <string>
+
+#include "../nogui/string_converter.h"
 
 #include "../nogui/my_windows.h"
 
@@ -49,6 +50,5 @@ private:
 	HWND const m_hwnd;
 	main_window& m_main_window;
 	smart_menu const m_menu;
-	std::array<std::wstring, 4> m_tmp_strings;
-	unsigned m_tmp_string_idx;
+	string_converter m_string_converter;
 };

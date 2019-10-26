@@ -34,6 +34,7 @@
 #include "nogui/smart_library.cpp"
 #include "nogui/smart_local_free.cpp"
 #include "nogui/smart_reg_key.cpp"
+#include "nogui/string_converter.cpp"
 #include "nogui/thread_worker.cpp"
 #include "nogui/unicode.cpp"
 #include "nogui/unique_strings.cpp"
