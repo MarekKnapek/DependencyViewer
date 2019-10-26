@@ -132,7 +132,8 @@ void request_helper(main_window* const self, dbg_provider* const dbg, marshaller
 		}
 		idle_task_t const fn_main_generic_ = fn_main_generic;
 		idle_task_param_t const fn_main_generic_param = mc;
-		LRESULT const sent = SendMessageW(mc->m_mw, wm_main_window_add_idle_task, reinterpret_cast<WPARAM>(fn_main_generic_), reinterpret_cast<LPARAM>(fn_main_generic_param));
+		BOOL const posted = PostMessageW(mc->m_mw, wm_main_window_add_idle_task, reinterpret_cast<WPARAM>(fn_main_generic_), reinterpret_cast<LPARAM>(fn_main_generic_param));
+		assert(posted != 0);
 	};
 
 	auto mc = std::make_unique<marshaller_concrete>(self->m_hwnd, std::move(mrshllr), fn_worker, fn_main);
