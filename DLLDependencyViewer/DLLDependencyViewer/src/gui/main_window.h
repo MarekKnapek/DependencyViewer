@@ -95,8 +95,8 @@ private:
 	void add_idle_task(idle_task_t const task, idle_task_param_t const param);
 	void on_idle();
 	void process_command_line();
-	void register_dbg_task(thread_worker_function_t const fnc, thread_worker_param_t const param);
-	void unregister_dbg_task(thread_worker_function_t const fnc, thread_worker_param_t const param);
+	void register_dbg_task(thread_worker_param_t const param);
+	void unregister_dbg_task(thread_worker_param_t const param);
 	void request_symbol_traslation(file_info& fi);
 	void cancel_all_dbg_tasks();
 	void process_finished_dbg_task(get_symbols_from_addresses_param_t const& param);
@@ -114,7 +114,7 @@ private:
 	import_view m_import_view;
 	export_view m_export_view;
 	std::queue<std::pair<idle_task_t, idle_task_param_t>> m_idle_tasks;
-	std::deque<thread_worker_task> m_dbg_tasks;
+	std::deque<thread_worker_param_t> m_dbg_tasks;
 private:
 	main_type m_mo;
 	settings m_settings;
