@@ -245,12 +245,11 @@ bool pe_process_export_eat(std::byte const* const file_data, int const file_size
 			frwrdr = eat_in_out->m_ustrings->add_string(forwarder.m_str, forwarder.m_len, *eat_in_out->m_alc);
 		}
 		ordinals[j] = ordinal;
-		if(is_rva){ array_bool_set(are_rvas, j); }else{ array_bool_clr(are_rvas, j); }
+		if(is_rva){ array_bool_set(are_rvas, j); };
 		if(is_rva){ rvas_or_forwarders[j].m_rva = export_rva; }else{ rvas_or_forwarders[j].m_forwarder = frwrdr; }
 		if(has_name){ hints[j] = hint; }else{}
 		if(has_name){ names[j] = name; }else{ names[j] = nullptr; }
 		debug_names[j] = nullptr;
-		array_bool_clr(are_used, j);
 		if(has_name){ WARN_M_R(enpt_[hint] == 0xFFFF, L"Bad hint.", false); enpt_[hint] = j; ++hints_processed; }else{}
 		++j;
 	}
