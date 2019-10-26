@@ -111,7 +111,7 @@ void dbg_provider::init_task()
 		return;
 	}
 	DWORD const sym_options = m_dbghelp.m_fn_SymGetOptions();
-	DWORD const set = m_dbghelp.m_fn_SymSetOptions((sym_options | SYMOPT_DEFERRED_LOADS | SYMOPT_FAIL_CRITICAL_ERRORS) &~ SYMOPT_UNDNAME);
+	DWORD const set = m_dbghelp.m_fn_SymSetOptions((sym_options | SYMOPT_DEFERRED_LOADS | SYMOPT_FAIL_CRITICAL_ERRORS | SYMOPT_PUBLICS_ONLY) &~ SYMOPT_UNDNAME);
 	BOOL const inited = m_dbghelp.m_fn_SymInitializeW(GetCurrentProcess(), nullptr, FALSE);
 	if(inited == FALSE)
 	{
