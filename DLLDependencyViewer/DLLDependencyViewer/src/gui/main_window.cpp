@@ -95,10 +95,10 @@ public:
 template<typename marshaller_t, typename fn_worker_t, typename fn_main_t>
 void request_helper(main_window* const self, dbg_provider* const dbg, marshaller_t&& mrshllr, fn_worker_t fn_worker_, fn_main_t fn_main_)
 {
-	using fn_worker_tt = void(*)(marshaller_t&, std::atomic<bool>&);
-	fn_worker_tt fn_worker = fn_worker_;
-	using fn_main_tt = void(*)(main_window&, marshaller_t&, std::atomic<bool>&);
-	fn_main_tt fn_main = fn_main_;
+	using fn_worker_tt = void(*)(marshaller_t&);
+	using fn_main_tt = void(*)(main_window&, marshaller_t&);
+	fn_worker_tt const fn_worker = fn_worker_;
+	fn_main_tt const fn_main = fn_main_;
 
 	struct marshaller_concrete : public generic_marshaller, public marshaller_t
 	{
@@ -118,13 +118,19 @@ void request_helper(main_window* const self, dbg_provider* const dbg, marshaller
 			std::unique_ptr<marshaller_concrete> const sp_mc(mc);
 			auto const unregister_task = mk::make_scope_exit([&](){ self.unregister_dbg_task(mc->m_fnc, param); });
 			marshaller_t& m = *mc;
-			mc->m_fn_main(self, m, mc->m_canceled);
+			if(mc->m_canceled.load() == false)
+			{
+				mc->m_fn_main(self, m);
+			}
 		};
 
 		assert(param);
 		marshaller_concrete* const mc = static_cast<marshaller_concrete*>(param);
 		marshaller_t& m = *mc;
-		mc->m_fn_worker(m, mc->m_canceled);
+		if(mc->m_canceled.load() == false)
+		{
+			mc->m_fn_worker(m);
+		}
 		idle_task_t const fn_main_generic_ = fn_main_generic;
 		idle_task_param_t const fn_main_generic_param = mc;
 		LRESULT const sent = SendMessageW(mc->m_mw, wm_main_window_add_idle_task, reinterpret_cast<WPARAM>(fn_main_generic_), reinterpret_cast<LPARAM>(fn_main_generic_param));
@@ -1032,19 +1038,13 @@ void main_window::request_symbol_traslation(file_info& fi)
 	m.m_get_symbols_param.m_eti = eti;
 	m.m_get_symbols_param.m_indexes.swap(indexes);
 	m.m_get_symbols_param.m_symbol_names.resize(n);
-	auto const fn_worker = [](marshaller& m, std::atomic<bool>& canceled)
+	auto const fn_worker = [](marshaller& m)
 	{
-		if(canceled.load() == false)
-		{
-			m.m_dbg_provider->get_symbols_from_addresses_task(m.m_get_symbols_param);
-		}
+		m.m_dbg_provider->get_symbols_from_addresses_task(m.m_get_symbols_param);
 	};
-	auto const fn_main = [](main_window& self, marshaller& m, std::atomic<bool>& canceled)
+	auto const fn_main = [](main_window& self, marshaller& m)
 	{
-		if(canceled.load() == false)
-		{
-			self.process_finished_dbg_task(m.m_get_symbols_param);
-		}
+		self.process_finished_dbg_task(m.m_get_symbols_param);
 	};
 	request_helper(this, dbg_provider::get(), std::move(m), fn_worker, fn_main);
 }
@@ -1096,10 +1096,10 @@ void main_window::request_close()
 	{
 	};
 	marshaller m;
-	auto const fn_worker = [](marshaller&, std::atomic<bool>&)
+	auto const fn_worker = [](marshaller&)
 	{
 	};
-	auto const fn_main = [](main_window& self, marshaller&, std::atomic<bool>&)
+	auto const fn_main = [](main_window& self, marshaller&)
 	{
 		BOOL const posted = PostMessageW(self.m_hwnd, WM_CLOSE, 0, 0);
 		assert(posted != 0);
@@ -1115,10 +1115,10 @@ void main_window::request_mo_deletion(std::unique_ptr<main_type> mo)
 	};
 	marshaller m;
 	m.m_mo.swap(mo);
-	auto const fn_worker = [](marshaller&, std::atomic<bool>&)
+	auto const fn_worker = [](marshaller&)
 	{
 	};
-	auto const fn_main = [](main_window&, marshaller& m, std::atomic<bool>&)
+	auto const fn_main = [](main_window&, marshaller& m)
 	{
 		m.m_mo.reset();
 	};
