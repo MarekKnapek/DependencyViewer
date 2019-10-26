@@ -349,6 +349,7 @@ void tree_view::refresh_view_recursive(file_info& parent_fi, void* const parent_
 		assert(ti != nullptr);
 		fi.m_tree_item = ti;
 		m_main_window.request_symbols_from_addresses(fi);
+		m_main_window.request_symbol_undecoration(fi);
 		refresh_view_recursive(fi, ti);
 	}
 }
