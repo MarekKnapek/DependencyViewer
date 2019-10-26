@@ -97,11 +97,11 @@ private:
 	void process_command_line();
 	void register_dbg_task(thread_worker_param_t const param);
 	void unregister_dbg_task(thread_worker_param_t const param);
-	void request_symbol_traslation(file_info& fi);
 	void cancel_all_dbg_tasks();
-	void process_finished_dbg_task(get_symbols_from_addresses_param_t const& param);
-	void request_close();
 	void request_mo_deletion(std::unique_ptr<main_type>&& mo);
+	void request_close();
+	void request_symbol_traslation(file_info& fi);
+	void finish_symbol_traslation(get_symbols_from_addresses_param_t const& param);
 private:
 	static ATOM g_class;
 	static HACCEL g_accel;

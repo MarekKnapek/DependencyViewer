@@ -989,6 +989,45 @@ void main_window::unregister_dbg_task(thread_worker_param_t const param)
 	m_dbg_tasks.pop_front();
 }
 
+void main_window::cancel_all_dbg_tasks()
+{
+	std::for_each(m_dbg_tasks.begin(), m_dbg_tasks.end(), [](auto& e){ static_cast<cancellable_task_param*>(e)->m_canceled.store(true); });
+}
+
+void main_window::request_mo_deletion(std::unique_ptr<main_type>&& mo)
+{
+	struct marshaller
+	{
+		std::unique_ptr<main_type> m_mo;
+	};
+	marshaller m;
+	m.m_mo.swap(mo);
+	auto const fn_worker = [](marshaller&)
+	{
+	};
+	auto const fn_main = [](main_window&, marshaller&)
+	{
+	};
+	request_helper(this, dbg_provider::get(), std::move(m), fn_worker, fn_main);
+}
+
+void main_window::request_close()
+{
+	struct marshaller
+	{
+	};
+	marshaller m;
+	auto const fn_worker = [](marshaller&)
+	{
+	};
+	auto const fn_main = [](main_window& self, marshaller&)
+	{
+		BOOL const posted = PostMessageW(self.m_hwnd, WM_CLOSE, 0, 0);
+		assert(posted != 0);
+	};
+	request_helper(this, dbg_provider::get(), std::move(m), fn_worker, fn_main);
+}
+
 void main_window::request_symbol_traslation(file_info& fi)
 {
 	wstring const* const module_path = fi.m_file_path;
@@ -1040,17 +1079,12 @@ void main_window::request_symbol_traslation(file_info& fi)
 	};
 	auto const fn_main = [](main_window& self, marshaller& m)
 	{
-		self.process_finished_dbg_task(m.m_get_symbols_param);
+		self.finish_symbol_traslation(m.m_get_symbols_param);
 	};
 	request_helper(this, dbg_provider::get(), std::move(m), fn_worker, fn_main);
 }
 
-void main_window::cancel_all_dbg_tasks()
-{
-	std::for_each(m_dbg_tasks.begin(), m_dbg_tasks.end(), [](auto& e){ static_cast<cancellable_task_param*>(e)->m_canceled.store(true); });
-}
-
-void main_window::process_finished_dbg_task(get_symbols_from_addresses_param_t const& param)
+void main_window::finish_symbol_traslation(get_symbols_from_addresses_param_t const& param)
 {
 	assert(param.m_indexes.size() == param.m_symbol_names.size());
 	std::uint16_t const n = static_cast<std::uint16_t>(param.m_indexes.size());
@@ -1083,40 +1117,6 @@ void main_window::process_finished_dbg_task(get_symbols_from_addresses_param_t c
 			m_export_view.repaint();
 		}
 	}
-}
-
-void main_window::request_close()
-{
-	struct marshaller
-	{
-	};
-	marshaller m;
-	auto const fn_worker = [](marshaller&)
-	{
-	};
-	auto const fn_main = [](main_window& self, marshaller&)
-	{
-		BOOL const posted = PostMessageW(self.m_hwnd, WM_CLOSE, 0, 0);
-		assert(posted != 0);
-	};
-	request_helper(this, dbg_provider::get(), std::move(m), fn_worker, fn_main);
-}
-
-void main_window::request_mo_deletion(std::unique_ptr<main_type>&& mo)
-{
-	struct marshaller
-	{
-		std::unique_ptr<main_type> m_mo;
-	};
-	marshaller m;
-	m.m_mo.swap(mo);
-	auto const fn_worker = [](marshaller&)
-	{
-	};
-	auto const fn_main = [](main_window&, marshaller&)
-	{
-	};
-	request_helper(this, dbg_provider::get(), std::move(m), fn_worker, fn_main);
 }
 
 ATOM main_window::g_class = 0;
