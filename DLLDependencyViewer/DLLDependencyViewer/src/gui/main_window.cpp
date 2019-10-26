@@ -40,8 +40,6 @@ static constexpr wchar_t const s_open_file_dialog_file_name_filter[] = L"Executa
 static constexpr wchar_t const s_msg_error[] = L"DLLDependencyViewer error.";
 static constexpr wchar_t const s_toolbar_open_tooltip[] = L"Open... (Ctrl+O)";
 static constexpr wchar_t const s_toolbar_full_paths_tooltip[] = L"View Full Paths (F9)";
-static constexpr char const s_export_name_debug_na[] = "N/A";
-static constexpr string const s_export_name_debug_na2 = {s_export_name_debug_na, static_cast<int>(std::size(s_export_name_debug_na)) - 1};
 enum class e_main_menu_id : std::uint16_t
 {
 	e_open = s_main_view_menu_min,
@@ -1070,6 +1068,7 @@ void main_window::request_symbols_from_addresses(file_info& fi)
 	m.m_param.m_eti = eti;
 	m.m_param.m_indexes.swap(indexes);
 	m.m_param.m_strings.resize(n);
+	m.m_param.m_data = &fi;
 	auto const fn_worker = [](marshaller& m)
 	{
 		m.m_dbg_provider->get_symbols_from_addresses_task(m.m_param);
@@ -1096,7 +1095,7 @@ void main_window::finish_symbols_from_addresses(symbols_from_addresses_param_t c
 		}
 		else
 		{
-			dbg_name = &s_export_name_debug_na2;
+			dbg_name = static_cast<string const*>(nullptr) + 1;
 		}
 	}
 	HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree_view.get_hwnd(), TVM_GETNEXTITEM, TVGN_CARET, 0));
@@ -1107,9 +1106,137 @@ void main_window::finish_symbols_from_addresses(symbols_from_addresses_param_t c
 		ti.hItem = selected;
 		LRESULT const got = SendMessageW(m_tree_view.get_hwnd(), TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
 		assert(got == TRUE);
-		file_info const& fi_tmp = *reinterpret_cast<file_info*>(ti.lParam);
-		file_info const& fi = fi_tmp.m_orig_instance ? *fi_tmp.m_orig_instance : fi_tmp;
-		if(wstring_equal{}(fi.m_file_path, param.m_module_path))
+		file_info const* const fi = reinterpret_cast<file_info*>(ti.lParam);
+		if(fi == param.m_data)
+		{
+			m_import_view.repaint();
+			m_export_view.repaint();
+		}
+	}
+	request_symbol_undecoration_e(*static_cast<file_info*>(param.m_data), param.m_indexes);
+}
+
+void main_window::request_symbol_undecoration(file_info& fi)
+{
+	std::vector<std::uint16_t> const empty_indexes;
+	request_symbol_undecoration_e(fi, empty_indexes);
+}
+
+void main_window::request_symbol_undecoration_e(file_info& fi, std::vector<std::uint16_t> const& input_indexes)
+{
+	pe_export_table_info const& eti = fi.m_export_table;
+	auto const fn_is_decorated = [](bool const is_rva, string const* const name){ return is_rva && name && name != static_cast<string const*>(nullptr) + 1 && name->m_str[0] == '?'; };
+	std::uint16_t n = 0;
+	if(input_indexes.empty())
+	{
+		for(std::uint16_t i = 0; i != fi.m_export_table.m_count; ++i)
+		{
+			bool const is_rva = array_bool_tst(fi.m_export_table.m_are_rvas, i);
+			string const* const name = fi.m_export_table.m_names[i];
+			if(fn_is_decorated(is_rva, name))
+			{
+				++n;
+			}
+		}
+	}
+	else
+	{
+		for(std::uint16_t const i : input_indexes)
+		{
+			bool const is_rva = array_bool_tst(fi.m_export_table.m_are_rvas, i);
+			string const* const name = fi.m_export_table.m_names[i];
+			if(fn_is_decorated(is_rva, name))
+			{
+				++n;
+			}
+		}
+	}
+	if(n == 0)
+	{
+		return;
+	}
+	std::vector<std::uint16_t> indexes;
+	indexes.resize(n);
+	std::uint16_t j = 0;
+	if(input_indexes.empty())
+	{
+		for(std::uint16_t i = 0; i != fi.m_export_table.m_count; ++i)
+		{
+			bool const is_rva = array_bool_tst(fi.m_export_table.m_are_rvas, i);
+			string const* const name = fi.m_export_table.m_names[i];
+			if(!fn_is_decorated(is_rva, name))
+			{
+				continue;
+			}
+			indexes[j] = i;
+			++j;
+		}
+	}
+	else
+	{
+		for(std::uint16_t const i : input_indexes)
+		{
+			bool const is_rva = array_bool_tst(fi.m_export_table.m_are_rvas, i);
+			string const* const name = fi.m_export_table.m_names[i];
+			if(!fn_is_decorated(is_rva, name))
+			{
+				continue;
+			}
+			indexes[j] = i;
+			++j;
+		}
+	}
+
+	struct marshaller
+	{
+		dbg_provider* m_dbg_provider;
+		undecorated_from_decorated_e_param_t m_param;
+	};
+	marshaller m;
+	m.m_dbg_provider = dbg_provider::get();
+	m.m_param.m_eti = &eti;
+	m.m_param.m_indexes.swap(indexes);
+	m.m_param.m_strings.resize(n);
+	m.m_param.m_data = &fi;
+	auto const fn_worker = [](marshaller& m)
+	{
+		m.m_dbg_provider->get_undecorated_from_decorated_e_task(m.m_param);
+	};
+	auto const fn_main = [](main_window& self, marshaller& m)
+	{
+		self.finish_symbol_undecoration_e(m.m_param);
+	};
+	request_helper(this, dbg_provider::get(), std::move(m), fn_worker, fn_main);
+}
+
+void main_window::finish_symbol_undecoration_e(undecorated_from_decorated_e_param_t const& param)
+{
+	assert(param.m_indexes.size() == param.m_strings.size());
+	std::uint16_t const n = static_cast<std::uint16_t>(param.m_indexes.size());
+	for(std::uint16_t i = 0; i != n; ++i)
+	{
+		std::uint16_t const idx = param.m_indexes[i];
+		string const*& undecorated_name = param.m_eti->m_undecorated_names[idx];
+		assert(!undecorated_name);
+		if(!param.m_strings[i].empty())
+		{
+			undecorated_name = m_mo.m_mm.m_strs.add_string(param.m_strings[i].c_str(), static_cast<int>(param.m_strings[i].size()), m_mo.m_mm.m_alc);
+		}
+		else
+		{
+			undecorated_name = static_cast<string const*>(nullptr) + 1;
+		}
+	}
+	HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree_view.get_hwnd(), TVM_GETNEXTITEM, TVGN_CARET, 0));
+	if(selected)
+	{
+		TVITEMW ti;
+		ti.mask = TVIF_PARAM;
+		ti.hItem = selected;
+		LRESULT const got = SendMessageW(m_tree_view.get_hwnd(), TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
+		assert(got == TRUE);
+		file_info const* const fi = reinterpret_cast<file_info*>(ti.lParam);
+		if(fi == param.m_data)
 		{
 			m_import_view.repaint();
 			m_export_view.repaint();

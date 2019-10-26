@@ -104,7 +104,7 @@ void dbg_provider::get_symbols_from_addresses_task(symbols_from_addresses_param_
 	}
 }
 
-void dbg_provider::get_undecorated_from_decorated_task(undecorated_from_decorated_param_t& param)
+void dbg_provider::get_undecorated_from_decorated_e_task(undecorated_from_decorated_e_param_t& param)
 {
 	if(!m_sym_inited)
 	{
@@ -114,7 +114,8 @@ void dbg_provider::get_undecorated_from_decorated_task(undecorated_from_decorate
 	std::uint16_t const n = static_cast<std::uint16_t>(param.m_indexes.size());
 	for(std::uint16_t i = 0; i != n; ++i)
 	{
-		string const* const name = param.m_eti->m_names[i];
+		std::uint16_t const idx = param.m_indexes[i];
+		string const* const name = param.m_eti->m_names[idx];
 		std::array<char, 8 * 1024> buff;
 		DWORD const undecorated = m_dbghelp.m_fn_UnDecorateSymbolName(name->m_str, buff.data(), static_cast<int>(buff.size()), UNDNAME_COMPLETE);
 		if(undecorated != 0)

@@ -16,13 +16,15 @@ struct symbols_from_addresses_param_t
 	pe_export_table_info* m_eti;
 	std::vector<std::uint16_t> m_indexes;
 	std::vector<std::string> m_strings;
+	void* m_data;
 };
 
-struct undecorated_from_decorated_param_t
+struct undecorated_from_decorated_e_param_t
 {
-	pe_export_table_info* m_eti;
+	pe_export_table_info const* m_eti;
 	std::vector<std::uint16_t> m_indexes;
 	std::vector<std::string> m_strings;
+	void* m_data;
 };
 
 
@@ -38,7 +40,7 @@ private:
 public:
 	void add_task(thread_worker_function_t const func, thread_worker_param_t const param);
 	void get_symbols_from_addresses_task(symbols_from_addresses_param_t& param);
-	void get_undecorated_from_decorated_task(undecorated_from_decorated_param_t& param);
+	void get_undecorated_from_decorated_e_task(undecorated_from_decorated_e_param_t& param);
 private:
 	void init_task();
 	void deinit_task();

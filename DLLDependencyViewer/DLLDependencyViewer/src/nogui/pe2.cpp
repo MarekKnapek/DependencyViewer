@@ -203,6 +203,7 @@ bool pe_process_export_eat(std::byte const* const file_data, int const file_size
 	pe_rva_or_forwarder* const rvas_or_forwarders = eat_in_out->m_alc->allocate_objects<pe_rva_or_forwarder>(eat_count_proper);
 	std::uint16_t* const hints = eat_in_out->m_alc->allocate_objects<std::uint16_t>(eat_count_proper);
 	string const** const names = eat_in_out->m_alc->allocate_objects<string const*>(eat_count_proper);
+	string const** const undecorated_names = eat_in_out->m_alc->allocate_objects<string const*>(eat_count_proper);
 	unsigned* const are_used = eat_in_out->m_alc->allocate_objects<unsigned>(bits_to_dwords);
 	std::fill(are_used, are_used + bits_to_dwords, 0u);
 
@@ -270,6 +271,7 @@ bool pe_process_export_eat(std::byte const* const file_data, int const file_size
 	eat_in_out->m_eti_out->m_rvas_or_forwarders = rvas_or_forwarders;
 	eat_in_out->m_eti_out->m_hints = hints;
 	eat_in_out->m_eti_out->m_names = names;
+	eat_in_out->m_eti_out->m_undecorated_names = undecorated_names;
 	eat_in_out->m_eti_out->m_are_used = are_used;
 	*eat_in_out->m_enpt_count_out = enpt.m_count;
 	*eat_in_out->m_enpt_out = enpt_;
