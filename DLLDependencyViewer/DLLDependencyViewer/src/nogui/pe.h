@@ -55,8 +55,7 @@ struct pe_export_table_info
 	unsigned const* m_are_rvas;
 	pe_rva_or_forwarder const* m_rvas_or_forwarders;
 	std::uint16_t const* m_hints;
-	string const* const* m_names;
-	string const** m_debug_names;
+	string const** m_names;
 	unsigned* m_are_used;
 };
 

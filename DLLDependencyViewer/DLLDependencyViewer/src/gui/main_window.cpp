@@ -1031,13 +1031,12 @@ void main_window::request_close()
 void main_window::request_symbols_from_addresses(file_info& fi)
 {
 	pe_export_table_info* const eti = &fi.m_export_table;
-	auto const fn_is_unnamed = [](bool const is_rva, string const* const name){ return is_rva && !name; };
 	std::uint16_t n = 0;
 	for(std::uint16_t i = 0; i != fi.m_export_table.m_count; ++i)
 	{
 		bool const is_rva = array_bool_tst(fi.m_export_table.m_are_rvas, i);
-		string const* const name = fi.m_export_table.m_names[i];
-		if(fn_is_unnamed(is_rva, name))
+		bool const has_name = fi.m_export_table.m_hints[i] != 0xFFFF;
+		if(is_rva && !has_name)
 		{
 			++n;
 		}
@@ -1052,13 +1051,12 @@ void main_window::request_symbols_from_addresses(file_info& fi)
 	for(std::uint16_t i = 0; i != fi.m_export_table.m_count; ++i)
 	{
 		bool const is_rva = array_bool_tst(fi.m_export_table.m_are_rvas, i);
-		string const* const name = fi.m_export_table.m_names[i];
-		if(!fn_is_unnamed(is_rva, name))
+		bool const has_name = fi.m_export_table.m_hints[i] != 0xFFFF;
+		if(is_rva && !has_name)
 		{
-			continue;
+			indexes[j] = i;
+			++j;
 		}
-		indexes[j] = i;
-		++j;
 	}
 
 	struct marshaller
@@ -1090,7 +1088,8 @@ void main_window::finish_symbols_from_addresses(symbols_from_addresses_param_t c
 	for(std::uint16_t i = 0; i != n; ++i)
 	{
 		std::uint16_t const idx = param.m_indexes[i];
-		string const*& dbg_name = param.m_eti->m_debug_names[idx];
+		string const*& dbg_name = param.m_eti->m_names[idx];
+		assert(!dbg_name);
 		if(!param.m_strings[i].empty())
 		{
 			dbg_name = m_mo.m_mm.m_strs.add_string(param.m_strings[i].c_str(), static_cast<int>(param.m_strings[i].size()), m_mo.m_mm.m_alc);

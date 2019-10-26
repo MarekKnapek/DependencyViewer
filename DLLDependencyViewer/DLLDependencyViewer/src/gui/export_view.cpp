@@ -167,7 +167,7 @@ void export_view::on_getdispinfow(NMHDR& nmhdr)
 		bool const is_used = array_bool_tst(eti.m_are_used, exp_idx);
 		bool const is_matched = fi_tmp.m_matched_imports[exp_idx] != 0xffff;
 		bool const is_rva = array_bool_tst(eti.m_are_rvas, exp_idx);
-		bool const has_name = eti.m_names[exp_idx] != nullptr;
+		bool const has_name = eti.m_hints[exp_idx] != 0xFFFF;
 		static constexpr std::int8_t const s_export_images[2][2][2][2] =
 		{
 			{
@@ -414,8 +414,8 @@ wchar_t const* export_view::on_get_col_ordinal(pe_export_table_info const& eti, 
 
 wchar_t const* export_view::on_get_col_hint(pe_export_table_info const& eti, std::uint16_t const exp_idx)
 {
-	string const* const name = eti.m_names[exp_idx];
-	if(name)
+	bool const has_name = eti.m_hints[exp_idx] != 0xFFFF;
+	if(has_name)
 	{
 		std::uint16_t const hint = eti.m_hints[exp_idx];
 		return ordinal_to_string(hint, m_string_converter);
@@ -428,9 +428,10 @@ wchar_t const* export_view::on_get_col_hint(pe_export_table_info const& eti, std
 
 wchar_t const* export_view::on_get_col_name(pe_export_table_info const& eti, std::uint16_t const exp_idx)
 {
-	string const* const name = eti.m_names[exp_idx];
-	if(name)
+	bool const has_name = eti.m_hints[exp_idx] != 0xFFFF;
+	if(has_name)
 	{
+		string const* const name = eti.m_names[exp_idx];
 		return m_string_converter.convert(name);
 	}
 	else
@@ -438,7 +439,7 @@ wchar_t const* export_view::on_get_col_name(pe_export_table_info const& eti, std
 		bool const is_rva = array_bool_tst(eti.m_are_rvas, exp_idx);
 		if(is_rva)
 		{
-			string const* const debug_name = eti.m_debug_names[exp_idx];
+			string const* const debug_name = eti.m_names[exp_idx];
 			if(debug_name)
 			{
 				return m_string_converter.convert(debug_name);

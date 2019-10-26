@@ -198,16 +198,15 @@ bool pe_process_export_eat(std::byte const* const file_data, int const file_size
 
 	std::uint16_t* ordinals = eat_in_out->m_alc->allocate_objects<std::uint16_t>(eat_count_proper);
 	int const bits_to_dwords = array_bool_space_needed(eat_count_proper);
-	unsigned* are_rvas = eat_in_out->m_alc->allocate_objects<unsigned>(bits_to_dwords);
+	unsigned* const are_rvas = eat_in_out->m_alc->allocate_objects<unsigned>(bits_to_dwords);
 	std::fill(are_rvas, are_rvas + bits_to_dwords, 0u);
-	pe_rva_or_forwarder* rvas_or_forwarders = eat_in_out->m_alc->allocate_objects<pe_rva_or_forwarder>(eat_count_proper);
-	std::uint16_t* hints = eat_in_out->m_alc->allocate_objects<std::uint16_t>(eat_count_proper);
-	string const** names = eat_in_out->m_alc->allocate_objects<string const*>(eat_count_proper);
-	string const** debug_names = eat_in_out->m_alc->allocate_objects<string const*>(eat_count_proper);
-	unsigned* are_used = eat_in_out->m_alc->allocate_objects<unsigned>(bits_to_dwords);
+	pe_rva_or_forwarder* const rvas_or_forwarders = eat_in_out->m_alc->allocate_objects<pe_rva_or_forwarder>(eat_count_proper);
+	std::uint16_t* const hints = eat_in_out->m_alc->allocate_objects<std::uint16_t>(eat_count_proper);
+	string const** const names = eat_in_out->m_alc->allocate_objects<string const*>(eat_count_proper);
+	unsigned* const are_used = eat_in_out->m_alc->allocate_objects<unsigned>(bits_to_dwords);
 	std::fill(are_used, are_used + bits_to_dwords, 0u);
 
-	std::uint16_t* enpt_ = eat_in_out->m_tmp_alc->allocate_objects<std::uint16_t>(enpt.m_count);
+	std::uint16_t* const enpt_ = eat_in_out->m_tmp_alc->allocate_objects<std::uint16_t>(enpt.m_count);
 	std::fill(enpt_, enpt_ + enpt.m_count, static_cast<std::uint16_t>(0xFFFF));
 
 	std::uint16_t const ordinal_base = static_cast<std::uint16_t>(edt.m_table->m_ordinal_base);
@@ -247,9 +246,8 @@ bool pe_process_export_eat(std::byte const* const file_data, int const file_size
 		ordinals[j] = ordinal;
 		if(is_rva){ array_bool_set(are_rvas, j); };
 		if(is_rva){ rvas_or_forwarders[j].m_rva = export_rva; }else{ rvas_or_forwarders[j].m_forwarder = frwrdr; }
-		if(has_name){ hints[j] = hint; }else{}
+		if(has_name){ hints[j] = hint; }else{ hints[j] = 0xFFFF; }
 		if(has_name){ names[j] = name; }else{ names[j] = nullptr; }
-		debug_names[j] = nullptr;
 		if(has_name){ WARN_M_R(enpt_[hint] == 0xFFFF, L"Bad hint.", false); enpt_[hint] = j; ++hints_processed; }else{}
 		++j;
 	}
@@ -272,7 +270,6 @@ bool pe_process_export_eat(std::byte const* const file_data, int const file_size
 	eat_in_out->m_eti_out->m_rvas_or_forwarders = rvas_or_forwarders;
 	eat_in_out->m_eti_out->m_hints = hints;
 	eat_in_out->m_eti_out->m_names = names;
-	eat_in_out->m_eti_out->m_debug_names = debug_names;
 	eat_in_out->m_eti_out->m_are_used = are_used;
 	*eat_in_out->m_enpt_count_out = enpt.m_count;
 	*eat_in_out->m_enpt_out = enpt_;
