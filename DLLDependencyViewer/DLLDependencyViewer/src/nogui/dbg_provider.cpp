@@ -86,23 +86,19 @@ void dbg_provider::get_symbols_from_addresses_task(get_symbols_from_addresses_pa
 		DWORD64 displacement;
 		union symbol_info_t
 		{
-			SYMBOL_INFOW sym_info;
-			char buff[sizeof(SYMBOL_INFOW) + MAX_SYM_NAME * sizeof(wchar_t)];
+			SYMBOL_INFO sym_info;
+			char buff[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(char)];
 		};
 		symbol_info_t symbol_info_v;
-		SYMBOL_INFOW& symbol_info = symbol_info_v.sym_info;
-		symbol_info.SizeOfStruct = sizeof(SYMBOL_INFOW);
+		SYMBOL_INFO& symbol_info = symbol_info_v.sym_info;
+		symbol_info.SizeOfStruct = sizeof(symbol_info);
 		symbol_info.MaxNameLen = MAX_SYM_NAME;
 		std::uint32_t const address = param.m_eti->m_rvas_or_forwarders[param.m_indexes[i]].m_rva;
 		DWORD64 const address64 = sym_module + address;
-		BOOL const got_sym = m_dbghelp.m_fn_SymFromAddrW(GetCurrentProcess(), address64, &displacement, &symbol_info);
+		BOOL const got_sym = m_dbghelp.m_fn_SymFromAddr(GetCurrentProcess(), address64, &displacement, &symbol_info);
 		if(got_sym != FALSE)
 		{
 			param.m_symbol_names[i].assign(symbol_info.Name, symbol_info.Name + symbol_info.NameLen);
-		}
-		else
-		{
-			param.m_symbol_names[i].clear();
 		}
 	}
 }

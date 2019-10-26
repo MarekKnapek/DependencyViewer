@@ -4,7 +4,6 @@
 #include "smart_library.h"
 
 #include "my_windows.h"
-#define DBGHELP_TRANSLATE_TCHAR
 #include <dbghelp.h>
 
 
@@ -23,6 +22,6 @@ public:
 	decltype(&SymCleanup) m_fn_SymCleanup;
 	decltype(&SymLoadModuleExW) m_fn_SymLoadModuleExW;
 	decltype(&SymUnloadModule64) m_fn_SymUnloadModule64;
-	decltype(&SymFromAddrW) m_fn_SymFromAddrW;
-	decltype(&UnDecorateSymbolNameW) m_fn_UnDecorateSymbolNameW;
+	decltype(&SymFromAddr) m_fn_SymFromAddr;
+	decltype(&UnDecorateSymbolName) m_fn_UnDecorateSymbolName;
 };

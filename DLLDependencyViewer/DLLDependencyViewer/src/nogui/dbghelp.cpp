@@ -15,8 +15,8 @@ dbghelp::dbghelp():
 	m_fn_SymCleanup(),
 	m_fn_SymLoadModuleExW(),
 	m_fn_SymUnloadModule64(),
-	m_fn_SymFromAddrW(),
-	m_fn_UnDecorateSymbolNameW()
+	m_fn_SymFromAddr(),
+	m_fn_UnDecorateSymbolName()
 {
 }
 
@@ -31,14 +31,14 @@ bool dbghelp::init()
 	{
 		return false;
 	}
-	m_fn_SymGetOptions        	= reinterpret_cast<decltype(&SymGetOptions        	)>(get_function_address(m_dbghelp_dll, "SymGetOptions"        	)); if(!m_fn_SymGetOptions        	) { m_dbghelp_dll.reset(); return false; }
-	m_fn_SymSetOptions        	= reinterpret_cast<decltype(&SymSetOptions        	)>(get_function_address(m_dbghelp_dll, "SymSetOptions"        	)); if(!m_fn_SymSetOptions        	) { m_dbghelp_dll.reset(); return false; }
-	m_fn_SymInitializeW       	= reinterpret_cast<decltype(&SymInitializeW       	)>(get_function_address(m_dbghelp_dll, "SymInitializeW"       	)); if(!m_fn_SymInitializeW       	) { m_dbghelp_dll.reset(); return false; }
-	m_fn_SymCleanup           	= reinterpret_cast<decltype(&SymCleanup           	)>(get_function_address(m_dbghelp_dll, "SymCleanup"           	)); if(!m_fn_SymCleanup           	) { m_dbghelp_dll.reset(); return false; }
-	m_fn_SymLoadModuleExW     	= reinterpret_cast<decltype(&SymLoadModuleExW     	)>(get_function_address(m_dbghelp_dll, "SymLoadModuleExW"     	)); if(!m_fn_SymLoadModuleExW     	) { m_dbghelp_dll.reset(); return false; }
-	m_fn_SymUnloadModule64    	= reinterpret_cast<decltype(&SymUnloadModule64    	)>(get_function_address(m_dbghelp_dll, "SymUnloadModule64"    	)); if(!m_fn_SymUnloadModule64    	) { m_dbghelp_dll.reset(); return false; }
-	m_fn_SymFromAddrW         	= reinterpret_cast<decltype(&SymFromAddrW         	)>(get_function_address(m_dbghelp_dll, "SymFromAddrW"         	)); if(!m_fn_SymFromAddrW         	) { m_dbghelp_dll.reset(); return false; }
-	m_fn_UnDecorateSymbolNameW	= reinterpret_cast<decltype(&UnDecorateSymbolNameW	)>(get_function_address(m_dbghelp_dll, "UnDecorateSymbolNameW"	)); if(!m_fn_UnDecorateSymbolNameW	) { m_dbghelp_dll.reset(); return false; }
+	m_fn_SymGetOptions       	= reinterpret_cast<decltype(&SymGetOptions       	)>(get_function_address(m_dbghelp_dll, "SymGetOptions"       	)); if(!m_fn_SymGetOptions       	) { m_dbghelp_dll.reset(); return false; }
+	m_fn_SymSetOptions       	= reinterpret_cast<decltype(&SymSetOptions       	)>(get_function_address(m_dbghelp_dll, "SymSetOptions"       	)); if(!m_fn_SymSetOptions       	) { m_dbghelp_dll.reset(); return false; }
+	m_fn_SymInitializeW      	= reinterpret_cast<decltype(&SymInitializeW      	)>(get_function_address(m_dbghelp_dll, "SymInitializeW"      	)); if(!m_fn_SymInitializeW      	) { m_dbghelp_dll.reset(); return false; }
+	m_fn_SymCleanup          	= reinterpret_cast<decltype(&SymCleanup          	)>(get_function_address(m_dbghelp_dll, "SymCleanup"          	)); if(!m_fn_SymCleanup          	) { m_dbghelp_dll.reset(); return false; }
+	m_fn_SymLoadModuleExW    	= reinterpret_cast<decltype(&SymLoadModuleExW    	)>(get_function_address(m_dbghelp_dll, "SymLoadModuleExW"    	)); if(!m_fn_SymLoadModuleExW    	) { m_dbghelp_dll.reset(); return false; }
+	m_fn_SymUnloadModule64   	= reinterpret_cast<decltype(&SymUnloadModule64   	)>(get_function_address(m_dbghelp_dll, "SymUnloadModule64"   	)); if(!m_fn_SymUnloadModule64   	) { m_dbghelp_dll.reset(); return false; }
+	m_fn_SymFromAddr         	= reinterpret_cast<decltype(&SymFromAddr         	)>(get_function_address(m_dbghelp_dll, "SymFromAddr"         	)); if(!m_fn_SymFromAddr         	) { m_dbghelp_dll.reset(); return false; }
+	m_fn_UnDecorateSymbolName	= reinterpret_cast<decltype(&UnDecorateSymbolName	)>(get_function_address(m_dbghelp_dll, "UnDecorateSymbolName"	)); if(!m_fn_UnDecorateSymbolName	) { m_dbghelp_dll.reset(); return false; }
 	return true;
 }
 

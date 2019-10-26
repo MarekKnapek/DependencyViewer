@@ -15,7 +15,7 @@ struct get_symbols_from_addresses_param_t
 	wstring const* m_module_path;
 	pe_export_table_info* m_eti;
 	std::vector<std::uint16_t> m_indexes;
-	std::vector<std::wstring> m_symbol_names;
+	std::vector<std::string> m_symbol_names;
 };
 
 

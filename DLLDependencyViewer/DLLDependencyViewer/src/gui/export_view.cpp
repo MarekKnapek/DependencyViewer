@@ -446,10 +446,13 @@ wchar_t const* export_view::on_get_col_name(pe_export_table_info const& eti, std
 		bool const is_rva = array_bool_tst(eti.m_are_rvas, exp_idx);
 		if(is_rva)
 		{
-			wstring const* const debug_name = eti.m_debug_names[exp_idx];
+			string const* const debug_name = eti.m_debug_names[exp_idx];
 			if(debug_name)
 			{
-				return debug_name->m_str;
+				std::wstring& tmpstr = m_tmp_strings[m_tmp_string_idx++ % m_tmp_strings.size()];
+				tmpstr.resize(debug_name->m_len);
+				std::transform(cbegin(debug_name), cend(debug_name), begin(tmpstr), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
+				return tmpstr.c_str();
 			}
 			else
 			{
