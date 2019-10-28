@@ -331,6 +331,11 @@ LRESULT main_window::on_message(UINT msg, WPARAM wparam, LPARAM lparam)
 			return on_wm_close(wparam, lparam);
 		}
 		break;
+		case WM_DRAWITEM:
+		{
+			return on_wm_drawitem(wparam, lparam);
+		}
+		break;
 		case WM_NOTIFY:
 		{
 			return on_wm_notify(wparam, lparam);
@@ -418,6 +423,16 @@ LRESULT main_window::on_wm_close(WPARAM wparam, LPARAM lparam)
 		BOOL const hidden = ShowWindow(m_hwnd, SW_HIDE);
 		return 0;
 	}
+}
+
+LRESULT main_window::on_wm_drawitem(WPARAM wparam, LPARAM lparam)
+{
+	DRAWITEMSTRUCT& ds = *reinterpret_cast<DRAWITEMSTRUCT*>(lparam);
+	if(ds.hwndItem == m_status_bar)
+	{
+		draw_status_bar(ds);
+	}
+	return DefWindowProcW(m_hwnd, WM_DRAWITEM, wparam, lparam);
 }
 
 LRESULT main_window::on_wm_notify(WPARAM wparam, LPARAM lparam)
@@ -1088,22 +1103,29 @@ void main_window::unregister_dbg_task(thread_worker_param_t const param)
 
 void main_window::update_staus_bar()
 {
+	std::uint16_t const part = 0;
+	std::uint16_t const type = SBT_OWNERDRAW;
+	std::uint32_t const wparam = part | type;
+	LRESULT const sent = SendMessageW(m_status_bar, SB_SETTEXTW, wparam, LPARAM{});
+	assert(sent == TRUE);
+}
+
+void main_window::draw_status_bar(DRAWITEMSTRUCT& ds)
+{
+	assert(ds.hwndItem == m_status_bar);
 	int const idles = static_cast<int>(m_idle_tasks.size());
 	int const dbgs = static_cast<int>(m_dbg_tasks.size());
+	std::array<wchar_t, 64> buff;
 	if(idles == 0 && dbgs == 0)
 	{
-		static constexpr wchar_t const* const empty = L"";
-		LRESULT const sent = SendMessageW(m_status_bar, SB_SETTEXTW, 0, reinterpret_cast<LPARAM>(empty));
-		assert(sent == TRUE);
+		buff[0] = L'\0';
 	}
 	else
 	{
-		std::array<wchar_t, 64> buff;
-		int const printed = std::swprintf(buff.data(), buff.size(), L"Idle tasks: %d, Symbol tasks: %d.", idles, dbgs);
+		int const printed = std::swprintf(buff.data(), buff.size(), L"Pending idle tasks: %d, symbol tasks: %d.", idles, dbgs);
 		assert(printed >= 0);
-		LRESULT const sent = SendMessageW(m_status_bar, SB_SETTEXTW, 0, reinterpret_cast<LPARAM>(buff.data()));
-		assert(sent == TRUE);
 	}
+	DrawStatusTextW(ds.hDC, &ds.rcItem, buff.data(), SBT_NOBORDERS);
 }
 
 void main_window::cancel_all_dbg_tasks()

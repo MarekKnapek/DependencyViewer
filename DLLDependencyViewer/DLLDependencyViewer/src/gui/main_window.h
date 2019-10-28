@@ -63,6 +63,7 @@ private:
 	LRESULT on_wm_destroy(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_size(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_close(WPARAM wparam, LPARAM lparam);
+	LRESULT on_wm_drawitem(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_notify(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_contextmenu(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_command(WPARAM wparam, LPARAM lparam);
@@ -104,6 +105,7 @@ private:
 	void register_dbg_task(thread_worker_param_t const param);
 	void unregister_dbg_task(thread_worker_param_t const param);
 	void update_staus_bar();
+	void draw_status_bar(DRAWITEMSTRUCT& ds);
 	void cancel_all_dbg_tasks();
 	void request_mo_deletion(std::unique_ptr<main_type>&& mo);
 	void request_close();
