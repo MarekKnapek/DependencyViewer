@@ -3,7 +3,7 @@
 
 #include "memory_manager.h"
 #include "smart_library.h"
-#include "unique_strings.h"
+#include "my_string_handle.h"
 
 #include <cstddef>
 #include <vector>
@@ -24,8 +24,8 @@ enum class manifest_dependency_architecture
 
 struct manifest_dependency
 {
-	wstring const* m_name;
-	wstring const* m_language;
+	wstring_handle m_name;
+	wstring_handle m_language;
 	std::uint64_t m_version;
 	char m_token[16];
 	manifest_dependency_architecture m_architecture;

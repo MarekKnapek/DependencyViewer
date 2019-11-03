@@ -4,7 +4,7 @@
 #include "dbghelp.h"
 #include "pe.h"
 #include "thread_worker.h"
-#include "unique_strings.h"
+#include "my_string_handle.h"
 
 #include <string>
 #include <vector>
@@ -12,7 +12,7 @@
 
 struct symbols_from_addresses_param_t
 {
-	wstring const* m_module_path;
+	wstring_handle m_module_path;
 	pe_export_table_info* m_eti;
 	std::vector<std::uint16_t> m_indexes;
 	std::vector<std::string> m_strings;

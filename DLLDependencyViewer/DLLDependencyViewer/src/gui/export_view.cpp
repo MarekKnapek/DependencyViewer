@@ -409,7 +409,7 @@ wchar_t const* export_view::on_get_col_type(pe_export_table_info const& eti, std
 
 wchar_t const* export_view::on_get_col_ordinal(pe_export_table_info const& eti, std::uint16_t const exp_idx)
 {
-	std::uint16_t const ordinal = eti.m_ordinals[exp_idx];
+	std::uint16_t const& ordinal = eti.m_ordinals[exp_idx];
 	return ordinal_to_string(ordinal, m_string_converter);
 }
 
@@ -418,7 +418,7 @@ wchar_t const* export_view::on_get_col_hint(pe_export_table_info const& eti, std
 	bool const has_name = eti.m_hints[exp_idx] != 0xFFFF;
 	if(has_name)
 	{
-		std::uint16_t const hint = eti.m_hints[exp_idx];
+		std::uint16_t const& hint = eti.m_hints[exp_idx];
 		return ordinal_to_string(hint, m_string_converter);
 	}
 	else
@@ -435,24 +435,24 @@ wchar_t const* export_view::on_get_col_name(pe_export_table_info const& eti, std
 		bool const undecorate = m_main_window.m_settings.m_undecorate;
 		if(!undecorate)
 		{
-			string const* const name = eti.m_names[exp_idx];
+			string_handle const& name = eti.m_names[exp_idx];
 			return m_string_converter.convert(name);
 		}
 		else
 		{
-			string const* const name = eti.m_names[exp_idx];
-			if(name->m_str[0] != '?')
+			string_handle const& name = eti.m_names[exp_idx];
+			if(cbegin(name)[0] != '?')
 			{
 				return m_string_converter.convert(name);
 			}
 			else
 			{
-				string const* const undecorated_name = eti.m_undecorated_names[exp_idx];
-				if(!undecorated_name)
+				string_handle const& undecorated_name = eti.m_undecorated_names[exp_idx];
+				if(!undecorated_name.m_string)
 				{
 					return s_export_name_undecorating;
 				}
-				else if(undecorated_name == static_cast<string const*>(nullptr) + 1)
+				else if(undecorated_name.m_string == static_cast<string const*>(nullptr) + 1)
 				{
 					return m_string_converter.convert(name);
 				}
@@ -468,12 +468,12 @@ wchar_t const* export_view::on_get_col_name(pe_export_table_info const& eti, std
 		bool const is_rva = array_bool_tst(eti.m_are_rvas, exp_idx);
 		if(is_rva)
 		{
-			string const* const debug_name = eti.m_names[exp_idx];
-			if(!debug_name)
+			string_handle const& debug_name = eti.m_names[exp_idx];
+			if(!debug_name.m_string)
 			{
 				return s_export_name_processing;
 			}
-			else if(debug_name == static_cast<string const*>(nullptr) + 1)
+			else if(debug_name.m_string == static_cast<string const*>(nullptr) + 1)
 			{
 				return s_export_name_na;
 			}
@@ -486,18 +486,18 @@ wchar_t const* export_view::on_get_col_name(pe_export_table_info const& eti, std
 				}
 				else
 				{
-					if(debug_name->m_str[0] != '?')
+					if(cbegin(debug_name)[0] != '?')
 					{
 						return m_string_converter.convert(debug_name);
 					}
 					else
 					{
-						string const* const undecorated_name = eti.m_undecorated_names[exp_idx];
-						if(!undecorated_name)
+						string_handle const& undecorated_name = eti.m_undecorated_names[exp_idx];
+						if(!undecorated_name.m_string)
 						{
 							return s_export_name_undecorating;
 						}
-						else if(undecorated_name == static_cast<string const*>(nullptr) + 1)
+						else if(undecorated_name.m_string == static_cast<string const*>(nullptr) + 1)
 						{
 							return m_string_converter.convert(debug_name);
 						}
@@ -521,12 +521,12 @@ wchar_t const* export_view::on_get_col_address(pe_export_table_info const& eti, 
 	bool const is_rva = array_bool_tst(eti.m_are_rvas, exp_idx);
 	if(is_rva)
 	{
-		std::uint32_t const rva = eti.m_rvas_or_forwarders[exp_idx].m_rva;
+		std::uint32_t const& rva = eti.m_rvas_or_forwarders[exp_idx].m_rva;
 		return rva_to_string(rva, m_string_converter);
 	}
 	else
 	{
-		string const* const forwarder = eti.m_rvas_or_forwarders[exp_idx].m_forwarder;
+		string_handle const& forwarder = eti.m_rvas_or_forwarders[exp_idx].m_forwarder;
 		return m_string_converter.convert(forwarder);
 	}
 }

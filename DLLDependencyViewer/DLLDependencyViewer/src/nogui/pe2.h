@@ -31,7 +31,7 @@ struct pe_import_names
 	pe_import_tables const* m_tables;
 	unique_strings* m_ustrings;
 	allocator* m_alc;
-	string const* const* m_names_out;
+	string_handle const* m_names_out;
 };
 
 struct pe_import_iat

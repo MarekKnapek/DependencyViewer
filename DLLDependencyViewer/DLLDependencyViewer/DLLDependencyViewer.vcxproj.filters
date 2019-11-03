@@ -288,6 +288,15 @@
     <ClInclude Include="src\nogui\string_converter.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
+    <ClInclude Include="src\nogui\my_string.h">
+      <Filter>src\nogui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nogui\my_string_handle.h">
+      <Filter>src\nogui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nogui\fnv1a.h">
+      <Filter>src\nogui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\main.cpp">
@@ -435,6 +444,15 @@
       <Filter>src\nogui</Filter>
     </ClCompile>
     <ClCompile Include="src\nogui\string_converter.cpp">
+      <Filter>src\nogui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nogui\my_string.cpp">
+      <Filter>src\nogui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nogui\my_string_handle.cpp">
+      <Filter>src\nogui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nogui\fnv1a.cpp">
       <Filter>src\nogui</Filter>
     </ClCompile>
   </ItemGroup>

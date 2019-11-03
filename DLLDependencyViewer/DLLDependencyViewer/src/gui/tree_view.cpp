@@ -81,19 +81,19 @@ void tree_view::on_getdispinfow(NMHDR& nmhdr)
 		bool const full_paths = m_main_window.m_settings.m_full_paths;
 		if(full_paths && fi.m_file_path != get_not_found_string())
 		{
-			di.item.pszText = const_cast<wchar_t*>(fi.m_file_path->m_str);
+			di.item.pszText = const_cast<wchar_t*>(cbegin(fi.m_file_path));
 		}
 		else
 		{
 			if(parent_fi)
 			{
 				int const idx = static_cast<int>(&tmp_fi - parent_fi->m_sub_file_infos.data());
-				string const* const my_name = parent_fi->m_import_table.m_dll_names[idx];
+				string_handle const& my_name = parent_fi->m_import_table.m_dll_names[idx];
 				di.item.pszText = const_cast<wchar_t*>(m_string_converter.convert(my_name));
 			}
 			else
 			{
-				wchar_t const* const file_name = find_file_name(fi.m_file_path->m_str, fi.m_file_path->m_len);
+				wchar_t const* const file_name = find_file_name(cbegin(fi.m_file_path), size(fi.m_file_path));
 				di.item.pszText = const_cast<wchar_t*>(file_name);
 			}
 		}

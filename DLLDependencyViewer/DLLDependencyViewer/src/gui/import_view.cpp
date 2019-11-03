@@ -168,7 +168,7 @@ void import_view::on_getdispinfow(NMHDR& nmhdr)
 	}
 	if((nm.item.mask & LVIF_IMAGE) != 0)
 	{
-		std::uint16_t const matched_export = parent_fi.m_import_table.m_matched_exports[dll_idx][imp_idx];
+		std::uint16_t const& matched_export = parent_fi.m_import_table.m_matched_exports[dll_idx][imp_idx];
 		bool const is_ordinal = array_bool_tst(parent_fi.m_import_table.m_are_ordinals[dll_idx], imp_idx);
 		bool const matched = matched_export != 0xffff;
 		bool const ordinal = is_ordinal;
@@ -262,7 +262,7 @@ void import_view::on_context_menu(LPARAM const lparam)
 	assert(got_item_2 == TRUE);
 	file_info const& parent_fi = *reinterpret_cast<file_info*>(ti_2.lParam);
 	int const ith_dll = static_cast<int>(&fi - parent_fi.m_sub_file_infos.data());
-	std::uint16_t const matched_export = parent_fi.m_import_table.m_matched_exports[ith_dll][ith_import];
+	std::uint16_t const& matched_export = parent_fi.m_import_table.m_matched_exports[ith_dll][ith_import];
 	bool const enable_goto_orig = matched_export != 0xffff;
 	HMENU const menu = reinterpret_cast<HMENU>(m_menu.get());
 	BOOL const enabled = EnableMenuItem(menu, static_cast<std::uint16_t>(e_import_menu_id::e_matching), MF_BYCOMMAND | (enable_goto_orig ? MF_ENABLED : MF_GRAYED));
@@ -407,12 +407,12 @@ wchar_t const* import_view::on_get_col_ordinal(pe_import_table_info const& iti, 
 	bool const is_ordinal = array_bool_tst(iti.m_are_ordinals[dll_idx], imp_idx);
 	if(is_ordinal)
 	{
-		std::uint16_t const ordinal = iti.m_ordinals_or_hints[dll_idx][imp_idx];
+		std::uint16_t const& ordinal = iti.m_ordinals_or_hints[dll_idx][imp_idx];
 		return ordinal_to_string(ordinal, m_string_converter);
 	}
 	else
 	{
-		std::uint16_t const matched_export = iti.m_matched_exports[dll_idx][imp_idx];
+		std::uint16_t const& matched_export = iti.m_matched_exports[dll_idx][imp_idx];
 		if(matched_export != 0xffff)
 		{
 			return m_main_window.m_export_view.on_get_col_ordinal(fi.m_export_table, matched_export);
@@ -429,7 +429,7 @@ wchar_t const* import_view::on_get_col_hint(pe_import_table_info const& iti, std
 	bool const is_ordinal = array_bool_tst(iti.m_are_ordinals[dll_idx], imp_idx);
 	if(is_ordinal)
 	{
-		std::uint16_t const matched_export = iti.m_matched_exports[dll_idx][imp_idx];
+		std::uint16_t const& matched_export = iti.m_matched_exports[dll_idx][imp_idx];
 		if(matched_export != 0xffff)
 		{
 			return m_main_window.m_export_view.on_get_col_hint(fi.m_export_table, matched_export);
@@ -441,7 +441,7 @@ wchar_t const* import_view::on_get_col_hint(pe_import_table_info const& iti, std
 	}
 	else
 	{
-		std::uint16_t const hint = iti.m_ordinals_or_hints[dll_idx][imp_idx];
+		std::uint16_t const& hint = iti.m_ordinals_or_hints[dll_idx][imp_idx];
 		return ordinal_to_string(hint, m_string_converter);
 	}
 }
@@ -451,7 +451,7 @@ wchar_t const* import_view::on_get_col_name(pe_import_table_info const& iti, std
 	bool const is_ordinal = array_bool_tst(iti.m_are_ordinals[dll_idx], imp_idx);
 	if(is_ordinal)
 	{
-		std::uint16_t const matched_export = iti.m_matched_exports[dll_idx][imp_idx];
+		std::uint16_t const& matched_export = iti.m_matched_exports[dll_idx][imp_idx];
 		if(matched_export != 0xffff)
 		{
 			return m_main_window.m_export_view.on_get_col_name(fi.m_export_table, matched_export);
@@ -463,7 +463,7 @@ wchar_t const* import_view::on_get_col_name(pe_import_table_info const& iti, std
 	}
 	else
 	{
-		string const* const name = iti.m_names[dll_idx][imp_idx];
+		string_handle const& name = iti.m_names[dll_idx][imp_idx];
 		bool const undecorate = m_main_window.m_settings.m_undecorate;
 		if(!undecorate)
 		{
@@ -471,18 +471,18 @@ wchar_t const* import_view::on_get_col_name(pe_import_table_info const& iti, std
 		}
 		else
 		{
-			if(name->m_str[0] != '?')
+			if(cbegin(name)[0] != '?')
 			{
 				return m_string_converter.convert(name);
 			}
 			else
 			{
-				string const* const undecorated_name = iti.m_undecorated_names[dll_idx][imp_idx];
-				if(!undecorated_name)
+				string_handle const& undecorated_name = iti.m_undecorated_names[dll_idx][imp_idx];
+				if(!undecorated_name.m_string)
 				{
 					return s_import_name_undecorating;
 				}
-				else if(undecorated_name == static_cast<string const*>(nullptr) + 1)
+				else if(undecorated_name.m_string == static_cast<string const*>(nullptr) + 1)
 				{
 					return m_string_converter.convert(name);
 				}
@@ -527,7 +527,7 @@ void import_view::select_matching_instance()
 	assert(got_item_2 == TRUE);
 	file_info const& parent_fi = *reinterpret_cast<file_info*>(ti_2.lParam);
 	int const ith_dll = static_cast<int>(&fi - parent_fi.m_sub_file_infos.data());
-	std::uint16_t const matched = parent_fi.m_import_table.m_matched_exports[ith_dll][ith_import];
+	std::uint16_t const& matched = parent_fi.m_import_table.m_matched_exports[ith_dll][ith_import];
 	if(matched == 0xffff)
 	{
 		return;

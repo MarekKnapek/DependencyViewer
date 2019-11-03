@@ -39,7 +39,7 @@ bool pe_process_import_names(std::byte const* const file_data, int const file_si
 	std::uint16_t const n1 = names_in_out->m_tables->m_idt.m_count;
 	std::uint16_t const n2 = names_in_out->m_tables->m_didt.m_count;
 	std::uint16_t const n = n1 + n2;
-	string const** const strings = names_in_out->m_alc->allocate_objects<string const*>(n);
+	string_handle* const strings = names_in_out->m_alc->allocate_objects<string_handle>(n);
 	int ii = 0;
 	for(int i = 0; i != n1; ++i, ++ii)
 	{
@@ -66,8 +66,8 @@ bool pe_process_import_iat(std::byte const* const file_data, int const file_size
 	std::uint16_t* import_counts = iat_in_out->m_alc->allocate_objects<std::uint16_t>(n_dlls);
 	unsigned** are_ordinals_all = iat_in_out->m_alc->allocate_objects<unsigned*>(n_dlls);
 	std::uint16_t** ordinals_or_hints_all = iat_in_out->m_alc->allocate_objects<std::uint16_t*>(n_dlls);
-	string const*** names_all = iat_in_out->m_alc->allocate_objects<string const**>(n_dlls);
-	string const*** undecorated_names_all = iat_in_out->m_alc->allocate_objects<string const**>(n_dlls);
+	string_handle** names_all = iat_in_out->m_alc->allocate_objects<string_handle*>(n_dlls);
+	string_handle** undecorated_names_all = iat_in_out->m_alc->allocate_objects<string_handle*>(n_dlls);
 	std::uint16_t** matched_exports_all = iat_in_out->m_alc->allocate_objects<std::uint16_t*>(n_dlls);
 	int ii = 0;
 	for(int i = 0; i != iat_in_out->m_tables->m_idt.m_count; ++i, ++ii)
@@ -79,8 +79,8 @@ bool pe_process_import_iat(std::byte const* const file_data, int const file_size
 		unsigned* are_ordinals = iat_in_out->m_alc->allocate_objects<unsigned>(bits_to_dwords);
 		std::fill(are_ordinals, are_ordinals + bits_to_dwords, 0u);
 		std::uint16_t* ordinals_or_hints = iat_in_out->m_alc->allocate_objects<std::uint16_t>(iat.m_count);
-		string const** names = iat_in_out->m_alc->allocate_objects<string const*>(iat.m_count);
-		string const** undecorated_names = iat_in_out->m_alc->allocate_objects<string const*>(iat.m_count);
+		string_handle* names = iat_in_out->m_alc->allocate_objects<string_handle>(iat.m_count);
+		string_handle* undecorated_names = iat_in_out->m_alc->allocate_objects<string_handle>(iat.m_count);
 		std::uint16_t* matched_exports = iat_in_out->m_alc->allocate_objects<std::uint16_t>(iat.m_count);
 		for(int j = 0; j != iat.m_count; ++j)
 		{
@@ -116,8 +116,8 @@ bool pe_process_import_iat(std::byte const* const file_data, int const file_size
 		unsigned* are_ordinals = iat_in_out->m_alc->allocate_objects<unsigned>(bits_to_dwords);
 		std::fill(are_ordinals, are_ordinals + bits_to_dwords, 0u);
 		std::uint16_t* ordinals_or_hints = iat_in_out->m_alc->allocate_objects<std::uint16_t>(iat.m_count);
-		string const** names = iat_in_out->m_alc->allocate_objects<string const*>(iat.m_count);
-		string const** undecorated_names = iat_in_out->m_alc->allocate_objects<string const*>(iat.m_count);
+		string_handle* names = iat_in_out->m_alc->allocate_objects<string_handle>(iat.m_count);
+		string_handle* undecorated_names = iat_in_out->m_alc->allocate_objects<string_handle>(iat.m_count);
 		std::uint16_t* matched_exports = iat_in_out->m_alc->allocate_objects<std::uint16_t>(iat.m_count);
 		for(int j = 0; j != iat.m_count; ++j)
 		{
@@ -208,8 +208,8 @@ bool pe_process_export_eat(std::byte const* const file_data, int const file_size
 	std::fill(are_rvas, are_rvas + bits_to_dwords, 0u);
 	pe_rva_or_forwarder* const rvas_or_forwarders = eat_in_out->m_alc->allocate_objects<pe_rva_or_forwarder>(eat_count_proper);
 	std::uint16_t* const hints = eat_in_out->m_alc->allocate_objects<std::uint16_t>(eat_count_proper);
-	string const** const names = eat_in_out->m_alc->allocate_objects<string const*>(eat_count_proper);
-	string const** const undecorated_names = eat_in_out->m_alc->allocate_objects<string const*>(eat_count_proper);
+	string_handle* const names = eat_in_out->m_alc->allocate_objects<string_handle>(eat_count_proper);
+	string_handle* const undecorated_names = eat_in_out->m_alc->allocate_objects<string_handle>(eat_count_proper);
 	unsigned* const are_used = eat_in_out->m_alc->allocate_objects<unsigned>(bits_to_dwords);
 	std::fill(are_used, are_used + bits_to_dwords, 0u);
 
@@ -230,7 +230,7 @@ bool pe_process_export_eat(std::byte const* const file_data, int const file_size
 		std::uint16_t const ordinal = ordinal_base + i;
 		std::uint16_t hint;
 		pe_string ean;
-		string const* name;
+		string_handle name;
 		bool const ean_parsed = pe_parse_export_address_name(file_data, file_size, enpt, eot, i, &hint, &ean);
 		WARN_M_R(ean_parsed, L"Failed to parse export address name.", false);
 		bool const has_name = ean.m_len != 0;
@@ -239,7 +239,7 @@ bool pe_process_export_eat(std::byte const* const file_data, int const file_size
 			name = eat_in_out->m_ustrings->add_string(ean.m_str, ean.m_len, *eat_in_out->m_alc);
 		}
 		pe_string forwarder;
-		string const* frwrdr;
+		string_handle frwrdr;
 		bool const is_fwd = export_rva >= export_directory_va && export_rva < export_directory_va + export_directory_size;
 		bool const is_rva = !is_fwd;
 		if(is_fwd)
@@ -254,7 +254,7 @@ bool pe_process_export_eat(std::byte const* const file_data, int const file_size
 		if(is_rva){ array_bool_set(are_rvas, j); };
 		if(is_rva){ rvas_or_forwarders[j].m_rva = export_rva; }else{ rvas_or_forwarders[j].m_forwarder = frwrdr; }
 		if(has_name){ hints[j] = hint; }else{ hints[j] = 0xFFFF; }
-		if(has_name){ names[j] = name; }else{ names[j] = nullptr; }
+		if(has_name){ names[j] = name; }else{ names[j] = string_handle{nullptr}; }
 		if(has_name){ WARN_M_R(enpt_[hint] == 0xFFFF, L"Bad hint.", false); enpt_[hint] = j; ++hints_processed; }else{}
 		++j;
 	}
@@ -266,7 +266,7 @@ bool pe_process_export_eat(std::byte const* const file_data, int const file_size
 		assert(b != 0xFFFF);
 		assert(names[a]);
 		assert(names[b]);
-		return string_less{}(names[a], names[b]);
+		return names[a] < names[b];
 	});
 	WARN_M_R(is_sorted, L"Export name pointer table is not sorted.", false);
 

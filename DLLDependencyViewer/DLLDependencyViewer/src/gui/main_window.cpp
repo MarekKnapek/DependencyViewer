@@ -941,10 +941,8 @@ void main_window::refresh()
 	for(int i = 0; i != n; ++i)
 	{
 		assert(m_mo.m_fi.m_sub_file_infos[i].m_sub_file_infos.size() == 1);
-		wstring const* const& name = m_mo.m_fi.m_sub_file_infos[i].m_sub_file_infos[0].m_file_path;
-		assert(name->m_str);
-		assert(name->m_len > 0);
-		file_paths[i].assign(name->m_str, name->m_str + name->m_len);
+		wstring_handle const& name = m_mo.m_fi.m_sub_file_infos[i].m_sub_file_infos[0].m_file_path;
+		file_paths[i].assign(cbegin(name), cend(name));
 	}
 	open_files(file_paths);
 }
@@ -1228,7 +1226,7 @@ void main_window::finish_symbols_from_addresses(symbols_from_addresses_param_t c
 	for(std::uint16_t i = 0; i != n; ++i)
 	{
 		std::uint16_t const idx = param.m_indexes[i];
-		string const*& dbg_name = param.m_eti->m_names[idx];
+		string_handle& dbg_name = param.m_eti->m_names[idx];
 		assert(!dbg_name);
 		if(!param.m_strings[i].empty())
 		{
@@ -1236,7 +1234,7 @@ void main_window::finish_symbols_from_addresses(symbols_from_addresses_param_t c
 		}
 		else
 		{
-			dbg_name = static_cast<string const*>(nullptr) + 1;
+			dbg_name.m_string = static_cast<string const*>(nullptr) + 1;
 		}
 	}
 	HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree_view.get_hwnd(), TVM_GETNEXTITEM, TVGN_CARET, 0));
@@ -1271,14 +1269,14 @@ void main_window::request_symbol_undecoration(file_info& fi)
 void main_window::request_symbol_undecoration_e(file_info& fi, std::vector<std::uint16_t> const& input_indexes)
 {
 	pe_export_table_info const& eti = fi.m_export_table;
-	auto const fn_is_decorated = [](bool const is_rva, string const* const name){ return is_rva && name && name != static_cast<string const*>(nullptr) + 1 && name->m_str[0] == '?'; };
+	auto const fn_is_decorated = [](bool const is_rva, string_handle const& name){ return is_rva && name.m_string && name.m_string != static_cast<string const*>(nullptr) + 1 && cbegin(name)[0] == '?'; };
 	std::uint16_t n = 0;
 	if(input_indexes.empty())
 	{
 		for(std::uint16_t i = 0; i != fi.m_export_table.m_count; ++i)
 		{
 			bool const is_rva = array_bool_tst(fi.m_export_table.m_are_rvas, i);
-			string const* const name = fi.m_export_table.m_names[i];
+			string_handle const& name = fi.m_export_table.m_names[i];
 			if(fn_is_decorated(is_rva, name))
 			{
 				++n;
@@ -1290,7 +1288,7 @@ void main_window::request_symbol_undecoration_e(file_info& fi, std::vector<std::
 		for(std::uint16_t const i : input_indexes)
 		{
 			bool const is_rva = array_bool_tst(fi.m_export_table.m_are_rvas, i);
-			string const* const name = fi.m_export_table.m_names[i];
+			string_handle const& name = fi.m_export_table.m_names[i];
 			if(fn_is_decorated(is_rva, name))
 			{
 				++n;
@@ -1309,7 +1307,7 @@ void main_window::request_symbol_undecoration_e(file_info& fi, std::vector<std::
 		for(std::uint16_t i = 0; i != fi.m_export_table.m_count; ++i)
 		{
 			bool const is_rva = array_bool_tst(fi.m_export_table.m_are_rvas, i);
-			string const* const name = fi.m_export_table.m_names[i];
+			string_handle const& name = fi.m_export_table.m_names[i];
 			if(!fn_is_decorated(is_rva, name))
 			{
 				continue;
@@ -1323,7 +1321,7 @@ void main_window::request_symbol_undecoration_e(file_info& fi, std::vector<std::
 		for(std::uint16_t const i : input_indexes)
 		{
 			bool const is_rva = array_bool_tst(fi.m_export_table.m_are_rvas, i);
-			string const* const name = fi.m_export_table.m_names[i];
+			string_handle const& name = fi.m_export_table.m_names[i];
 			if(!fn_is_decorated(is_rva, name))
 			{
 				continue;
@@ -1362,7 +1360,7 @@ void main_window::finish_symbol_undecoration_e(undecorated_from_decorated_e_para
 	for(std::uint16_t i = 0; i != n; ++i)
 	{
 		std::uint16_t const idx = param.m_indexes[i];
-		string const*& undecorated_name = param.m_eti->m_undecorated_names[idx];
+		string_handle& undecorated_name = param.m_eti->m_undecorated_names[idx];
 		assert(!undecorated_name);
 		if(!param.m_strings[i].empty())
 		{
@@ -1370,7 +1368,7 @@ void main_window::finish_symbol_undecoration_e(undecorated_from_decorated_e_para
 		}
 		else
 		{
-			undecorated_name = static_cast<string const*>(nullptr) + 1;
+			undecorated_name.m_string = static_cast<string const*>(nullptr) + 1;
 		}
 	}
 	HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree_view.get_hwnd(), TVM_GETNEXTITEM, TVGN_CARET, 0));
@@ -1401,8 +1399,8 @@ void main_window::request_symbol_undecoration_i(file_info& fi, std::uint16_t con
 		{
 			continue;
 		}
-		string const* const name = fi.m_import_table.m_names[dll_idx][i];
-		if(name->m_str[0] != '?')
+		string_handle const& name = fi.m_import_table.m_names[dll_idx][i];
+		if(cbegin(name)[0] != '?')
 		{
 			continue;
 		}
@@ -1422,8 +1420,8 @@ void main_window::request_symbol_undecoration_i(file_info& fi, std::uint16_t con
 		{
 			continue;
 		}
-		string const* const name = fi.m_import_table.m_names[dll_idx][i];
-		if(name->m_str[0] != '?')
+		string_handle const& name = fi.m_import_table.m_names[dll_idx][i];
+		if(cbegin(name)[0] != '?')
 		{
 			continue;
 		}
@@ -1461,7 +1459,7 @@ void main_window::finish_symbol_undecoration_i(undecorated_from_decorated_i_para
 	for(std::uint16_t i = 0; i != n; ++i)
 	{
 		std::uint16_t const idx = param.m_indexes[i];
-		string const*& undecorated_name = param.m_iti->m_undecorated_names[param.m_dll_idx][idx];
+		string_handle& undecorated_name = param.m_iti->m_undecorated_names[param.m_dll_idx][idx];
 		assert(!undecorated_name);
 		if(!param.m_strings[i].empty())
 		{
@@ -1469,7 +1467,7 @@ void main_window::finish_symbol_undecoration_i(undecorated_from_decorated_i_para
 		}
 		else
 		{
-			undecorated_name = static_cast<string const*>(nullptr) + 1;
+			undecorated_name.m_string = static_cast<string const*>(nullptr) + 1;
 		}
 	}
 	HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree_view.get_hwnd(), TVM_GETNEXTITEM, TVGN_CARET, 0));

@@ -22,7 +22,7 @@ void file_name_provider::deinit()
 	g_file_name_provider = nullptr;
 }
 
-wstring const* file_name_provider::get_correct_file_name(wchar_t const* const& file_name, int const& file_name_len, wunique_strings& us, allocator& alc)
+wstring_handle file_name_provider::get_correct_file_name(wchar_t const* const& file_name, int const& file_name_len, wunique_strings& us, allocator& alc)
 {
 	assert(g_file_name_provider);
 	return g_file_name_provider->get_correct_file_name_(file_name, file_name_len, us, alc);
@@ -60,7 +60,7 @@ file_name_provider::~file_name_provider()
 	OleUninitialize();
 }
 
-wstring const* file_name_provider::get_correct_file_name_(wchar_t const* const& file_name, int const& file_name_len, wunique_strings& us, allocator& alc)
+wstring_handle file_name_provider::get_correct_file_name_(wchar_t const* const& file_name, int const& file_name_len, wunique_strings& us, allocator& alc)
 {
 	VARIANT input_1;
 	input_1.vt = VT_BSTR;
@@ -86,7 +86,7 @@ wstring const* file_name_provider::get_correct_file_name_(wchar_t const* const& 
 	{
 		throw s_file_name_err;
 	}
-	wstring const* const ret = us.add_string(output.bstrVal, output_len / 2, alc);
+	wstring_handle const ret = us.add_string(output.bstrVal, output_len / 2, alc);
 	SysFreeString(output.bstrVal);
 	SysFreeString(input_1.bstrVal);
 	return ret;

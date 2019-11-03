@@ -2,7 +2,7 @@
 
 #include "processor.h"
 
-#include "../nogui/unique_strings.h"
+#include "../nogui/my_string_handle.h"
 
 #include <array>
 #include <cassert>
@@ -10,7 +10,7 @@
 #include "../nogui/my_windows.h"
 
 
-void search(searcher& sch, string const* const& dll_name)
+void search(searcher& sch, string_handle const& dll_name)
 {
 	// Standard Search Order for Desktop Applications
 	// - SafeDllSearchMode is enabled
@@ -25,8 +25,8 @@ void search(searcher& sch, string const* const& dll_name)
 	std::filesystem::path& tmpp = sch.m_mo->m_tmpp;
 
 	auto const buff = std::make_unique<std::array<wchar_t, 32 * 1024>>();
-	tmpw.resize(dll_name->m_len);
-	std::transform(dll_name->m_str, dll_name->m_str + dll_name->m_len, tmpw.begin(), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
+	tmpw.resize(size(dll_name));
+	std::transform(cbegin(dll_name), cend(dll_name), tmpw.begin(), [](char const& e) -> wchar_t { return static_cast<wchar_t>(e); });
 
 	// SxS
 	// TODO: Search for manifest (inside resources, in file system) determine which has precedence.
@@ -34,7 +34,7 @@ void search(searcher& sch, string const* const& dll_name)
 	// TODO: Well known DLLs.
 
 	// The directory from which the application loaded.
-	tmpp.assign(sch.m_main_file_path->m_str, sch.m_main_file_path->m_str + sch.m_main_file_path->m_len);
+	tmpp.assign(cbegin(sch.m_main_file_path), cend(sch.m_main_file_path));
 	tmpp.replace_filename(tmpw);
 	if(std::filesystem::exists(tmpp))
 	{

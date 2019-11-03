@@ -18,7 +18,7 @@ struct file_info
 {
 	void* m_tree_item;
 	file_info* m_orig_instance;
-	wstring const* m_file_path;
+	wstring_handle m_file_path;
 	bool m_is_32_bit;
 	pe_import_table_info m_import_table;
 	pe_export_table_info m_export_table;
@@ -39,5 +39,5 @@ struct main_type
 };
 inline void swap(main_type& a, main_type& b) noexcept { a.swap(b); }
 
-wstring const* get_not_found_string();
+wstring_handle const& get_not_found_string();
 main_type process(std::vector<std::wstring> const& file_paths);

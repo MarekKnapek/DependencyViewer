@@ -70,7 +70,7 @@ void dbg_provider::get_symbols_from_addresses_task(symbols_from_addresses_param_
 	{
 		return;
 	}
-	DWORD64 const sym_module = m_dbghelp.m_fn_SymLoadModuleExW(GetCurrentProcess(), nullptr, param.m_module_path->m_str, nullptr, 0, 0, nullptr, 0);
+	DWORD64 const sym_module = m_dbghelp.m_fn_SymLoadModuleExW(GetCurrentProcess(), nullptr, cbegin(param.m_module_path), nullptr, 0, 0, nullptr, 0);
 	if(sym_module == 0)
 	{
 		return;
@@ -94,7 +94,7 @@ void dbg_provider::get_symbols_from_addresses_task(symbols_from_addresses_param_
 		SYMBOL_INFO& symbol_info = symbol_info_v.sym_info;
 		symbol_info.SizeOfStruct = sizeof(symbol_info);
 		symbol_info.MaxNameLen = MAX_SYM_NAME;
-		std::uint32_t const address = param.m_eti->m_rvas_or_forwarders[param.m_indexes[i]].m_rva;
+		std::uint32_t const& address = param.m_eti->m_rvas_or_forwarders[param.m_indexes[i]].m_rva;
 		DWORD64 const address64 = sym_module + address;
 		BOOL const got_sym = m_dbghelp.m_fn_SymFromAddr(GetCurrentProcess(), address64, &displacement, &symbol_info);
 		if(got_sym != FALSE)
@@ -115,9 +115,9 @@ void dbg_provider::get_undecorated_from_decorated_e_task(undecorated_from_decora
 	for(std::uint16_t i = 0; i != n; ++i)
 	{
 		std::uint16_t const idx = param.m_indexes[i];
-		string const* const name = param.m_eti->m_names[idx];
+		string_handle const& name = param.m_eti->m_names[idx];
 		std::array<char, 8 * 1024> buff;
-		DWORD const undecorated = m_dbghelp.m_fn_UnDecorateSymbolName(name->m_str, buff.data(), static_cast<int>(buff.size()), UNDNAME_COMPLETE);
+		DWORD const undecorated = m_dbghelp.m_fn_UnDecorateSymbolName(cbegin(name), buff.data(), static_cast<int>(buff.size()), UNDNAME_COMPLETE);
 		if(undecorated != 0)
 		{
 			param.m_strings[i].assign(buff.data(), buff.data() + undecorated);
@@ -136,9 +136,9 @@ void dbg_provider::get_undecorated_from_decorated_i_task(undecorated_from_decora
 	for(std::uint16_t i = 0; i != n; ++i)
 	{
 		std::uint16_t const idx = param.m_indexes[i];
-		string const* const name = param.m_iti->m_names[param.m_dll_idx][idx];
+		string_handle const& name = param.m_iti->m_names[param.m_dll_idx][idx];
 		std::array<char, 8 * 1024> buff;
-		DWORD const undecorated = m_dbghelp.m_fn_UnDecorateSymbolName(name->m_str, buff.data(), static_cast<int>(buff.size()), UNDNAME_COMPLETE);
+		DWORD const undecorated = m_dbghelp.m_fn_UnDecorateSymbolName(cbegin(name), buff.data(), static_cast<int>(buff.size()), UNDNAME_COMPLETE);
 		if(undecorated != 0)
 		{
 			param.m_strings[i].assign(buff.data(), buff.data() + undecorated);

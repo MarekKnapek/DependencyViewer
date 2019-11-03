@@ -2,6 +2,7 @@
 
 
 #include "my_vector.h"
+#include "my_string_handle.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -12,9 +13,7 @@
 
 struct section_header;
 class memory_manager;
-template<typename> struct basic_string;
-typedef basic_string<char> string;
-typedef basic_string<wchar_t> wstring;
+
 
 struct pe_header_info
 {
@@ -33,19 +32,19 @@ struct pe_import_table_info
 {
 	std::uint16_t m_dll_count;
 	std::uint16_t m_non_delay_dll_count;
-	string const* const* m_dll_names;
+	string_handle const* m_dll_names;
 	std::uint16_t const* m_import_counts;
 	unsigned const* const* m_are_ordinals;
 	std::uint16_t const* const* m_ordinals_or_hints;
-	string const* const* const* m_names;
-	string const** const* m_undecorated_names;
+	string_handle const* const* m_names;
+	string_handle* const* m_undecorated_names;
 	std::uint16_t* const* m_matched_exports;
 };
 
 union pe_rva_or_forwarder
 {
 	std::uint32_t m_rva;
-	string const* m_forwarder;
+	string_handle m_forwarder;
 };
 
 struct pe_export_table_info
@@ -56,8 +55,8 @@ struct pe_export_table_info
 	unsigned const* m_are_rvas;
 	pe_rva_or_forwarder const* m_rvas_or_forwarders;
 	std::uint16_t const* m_hints;
-	string const** m_names;
-	string const** m_undecorated_names;
+	string_handle* m_names;
+	string_handle* m_undecorated_names;
 	unsigned* m_are_used;
 };
 
@@ -66,7 +65,7 @@ struct pe_resource_string_or_id
 	bool m_is_string;
 	union
 	{
-		wstring const* m_string;
+		wstring_handle m_string;
 		std::uint16_t m_id;
 	};
 };
