@@ -125,8 +125,8 @@ struct pe_resource_name_string_or_id_internal
 static constexpr wchar_t const s_bad_format[] = L"Bad format.";
 
 
-#define VERIFY(X) do{ if(!(X)){ assert((OutputDebugStringW(L"Error: " L ## #X L"\x0D\x0A"), true)); throw s_bad_format; } }while(false)
-#define WARN(X) do{ if(!(X)){ assert((OutputDebugStringW(L"Warning: " L ## #X L"\x0D\x0A"), true)); } }while(false)
+#define VERIFY(X) do{ if(!(X)) [[unlikely]] { assert((OutputDebugStringW(L"Error: " L ## #X L"\x0D\x0A"), true)); throw s_bad_format; } }while(false)
+#define WARN(X) do{ if(!(X)) [[unlikely]] { assert((OutputDebugStringW(L"Warning: " L ## #X L"\x0D\x0A"), true)); } }while(false)
 
 
 pe_resource_name_string_or_id_internal pe_resources_process_string(std::byte const* const file_data, std::uint32_t const resource_directory_disk_offset, std::uint32_t const resource_directory_size, bool const is_string, resource_directory_entry const dir_entry);
