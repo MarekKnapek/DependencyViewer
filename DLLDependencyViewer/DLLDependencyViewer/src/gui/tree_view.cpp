@@ -31,8 +31,7 @@ tree_view::tree_view(HWND const parent, main_window& mw) :
 {
 	LRESULT const set_dbl_bfr = SendMessageW(m_hwnd, TVM_SETEXTENDEDSTYLE, TVS_EX_DOUBLEBUFFER, TVS_EX_DOUBLEBUFFER);
 	assert(set_dbl_bfr == S_OK);
-	LONG_PTR const prev = SetWindowLongPtrW(m_hwnd, GWL_STYLE, GetWindowLongPtrW(m_hwnd, GWL_STYLE) | TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS);
-	(void)prev;
+	[[maybe_unused]] LONG_PTR const prev = SetWindowLongPtrW(m_hwnd, GWL_STYLE, GetWindowLongPtrW(m_hwnd, GWL_STYLE) | TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS);
 	HIMAGELIST const tree_img_list = ImageList_LoadImageW(get_instance(), MAKEINTRESOURCEW(s_res_icons_tree), 26, 0, CLR_DEFAULT, IMAGE_BITMAP, LR_DEFAULTCOLOR);
 	assert(tree_img_list);
 	LRESULT const prev_img_list = SendMessageW(m_hwnd, TVM_SETIMAGELIST, TVSIL_NORMAL, reinterpret_cast<LPARAM>(tree_img_list));
@@ -182,9 +181,8 @@ void tree_view::on_getdispinfow(NMHDR& nmhdr)
 	}
 }
 
-void tree_view::on_selchangedw(NMHDR& nmhdr)
+void tree_view::on_selchangedw([[maybe_unused]] NMHDR& nmhdr)
 {
-	(void)nmhdr;
 	m_main_window.on_tree_selchangedw();
 }
 
@@ -221,8 +219,7 @@ void tree_view::on_context_menu(LPARAM const lparam)
 		assert(converted != 0);
 		TVHITTESTINFO hti;
 		hti.pt = cursor_client;
-		HTREEITEM const hit_tested = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_HITTEST, 0, reinterpret_cast<LPARAM>(&hti)));
-		(void)hit_tested;
+		[[maybe_unused]] HTREEITEM const hit_tested = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_HITTEST, 0, reinterpret_cast<LPARAM>(&hti)));
 		assert(hit_tested == hti.hItem);
 		if(!(hti.hItem && (hti.flags & (TVHT_ONITEM | TVHT_ONITEMBUTTON | TVHT_ONITEMICON | TVHT_ONITEMLABEL | TVHT_ONITEMSTATEICON)) != 0))
 		{

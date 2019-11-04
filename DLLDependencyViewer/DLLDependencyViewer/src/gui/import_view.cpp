@@ -368,9 +368,8 @@ void import_view::select_item(std::uint16_t const item_idx)
 	lvi.state = LVIS_FOCUSED | LVIS_SELECTED;
 	LRESULT const selection_set = SendMessageW(m_hwnd, LVM_SETITEMSTATE, static_cast<WPARAM>(item_idx), reinterpret_cast<LPARAM>(&lvi));
 	assert(selection_set == TRUE);
-	HWND const prev_focus = SetFocus(m_hwnd);
+	[[maybe_unused]] HWND const prev_focus = SetFocus(m_hwnd);
 	assert(prev_focus != nullptr);
-	(void)prev_focus;
 	repaint();
 }
 

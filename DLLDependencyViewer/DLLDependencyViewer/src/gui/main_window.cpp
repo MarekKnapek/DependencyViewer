@@ -1089,12 +1089,11 @@ void main_window::register_dbg_task(thread_worker_param_t const param)
 	update_staus_bar();
 }
 
-void main_window::unregister_dbg_task(thread_worker_param_t const param)
+void main_window::unregister_dbg_task([[maybe_unused]] thread_worker_param_t const param)
 {
 	assert(param);
 	assert(!m_dbg_tasks.empty());
 	assert(m_dbg_tasks.front() == param);
-	(void)param;
 	m_dbg_tasks.pop_front();
 	update_staus_bar();
 }

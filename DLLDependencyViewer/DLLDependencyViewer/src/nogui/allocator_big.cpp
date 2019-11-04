@@ -70,11 +70,10 @@ void allocator_big::swap(allocator_big& other) noexcept
 	swap(m_state, other.m_state);
 }
 
-void* allocator_big::allocate_bytes(int const size, int const align)
+void* allocator_big::allocate_bytes(int const size, [[maybe_unused]] int const align)
 {
 	assert(size >= 64 * 1024);
 	assert(align <= alignof(std::max_align_t));
-	(void)align;
 	allocator_big_outer_t* self = static_cast<allocator_big_outer_t*>(m_state);
 	if(!self || self->m_inner.m_free_allocs == 0)
 	{

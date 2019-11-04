@@ -37,10 +37,9 @@ void allocator_malloc::swap(allocator_malloc& other) noexcept
 	swap(m_state, other.m_state);
 }
 
-void* allocator_malloc::allocate_bytes(int const size, int const align)
+void* allocator_malloc::allocate_bytes(int const size, [[maybe_unused]] int const align)
 {
 	assert(align <= alignof(std::max_align_t));
-	(void)align;
 	void* const mem = (std::malloc)(size);
 	m_state.push_back(mem);
 	return mem;
