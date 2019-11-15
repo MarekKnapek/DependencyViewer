@@ -378,6 +378,10 @@ void export_view::select_item(std::uint16_t const item_idx)
 	repaint();
 }
 
+void export_view::sort_view()
+{
+}
+
 smart_menu export_view::create_menu()
 {
 	HMENU const menu = CreatePopupMenu();

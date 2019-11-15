@@ -38,6 +38,7 @@ public:
 	void refresh();
 	void repaint();
 	void select_item(std::uint16_t const item_idx);
+	void sort_view();
 private:
 	smart_menu create_menu();
 	wchar_t const* on_get_col_type(pe_import_table_info const& iti, std::uint16_t const dll_idx, std::uint16_t const imp_idx);

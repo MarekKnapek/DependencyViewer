@@ -221,6 +221,8 @@ main_window::main_window() :
 
 	m_settings.m_full_paths = false;
 	m_settings.m_undecorate = false;
+	m_settings.m_import_sort = 0xFF;
+	m_settings.m_export_sort = 0xFF;
 }
 
 main_window::~main_window()
@@ -1247,6 +1249,8 @@ void main_window::finish_symbols_from_addresses(symbols_from_addresses_param_t c
 		file_info const* const fi = reinterpret_cast<file_info*>(ti.lParam);
 		if(fi == param.m_data)
 		{
+			m_import_view.sort_view();
+			m_export_view.sort_view();
 			m_import_view.repaint();
 			m_export_view.repaint();
 		}
@@ -1381,6 +1385,8 @@ void main_window::finish_symbol_undecoration_e(undecorated_from_decorated_e_para
 		file_info const* const fi = reinterpret_cast<file_info*>(ti.lParam);
 		if(fi == param.m_data)
 		{
+			m_import_view.sort_view();
+			m_export_view.sort_view();
 			m_import_view.repaint();
 			m_export_view.repaint();
 		}
@@ -1480,6 +1486,8 @@ void main_window::finish_symbol_undecoration_i(undecorated_from_decorated_i_para
 		file_info const* const fi = reinterpret_cast<file_info*>(ti.lParam);
 		if(fi == param.m_data)
 		{
+			m_import_view.sort_view();
+			m_export_view.sort_view();
 			m_import_view.repaint();
 			m_export_view.repaint();
 		}

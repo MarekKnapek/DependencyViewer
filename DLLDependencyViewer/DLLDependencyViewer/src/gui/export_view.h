@@ -37,6 +37,7 @@ public:
 	void refresh();
 	void repaint();
 	void select_item(std::uint16_t const item_idx);
+	void sort_view();
 private:
 	smart_menu create_menu();
 	wchar_t const* on_get_col_type(pe_export_table_info const& eti, std::uint16_t const exp_idx);
