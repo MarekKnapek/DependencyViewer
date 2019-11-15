@@ -5,6 +5,7 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 
 #include "../nogui/string_converter.h"
 
@@ -53,6 +54,7 @@ private:
 	HWND const m_hwnd;
 	main_window& m_main_window;
 	smart_menu const m_menu;
+	std::vector<std::uint16_t> m_sort;
 	string_converter m_string_converter;
 private:
 	friend class import_view;
