@@ -15,8 +15,10 @@
 
 #include <algorithm>
 #include <cassert>
+#include <functional>
 #include <iterator>
 #include <numeric>
+#include <tuple>
 
 #include <commctrl.h>
 #include <windowsx.h>
@@ -283,7 +285,7 @@ void export_view::on_columnclick(NMHDR& nmhdr)
 void export_view::on_context_menu(LPARAM const lparam)
 {
 	POINT cursor_screen;
-	int ith_export;
+	std::uint16_t ith_line;
 	if(lparam == 0xffffffff)
 	{
 		LRESULT const sel = SendMessageW(m_hwnd, LVM_GETNEXTITEM, WPARAM{0} - 1, LVNI_SELECTED);
@@ -303,7 +305,8 @@ void export_view::on_context_menu(LPARAM const lparam)
 		cursor_screen.y = rect.top + (rect.bottom - rect.top) / 2;
 		BOOL const converted = ClientToScreen(m_hwnd, &cursor_screen);
 		assert(converted != 0);
-		ith_export = static_cast<int>(sel);
+		assert(static_cast<std::size_t>(sel) <= 0xFFFF);
+		ith_line = static_cast<std::uint16_t>(sel);
 	}
 	else
 	{
@@ -321,8 +324,10 @@ void export_view::on_context_menu(LPARAM const lparam)
 			return;
 		}
 		assert(hit_tested == hti.iItem);
-		ith_export = hti.iItem;
+		assert(hti.iItem <= 0xFFFF);
+		ith_line = static_cast<std::uint16_t>(hti.iItem);
 	}
+	std::uint16_t const ith_export = m_sort.empty() ? ith_line : m_sort[ith_line];
 	HWND const tree = m_main_window.m_tree_view.get_hwnd();
 	HTREEITEM const tree_selected = reinterpret_cast<HTREEITEM>(SendMessageW(tree, TVM_GETNEXTITEM, TVGN_CARET, 0));
 	if(!tree_selected)
@@ -400,6 +405,8 @@ void export_view::refresh()
 	LRESULT const set_size = SendMessageW(m_hwnd, LVM_SETITEMCOUNT, fi.m_export_table.m_count, 0);
 	assert(set_size != 0);
 
+	sort_view();
+
 	int const export_type_column_max_width = get_type_column_max_width();
 	int const ordinal_column_max_width = m_main_window.get_ordinal_column_max_width();
 
@@ -461,7 +468,8 @@ void export_view::refresh_headers()
 
 void export_view::select_item(std::uint16_t const item_idx)
 {
-	LRESULT const visibility_ensured = SendMessageW(m_hwnd, LVM_ENSUREVISIBLE, item_idx, FALSE);
+	std::uint16_t const ith_line = m_sort.empty() ? item_idx : m_sort[m_sort.size() / 2 + item_idx];
+	LRESULT const visibility_ensured = SendMessageW(m_hwnd, LVM_ENSUREVISIBLE, ith_line, FALSE);
 	assert(visibility_ensured == TRUE);
 	LVITEM lvi;
 	lvi.stateMask = LVIS_FOCUSED | LVIS_SELECTED;
@@ -469,7 +477,7 @@ void export_view::select_item(std::uint16_t const item_idx)
 	LRESULT const selection_cleared = SendMessageW(m_hwnd, LVM_SETITEMSTATE, WPARAM{0} - 1, reinterpret_cast<LPARAM>(&lvi));
 	assert(selection_cleared == TRUE);
 	lvi.state = LVIS_FOCUSED | LVIS_SELECTED;
-	LRESULT const selection_set = SendMessageW(m_hwnd, LVM_SETITEMSTATE, static_cast<WPARAM>(item_idx), reinterpret_cast<LPARAM>(&lvi));
+	LRESULT const selection_set = SendMessageW(m_hwnd, LVM_SETITEMSTATE, static_cast<WPARAM>(ith_line), reinterpret_cast<LPARAM>(&lvi));
 	assert(selection_set == TRUE);
 	[[maybe_unused]] HWND const prev_focus = SetFocus(m_hwnd);
 	assert(prev_focus != nullptr);
@@ -759,7 +767,9 @@ void export_view::select_matching_instance()
 	{
 		return;
 	}
-	int const ith_export = static_cast<int>(sel);
+	assert(static_cast<std::size_t>(sel) <= 0xFFFF);
+	std::uint16_t const ith_line = static_cast<std::uint16_t>(sel);
+	std::uint16_t const ith_export = m_sort.empty() ? ith_line : m_sort[ith_line];
 	HWND const tree = m_main_window.m_tree_view.get_hwnd();
 	HTREEITEM const tree_selected = reinterpret_cast<HTREEITEM>(SendMessageW(tree, TVM_GETNEXTITEM, TVGN_CARET, 0));
 	if(!tree_selected)
@@ -773,7 +783,7 @@ void export_view::select_matching_instance()
 	assert(got_item == TRUE);
 	file_info const& fi = *reinterpret_cast<file_info*>(ti.lParam);
 	std::uint16_t const& matched = fi.m_matched_imports[ith_export];
-	if(matched == 0xffff)
+	if(matched == 0xFFFF)
 	{
 		return;
 	}

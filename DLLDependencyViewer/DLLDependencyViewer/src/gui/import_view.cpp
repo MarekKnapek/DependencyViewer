@@ -15,8 +15,10 @@
 
 #include <algorithm>
 #include <cassert>
+#include <functional>
 #include <iterator>
 #include <numeric>
+#include <tuple>
 
 #include <commctrl.h>
 #include <windowsx.h>
@@ -279,8 +281,8 @@ void import_view::on_columnclick(NMHDR& nmhdr)
 void import_view::on_context_menu(LPARAM const lparam)
 {
 	POINT cursor_screen;
-	int ith_import;
-	if(lparam == 0xffffffff)
+	std::uint16_t ith_line;
+	if(lparam == 0xFFFFFFFF)
 	{
 		LRESULT const sel = SendMessageW(m_hwnd, LVM_GETNEXTITEM, WPARAM{0} - 1, LVNI_SELECTED);
 		if(sel == -1)
@@ -299,7 +301,8 @@ void import_view::on_context_menu(LPARAM const lparam)
 		cursor_screen.y = rect.top + (rect.bottom - rect.top) / 2;
 		BOOL const converted = ClientToScreen(m_hwnd, &cursor_screen);
 		assert(converted != 0);
-		ith_import = static_cast<int>(sel);
+		assert(static_cast<std::size_t>(sel) <= 0xFFFF);
+		ith_line = static_cast<std::uint16_t>(sel);
 	}
 	else
 	{
@@ -317,8 +320,10 @@ void import_view::on_context_menu(LPARAM const lparam)
 			return;
 		}
 		assert(hit_tested == hti.iItem);
-		ith_import = hti.iItem;
+		assert(hti.iItem <= 0xFFFF);
+		ith_line = static_cast<std::uint16_t>(hti.iItem);
 	}
+	std::uint16_t const ith_import = m_sort.empty() ? ith_line : m_sort[ith_line];
 	HWND const tree = m_main_window.m_tree_view.get_hwnd();
 	HTREEITEM const tree_selected = reinterpret_cast<HTREEITEM>(SendMessageW(tree, TVM_GETNEXTITEM, TVGN_CARET, 0));
 	if(!tree_selected)
@@ -344,7 +349,7 @@ void import_view::on_context_menu(LPARAM const lparam)
 	file_info const& parent_fi = *reinterpret_cast<file_info*>(ti_2.lParam);
 	int const ith_dll = static_cast<int>(&fi - parent_fi.m_sub_file_infos.data());
 	std::uint16_t const& matched_export = parent_fi.m_import_table.m_matched_exports[ith_dll][ith_import];
-	bool const enable_goto_orig = matched_export != 0xffff;
+	bool const enable_goto_orig = matched_export != 0xFFFF;
 	HMENU const menu = reinterpret_cast<HMENU>(m_menu.get());
 	BOOL const enabled = EnableMenuItem(menu, static_cast<std::uint16_t>(e_import_menu_id::e_matching), MF_BYCOMMAND | (enable_goto_orig ? MF_ENABLED : MF_GRAYED));
 	assert(enabled != -1 && (enabled == MF_ENABLED || enabled == MF_GRAYED));
@@ -418,6 +423,8 @@ void import_view::refresh()
 		assert(set_size != 0);
 	}
 
+	sort_view();
+
 	int const import_type_column_max_width = get_type_column_max_width();
 	int const ordinal_column_max_width = m_main_window.get_ordinal_column_max_width();
 
@@ -479,7 +486,8 @@ void import_view::refresh_headers()
 
 void import_view::select_item(std::uint16_t const item_idx)
 {
-	LRESULT const visibility_ensured = SendMessageW(m_hwnd, LVM_ENSUREVISIBLE, item_idx, FALSE);
+	std::uint16_t const ith_line = m_sort.empty() ? item_idx : m_sort[m_sort.size() / 2 + item_idx];
+	LRESULT const visibility_ensured = SendMessageW(m_hwnd, LVM_ENSUREVISIBLE, ith_line, FALSE);
 	assert(visibility_ensured == TRUE);
 	LVITEM lvi;
 	lvi.stateMask = LVIS_FOCUSED | LVIS_SELECTED;
@@ -487,7 +495,7 @@ void import_view::select_item(std::uint16_t const item_idx)
 	LRESULT const selection_cleared = SendMessageW(m_hwnd, LVM_SETITEMSTATE, WPARAM{0} - 1, reinterpret_cast<LPARAM>(&lvi));
 	assert(selection_cleared == TRUE);
 	lvi.state = LVIS_FOCUSED | LVIS_SELECTED;
-	LRESULT const selection_set = SendMessageW(m_hwnd, LVM_SETITEMSTATE, static_cast<WPARAM>(item_idx), reinterpret_cast<LPARAM>(&lvi));
+	LRESULT const selection_set = SendMessageW(m_hwnd, LVM_SETITEMSTATE, static_cast<WPARAM>(ith_line), reinterpret_cast<LPARAM>(&lvi));
 	assert(selection_set == TRUE);
 	[[maybe_unused]] HWND const prev_focus = SetFocus(m_hwnd);
 	assert(prev_focus != nullptr);
@@ -741,7 +749,9 @@ void import_view::select_matching_instance()
 	{
 		return;
 	}
-	int const ith_import = static_cast<int>(sel);
+	assert(static_cast<std::size_t>(sel) <= 0xFFFF);
+	std::uint16_t const ith_line = static_cast<std::uint16_t>(sel);
+	std::uint16_t const ith_import = m_sort.empty() ? ith_line : m_sort[ith_line];
 	HWND const tree = m_main_window.m_tree_view.get_hwnd();
 	HTREEITEM const tree_selected = reinterpret_cast<HTREEITEM>(SendMessageW(tree, TVM_GETNEXTITEM, TVGN_CARET, 0));
 	if(!tree_selected)
@@ -765,9 +775,9 @@ void import_view::select_matching_instance()
 	LRESULT const got_item_2 = SendMessageW(tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti_2));
 	assert(got_item_2 == TRUE);
 	file_info const& parent_fi = *reinterpret_cast<file_info*>(ti_2.lParam);
-	int const ith_dll = static_cast<int>(&fi - parent_fi.m_sub_file_infos.data());
+	std::uint16_t const ith_dll = static_cast<std::uint16_t>(&fi - parent_fi.m_sub_file_infos.data());
 	std::uint16_t const& matched = parent_fi.m_import_table.m_matched_exports[ith_dll][ith_import];
-	if(matched == 0xffff)
+	if(matched == 0xFFFF)
 	{
 		return;
 	}
