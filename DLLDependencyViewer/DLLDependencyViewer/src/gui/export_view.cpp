@@ -57,7 +57,7 @@ static int g_export_type_column_max_width = 0;
 
 struct string_helper_exp
 {
-	string_handle m_string;
+	string_handle const& m_string;
 };
 
 inline bool operator<(string_helper_exp const& a, string_helper_exp const& b) noexcept
@@ -79,6 +79,36 @@ inline bool operator<(string_helper_exp const& a, string_helper_exp const& b) no
 		assert(aaa);
 		assert(bbb);
 		return aa < bb;
+	}
+}
+
+struct entry_point_helper
+{
+	bool const& m_is_rva;
+	pe_rva_or_forwarder const& m_entry_point;
+};
+
+inline bool operator<(entry_point_helper const& a, entry_point_helper const& b)
+{
+	if(a.m_is_rva < b.m_is_rva)
+	{
+		return true;
+	}
+	else if(b.m_is_rva < a.m_is_rva)
+	{
+		return false;
+	}
+	else
+	{
+		assert(a.m_is_rva == b.m_is_rva);
+		if(a.m_is_rva)
+		{
+			return a.m_entry_point.m_rva < b.m_entry_point.m_rva;
+		}
+		else
+		{
+			return a.m_entry_point.m_forwarder < b.m_entry_point.m_forwarder;
+		}
 	}
 }
 
