@@ -8,6 +8,7 @@
 #include "../nogui/array_bool.h"
 #include "../nogui/int_to_string.h"
 #include "../nogui/pe.h"
+#include "../nogui/pe_getters.h"
 #include "../nogui/scope_exit.h"
 
 #include "../res/resources.h"
@@ -52,6 +53,34 @@ static constexpr wchar_t const s_export_name_undecorating[] = L"Undecorating..."
 
 
 static int g_export_type_column_max_width = 0;
+
+
+struct string_helper_exp
+{
+	string_handle m_string;
+};
+
+inline bool operator<(string_helper_exp const& a, string_helper_exp const& b) noexcept
+{
+	auto const& aa = a.m_string;
+	auto const& bb = b.m_string;
+	auto const& aaa = aa.m_string;
+	auto const& bbb = bb.m_string;
+	if(!aaa && !bbb)
+	{
+		return false;
+	}
+	else if(aaa == get_export_name_processing().m_string && bbb == get_export_name_processing().m_string)
+	{
+		return false;
+	}
+	else
+	{
+		assert(aaa);
+		assert(bbb);
+		return aa < bb;
+	}
+}
 
 
 export_view::export_view(HWND const parent, main_window& mw) :
