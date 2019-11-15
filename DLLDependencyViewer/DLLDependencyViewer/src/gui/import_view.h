@@ -31,6 +31,7 @@ public:
 	HWND get_hwnd() const;
 	void on_notify(NMHDR& nmhdr);
 	void on_getdispinfow(NMHDR& nmhdr);
+	void on_columnclick(NMHDR& nmhdr);
 	void on_context_menu(LPARAM const lparam);
 	void on_menu(std::uint16_t const menu_id);
 	void on_menu_matching();
