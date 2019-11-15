@@ -37,6 +37,7 @@ public:
 	void on_accel_matching();
 	void refresh();
 	void repaint();
+	void refresh_headers();
 	void select_item(std::uint16_t const item_idx);
 	void sort_view();
 private:
