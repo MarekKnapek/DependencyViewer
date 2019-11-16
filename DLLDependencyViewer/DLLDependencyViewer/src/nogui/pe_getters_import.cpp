@@ -133,7 +133,7 @@ string_handle pe_get_import_name_undecorated(pe_import_table_info const& iti, pe
 		if(need_undecorating)
 		{
 			string_handle const& undecorated_name = iti.m_undecorated_names[dll_idx][imp_idx];
-			if(!undecorated_name)
+			if(!undecorated_name.m_string)
 			{
 				return get_name_undecorating();
 			}

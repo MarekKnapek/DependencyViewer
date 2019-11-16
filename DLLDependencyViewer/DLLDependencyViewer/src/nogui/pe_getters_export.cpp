@@ -102,7 +102,7 @@ string_handle pe_get_export_name(pe_export_table_info const& eti, std::uint16_t 
 	else
 	{
 		string_handle const& debug_name = eti.m_names[exp_idx];
-		if(!debug_name)
+		if(!debug_name.m_string)
 		{
 			bool const is_rva = array_bool_tst(eti.m_are_rvas, exp_idx);
 			if(is_rva)
@@ -135,7 +135,7 @@ string_handle pe_get_export_name_undecorated(pe_export_table_info const& eti, st
 		if(need_undecorating)
 		{
 			string_handle const& undecorated_name = eti.m_undecorated_names[exp_idx];
-			if(!undecorated_name)
+			if(!undecorated_name.m_string)
 			{
 				return get_name_undecorating();
 			}
@@ -156,7 +156,7 @@ string_handle pe_get_export_name_undecorated(pe_export_table_info const& eti, st
 	else
 	{
 		string_handle const& debug_name = eti.m_names[exp_idx];
-		if(!debug_name)
+		if(!debug_name.m_string)
 		{
 			bool const is_rva = array_bool_tst(eti.m_are_rvas, exp_idx);
 			if(is_rva)
@@ -178,7 +178,7 @@ string_handle pe_get_export_name_undecorated(pe_export_table_info const& eti, st
 			if(need_undecorating)
 			{
 				string_handle const& undecorated_name = eti.m_undecorated_names[exp_idx];
-				if(!undecorated_name)
+				if(!undecorated_name.m_string)
 				{
 					return get_name_undecorating();
 				}
