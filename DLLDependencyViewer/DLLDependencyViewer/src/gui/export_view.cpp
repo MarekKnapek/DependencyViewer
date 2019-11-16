@@ -719,12 +719,12 @@ void export_view::select_matching_instance()
 	LRESULT const got_item = SendMessageW(tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
 	assert(got_item == TRUE);
 	file_info const& fi = *reinterpret_cast<file_info*>(ti.lParam);
-	std::uint16_t const& matched = fi.m_matched_imports[ith_export];
-	if(matched == 0xFFFF)
+	std::uint16_t const& matched_imp = fi.m_matched_imports[ith_export];
+	if(matched_imp == 0xFFFF)
 	{
 		return;
 	}
-	m_main_window.m_import_view.select_item(matched);
+	m_main_window.m_import_view.select_item(matched_imp);
 }
 
 int export_view::get_type_column_max_width()

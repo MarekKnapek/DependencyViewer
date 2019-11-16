@@ -713,12 +713,12 @@ void import_view::select_matching_instance()
 	assert(got_item_2 == TRUE);
 	file_info const& parent_fi = *reinterpret_cast<file_info*>(ti_2.lParam);
 	std::uint16_t const ith_dll = static_cast<std::uint16_t>(&fi - parent_fi.m_sub_file_infos.data());
-	std::uint16_t const& matched = parent_fi.m_import_table.m_matched_exports[ith_dll][ith_import];
-	if(matched == 0xFFFF)
+	std::uint16_t const& matched_exp = parent_fi.m_import_table.m_matched_exports[ith_dll][ith_import];
+	if(matched_exp == 0xFFFF)
 	{
 		return;
 	}
-	m_main_window.m_export_view.select_item(matched);
+	m_main_window.m_export_view.select_item(matched_exp);
 }
 
 int import_view::get_type_column_max_width()
