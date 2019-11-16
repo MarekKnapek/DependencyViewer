@@ -246,39 +246,10 @@ void export_view::on_getdispinfow(NMHDR& nmhdr)
 
 void export_view::on_columnclick(NMHDR& nmhdr)
 {
-	NMLISTVIEW& nmlv = reinterpret_cast<NMLISTVIEW&>(nmhdr);
-	assert(nmlv.iItem == -1);
-	assert(nmlv.iSubItem <= 127);
-	assert(nmlv.iSubItem >= 0 && nmlv.iSubItem < static_cast<int>(std::size(s_export_headers)));
-	e_export_column const col = static_cast<e_export_column>(nmlv.iSubItem);
-	std::uint8_t const col_u8 = static_cast<std::uint8_t>(col);
-	std::uint8_t const cur_sort_raw = m_main_window.m_settings.m_export_sort;
-	std::uint8_t new_sort;
-	if(cur_sort_raw == 0xFF)
-	{
-		new_sort = col_u8;
-	}
-	else
-	{
-		bool const cur_sort_asc = (cur_sort_raw & (1u << 7u)) == 0u;
-		std::uint8_t const cur_sort_col = cur_sort_raw &~ (1u << 7u);
-		if(cur_sort_col != col_u8)
-		{
-			new_sort = col_u8;
-		}
-		else
-		{
-			if(cur_sort_asc)
-			{
-				new_sort = cur_sort_col | (1u << 7u);
-			}
-			else
-			{
-				new_sort = 0xFF;
-			}
-		}
-	}
-	m_main_window.m_settings.m_export_sort = new_sort;
+	NMLISTVIEW const& nmlv = reinterpret_cast<NMLISTVIEW&>(nmhdr);
+	int const new_sort = list_view_base::on_columnclick(&nmlv, static_cast<int>(std::size(s_export_headers)), m_main_window.m_settings.m_export_sort);
+	assert(new_sort <= 0xFF);
+	m_main_window.m_settings.m_export_sort = static_cast<std::uint8_t>(new_sort);
 	sort_view();
 	refresh_headers();
 }
