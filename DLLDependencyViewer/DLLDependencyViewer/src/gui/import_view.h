@@ -1,7 +1,6 @@
 #pragma once
 
 
-#include "list_view_base.h"
 #include "smart_menu.h"
 
 #include <cstdint>
@@ -19,7 +18,7 @@ struct pe_import_entry;
 struct pe_import_table_info;
 
 
-class import_view : private list_view_base
+class import_view
 {
 public:
 	import_view() = delete;

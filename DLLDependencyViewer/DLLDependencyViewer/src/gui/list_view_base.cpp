@@ -7,14 +7,6 @@
 #include <commctrl.h>
 
 
-list_view_base::list_view_base()
-{
-}
-
-list_view_base::~list_view_base()
-{
-}
-
 int list_view_base::on_columnclick(void const* const param, [[maybe_unused]] int const n_headers, int const curr_sort)
 {
 	assert(n_headers <= 127);

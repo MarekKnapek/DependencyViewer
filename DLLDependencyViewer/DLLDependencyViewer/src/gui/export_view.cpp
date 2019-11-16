@@ -1,6 +1,7 @@
 #include "export_view.h"
 
 #include "constants.h"
+#include "list_view_base.h"
 #include "main.h"
 #include "main_window.h"
 #include "smart_dc.h"
@@ -117,7 +118,6 @@ inline bool operator<(entry_point_helper const& a, entry_point_helper const& b)
 
 
 export_view::export_view(HWND const parent, main_window& mw) :
-	list_view_base(),
 	m_hwnd(CreateWindowExW(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE, WC_LISTVIEWW, nullptr, WS_VISIBLE | WS_CHILD | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA, 0, 0, 0, 0, parent, nullptr, get_instance(), nullptr)),
 	m_main_window(mw),
 	m_menu(create_menu()),
