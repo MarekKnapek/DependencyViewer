@@ -3,6 +3,35 @@
 #include "array_bool.h"
 #include "pe_getters_export.h"
 
+#include "../res/resources.h"
+
+#include <cassert>
+
+
+std::uint8_t pe_get_import_icon_id(pe_import_table_info const& iti, std::uint16_t const dll_idx, std::uint16_t const imp_idx)
+{
+	std::uint16_t const& matched_export = iti.m_matched_exports[dll_idx][imp_idx];
+	bool const has_matched_export = matched_export != 0xFFFF;
+	bool const is_ordinal = array_bool_tst(iti.m_are_ordinals[dll_idx], imp_idx);
+	if(has_matched_export && is_ordinal)
+	{
+		return s_res_icon_import_found_o;
+	}
+	else if(has_matched_export && !is_ordinal)
+	{
+		return s_res_icon_import_found_c;
+	}
+	else if(!has_matched_export && is_ordinal)
+	{
+		return s_res_icon_import_not_found_o;
+	}
+	else if(!has_matched_export && !is_ordinal)
+	{
+		return s_res_icon_import_not_found_c;
+	}
+	assert(false);
+	__assume(false);
+}
 
 bool pe_get_import_is_ordinal(pe_import_table_info const& iti, std::uint16_t const dll_idx, std::uint16_t const imp_idx)
 {
@@ -15,12 +44,12 @@ optional<std::uint16_t> pe_get_import_ordinal(pe_import_table_info const& iti, p
 	bool const is_ordinal = array_bool_tst(iti.m_are_ordinals[dll_idx], imp_idx);
 	if(is_ordinal)
 	{
-		std::uint16_t const ordinal = iti.m_ordinals_or_hints[dll_idx][imp_idx];
+		std::uint16_t const& ordinal = iti.m_ordinals_or_hints[dll_idx][imp_idx];
 		return {ordinal, true};
 	}
 	else
 	{
-		std::uint16_t const matched_export = iti.m_matched_exports[dll_idx][imp_idx];
+		std::uint16_t const& matched_export = iti.m_matched_exports[dll_idx][imp_idx];
 		bool const has_matched_export = matched_export != 0xFFFF;
 		if(has_matched_export)
 		{
@@ -39,7 +68,7 @@ optional<std::uint16_t> pe_get_import_hint(pe_import_table_info const& iti, pe_e
 	bool const is_ordinal = array_bool_tst(iti.m_are_ordinals[dll_idx], imp_idx);
 	if(is_ordinal)
 	{
-		std::uint16_t const matched_export = iti.m_matched_exports[dll_idx][imp_idx];
+		std::uint16_t const& matched_export = iti.m_matched_exports[dll_idx][imp_idx];
 		bool const has_matched_export = matched_export != 0xFFFF;
 		if(has_matched_export)
 		{
@@ -53,7 +82,7 @@ optional<std::uint16_t> pe_get_import_hint(pe_import_table_info const& iti, pe_e
 	}
 	else
 	{
-		std::uint16_t const hint = iti.m_ordinals_or_hints[dll_idx][imp_idx];
+		std::uint16_t const& hint = iti.m_ordinals_or_hints[dll_idx][imp_idx];
 		return {hint, true};
 	}
 }
@@ -63,7 +92,7 @@ string_handle pe_get_import_name(pe_import_table_info const& iti, pe_export_tabl
 	bool const is_ordinal = array_bool_tst(iti.m_are_ordinals[dll_idx], imp_idx);
 	if(is_ordinal)
 	{
-		std::uint16_t const matched_export = iti.m_matched_exports[dll_idx][imp_idx];
+		std::uint16_t const& matched_export = iti.m_matched_exports[dll_idx][imp_idx];
 		bool const has_matched_export = matched_export != 0xFFFF;
 		if(has_matched_export)
 		{
@@ -86,7 +115,7 @@ string_handle pe_get_import_name_undecorated(pe_import_table_info const& iti, pe
 	bool const is_ordinal = array_bool_tst(iti.m_are_ordinals[dll_idx], imp_idx);
 	if(is_ordinal)
 	{
-		std::uint16_t const matched_export = iti.m_matched_exports[dll_idx][imp_idx];
+		std::uint16_t const& matched_export = iti.m_matched_exports[dll_idx][imp_idx];
 		bool const has_matched_export = matched_export != 0xFFFF;
 		if(has_matched_export)
 		{

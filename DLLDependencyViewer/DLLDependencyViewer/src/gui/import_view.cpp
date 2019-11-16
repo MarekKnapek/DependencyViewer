@@ -212,31 +212,9 @@ void import_view::on_getdispinfow(NMHDR& nmhdr)
 	}
 	if((nm.item.mask & LVIF_IMAGE) != 0)
 	{
-		std::uint16_t const& real_imp_idx = m_sort.empty() ? imp_idx : m_sort[imp_idx];
-		std::uint16_t const& matched_export = parent_fi.m_import_table.m_matched_exports[dll_idx][real_imp_idx];
-		bool const is_ordinal = array_bool_tst(parent_fi.m_import_table.m_are_ordinals[dll_idx], real_imp_idx);
-		bool const matched = matched_export != 0xffff;
-		bool const ordinal = is_ordinal;
-		if(matched && ordinal)
-		{
-			nm.item.iImage = s_res_icon_import_found_o;
-		}
-		else if(matched && !ordinal)
-		{
-			nm.item.iImage = s_res_icon_import_found_c;
-		}
-		else if(!matched && ordinal)
-		{
-			nm.item.iImage = s_res_icon_import_not_found_o;
-		}
-		else if(!matched && !ordinal)
-		{
-			nm.item.iImage = s_res_icon_import_not_found_c;
-		}
-		else
-		{
-			__assume(false);
-		}
+		std::uint16_t const& imp_idx_sorted = m_sort.empty() ? imp_idx : m_sort[imp_idx];
+		std::uint8_t const icon_idx = pe_get_import_icon_id(parent_fi.m_import_table, dll_idx, imp_idx_sorted);
+		nm.item.iImage = icon_idx;
 	}
 }
 
@@ -477,7 +455,24 @@ void import_view::sort_view()
 		e_import_column const col = static_cast<e_import_column>(cur_sort_col);
 		switch(col)
 		{
-			case e_import_column::e_pi: [[fallthrough]];
+			case e_import_column::e_pi:
+			{
+				auto const fn_compare_icon = [&](std::uint16_t const a, std::uint16_t const b, auto const& cmp) -> bool
+				{
+					std::uint8_t const icon_idx_a = pe_get_import_icon_id(iti, dll_idx, a);
+					std::uint8_t const icon_idx_b = pe_get_import_icon_id(iti, dll_idx, b);
+					return cmp(icon_idx_a, icon_idx_b);
+				};
+				if(cur_sort_asc)
+				{
+					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_icon(a, b, std::less<>{}); });
+				}
+				else
+				{
+					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_icon(a, b, std::greater<>{}); });
+				}
+			}
+			break;
 			case e_import_column::e_type:
 			{
 				auto const fn_compare_type = [&](std::uint16_t const a, std::uint16_t const b, auto const& cmp) -> bool
