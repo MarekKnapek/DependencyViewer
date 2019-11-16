@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <cstdint>
+#include <vector>
 
 #include "../nogui/my_windows.h"
 #include <commctrl.h>
@@ -85,4 +86,24 @@ void list_view_base::refresh_headers(void const* const handle, int const n_heade
 		LRESULT const set_item = SendMessageW(hdr, HDM_SETITEMW, cur_sort_col, reinterpret_cast<LPARAM>(&hd_item));
 		assert(set_item != 0);
 	}
+}
+
+void list_view_base::select_item(void const* const hwnd_ptr, void const* const sort_ptr, int const item_idx)
+{
+	HWND const& hwnd = *static_cast<HWND const*>(hwnd_ptr);
+	std::vector<std::uint16_t> const& sort = *static_cast<std::vector<std::uint16_t> const*>(sort_ptr);
+	assert(item_idx <= 0xFFFF);
+	std::uint16_t const ith_line = sort.empty() ? static_cast<std::uint16_t>(item_idx) : sort[sort.size() / 2 + item_idx];
+	LRESULT const visibility_ensured = SendMessageW(hwnd, LVM_ENSUREVISIBLE, ith_line, FALSE);
+	assert(visibility_ensured == TRUE);
+	LVITEM lvi;
+	lvi.stateMask = LVIS_FOCUSED | LVIS_SELECTED;
+	lvi.state = 0;
+	LRESULT const selection_cleared = SendMessageW(hwnd, LVM_SETITEMSTATE, WPARAM{0} - 1, reinterpret_cast<LPARAM>(&lvi));
+	assert(selection_cleared == TRUE);
+	lvi.state = LVIS_FOCUSED | LVIS_SELECTED;
+	LRESULT const selection_set = SendMessageW(hwnd, LVM_SETITEMSTATE, static_cast<WPARAM>(ith_line), reinterpret_cast<LPARAM>(&lvi));
+	assert(selection_set == TRUE);
+	[[maybe_unused]] HWND const prev_focus = SetFocus(hwnd);
+	assert(prev_focus != nullptr);
 }

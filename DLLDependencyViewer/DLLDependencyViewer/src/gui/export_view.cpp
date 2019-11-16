@@ -405,19 +405,7 @@ void export_view::refresh_headers()
 
 void export_view::select_item(std::uint16_t const item_idx)
 {
-	std::uint16_t const ith_line = m_sort.empty() ? item_idx : m_sort[m_sort.size() / 2 + item_idx];
-	LRESULT const visibility_ensured = SendMessageW(m_hwnd, LVM_ENSUREVISIBLE, ith_line, FALSE);
-	assert(visibility_ensured == TRUE);
-	LVITEM lvi;
-	lvi.stateMask = LVIS_FOCUSED | LVIS_SELECTED;
-	lvi.state = 0;
-	LRESULT const selection_cleared = SendMessageW(m_hwnd, LVM_SETITEMSTATE, WPARAM{0} - 1, reinterpret_cast<LPARAM>(&lvi));
-	assert(selection_cleared == TRUE);
-	lvi.state = LVIS_FOCUSED | LVIS_SELECTED;
-	LRESULT const selection_set = SendMessageW(m_hwnd, LVM_SETITEMSTATE, static_cast<WPARAM>(ith_line), reinterpret_cast<LPARAM>(&lvi));
-	assert(selection_set == TRUE);
-	[[maybe_unused]] HWND const prev_focus = SetFocus(m_hwnd);
-	assert(prev_focus != nullptr);
+	list_view_base::select_item(&m_hwnd, &m_sort, item_idx);
 	repaint();
 }
 
