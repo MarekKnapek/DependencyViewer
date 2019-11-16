@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include "list_view_base.h"
 #include "smart_menu.h"
 
 #include <cstdint>
@@ -17,7 +18,7 @@ struct export_address_entry;
 struct pe_export_table_info;
 
 
-class export_view
+class export_view : private list_view_base
 {
 public:
 	export_view() = delete;
