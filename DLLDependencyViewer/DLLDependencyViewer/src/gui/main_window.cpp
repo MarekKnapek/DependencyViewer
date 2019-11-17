@@ -1256,7 +1256,7 @@ void main_window::finish_symbols_from_addresses(symbols_from_addresses_param_t c
 		LRESULT const got = SendMessageW(m_tree_view.get_hwnd(), TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
 		assert(got == TRUE);
 		file_info const* const fi = reinterpret_cast<file_info*>(ti.lParam);
-		if(fi == param.m_data)
+		if(fi == param.m_data || fi->m_orig_instance == param.m_data)
 		{
 			m_import_view.sort_view();
 			m_export_view.sort_view();
@@ -1392,7 +1392,7 @@ void main_window::finish_symbol_undecoration_e(undecorated_from_decorated_e_para
 		LRESULT const got = SendMessageW(m_tree_view.get_hwnd(), TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
 		assert(got == TRUE);
 		file_info const* const fi = reinterpret_cast<file_info*>(ti.lParam);
-		if(fi == param.m_data)
+		if(fi == param.m_data || fi->m_orig_instance == param.m_data)
 		{
 			m_import_view.sort_view();
 			m_export_view.sort_view();
@@ -1493,7 +1493,7 @@ void main_window::finish_symbol_undecoration_i(undecorated_from_decorated_i_para
 		LRESULT const got = SendMessageW(m_tree_view.get_hwnd(), TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
 		assert(got == TRUE);
 		file_info const* const fi = reinterpret_cast<file_info*>(ti.lParam);
-		if(fi == param.m_data)
+		if(fi == param.m_data || fi->m_orig_instance == param.m_data)
 		{
 			m_import_view.sort_view();
 			m_export_view.sort_view();
