@@ -33,13 +33,19 @@ public:
 	void on_context_menu(LPARAM const lparam);
 	void on_menu(std::uint16_t const menu_id);
 	void on_menu_orig();
+	void on_menu_expand();
+	void on_menu_collapse();
 	void on_accel_orig();
+	void on_accel_expand();
+	void on_accel_collapse();
 	void refresh();
 	void repaint();
 private:
 	smart_menu create_menu();
 	void refresh_view_recursive(file_info& parent_fi, void* const parent_ti);
 	void select_original_instance();
+	void expand();
+	void collapse();
 private:
 	HWND const m_hwnd;
 	main_window& m_main_window;

@@ -19,8 +19,12 @@
 enum class e_tree_menu_id : std::uint16_t
 {
 	e_orig = s_tree_view_menu_min,
+	e_expand,
+	e_collapse
 };
 static constexpr wchar_t const s_tree_menu_orig_str[] = L"Highlight &Original Instance\tCtrl+K";
+static constexpr wchar_t const s_tree_menu_expand_str[] = L"&Expand All\tCtrl+E";
+static constexpr wchar_t const s_tree_menu_collapse_str[] = L"Co&llapse All\tCtrl+W";
 
 
 tree_view::tree_view(HWND const parent, main_window& mw) :
@@ -253,6 +257,16 @@ void tree_view::on_menu(std::uint16_t const menu_id)
 			on_menu_orig();
 		}
 		break;
+		case e_tree_menu_id::e_expand:
+		{
+			on_menu_expand();
+		}
+		break;
+		case e_tree_menu_id::e_collapse:
+		{
+			on_menu_collapse();
+		}
+		break;
 		default:
 		{
 			assert(false);
@@ -266,9 +280,29 @@ void tree_view::on_menu_orig()
 	select_original_instance();
 }
 
+void tree_view::on_menu_expand()
+{
+	expand();
+}
+
+void tree_view::on_menu_collapse()
+{
+	collapse();
+}
+
 void tree_view::on_accel_orig()
 {
 	select_original_instance();
+}
+
+void tree_view::on_accel_expand()
+{
+	expand();
+}
+
+void tree_view::on_accel_collapse()
+{
+	collapse();
 }
 
 void tree_view::refresh()
@@ -295,7 +329,7 @@ void tree_view::refresh()
 	LRESULT const selected = SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(first));
 	assert(selected == TRUE);
 
-	LRESULT const redr_on_1 = SendMessageW(m_hwnd, WM_SETREDRAW, TRUE, 0);
+	LRESULT const redr_on = SendMessageW(m_hwnd, WM_SETREDRAW, TRUE, 0);
 	repaint();
 }
 
@@ -307,17 +341,35 @@ void tree_view::repaint()
 
 smart_menu tree_view::create_menu()
 {
+	static constexpr std::uint16_t const menu_ids[] =
+	{
+		static_cast<std::uint16_t>(e_tree_menu_id::e_orig),
+		static_cast<std::uint16_t>(e_tree_menu_id::e_expand),
+		static_cast<std::uint16_t>(e_tree_menu_id::e_collapse)
+	};
+	static constexpr wchar_t const* const menu_strs[] =
+	{
+		s_tree_menu_orig_str,
+		s_tree_menu_expand_str,
+		s_tree_menu_collapse_str
+	};
+	static_assert(std::size(menu_ids) == std::size(menu_strs), "");
+
 	HMENU const tree_menu = CreatePopupMenu();
 	assert(tree_menu);
-	MENUITEMINFOW mi{};
-	mi.cbSize = sizeof(mi);
-	mi.fMask = MIIM_ID | MIIM_STRING | MIIM_FTYPE;
-	mi.fType = MFT_STRING;
-	mi.wID = static_cast<std::uint16_t>(e_tree_menu_id::e_orig);
-	mi.dwTypeData = const_cast<wchar_t*>(s_tree_menu_orig_str);
-	BOOL const inserted = InsertMenuItemW(tree_menu, 0, TRUE, &mi);
-	assert(inserted != 0);
-	return smart_menu{tree_menu};
+	smart_menu sm{tree_menu};
+	for(int i = 0; i != static_cast<int>(std::size(menu_ids)); ++i)
+	{
+		MENUITEMINFOW mi{};
+		mi.cbSize = sizeof(mi);
+		mi.fMask = MIIM_ID | MIIM_STRING | MIIM_FTYPE;
+		mi.fType = MFT_STRING;
+		mi.wID = menu_ids[i];
+		mi.dwTypeData = const_cast<wchar_t*>(menu_strs[i]);
+		BOOL const inserted = InsertMenuItemW(tree_menu, i, TRUE, &mi);
+		assert(inserted != 0);
+	}
+	return sm;
 }
 
 void tree_view::refresh_view_recursive(file_info& parent_fi, void* const parent_ti)
@@ -370,4 +422,77 @@ void tree_view::select_original_instance()
 	}
 	LRESULT const orig_selected = SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(fi.m_orig_instance->m_tree_item));
 	assert(orig_selected == TRUE);
+}
+
+void tree_view::expand()
+{
+	static constexpr auto const recursion = [](HWND const hwnd, HTREEITEM const item) -> void
+	{
+		static constexpr auto const recursion_impl = [](auto const& self, HWND const hwnd, HTREEITEM const item) -> void
+		{
+			HTREEITEM const child = reinterpret_cast<HTREEITEM>(SendMessageW(hwnd, TVM_GETNEXTITEM, TVGN_CHILD, reinterpret_cast<LPARAM>(item)));
+			if(child)
+			{
+				LRESULT const expanded = SendMessageW(hwnd, TVM_EXPAND, TVE_EXPAND, reinterpret_cast<LPARAM>(item));
+				assert(expanded != 0);
+				self(self, hwnd, child);
+			}
+			HTREEITEM const sibling = reinterpret_cast<HTREEITEM>(SendMessageW(hwnd, TVM_GETNEXTITEM, TVGN_NEXT, reinterpret_cast<LPARAM>(item)));
+			if(sibling)
+			{
+				self(self, hwnd, sibling);
+			}
+		};
+		recursion_impl(recursion_impl, hwnd, item);
+	};
+	
+	HTREEITEM const item = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_ROOT, LPARAM{0}));
+	if(!item)
+	{
+		return;
+	}
+	HTREEITEM const selection = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_CARET, LPARAM{0}));
+	LRESULT const redr_off = SendMessageW(m_hwnd, WM_SETREDRAW, FALSE, 0);
+	recursion(m_hwnd, item);
+	LRESULT const redr_on = SendMessageW(m_hwnd, WM_SETREDRAW, TRUE, 0);
+	if(selection)
+	{
+		LRESULT const visibled = SendMessageW(m_hwnd, TVM_ENSUREVISIBLE, 0, reinterpret_cast<LPARAM>(selection));
+	}
+	repaint();
+}
+
+void tree_view::collapse()
+{
+	static constexpr auto const recursion = [](HWND const hwnd, HTREEITEM const item) -> void
+	{
+		static constexpr auto const recursion_impl = [](auto const& self, HWND const hwnd, HTREEITEM const item) -> void
+		{
+			HTREEITEM const child = reinterpret_cast<HTREEITEM>(SendMessageW(hwnd, TVM_GETNEXTITEM, TVGN_CHILD, reinterpret_cast<LPARAM>(item)));
+			if(child)
+			{
+				self(self, hwnd, child);
+				LRESULT const collapsed = SendMessageW(hwnd, TVM_EXPAND, TVE_COLLAPSE, reinterpret_cast<LPARAM>(item));
+			}
+			HTREEITEM const sibling = reinterpret_cast<HTREEITEM>(SendMessageW(hwnd, TVM_GETNEXTITEM, TVGN_NEXT, reinterpret_cast<LPARAM>(item)));
+			if(sibling)
+			{
+				self(self, hwnd, sibling);
+			}
+		};
+		recursion_impl(recursion_impl, hwnd, item);
+	};
+
+	HTREEITEM const item = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_ROOT, LPARAM{0}));
+	if(!item)
+	{
+		return;
+	}
+	LRESULT const selected = SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(item));
+	assert(selected == TRUE);
+	LRESULT const redr_off = SendMessageW(m_hwnd, WM_SETREDRAW, FALSE, 0);
+	recursion(m_hwnd, item);
+	LRESULT const redr_on = SendMessageW(m_hwnd, WM_SETREDRAW, TRUE, 0);
+	LRESULT const visibled = SendMessageW(m_hwnd, TVM_ENSUREVISIBLE, 0, reinterpret_cast<LPARAM>(item));
+	repaint();
 }

@@ -32,7 +32,7 @@ static constexpr wchar_t const s_window_class_name[] = L"main_window";
 static constexpr wchar_t const s_window_title[] = L"DLLDependencyViewer";
 static constexpr wchar_t const s_menu_file[] = L"&File";
 static constexpr wchar_t const s_menu_file_open[] = L"&Open...\tCtrl+O";
-static constexpr wchar_t const s_menu_file_exit[] = L"E&xit\tCtrl+W";
+static constexpr wchar_t const s_menu_file_exit[] = L"E&xit";
 static constexpr wchar_t const s_menu_view[] = L"&View";
 static constexpr wchar_t const s_menu_view_paths[] = L"&Full Paths\tF9";
 static constexpr wchar_t const s_menu_view_undecorate[] = L"&Undecorate C++ Functions\tF10";
@@ -59,22 +59,24 @@ enum class e_toolbar : std::uint16_t
 enum class e_accel : std::uint16_t
 {
 	e_main_open,
-	e_main_exit,
 	e_main_paths,
 	e_main_undecorate,
 	e_main_refresh,
 	e_main_matching,
 	e_tree_orig,
+	e_tree_expand,
+	e_tree_collapse
 };
 static constexpr ACCEL const s_accel_table[] =
 {
 	{FVIRTKEY | FCONTROL,	'O',   	static_cast<std::uint16_t>(e_accel::e_main_open      	)},
-	{FVIRTKEY | FCONTROL,	'W',   	static_cast<std::uint16_t>(e_accel::e_main_exit      	)},
 	{FVIRTKEY,           	VK_F9, 	static_cast<std::uint16_t>(e_accel::e_main_paths     	)},
 	{FVIRTKEY,           	VK_F10,	static_cast<std::uint16_t>(e_accel::e_main_undecorate	)},
 	{FVIRTKEY,           	VK_F5, 	static_cast<std::uint16_t>(e_accel::e_main_refresh   	)},
 	{FVIRTKEY | FCONTROL,	'M',   	static_cast<std::uint16_t>(e_accel::e_main_matching  	)},
 	{FVIRTKEY | FCONTROL,	'K',   	static_cast<std::uint16_t>(e_accel::e_tree_orig      	)},
+	{FVIRTKEY | FCONTROL,	'E',   	static_cast<std::uint16_t>(e_accel::e_tree_expand    	)},
+	{FVIRTKEY | FCONTROL,	'W',   	static_cast<std::uint16_t>(e_accel::e_tree_collapse  	)},
 };
 
 
@@ -607,11 +609,6 @@ void main_window::on_accelerator(WPARAM const wparam)
 			on_accel_open();
 		}
 		break;
-		case e_accel::e_main_exit:
-		{
-			on_accel_exit();
-		}
-		break;
 		case e_accel::e_main_paths:
 		{
 			on_accel_paths();
@@ -635,6 +632,16 @@ void main_window::on_accelerator(WPARAM const wparam)
 		case e_accel::e_tree_orig:
 		{
 			m_tree_view.on_accel_orig();
+		}
+		break;
+		case e_accel::e_tree_expand:
+		{
+			m_tree_view.on_accel_expand();
+		}
+		break;
+		case e_accel::e_tree_collapse:
+		{
+			m_tree_view.on_accel_collapse();
 		}
 		break;
 		default:
@@ -743,11 +750,6 @@ void main_window::on_menu_refresh()
 void main_window::on_accel_open()
 {
 	open();
-}
-
-void main_window::on_accel_exit()
-{
-	exit();
 }
 
 void main_window::on_accel_paths()
