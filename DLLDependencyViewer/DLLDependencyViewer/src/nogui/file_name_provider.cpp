@@ -30,11 +30,6 @@ wstring_handle file_name_provider::get_correct_file_name(wchar_t const* const& f
 
 file_name_provider::file_name_provider()
 {
-	HRESULT const com_inited = OleInitialize(nullptr);
-	if(!(com_inited == S_OK || com_inited == S_FALSE))
-	{
-		throw s_file_name_err;
-	}
 	HRESULT const get_clsid = CLSIDFromProgID(L"Scripting.FileSystemObject", &m_clsid);
 	if(!(get_clsid == S_OK))
 	{
@@ -57,7 +52,6 @@ file_name_provider::file_name_provider()
 file_name_provider::~file_name_provider()
 {
 	m_object->lpVtbl->Release(m_object);
-	OleUninitialize();
 }
 
 wstring_handle file_name_provider::get_correct_file_name_(wchar_t const* const& file_name, int const& file_name_len, wunique_strings& us, allocator& alc)

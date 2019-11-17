@@ -217,6 +217,7 @@
     <ClInclude Include="src\nogui\allocator_small.h" />
     <ClInclude Include="src\nogui\array_bool.h" />
     <ClInclude Include="src\nogui\assert.h" />
+    <ClInclude Include="src\nogui\com.h" />
     <ClInclude Include="src\nogui\dbghelp.h" />
     <ClInclude Include="src\nogui\dbg_provider.h" />
     <ClInclude Include="src\nogui\file_name_provider.h" />
@@ -230,6 +231,7 @@
     <ClInclude Include="src\nogui\my_string_handle.h" />
     <ClInclude Include="src\nogui\my_vector.h" />
     <ClInclude Include="src\nogui\my_windows.h" />
+    <ClInclude Include="src\nogui\ole.h" />
     <ClInclude Include="src\nogui\pe.h" />
     <ClInclude Include="src\nogui\pe2.h" />
     <ClInclude Include="src\nogui\pe\coff.h" />
@@ -346,6 +348,10 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="src\nogui\com.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="src\nogui\dbghelp.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -387,6 +393,10 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\nogui\my_string_handle.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="src\nogui\ole.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>

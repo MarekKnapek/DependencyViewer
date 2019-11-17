@@ -309,6 +309,12 @@
     <ClInclude Include="src\gui\list_view_base.h">
       <Filter>src\gui</Filter>
     </ClInclude>
+    <ClInclude Include="src\nogui\com.h">
+      <Filter>src\nogui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nogui\ole.h">
+      <Filter>src\nogui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\main.cpp">
@@ -478,6 +484,12 @@
     </ClCompile>
     <ClCompile Include="src\gui\list_view_base.cpp">
       <Filter>src\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nogui\com.cpp">
+      <Filter>src\nogui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nogui\ole.cpp">
+      <Filter>src\nogui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -5,8 +5,10 @@
 #include "test.h"
 
 #include "../nogui/activation_context.h"
+#include "../nogui/com.h"
 #include "../nogui/dbg_provider.h"
 #include "../nogui/file_name_provider.h"
+#include "../nogui/ole.h"
 #include "../nogui/scope_exit.h"
 
 #include <cassert>
@@ -19,6 +21,8 @@ static HINSTANCE g_instance;
 
 int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE /*hPrevInstance*/, _In_ PWSTR /*pCmdLine*/, _In_ int nCmdShow)
 {
+	com c;
+	ole o;
 	file_name_provider::init();
 	auto const file_name_deinit = mk::make_scope_exit([](){ file_name_provider::deinit(); });
 	test();
