@@ -35,9 +35,11 @@ public:
 	void on_menu_orig();
 	void on_menu_expand();
 	void on_menu_collapse();
+	void on_menu_properties();
 	void on_accel_orig();
 	void on_accel_expand();
 	void on_accel_collapse();
+	void on_accel_properties();
 	void refresh();
 	void repaint();
 private:
@@ -46,6 +48,7 @@ private:
 	void select_original_instance();
 	void expand();
 	void collapse();
+	void properties();
 private:
 	HWND const m_hwnd;
 	main_window& m_main_window;

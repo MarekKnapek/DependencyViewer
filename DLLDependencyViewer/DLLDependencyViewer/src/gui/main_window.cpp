@@ -48,13 +48,13 @@ enum class e_main_menu_id : std::uint16_t
 	e_exit,
 	e_full_paths,
 	e_undecorate,
-	e_refresh,
+	e_refresh
 };
 enum class e_toolbar : std::uint16_t
 {
 	e_open,
 	e_full_paths,
-	e_undecorate,
+	e_undecorate
 };
 enum class e_accel : std::uint16_t
 {
@@ -65,18 +65,20 @@ enum class e_accel : std::uint16_t
 	e_main_matching,
 	e_tree_orig,
 	e_tree_expand,
-	e_tree_collapse
+	e_tree_collapse,
+	e_tree_properties
 };
 static constexpr ACCEL const s_accel_table[] =
 {
-	{FVIRTKEY | FCONTROL,	'O',   	static_cast<std::uint16_t>(e_accel::e_main_open      	)},
-	{FVIRTKEY,           	VK_F9, 	static_cast<std::uint16_t>(e_accel::e_main_paths     	)},
-	{FVIRTKEY,           	VK_F10,	static_cast<std::uint16_t>(e_accel::e_main_undecorate	)},
-	{FVIRTKEY,           	VK_F5, 	static_cast<std::uint16_t>(e_accel::e_main_refresh   	)},
-	{FVIRTKEY | FCONTROL,	'M',   	static_cast<std::uint16_t>(e_accel::e_main_matching  	)},
-	{FVIRTKEY | FCONTROL,	'K',   	static_cast<std::uint16_t>(e_accel::e_tree_orig      	)},
-	{FVIRTKEY | FCONTROL,	'E',   	static_cast<std::uint16_t>(e_accel::e_tree_expand    	)},
-	{FVIRTKEY | FCONTROL,	'W',   	static_cast<std::uint16_t>(e_accel::e_tree_collapse  	)},
+	{FVIRTKEY | FCONTROL,	'O',      	static_cast<std::uint16_t>(e_accel::e_main_open      	)},
+	{FVIRTKEY,           	VK_F9,    	static_cast<std::uint16_t>(e_accel::e_main_paths     	)},
+	{FVIRTKEY,           	VK_F10,   	static_cast<std::uint16_t>(e_accel::e_main_undecorate	)},
+	{FVIRTKEY,           	VK_F5,    	static_cast<std::uint16_t>(e_accel::e_main_refresh   	)},
+	{FVIRTKEY | FCONTROL,	'M',      	static_cast<std::uint16_t>(e_accel::e_main_matching  	)},
+	{FVIRTKEY | FCONTROL,	'K',      	static_cast<std::uint16_t>(e_accel::e_tree_orig      	)},
+	{FVIRTKEY | FCONTROL,	'E',      	static_cast<std::uint16_t>(e_accel::e_tree_expand    	)},
+	{FVIRTKEY | FCONTROL,	'W',      	static_cast<std::uint16_t>(e_accel::e_tree_collapse  	)},
+	{FVIRTKEY | FALT,    	VK_RETURN,	static_cast<std::uint16_t>(e_accel::e_tree_properties	)}
 };
 
 
@@ -642,6 +644,11 @@ void main_window::on_accelerator(WPARAM const wparam)
 		case e_accel::e_tree_collapse:
 		{
 			m_tree_view.on_accel_collapse();
+		}
+		break;
+		case e_accel::e_tree_properties:
+		{
+			m_tree_view.on_accel_properties();
 		}
 		break;
 		default:

@@ -14,17 +14,20 @@
 
 #include <commctrl.h>
 #include <windowsx.h>
+#include <shellapi.h>
 
 
 enum class e_tree_menu_id : std::uint16_t
 {
 	e_orig = s_tree_view_menu_min,
 	e_expand,
-	e_collapse
+	e_collapse,
+	e_properties
 };
-static constexpr wchar_t const s_tree_menu_orig_str[] = L"Highlight &Original Instance\tCtrl+K";
-static constexpr wchar_t const s_tree_menu_expand_str[] = L"&Expand All\tCtrl+E";
-static constexpr wchar_t const s_tree_menu_collapse_str[] = L"Co&llapse All\tCtrl+W";
+static constexpr wchar_t const s_tree_menu_str_orig[] = L"Highlight &Original Instance\tCtrl+K";
+static constexpr wchar_t const s_tree_menu_str_expand[] = L"&Expand All\tCtrl+E";
+static constexpr wchar_t const s_tree_menu_str_collapse[] = L"Co&llapse All\tCtrl+W";
+static constexpr wchar_t const s_tree_menu_str_properties[] = L"&Properties...\tAlt+Enter";
 
 
 tree_view::tree_view(HWND const parent, main_window& mw) :
@@ -238,11 +241,19 @@ void tree_view::on_context_menu(LPARAM const lparam)
 	ti.mask = TVIF_PARAM;
 	LRESULT const got_item = SendMessageW(m_hwnd, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
 	assert(got_item == TRUE);
-	file_info const& fi = *reinterpret_cast<file_info*>(ti.lParam);
-	bool const enable_goto_orig = fi.m_orig_instance != nullptr;
+	file_info const& tmp_fi = *reinterpret_cast<file_info*>(ti.lParam);
+	file_info const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
 	HMENU const menu = reinterpret_cast<HMENU>(m_menu.get());
-	BOOL const enabled = EnableMenuItem(menu, static_cast<std::uint16_t>(e_tree_menu_id::e_orig), MF_BYCOMMAND | (enable_goto_orig ? MF_ENABLED : MF_GRAYED));
-	assert(enabled != -1 && (enabled == MF_ENABLED || enabled == MF_GRAYED));
+	{
+		bool const enable_goto_orig = tmp_fi.m_orig_instance != nullptr;
+		BOOL const enabled_orig = EnableMenuItem(menu, static_cast<std::uint16_t>(e_tree_menu_id::e_orig), MF_BYCOMMAND | (enable_goto_orig ? MF_ENABLED : MF_GRAYED));
+		assert(enabled_orig != -1 && (enabled_orig == MF_ENABLED || enabled_orig == MF_GRAYED));
+	}
+	{
+		bool const enable_properties = !!fi.m_file_path && fi.m_file_path != get_not_found_string();
+		BOOL const enabled_properties = EnableMenuItem(menu, static_cast<std::uint16_t>(e_tree_menu_id::e_properties), MF_BYCOMMAND | (enable_properties ? MF_ENABLED : MF_GRAYED));
+		assert(enabled_properties != -1 && (enabled_properties == MF_ENABLED || enabled_properties == MF_GRAYED));
+	}
 	BOOL const tracked = TrackPopupMenu(menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON | TPM_NOANIMATION, cursor_screen.x, cursor_screen.y, 0, m_main_window.m_hwnd, nullptr);
 	assert(tracked != 0);
 }
@@ -265,6 +276,11 @@ void tree_view::on_menu(std::uint16_t const menu_id)
 		case e_tree_menu_id::e_collapse:
 		{
 			on_menu_collapse();
+		}
+		break;
+		case e_tree_menu_id::e_properties:
+		{
+			on_menu_properties();
 		}
 		break;
 		default:
@@ -290,6 +306,11 @@ void tree_view::on_menu_collapse()
 	collapse();
 }
 
+void tree_view::on_menu_properties()
+{
+	properties();
+}
+
 void tree_view::on_accel_orig()
 {
 	select_original_instance();
@@ -303,6 +324,11 @@ void tree_view::on_accel_expand()
 void tree_view::on_accel_collapse()
 {
 	collapse();
+}
+
+void tree_view::on_accel_properties()
+{
+	properties();
 }
 
 void tree_view::refresh()
@@ -345,13 +371,15 @@ smart_menu tree_view::create_menu()
 	{
 		static_cast<std::uint16_t>(e_tree_menu_id::e_orig),
 		static_cast<std::uint16_t>(e_tree_menu_id::e_expand),
-		static_cast<std::uint16_t>(e_tree_menu_id::e_collapse)
+		static_cast<std::uint16_t>(e_tree_menu_id::e_collapse),
+		static_cast<std::uint16_t>(e_tree_menu_id::e_properties)
 	};
 	static constexpr wchar_t const* const menu_strs[] =
 	{
-		s_tree_menu_orig_str,
-		s_tree_menu_expand_str,
-		s_tree_menu_collapse_str
+		s_tree_menu_str_orig,
+		s_tree_menu_str_expand,
+		s_tree_menu_str_collapse,
+		s_tree_menu_str_properties
 	};
 	static_assert(std::size(menu_ids) == std::size(menu_strs), "");
 
@@ -495,4 +523,34 @@ void tree_view::collapse()
 	LRESULT const redr_on = SendMessageW(m_hwnd, WM_SETREDRAW, TRUE, 0);
 	LRESULT const visibled = SendMessageW(m_hwnd, TVM_ENSUREVISIBLE, 0, reinterpret_cast<LPARAM>(item));
 	repaint();
+}
+
+void tree_view::properties()
+{
+	HTREEITEM const selection = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_CARET, LPARAM{0}));
+	if(!selection)
+	{
+		return;
+	}
+	TVITEMEXW ti;
+	ti.hItem = selection;
+	ti.mask = TVIF_PARAM;
+	LRESULT const got = SendMessageW(m_hwnd, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
+	assert(got == TRUE);
+	assert(ti.lParam);
+	file_info const& tmp_fi = *reinterpret_cast<file_info*>(ti.lParam);
+	file_info const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
+	if(!fi.m_file_path || fi.m_file_path == get_not_found_string())
+	{
+		return;
+	}
+	SHELLEXECUTEINFOW info{};
+	info.cbSize = sizeof(info);
+	info.fMask = SEE_MASK_INVOKEIDLIST;
+	info.lpVerb = L"properties";
+	info.lpFile = fi.m_file_path.m_string->m_str;
+	info.nShow = SW_SHOWNORMAL;
+	BOOL const executed = ShellExecuteExW(&info);
+	assert(executed != FALSE);
+	assert(static_cast<int>(reinterpret_cast<std::uintptr_t>(info.hInstApp)) > 32);
 }
