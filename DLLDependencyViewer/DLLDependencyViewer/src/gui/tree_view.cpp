@@ -228,29 +228,42 @@ void tree_view::on_context_menu(LPARAM const lparam)
 		hti.pt = cursor_client;
 		[[maybe_unused]] HTREEITEM const hit_tested = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_HITTEST, 0, reinterpret_cast<LPARAM>(&hti)));
 		assert(hit_tested == hti.hItem);
-		if(!(hti.hItem && (hti.flags & (TVHT_ONITEM | TVHT_ONITEMBUTTON | TVHT_ONITEMICON | TVHT_ONITEMLABEL | TVHT_ONITEMSTATEICON)) != 0))
+		if(hti.hItem && (hti.flags & (TVHT_ONITEM | TVHT_ONITEMBUTTON | TVHT_ONITEMICON | TVHT_ONITEMLABEL | TVHT_ONITEMSTATEICON)) != 0)
 		{
-			return;
+			LRESULT const selected = SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(hti.hItem));
+			assert(selected == TRUE);
+			item = hti.hItem;
 		}
-		LRESULT const selected = SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(hti.hItem));
-		assert(selected == TRUE);
-		item = hti.hItem;
+		else
+		{
+			item = nullptr;
+		}
 	}
-	TVITEMEXW ti;
-	ti.hItem = item;
-	ti.mask = TVIF_PARAM;
-	LRESULT const got_item = SendMessageW(m_hwnd, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-	assert(got_item == TRUE);
-	file_info const& tmp_fi = *reinterpret_cast<file_info*>(ti.lParam);
-	file_info const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
 	HMENU const menu = reinterpret_cast<HMENU>(m_menu.get());
+	bool enable_goto_orig;
+	bool enable_properties;
+	if(item)
 	{
-		bool const enable_goto_orig = tmp_fi.m_orig_instance != nullptr;
+		TVITEMEXW ti;
+		ti.hItem = item;
+		ti.mask = TVIF_PARAM;
+		LRESULT const got_item = SendMessageW(m_hwnd, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
+		assert(got_item == TRUE);
+		file_info const& tmp_fi = *reinterpret_cast<file_info*>(ti.lParam);
+		file_info const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
+		enable_goto_orig = tmp_fi.m_orig_instance != nullptr;
+		enable_properties = !!fi.m_file_path && fi.m_file_path != get_not_found_string();
+	}
+	else
+	{
+		enable_goto_orig = false;
+		enable_properties = false;
+	}
+	{
 		BOOL const enabled_orig = EnableMenuItem(menu, static_cast<std::uint16_t>(e_tree_menu_id::e_orig), MF_BYCOMMAND | (enable_goto_orig ? MF_ENABLED : MF_GRAYED));
 		assert(enabled_orig != -1 && (enabled_orig == MF_ENABLED || enabled_orig == MF_GRAYED));
 	}
 	{
-		bool const enable_properties = !!fi.m_file_path && fi.m_file_path != get_not_found_string();
 		BOOL const enabled_properties = EnableMenuItem(menu, static_cast<std::uint16_t>(e_tree_menu_id::e_properties), MF_BYCOMMAND | (enable_properties ? MF_ENABLED : MF_GRAYED));
 		assert(enabled_properties != -1 && (enabled_properties == MF_ENABLED || enabled_properties == MF_GRAYED));
 	}
