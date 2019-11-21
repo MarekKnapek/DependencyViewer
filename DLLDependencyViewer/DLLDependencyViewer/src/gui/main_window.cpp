@@ -42,6 +42,7 @@ static constexpr wchar_t const s_msg_error[] = L"DLLDependencyViewer error.";
 static constexpr wchar_t const s_toolbar_open_tooltip[] = L"Open... (Ctrl+O)";
 static constexpr wchar_t const s_toolbar_full_paths_tooltip[] = L"View Full Paths (F9)";
 static constexpr wchar_t const s_toolbar_undecorate_tooltip[] = L"Undecorate C++ Functions (F10)";
+static constexpr wchar_t const s_toolbar_properties_tooltip[] = L"Properties... (Alt+Enter)";
 enum class e_main_menu_id : std::uint16_t
 {
 	e_open = s_main_view_menu_min,
@@ -54,7 +55,8 @@ enum class e_toolbar : std::uint16_t
 {
 	e_open,
 	e_full_paths,
-	e_undecorate
+	e_undecorate,
+	e_properties
 };
 enum class e_accel : std::uint16_t
 {
@@ -276,7 +278,7 @@ HWND main_window::create_toolbar(HWND const& parent)
 	TBADDBITMAP button_bitmap;
 	button_bitmap.hInst = get_instance();
 	button_bitmap.nID = s_res_icons_toolbar;
-	static constexpr int const s_number_of_buttons = 3;
+	static constexpr int const s_number_of_buttons = 4;
 	LRESULT const bitmap_added = SendMessageW(toolbar, TB_ADDBITMAP, s_number_of_buttons, reinterpret_cast<LPARAM>(&button_bitmap));
 	assert(bitmap_added != -1);
 	TBBUTTON buttons[s_number_of_buttons]{};
@@ -298,6 +300,12 @@ HWND main_window::create_toolbar(HWND const& parent)
 	buttons[2].fsStyle = BTNS_BUTTON;
 	buttons[2].dwData = 0;
 	buttons[2].iString = 0;
+	buttons[3].iBitmap = s_res_icon_properties;
+	buttons[3].idCommand = static_cast<std::uint16_t>(e_toolbar::e_properties);
+	buttons[3].fsState = TBSTATE_ENABLED;
+	buttons[3].fsStyle = BTNS_BUTTON;
+	buttons[3].dwData = 0;
+	buttons[3].iString = 0;
 	LRESULT const buttons_added = SendMessageW(toolbar, TB_ADDBUTTONSW, s_number_of_buttons, reinterpret_cast<LPARAM>(&buttons));
 	assert(buttons_added == TRUE);
 	SendMessageW(toolbar, TB_AUTOSIZE, 0, 0);
@@ -678,6 +686,11 @@ void main_window::on_toolbar(WPARAM const wparam)
 			on_toolbar_undecorate();
 		}
 		break;
+		case e_toolbar::e_properties:
+		{
+			on_toolbar_properties();
+		}
+		break;
 		default:
 		{
 			assert(false);
@@ -715,6 +728,11 @@ void main_window::on_toolbar_notify(NMHDR& nmhdr)
 				case e_toolbar::e_undecorate:
 				{
 					tbgit.pszText = const_cast<wchar_t*>(s_toolbar_undecorate_tooltip);
+				}
+				break;
+				case e_toolbar::e_properties:
+				{
+					tbgit.pszText = const_cast<wchar_t*>(s_toolbar_properties_tooltip);
 				}
 				break;
 				default:
@@ -803,6 +821,11 @@ void main_window::on_toolbar_full_paths()
 void main_window::on_toolbar_undecorate()
 {
 	undecorate();
+}
+
+void main_window::on_toolbar_properties()
+{
+	m_tree_view.on_toolbar_properties();
 }
 
 void main_window::open()

@@ -40,6 +40,7 @@ public:
 	void on_accel_expand();
 	void on_accel_collapse();
 	void on_accel_properties();
+	void on_toolbar_properties();
 	void refresh();
 	void repaint();
 private:

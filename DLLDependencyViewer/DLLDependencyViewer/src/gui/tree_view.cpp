@@ -344,6 +344,11 @@ void tree_view::on_accel_properties()
 	properties();
 }
 
+void tree_view::on_toolbar_properties()
+{
+	properties();
+}
+
 void tree_view::refresh()
 {
 	LRESULT const redr_off = SendMessageW(m_hwnd, WM_SETREDRAW, FALSE, 0);

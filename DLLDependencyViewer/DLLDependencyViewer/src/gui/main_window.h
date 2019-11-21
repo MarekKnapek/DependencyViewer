@@ -89,6 +89,7 @@ private:
 	void on_toolbar_open();
 	void on_toolbar_full_paths();
 	void on_toolbar_undecorate();
+	void on_toolbar_properties();
 	void open();
 	void open_files(std::vector<std::wstring> const& file_paths);
 	void exit();
