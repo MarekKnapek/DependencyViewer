@@ -39,10 +39,10 @@ static constexpr wchar_t const s_menu_view_undecorate[] = L"&Undecorate C++ Func
 static constexpr wchar_t const s_menu_view_refresh[] = L"&Refresh\tF5";
 static constexpr wchar_t const s_open_file_dialog_file_name_filter[] = L"Executable files and libraries (*.exe;*.dll;*.ocx)\0*.exe;*.dll;*.ocx\0All files\0*.*\0";
 static constexpr wchar_t const s_msg_error[] = L"DLLDependencyViewer error.";
-static constexpr wchar_t const s_toolbar_open_tooltip[] = L"Open... (Ctrl+O)";
-static constexpr wchar_t const s_toolbar_full_paths_tooltip[] = L"View Full Paths (F9)";
-static constexpr wchar_t const s_toolbar_undecorate_tooltip[] = L"Undecorate C++ Functions (F10)";
-static constexpr wchar_t const s_toolbar_properties_tooltip[] = L"Properties... (Alt+Enter)";
+static constexpr wchar_t const s_toolbar_tooltip_open[] = L"Open... (Ctrl+O)";
+static constexpr wchar_t const s_toolbar_tooltip_full_paths[] = L"View Full Paths (F9)";
+static constexpr wchar_t const s_toolbar_tooltip_undecorate[] = L"Undecorate C++ Functions (F10)";
+static constexpr wchar_t const s_toolbar_tooltip_properties[] = L"Properties... (Alt+Enter)";
 enum class e_main_menu_id : std::uint16_t
 {
 	e_open = s_main_view_menu_min,
@@ -717,22 +717,22 @@ void main_window::on_toolbar_notify(NMHDR& nmhdr)
 			{
 				case e_toolbar::e_open:
 				{
-					tbgit.pszText = const_cast<wchar_t*>(s_toolbar_open_tooltip);
+					tbgit.pszText = const_cast<wchar_t*>(s_toolbar_tooltip_open);
 				}
 				break;
 				case e_toolbar::e_full_paths:
 				{
-					tbgit.pszText = const_cast<wchar_t*>(s_toolbar_full_paths_tooltip);
+					tbgit.pszText = const_cast<wchar_t*>(s_toolbar_tooltip_full_paths);
 				}
 				break;
 				case e_toolbar::e_undecorate:
 				{
-					tbgit.pszText = const_cast<wchar_t*>(s_toolbar_undecorate_tooltip);
+					tbgit.pszText = const_cast<wchar_t*>(s_toolbar_tooltip_undecorate);
 				}
 				break;
 				case e_toolbar::e_properties:
 				{
-					tbgit.pszText = const_cast<wchar_t*>(s_toolbar_properties_tooltip);
+					tbgit.pszText = const_cast<wchar_t*>(s_toolbar_tooltip_properties);
 				}
 				break;
 				default:
