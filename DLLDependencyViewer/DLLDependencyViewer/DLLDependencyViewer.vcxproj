@@ -202,6 +202,7 @@
     <ClInclude Include="src\gui\main.h" />
     <ClInclude Include="src\gui\main_window.h" />
     <ClInclude Include="src\gui\processor.h" />
+    <ClInclude Include="src\gui\processor_2.h" />
     <ClInclude Include="src\gui\processor_impl.h" />
     <ClInclude Include="src\gui\search.h" />
     <ClInclude Include="src\gui\settings.h" />
@@ -285,6 +286,10 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\gui\processor.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="src\gui\processor_2.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>

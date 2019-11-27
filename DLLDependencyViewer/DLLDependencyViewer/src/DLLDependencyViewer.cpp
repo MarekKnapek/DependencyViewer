@@ -4,6 +4,7 @@
 #include "gui/main.cpp"
 #include "gui/main_window.cpp"
 #include "gui/processor.cpp"
+#include "gui/processor_2.cpp"
 #include "gui/processor_impl.cpp"
 #include "gui/search.cpp"
 #include "gui/settings.cpp"

@@ -315,6 +315,9 @@
     <ClInclude Include="src\nogui\ole.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
+    <ClInclude Include="src\gui\processor_2.h">
+      <Filter>src\gui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\main.cpp">
@@ -490,6 +493,9 @@
     </ClCompile>
     <ClCompile Include="src\nogui\ole.cpp">
       <Filter>src\nogui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gui\processor_2.cpp">
+      <Filter>src\gui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
