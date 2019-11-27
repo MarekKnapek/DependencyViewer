@@ -6,6 +6,7 @@
 #include "gui/processor.cpp"
 #include "gui/processor_2.cpp"
 #include "gui/processor_impl.cpp"
+#include "gui/processor_impl_2.cpp"
 #include "gui/search.cpp"
 #include "gui/settings.cpp"
 #include "gui/smart_dc.cpp"
