@@ -8,6 +8,7 @@
 #include "../nogui/com.h"
 #include "../nogui/dbg_provider.h"
 #include "../nogui/file_name_provider.h"
+#include "../nogui/known_dlls.h"
 #include "../nogui/ole.h"
 #include "../nogui/scope_exit.h"
 
@@ -25,6 +26,8 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE /*hPrevInstance
 	ole o;
 	file_name_provider::init();
 	auto const file_name_deinit = mk::make_scope_exit([](){ file_name_provider::deinit(); });
+	init_known_dlls();
+	auto const fn_deinit_known_dlls = mk::make_scope_exit([](){ deinit_known_dlls(); });
 	test();
 	dbg_provider::init();
 	auto const dbg_provider_deinit = mk::make_scope_exit([](){ dbg_provider::deinit(); });
