@@ -1,5 +1,6 @@
 #include "memory_mapped_file.h"
 
+#include "assert.h"
 #include "smart_handle.h"
 
 #include <algorithm>
@@ -11,11 +12,6 @@
 
 #define s_very_big_int (2'147'483'647)
 static constexpr int const s_max_file_size = s_very_big_int;
-static constexpr wchar_t const s_mmf_open[] = L"Could not open file.";
-static constexpr wchar_t const s_mmf_empty[] = L"File is empty.";
-static constexpr wchar_t const s_mmf_big[] = L"File is too big.";
-static constexpr wchar_t const s_mmf_mapping[] = L"Failed to create file mapping.";
-static constexpr wchar_t const s_mmf_view[] = L"Failed to create file view.";
 
 
 void mapped_view_deleter::operator()(void const* const ptr) const
@@ -35,37 +31,19 @@ memory_mapped_file::memory_mapped_file(wchar_t const* const file_name) :
 	memory_mapped_file()
 {
 	HANDLE const file = CreateFileW(file_name, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
-	if(file == INVALID_HANDLE_VALUE)
-	{
-		throw s_mmf_open;
-	}
+	WARN_M_RV(file != INVALID_HANDLE_VALUE, L"Failed to CreateFileW.");
 	smart_handle const s_file(file);
 	LARGE_INTEGER size;
 	BOOL const got_size = GetFileSizeEx(file, &size);
 	assert(got_size != 0);
-	if(size.HighPart != 0)
-	{
-		throw s_mmf_big;
-	}
-	if(size.LowPart == 0)
-	{
-		throw s_mmf_empty;
-	}
-	if(size.LowPart > s_max_file_size)
-	{
-		throw s_mmf_big;
-	}
+	WARN_M_RV(size.HighPart == 0, L"File is too big.");
+	WARN_M_RV(size.LowPart != 0, L"File is empty.");
+	WARN_M_RV(size.LowPart <= s_max_file_size, L"File is too big.");
 	HANDLE const mapping = CreateFileMappingW(file, nullptr, PAGE_READONLY, 0, 0, nullptr);
-	if(mapping == nullptr)
-	{
-		throw s_mmf_mapping;
-	}
+	WARN_M_RV(mapping != nullptr, L"Failed to CreateFileMappingW.");
 	smart_handle const s_mapping(mapping);
 	void const* const ptr = MapViewOfFile(mapping, FILE_MAP_READ, 0, 0, 0);
-	if(!ptr)
-	{
-		throw s_mmf_view;
-	}
+	WARN_M_RV(mapping != nullptr, L"Failed to MapViewOfFile.");
 	smart_mapped_view s_view(ptr);
 
 	m_view = std::move(s_view);
@@ -102,7 +80,7 @@ std::byte const* memory_mapped_file::begin() const
 
 std::byte const* memory_mapped_file::end() const
 {
-	return begin() + m_size;
+	return begin() + size();
 }
 
 int memory_mapped_file::size() const
