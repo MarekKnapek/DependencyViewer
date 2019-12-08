@@ -1,6 +1,8 @@
 #pragma once
 
 
+#include "smart_handle.h"
+
 #include <cstddef>
 #include <memory>
 
@@ -29,6 +31,8 @@ public:
 	std::byte const* end() const;
 	int size() const;
 private:
+	smart_handle m_file;
+	smart_handle m_mapping;
 	smart_mapped_view m_view;
 	int m_size;
 };
