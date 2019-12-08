@@ -89,7 +89,18 @@ bool locate_dependency_system16(dependency_locator&)
 
 bool locate_dependency_windows(dependency_locator& self)
 {
-	return false;
+	string_handle const& dependency = *self.m_dependency;
+	std::array<wchar_t, 32 * 1024> buff;
+	UINT const got_win = GetWindowsDirectoryW(buff.data(), static_cast<UINT>(buff.size()));
+	assert(got_win != 0);
+	assert(got_win < static_cast<UINT>(buff.size()));
+	auto const p = std::filesystem::path{buff.data(), buff.data() + got_win}.append(begin(dependency), end(dependency));
+	if(!std::filesystem::exists(p))
+	{
+		return false;
+	}
+	self.m_result = p;
+	return true;
 }
 
 bool locate_dependency_current_dir(dependency_locator& self)
