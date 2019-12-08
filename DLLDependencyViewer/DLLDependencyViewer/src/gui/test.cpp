@@ -42,36 +42,12 @@ void test()
 		{
 			continue;
 		}
-		int len;
-		{
-			HANDLE const file = CreateFileW(p.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
-			if(file == INVALID_HANDLE_VALUE)
-			{
-				continue;
-			}
-			smart_handle sp_file(file);
-			LARGE_INTEGER file_size;
-			BOOL const got_size = GetFileSizeEx(file, &file_size);
-			if(got_size == 0)
-			{
-				continue;
-			}
-			if(file_size.HighPart != 0)
-			{
-				continue;
-			}
-			if(file_size.LowPart >= s_very_big_int)
-			{
-				continue;
-			}
-			len = static_cast<int>(file_size.LowPart);
-		}
-		if(len < 2)
+		memory_mapped_file const mmf(p.c_str());
+		if(mmf.begin() == nullptr)
 		{
 			continue;
 		}
-		memory_mapped_file const mmf(p.c_str());
-		if(mmf.begin() == nullptr)
+		if(mmf.size() < 2)
 		{
 			continue;
 		}
@@ -83,12 +59,12 @@ void test()
 		{
 			continue;
 		}
-		if(len < 128)
+		if(mmf.size() < 128)
 		{
 			continue;
 		}
 		std::uint16_t const& new_header_offset = *reinterpret_cast<std::uint16_t const*>(mmf.begin() + 60);
-		if(len < new_header_offset + 4)
+		if(mmf.size() < new_header_offset + 4)
 		{
 			continue;
 		}
