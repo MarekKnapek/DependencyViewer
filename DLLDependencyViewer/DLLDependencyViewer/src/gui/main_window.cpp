@@ -974,7 +974,8 @@ void main_window::refresh()
 	for(int i = 0; i != n; ++i)
 	{
 		assert(m_mo.m_fi.m_sub_file_infos[i].m_sub_file_infos.size() == 1);
-		wstring_handle const& name = m_mo.m_fi.m_sub_file_infos[i].m_sub_file_infos[0].m_file_path;
+		file_info const* const orig = m_mo.m_fi.m_sub_file_infos[i].m_sub_file_infos[0].m_orig_instance;
+		wstring_handle const& name = orig ? orig->m_file_path : m_mo.m_fi.m_sub_file_infos[i].m_sub_file_infos[0].m_file_path;
 		file_paths[i].assign(cbegin(name), cend(name));
 	}
 	open_files(file_paths);
