@@ -3,7 +3,11 @@
 #include "known_dlls.h"
 #include "unicode.h"
 
+#include <array>
+#include <cassert>
 #include <filesystem>
+
+#include "my_windows.h"
 
 
 bool locate_dependency(dependency_locator& self)
@@ -63,7 +67,18 @@ bool locate_dependency_application_dir(dependency_locator& self)
 
 bool locate_dependency_system32(dependency_locator& self)
 {
-	return false;
+	string_handle const& dependency = *self.m_dependency;
+	std::array<wchar_t, 32 * 1024> buff;
+	UINT const got_sys = GetSystemDirectoryW(buff.data(), static_cast<UINT>(buff.size()));
+	assert(got_sys != 0);
+	assert(got_sys < static_cast<UINT>(buff.size()));
+	auto const p = std::filesystem::path{buff.data(), buff.data() + got_sys}.append(begin(dependency), end(dependency));
+	if(!std::filesystem::exists(p))
+	{
+		return false;
+	}
+	self.m_result = p;
+	return true;
 }
 
 bool locate_dependency_system16(dependency_locator& self)
