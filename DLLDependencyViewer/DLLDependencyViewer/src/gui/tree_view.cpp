@@ -197,7 +197,7 @@ void tree_view::on_context_menu(LPARAM const lparam)
 {
 	POINT cursor_screen;
 	HTREEITEM item;
-	if(lparam == 0xffffffff)
+	if(lparam == LPARAM{-1})
 	{
 		HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_CARET, 0));
 		if(!selected)

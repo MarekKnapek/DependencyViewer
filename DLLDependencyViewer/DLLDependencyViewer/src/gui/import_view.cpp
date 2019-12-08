@@ -232,7 +232,7 @@ void import_view::on_context_menu(LPARAM const lparam)
 {
 	POINT cursor_screen;
 	std::uint16_t ith_line;
-	if(lparam == 0xFFFFFFFF)
+	if(lparam == LPARAM{-1})
 	{
 		LRESULT const sel = SendMessageW(m_hwnd, LVM_GETNEXTITEM, WPARAM{0} - 1, LVNI_SELECTED);
 		if(sel == -1)
