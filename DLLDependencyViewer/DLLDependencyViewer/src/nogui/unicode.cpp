@@ -1,12 +1,25 @@
 #include "unicode.h"
 
 #include <algorithm>
+#include <cstdint>
 
 
-template<typename char_t>
-bool is_ascii(char_t const* const str, int const size)
+template<typename T>
+bool is_ascii_u(T const* const buff, int const size);
+
+
+template<>
+bool is_ascii(char const* const str, int const size)
 {
-	if(std::all_of(str, str + size, [](char_t const e){ if(e >= 32 && e <= 126) [[likely]] { return true; } else { return false; }; })) [[likely]] { return true; } else { return false; };
+	unsigned char const* const u = reinterpret_cast<unsigned char const*>(str);
+	return is_ascii_u(u, size);
+}
+
+template<>
+bool is_ascii(wchar_t const* const str, int const size)
+{
+	std::uint16_t const* const u = reinterpret_cast<std::uint16_t const*>(str);
+	return is_ascii_u(u, size);
 }
 
 template bool is_ascii<char>(char const* const str, int const size);
@@ -40,3 +53,10 @@ wchar_t to_lowercase(wchar_t const ch)
 
 template char to_lowercase<char>(char const ch);
 template wchar_t to_lowercase<wchar_t>(wchar_t const ch);
+
+
+template<typename T>
+bool is_ascii_u(T const* const buff, int const size)
+{
+	if(std::all_of(buff, buff + size, [](auto const& e) -> bool { if(e >= 32 && e <= 126) [[likely]] { return true; } else { return false; } })) [[likely]] { return true; } else { return false; }
+}
