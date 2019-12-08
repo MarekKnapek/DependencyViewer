@@ -70,12 +70,8 @@ void test()
 		{
 			continue;
 		}
-		memory_mapped_file mmf;
-		try
-		{
-			mmf = memory_mapped_file(p.c_str());
-		}
-		catch(wchar_t const*)
+		memory_mapped_file const mmf(p.c_str());
+		if(mmf.begin() == nullptr)
 		{
 			continue;
 		}

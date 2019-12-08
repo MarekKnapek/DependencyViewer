@@ -104,6 +104,11 @@ void process_e(processor_impl& prcsr, file_info& fi, file_info& sub_fi, string_h
 	sub_fi.m_file_path = wstr;
 
 	memory_mapped_file const mmf = memory_mapped_file(cbegin(sub_fi.m_file_path));
+	if(mmf.begin() == nullptr)
+	{
+		wchar_t const err[] = L"Failed to process file.";
+		throw static_cast<wchar_t const*>(err);
+	}
 	pe_header_info const hi = pe_process_header(mmf.begin(), mmf.size());
 	sub_fi.m_is_32_bit = hi.m_is_pe32;
 	pe_tables tables;
