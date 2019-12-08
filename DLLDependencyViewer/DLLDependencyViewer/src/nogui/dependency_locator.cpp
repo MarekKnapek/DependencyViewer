@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
-#include <filesystem>
 
 #include "my_windows.h"
 
@@ -57,28 +56,30 @@ bool locate_dependency_application_dir(dependency_locator& self)
 {
 	wstring_handle const& main_path = *self.m_main_path;
 	string_handle const& dependency = *self.m_dependency;
-	auto const p = std::filesystem::path{begin(main_path), end(main_path)}.replace_filename({begin(dependency), end(dependency)});
-	if(!std::filesystem::exists(p))
+	std::filesystem::path& tmp_path = self.m_tmp_path;
+	tmp_path.assign(begin(main_path), end(main_path)).replace_filename({begin(dependency), end(dependency)});
+	if(!std::filesystem::exists(tmp_path))
 	{
 		return false;
 	}
-	self.m_result = p;
+	self.m_result = tmp_path;
 	return true;
 }
 
 bool locate_dependency_system32(dependency_locator& self)
 {
 	string_handle const& dependency = *self.m_dependency;
+	std::filesystem::path& tmp_path = self.m_tmp_path;
 	std::array<wchar_t, 32 * 1024> buff;
 	UINT const got_sys = GetSystemDirectoryW(buff.data(), static_cast<UINT>(buff.size()));
 	assert(got_sys != 0);
 	assert(got_sys < static_cast<UINT>(buff.size()));
-	auto const p = std::filesystem::path{buff.data(), buff.data() + got_sys}.append(begin(dependency), end(dependency));
-	if(!std::filesystem::exists(p))
+	tmp_path.assign(buff.data(), buff.data() + got_sys).replace_filename({begin(dependency), end(dependency)});
+	if(!std::filesystem::exists(tmp_path))
 	{
 		return false;
 	}
-	self.m_result = p;
+	self.m_result = tmp_path;
 	return true;
 }
 
@@ -91,52 +92,54 @@ bool locate_dependency_system16(dependency_locator&)
 bool locate_dependency_windows(dependency_locator& self)
 {
 	string_handle const& dependency = *self.m_dependency;
+	std::filesystem::path& tmp_path = self.m_tmp_path;
 	std::array<wchar_t, 32 * 1024> buff;
 	UINT const got_win = GetWindowsDirectoryW(buff.data(), static_cast<UINT>(buff.size()));
 	assert(got_win != 0);
 	assert(got_win < static_cast<UINT>(buff.size()));
-	auto const p = std::filesystem::path{buff.data(), buff.data() + got_win}.append(begin(dependency), end(dependency));
-	if(!std::filesystem::exists(p))
+	tmp_path.assign(buff.data(), buff.data() + got_win).replace_filename({begin(dependency), end(dependency)});
+	if(!std::filesystem::exists(tmp_path))
 	{
 		return false;
 	}
-	self.m_result = p;
+	self.m_result = tmp_path;
 	return true;
 }
 
 bool locate_dependency_current_dir(dependency_locator& self)
 {
 	string_handle const& dependency = *self.m_dependency;
+	std::filesystem::path& tmp_path = self.m_tmp_path;
 	std::array<wchar_t, 32 * 1024> buff;
 	DWORD const got_currdir = GetCurrentDirectoryW(static_cast<DWORD>(buff.size()), buff.data());
 	assert(got_currdir != 0);
 	assert(got_currdir < static_cast<DWORD>(buff.size()));
-	auto const p = std::filesystem::path{buff.data(), buff.data() + got_currdir}.append(begin(dependency), end(dependency));
-	if(!std::filesystem::exists(p))
+	tmp_path.assign(buff.data(), buff.data() + got_currdir).replace_filename({begin(dependency), end(dependency)});
+	if(!std::filesystem::exists(tmp_path))
 	{
 		return false;
 	}
-	self.m_result = p;
+	self.m_result = tmp_path;
 	return true;
 }
 
 bool locate_dependency_environment_path(dependency_locator& self)
 {
 	string_handle const& dependency = *self.m_dependency;
+	std::filesystem::path& tmp_path = self.m_tmp_path;
 	std::array<wchar_t, 32 * 1024> buff;
 	DWORD const got_env = GetEnvironmentVariableW(L"PATH", buff.data(), static_cast<DWORD>(buff.size()));
 	assert(got_env != 0);
 	assert(got_env < static_cast<DWORD>(buff.size()));
 	auto const buff_end = buff.begin() + got_env;
-	std::filesystem::path p;
 	auto start = buff.begin();
 	for(;;)
 	{
 		auto const it = std::find(start, buff_end, L';');
-		p.assign(start, it).append(begin(dependency), end(dependency));
-		if(std::filesystem::exists(p))
+		tmp_path.assign(start, it).append(begin(dependency), end(dependency));
+		if(std::filesystem::exists(tmp_path))
 		{
-			self.m_result = p;
+			self.m_result = tmp_path;
 			return true;
 		}
 		if(it == buff_end)

@@ -3,6 +3,7 @@
 
 #include "my_string_handle.h"
 
+#include <filesystem>
 #include <string>
 
 
@@ -12,6 +13,7 @@ struct dependency_locator
 	string_handle const* m_dependency;
 	std::wstring m_result;
 	std::string m_tmpn;
+	std::filesystem::path m_tmp_path;
 };
 
 
