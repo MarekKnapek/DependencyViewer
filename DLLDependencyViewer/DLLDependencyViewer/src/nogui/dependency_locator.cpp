@@ -3,6 +3,7 @@
 #include "known_dlls.h"
 #include "unicode.h"
 
+#include <algorithm>
 #include <array>
 #include <cassert>
 #include <filesystem>
@@ -24,7 +25,7 @@ bool locate_dependency(dependency_locator& self)
 }
 
 
-bool locate_dependency_sxs(dependency_locator& self)
+bool locate_dependency_sxs(dependency_locator&)
 {
 	return false;
 }
@@ -105,10 +106,44 @@ bool locate_dependency_windows(dependency_locator& self)
 
 bool locate_dependency_current_dir(dependency_locator& self)
 {
-	return false;
+	string_handle const& dependency = *self.m_dependency;
+	std::array<wchar_t, 32 * 1024> buff;
+	DWORD const got_currdir = GetCurrentDirectoryW(static_cast<DWORD>(buff.size()), buff.data());
+	assert(got_currdir != 0);
+	assert(got_currdir < static_cast<DWORD>(buff.size()));
+	auto const p = std::filesystem::path{buff.data(), buff.data() + got_currdir}.append(begin(dependency), end(dependency));
+	if(!std::filesystem::exists(p))
+	{
+		return false;
+	}
+	self.m_result = p;
+	return true;
 }
 
 bool locate_dependency_environment_path(dependency_locator& self)
 {
+	string_handle const& dependency = *self.m_dependency;
+	std::array<wchar_t, 32 * 1024> buff;
+	DWORD const got_env = GetEnvironmentVariableW(L"PATH", buff.data(), static_cast<DWORD>(buff.size()));
+	assert(got_env != 0);
+	assert(got_env < static_cast<DWORD>(buff.size()));
+	auto const buff_end = buff.begin() + got_env;
+	std::filesystem::path p;
+	auto start = buff.begin();
+	for(;;)
+	{
+		auto const it = std::find(start, buff_end, L';');
+		p.assign(start, it).append(begin(dependency), end(dependency));
+		if(std::filesystem::exists(p))
+		{
+			self.m_result = p;
+			return true;
+		}
+		if(it == buff_end)
+		{
+			break;
+		}
+		start = it + 1;
+	}
 	return false;
 }
