@@ -29,6 +29,7 @@
 #include "nogui/file_name_provider.cpp"
 #include "nogui/fnv1a.cpp"
 #include "nogui/int_to_string.cpp"
+#include "nogui/known_dlls.cpp"
 #include "nogui/manifest_parser.cpp"
 #include "nogui/manifest_parser_impl.cpp"
 #include "nogui/memory_manager.cpp"

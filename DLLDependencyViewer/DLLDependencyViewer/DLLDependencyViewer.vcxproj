@@ -226,6 +226,7 @@
     <ClInclude Include="src\nogui\file_name_provider.h" />
     <ClInclude Include="src\nogui\fnv1a.h" />
     <ClInclude Include="src\nogui\int_to_string.h" />
+    <ClInclude Include="src\nogui\known_dlls.h" />
     <ClInclude Include="src\nogui\manifest_parser.h" />
     <ClInclude Include="src\nogui\manifest_parser_impl.h" />
     <ClInclude Include="src\nogui\memory_manager.h" />
@@ -384,6 +385,10 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\nogui\int_to_string.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="src\nogui\known_dlls.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
