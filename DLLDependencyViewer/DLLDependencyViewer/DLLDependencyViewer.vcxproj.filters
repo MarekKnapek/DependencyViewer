@@ -321,6 +321,9 @@
     <ClInclude Include="src\gui\processor_impl_2.h">
       <Filter>src\gui</Filter>
     </ClInclude>
+    <ClInclude Include="src\nogui\dependency_locator.h">
+      <Filter>src\nogui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\main.cpp">
@@ -502,6 +505,9 @@
     </ClCompile>
     <ClCompile Include="src\gui\processor_impl_2.cpp">
       <Filter>src\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nogui\dependency_locator.cpp">
+      <Filter>src\nogui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

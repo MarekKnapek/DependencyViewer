@@ -25,6 +25,7 @@
 #include "nogui/com.cpp"
 #include "nogui/dbg_provider.cpp"
 #include "nogui/dbghelp.cpp"
+#include "nogui/dependency_locator.cpp"
 #include "nogui/file_name_provider.cpp"
 #include "nogui/fnv1a.cpp"
 #include "nogui/int_to_string.cpp"
