@@ -81,8 +81,9 @@ bool locate_dependency_system32(dependency_locator& self)
 	return true;
 }
 
-bool locate_dependency_system16(dependency_locator& self)
+bool locate_dependency_system16(dependency_locator&)
 {
+	// The 16-bit system directory. There is no function that obtains the path of this directory, but it is searched.
 	return false;
 }
 
