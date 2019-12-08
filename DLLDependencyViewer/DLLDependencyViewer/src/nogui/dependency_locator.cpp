@@ -50,7 +50,15 @@ bool locate_dependency_known_dlls(dependency_locator& self)
 
 bool locate_dependency_application_dir(dependency_locator& self)
 {
-	return false;
+	wstring_handle const& main_path = *self.m_main_path;
+	string_handle const& dependency = *self.m_dependency;
+	auto const p = std::filesystem::path{begin(main_path), end(main_path)}.replace_filename({begin(dependency), end(dependency)});
+	if(!std::filesystem::exists(p))
+	{
+		return false;
+	}
+	self.m_result = p;
+	return true;
 }
 
 bool locate_dependency_system32(dependency_locator& self)
