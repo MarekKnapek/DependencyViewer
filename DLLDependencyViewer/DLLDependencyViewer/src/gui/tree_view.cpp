@@ -3,7 +3,6 @@
 #include "constants.h"
 #include "main.h"
 #include "main_window.h"
-#include "processor.h"
 
 #include "../nogui/utils.h"
 

@@ -132,12 +132,6 @@
     <ClInclude Include="src\gui\main_window.h">
       <Filter>src\gui</Filter>
     </ClInclude>
-    <ClInclude Include="src\gui\processor.h">
-      <Filter>src\gui</Filter>
-    </ClInclude>
-    <ClInclude Include="src\gui\search.h">
-      <Filter>src\gui</Filter>
-    </ClInclude>
     <ClInclude Include="src\gui\smart_dc.h">
       <Filter>src\gui</Filter>
     </ClInclude>
@@ -191,9 +185,6 @@
     </ClInclude>
     <ClInclude Include="src\nogui\manifest_parser_impl.h">
       <Filter>src\nogui</Filter>
-    </ClInclude>
-    <ClInclude Include="src\gui\processor_impl.h">
-      <Filter>src\gui</Filter>
     </ClInclude>
     <ClInclude Include="src\nogui\pe\mz.h">
       <Filter>src\nogui\pe</Filter>
@@ -338,12 +329,6 @@
     <ClCompile Include="src\gui\main_window.cpp">
       <Filter>src\gui</Filter>
     </ClCompile>
-    <ClCompile Include="src\gui\processor.cpp">
-      <Filter>src\gui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\gui\search.cpp">
-      <Filter>src\gui</Filter>
-    </ClCompile>
     <ClCompile Include="src\gui\smart_dc.cpp">
       <Filter>src\gui</Filter>
     </ClCompile>
@@ -391,9 +376,6 @@
     </ClCompile>
     <ClCompile Include="src\nogui\manifest_parser_impl.cpp">
       <Filter>src\nogui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\gui\processor_impl.cpp">
-      <Filter>src\gui</Filter>
     </ClCompile>
     <ClCompile Include="src\nogui\pe\mz.cpp">
       <Filter>src\nogui\pe</Filter>
