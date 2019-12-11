@@ -85,7 +85,7 @@ void tree_view::on_getdispinfow(NMHDR& nmhdr)
 	if((di.item.mask & TVIF_TEXT) != 0)
 	{
 		bool const full_paths = m_main_window.m_settings.m_full_paths;
-		if(full_paths && fi.m_file_path != get_not_found_string())
+		if(full_paths && fi.m_file_path.m_string != nullptr)
 		{
 			di.item.pszText = const_cast<wchar_t*>(cbegin(fi.m_file_path));
 		}
@@ -122,7 +122,7 @@ void tree_view::on_getdispinfow(NMHDR& nmhdr)
 		}
 		bool const is_32_bit = fi.m_is_32_bit;
 		bool const is_duplicate = tmp_fi.m_orig_instance != nullptr;
-		bool const is_missing = fi.m_file_path == get_not_found_string();
+		bool const is_missing = fi.m_file_path.m_string == nullptr;
 		bool const is_delay = delay;
 		if(is_missing)
 		{
@@ -256,7 +256,7 @@ void tree_view::on_context_menu(LPARAM const lparam)
 		file_info_2 const& tmp_fi = *reinterpret_cast<file_info_2*>(ti.lParam);
 		file_info_2 const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
 		enable_goto_orig = tmp_fi.m_orig_instance != nullptr;
-		enable_properties = !!fi.m_file_path && fi.m_file_path != get_not_found_string();
+		enable_properties = fi.m_file_path.m_string != nullptr;
 	}
 	else
 	{
@@ -611,7 +611,7 @@ void tree_view::properties()
 	assert(ti.lParam);
 	file_info_2 const& tmp_fi = *reinterpret_cast<file_info_2*>(ti.lParam);
 	file_info_2 const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
-	if(!fi.m_file_path || fi.m_file_path == get_not_found_string())
+	if(fi.m_file_path.m_string == nullptr)
 	{
 		return;
 	}
