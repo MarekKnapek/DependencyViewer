@@ -1,5 +1,6 @@
 #include "processor_impl_2.h"
 
+#include "import_export_matcher.h"
 #include "processor_2.h"
 
 #include "../nogui/assert.h"
@@ -51,6 +52,7 @@ bool process_impl_2(std::vector<std::wstring> const& file_paths, file_info_2& fi
 		bool const s1 = step_1(normalized, normalized, sub_fi, to);
 		WARN_M_R(s1, L"Failed to step_1.", false);
 	}
+	pair_root(fi, to);
 	return true;
 }
 
