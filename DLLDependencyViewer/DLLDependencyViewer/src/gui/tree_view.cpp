@@ -472,34 +472,56 @@ void tree_view::select_original_instance()
 
 void tree_view::expand()
 {
-	static constexpr auto const recursion = [](HWND const hwnd, HTREEITEM const item) -> void
+	static constexpr auto const expand_all = [](HWND const hwnd, HTREEITEM const root_first) -> void
 	{
-		static constexpr auto const recursion_impl = [](auto const& self, HWND const hwnd, HTREEITEM const item) -> void
+		static constexpr auto const recursion = [](auto const& self, HWND const hwnd, HTREEITEM const item) -> void
 		{
-			HTREEITEM const child = reinterpret_cast<HTREEITEM>(SendMessageW(hwnd, TVM_GETNEXTITEM, TVGN_CHILD, reinterpret_cast<LPARAM>(item)));
-			if(child)
+			HTREEITEM const child_first = reinterpret_cast<HTREEITEM>(SendMessageW(hwnd, TVM_GETNEXTITEM, TVGN_CHILD, reinterpret_cast<LPARAM>(item)));
+			if(child_first)
 			{
 				LRESULT const expanded = SendMessageW(hwnd, TVM_EXPAND, TVE_EXPAND, reinterpret_cast<LPARAM>(item));
 				assert(expanded != 0);
-				self(self, hwnd, child);
+				self(self, hwnd, child_first);
 			}
-			HTREEITEM const sibling = reinterpret_cast<HTREEITEM>(SendMessageW(hwnd, TVM_GETNEXTITEM, TVGN_NEXT, reinterpret_cast<LPARAM>(item)));
-			if(sibling)
+			HTREEITEM child_prev = child_first;
+			for(;;)
 			{
-				self(self, hwnd, sibling);
+				HTREEITEM const child_next = reinterpret_cast<HTREEITEM>(SendMessageW(hwnd, TVM_GETNEXTITEM, TVGN_NEXT, reinterpret_cast<LPARAM>(child_prev)));
+				if(child_next)
+				{
+					child_prev = child_next;
+					self(self, hwnd, child_next);
+				}
+				else
+				{
+					break;
+				}
 			}
 		};
-		recursion_impl(recursion_impl, hwnd, item);
+		recursion(recursion, hwnd, root_first);
+		HTREEITEM root_prev = root_first;
+		for(;;)
+		{
+			HTREEITEM const root_next = reinterpret_cast<HTREEITEM>(SendMessageW(hwnd, TVM_GETNEXTITEM, TVGN_NEXT, reinterpret_cast<LPARAM>(root_prev)));
+			if(root_next)
+			{
+				root_prev = root_next;
+				recursion(recursion, hwnd, root_next);
+			}
+			else
+			{
+				break;
+			}
+		}
 	};
-	
-	HTREEITEM const item = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_ROOT, LPARAM{0}));
-	if(!item)
+	HTREEITEM const root_first = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_ROOT, LPARAM{0}));
+	if(!root_first)
 	{
 		return;
 	}
 	HTREEITEM const selection = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_CARET, LPARAM{0}));
 	LRESULT const redr_off = SendMessageW(m_hwnd, WM_SETREDRAW, FALSE, 0);
-	recursion(m_hwnd, item);
+	expand_all(m_hwnd, root_first);
 	LRESULT const redr_on = SendMessageW(m_hwnd, WM_SETREDRAW, TRUE, 0);
 	if(selection)
 	{
@@ -510,36 +532,58 @@ void tree_view::expand()
 
 void tree_view::collapse()
 {
-	static constexpr auto const recursion = [](HWND const hwnd, HTREEITEM const item) -> void
+	static constexpr auto const collapse_all = [](HWND const hwnd, HTREEITEM const root_first) -> void
 	{
-		static constexpr auto const recursion_impl = [](auto const& self, HWND const hwnd, HTREEITEM const item) -> void
+		static constexpr auto const recursion = [](auto const& self, HWND const hwnd, HTREEITEM const item) -> void
 		{
-			HTREEITEM const child = reinterpret_cast<HTREEITEM>(SendMessageW(hwnd, TVM_GETNEXTITEM, TVGN_CHILD, reinterpret_cast<LPARAM>(item)));
-			if(child)
+			HTREEITEM const child_first = reinterpret_cast<HTREEITEM>(SendMessageW(hwnd, TVM_GETNEXTITEM, TVGN_CHILD, reinterpret_cast<LPARAM>(item)));
+			if(child_first)
 			{
-				self(self, hwnd, child);
+				self(self, hwnd, child_first);
 				LRESULT const collapsed = SendMessageW(hwnd, TVM_EXPAND, TVE_COLLAPSE, reinterpret_cast<LPARAM>(item));
 			}
-			HTREEITEM const sibling = reinterpret_cast<HTREEITEM>(SendMessageW(hwnd, TVM_GETNEXTITEM, TVGN_NEXT, reinterpret_cast<LPARAM>(item)));
-			if(sibling)
+			HTREEITEM child_prev = child_first;
+			for(;;)
 			{
-				self(self, hwnd, sibling);
+				HTREEITEM const child_next = reinterpret_cast<HTREEITEM>(SendMessageW(hwnd, TVM_GETNEXTITEM, TVGN_NEXT, reinterpret_cast<LPARAM>(child_prev)));
+				if(child_next)
+				{
+					child_prev = child_next;
+					self(self, hwnd, child_next);
+				}
+				else
+				{
+					break;
+				}
 			}
 		};
-		recursion_impl(recursion_impl, hwnd, item);
+		recursion(recursion, hwnd, root_first);
+		HTREEITEM root_prev = root_first;
+		for(;;)
+		{
+			HTREEITEM const root_next = reinterpret_cast<HTREEITEM>(SendMessageW(hwnd, TVM_GETNEXTITEM, TVGN_NEXT, reinterpret_cast<LPARAM>(root_prev)));
+			if(root_next)
+			{
+				root_prev = root_next;
+				recursion(recursion, hwnd, root_next);
+			}
+			else
+			{
+				break;
+			}
+		}
 	};
-
-	HTREEITEM const item = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_ROOT, LPARAM{0}));
-	if(!item)
+	HTREEITEM const root_first = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_ROOT, LPARAM{0}));
+	if(!root_first)
 	{
 		return;
 	}
-	LRESULT const selected = SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(item));
+	LRESULT const selected = SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(root_first));
 	assert(selected == TRUE);
 	LRESULT const redr_off = SendMessageW(m_hwnd, WM_SETREDRAW, FALSE, 0);
-	recursion(m_hwnd, item);
+	collapse_all(m_hwnd, root_first);
 	LRESULT const redr_on = SendMessageW(m_hwnd, WM_SETREDRAW, TRUE, 0);
-	LRESULT const visibled = SendMessageW(m_hwnd, TVM_ENSUREVISIBLE, 0, reinterpret_cast<LPARAM>(item));
+	LRESULT const visibled = SendMessageW(m_hwnd, TVM_ENSUREVISIBLE, 0, reinterpret_cast<LPARAM>(root_first));
 	repaint();
 }
 
