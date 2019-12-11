@@ -3,6 +3,10 @@
 #include "processor_2.h"
 
 #include "../nogui/assert.h"
+#include "../nogui/dependency_locator.h"
+#include "../nogui/file_name_provider.h"
+#include "../nogui/memory_mapped_file.h"
+#include "../nogui/pe2.h"
 
 #include <algorithm>
 #include <cstdint>
@@ -34,19 +38,86 @@ bool process_impl_2(std::vector<std::wstring> const& file_paths, file_info_2& fi
 	fi.m_import_table.m_non_delay_dll_count = n;
 	fi.m_import_table.m_dll_names = dll_names;
 	fi.m_import_table.m_import_counts = import_counts;
+	allocator tmpalc;
+	tmp_type to;
+	to.m_mm = &mm;
+	to.m_tmp_alc = &tmpalc;
 	for(std::uint16_t i = 0; i != n; ++i)
 	{
 		file_info_2& sub_fi = fi.m_fis[i];
 		int const path_len = static_cast<int>(file_paths[i].size());
 		wchar_t const* const cstr = file_paths[i].c_str();
-		wstring_handle const file_path = mm.m_wstrs.add_string(cstr, path_len, mm.m_alc);
-		sub_fi.m_file_path = file_path;
-		step_1(file_path, sub_fi, mm);
+		wstring_handle const normalized = file_name_provider::get_correct_file_name(cstr, path_len, to.m_mm->m_wstrs, to.m_mm->m_alc);
+		bool const s1 = step_1(normalized, normalized, sub_fi, to);
+		WARN_M_R(s1, L"Failed to step_1.", false);
 	}
 	return true;
 }
 
 
-void step_1(wstring_handle const& origin, file_info_2& fi, memory_manager& mm)
+bool step_1(wstring_handle const& origin, wstring_handle const& file_path, file_info_2& fi, tmp_type& to)
 {
+	auto const it = to.m_map.find(file_path);
+	if(it != to.m_map.end())
+	{
+		assert(it->second->m_orig_instance);
+		fi.m_orig_instance = it->second->m_orig_instance;
+		return true;
+	}
+	fi.m_file_path = file_path;
+	pe_headers hdrs;
+	std::uint16_t const* enpt;
+	std::uint16_t enpt_count;
+	pe_tables tables;
+	tables.m_tmp_alc = to.m_tmp_alc;
+	tables.m_iti_out = &fi.m_import_table;
+	tables.m_eti_out = &fi.m_export_table;
+	tables.m_enpt_count_out = &enpt_count;
+	tables.m_enpt_out = &enpt;
+	{
+		memory_mapped_file const mmf = memory_mapped_file(file_path.m_string->m_str);
+		WARN_M_R(mmf.begin() != nullptr, L"Failed to memory_mapped_file.", false);
+		bool const hdrs_processed = pe_process_headers(mmf.begin(), mmf.size(), &hdrs);
+		WARN_M_R(hdrs_processed, L"Failed to pe_process_headers.", false);
+		fi.m_is_32_bit = pe_is_32_bit(hdrs.m_coff->m_32.m_standard);
+		bool const tables_processed = pe_process_all(mmf.begin(), mmf.size(), *to.m_mm, &tables);
+		WARN_M_R(tables_processed, L"Failed to pe_process_all.", false);
+	}
+	assert(to.m_map.find(file_path) == to.m_map.end());
+	fat_type* const fo = to.m_tmp_alc->allocate_objects<fat_type>(1);
+	fo->m_orig_instance = &fi;
+	fo->m_enpt.m_table = enpt;
+	fo->m_enpt.m_count = enpt_count;
+	to.m_map[file_path] = fo;
+	std::uint16_t const n = fi.m_import_table.m_dll_count;
+	file_info_2* const fis = to.m_mm->m_alc.allocate_objects<file_info_2>(n);
+	init(fis, n);
+	fi.m_fis = fis;
+	for(std::uint16_t i = 0; i != n; ++i)
+	{
+		bool const s2 = step_2(origin, fi, i, to);
+		WARN_M_R(s2, L"Failed to step_2.", false);
+	}
+	return true;
+}
+
+bool step_2(wstring_handle const& origin, file_info_2 const& fi, std::uint16_t const i, tmp_type& to)
+{
+	file_info_2& sub_fi = fi.m_fis[i];
+	dependency_locator& dl = to.m_dl;
+	dl.m_main_path = &origin;
+	dl.m_dependency = &fi.m_import_table.m_dll_names[i];
+	bool const located = locate_dependency(dl);
+	if(located)
+	{
+		std::wstring const& result = dl.m_result;
+		wstring_handle const normalized = file_name_provider::get_correct_file_name(result.c_str(), static_cast<int>(result.size()), to.m_mm->m_wstrs, to.m_mm->m_alc);
+		bool const s1 = step_1(origin, normalized, sub_fi, to);
+		WARN_M_R(s1, L"Failed to step_1.", false);
+		return true;
+	}
+	else
+	{
+		return true;
+	}
 }
