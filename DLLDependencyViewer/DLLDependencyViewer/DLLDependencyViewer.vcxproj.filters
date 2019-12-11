@@ -327,6 +327,9 @@
     <ClInclude Include="src\nogui\known_dlls.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
+    <ClInclude Include="src\gui\import_export_matcher.h">
+      <Filter>src\gui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\main.cpp">
@@ -514,6 +517,9 @@
     </ClCompile>
     <ClCompile Include="src\nogui\known_dlls.cpp">
       <Filter>src\nogui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gui\import_export_matcher.cpp">
+      <Filter>src\gui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

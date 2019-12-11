@@ -1,4 +1,5 @@
 #include "gui/export_view.cpp"
+#include "gui/import_export_matcher.cpp"
 #include "gui/import_view.cpp"
 #include "gui/list_view_base.cpp"
 #include "gui/main.cpp"
