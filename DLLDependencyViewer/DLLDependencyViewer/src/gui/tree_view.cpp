@@ -357,18 +357,21 @@ void tree_view::refresh()
 	LRESULT const deleted = SendMessageW(m_hwnd, TVM_DELETEITEM, 0, reinterpret_cast<LPARAM>(TVI_ROOT));
 	assert(deleted == TRUE);
 
-	assert(m_main_window.m_mo.m_fi.m_sub_file_infos.size() >= 1);
-	for(auto& sub_fi : m_main_window.m_mo.m_fi.m_sub_file_infos)
+	file_info_2& fi = m_main_window.m_mo.m_fi;
+	std::uint16_t const n = fi.m_import_table.m_dll_count;
+	assert(n >= 1);
+	for(std::uint16_t i = 0; i != n; ++i)
 	{
+		file_info_2& sub_fi = fi.m_fis[i];
 		refresh_view_recursive(sub_fi, TVI_ROOT);
 	}
 
-	for(auto& sub_fi : m_main_window.m_mo.m_fi.m_sub_file_infos)
+	for(std::uint16_t i = 0; i != n; ++i)
 	{
-		assert(!m_main_window.m_mo.m_fi.m_sub_file_infos[0].m_sub_file_infos.empty());
-		LRESULT const expanded = SendMessageW(m_hwnd, TVM_EXPAND, TVE_EXPAND, reinterpret_cast<LPARAM>(sub_fi.m_sub_file_infos[0].m_tree_item));
+		file_info_2& sub_fi = fi.m_fis[i];
+		LRESULT const expanded = SendMessageW(m_hwnd, TVM_EXPAND, TVE_EXPAND, reinterpret_cast<LPARAM>(sub_fi.m_tree_item));
 	}
-	HTREEITEM const first = static_cast<HTREEITEM>(m_main_window.m_mo.m_fi.m_sub_file_infos[0].m_sub_file_infos[0].m_tree_item);
+	HTREEITEM const first = static_cast<HTREEITEM>(fi.m_fis[0].m_tree_item);
 	LRESULT const visibled = SendMessageW(m_hwnd, TVM_ENSUREVISIBLE, 0, reinterpret_cast<LPARAM>(first));
 	LRESULT const selected = SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(first));
 	assert(selected == TRUE);
@@ -418,34 +421,36 @@ smart_menu tree_view::create_menu()
 	return sm;
 }
 
-void tree_view::refresh_view_recursive(file_info& parent_fi, void* const parent_ti)
+void tree_view::refresh_view_recursive(file_info_2& fi, void* const parent_ti)
 {
-	for(auto& fi : parent_fi.m_sub_file_infos)
+	TVINSERTSTRUCTW tvi;
+	tvi.hParent = reinterpret_cast<HTREEITEM>(parent_ti);
+	tvi.hInsertAfter = TVI_LAST;
+	tvi.itemex.mask = TVIF_TEXT | TVIF_IMAGE | TVIF_PARAM | TVIF_SELECTEDIMAGE;
+	tvi.itemex.hItem = nullptr;
+	tvi.itemex.state = 0;
+	tvi.itemex.stateMask = 0;
+	tvi.itemex.pszText = LPSTR_TEXTCALLBACKW;
+	tvi.itemex.cchTextMax = 0;
+	tvi.itemex.iImage = I_IMAGECALLBACK;
+	tvi.itemex.iSelectedImage = I_IMAGECALLBACK;
+	tvi.itemex.cChildren = 0;
+	tvi.itemex.lParam = reinterpret_cast<LPARAM>(&fi);
+	tvi.itemex.iIntegral = 0;
+	tvi.itemex.uStateEx = 0;
+	tvi.itemex.hwnd = nullptr;
+	tvi.itemex.iExpandedImage = 0;
+	tvi.itemex.iReserved = 0;
+	HTREEITEM const ti = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_INSERTITEMW, 0, reinterpret_cast<LPARAM>(&tvi)));
+	assert(ti != nullptr);
+	fi.m_tree_item = ti;
+	m_main_window.request_symbols_from_addresses(fi);
+	m_main_window.request_symbol_undecoration(fi);
+	std::uint16_t const n = fi.m_import_table.m_dll_count;
+	for(std::uint16_t i = 0; i != n; ++i)
 	{
-		TVINSERTSTRUCTW tvi;
-		tvi.hParent = reinterpret_cast<HTREEITEM>(parent_ti);
-		tvi.hInsertAfter = TVI_LAST;
-		tvi.itemex.mask = TVIF_TEXT | TVIF_IMAGE | TVIF_PARAM | TVIF_SELECTEDIMAGE;
-		tvi.itemex.hItem = nullptr;
-		tvi.itemex.state = 0;
-		tvi.itemex.stateMask = 0;
-		tvi.itemex.pszText = LPSTR_TEXTCALLBACKW;
-		tvi.itemex.cchTextMax = 0;
-		tvi.itemex.iImage = I_IMAGECALLBACK;
-		tvi.itemex.iSelectedImage = I_IMAGECALLBACK;
-		tvi.itemex.cChildren = 0;
-		tvi.itemex.lParam = reinterpret_cast<LPARAM>(&fi);
-		tvi.itemex.iIntegral = 0;
-		tvi.itemex.uStateEx = 0;
-		tvi.itemex.hwnd = nullptr;
-		tvi.itemex.iExpandedImage = 0;
-		tvi.itemex.iReserved = 0;
-		HTREEITEM const ti = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_INSERTITEMW, 0, reinterpret_cast<LPARAM>(&tvi)));
-		assert(ti != nullptr);
-		fi.m_tree_item = ti;
-		m_main_window.request_symbols_from_addresses(fi);
-		m_main_window.request_symbol_undecoration(fi);
-		refresh_view_recursive(fi, ti);
+		file_info_2& sub_fi = fi.m_fis[i];
+		refresh_view_recursive(sub_fi, ti);
 	}
 }
 

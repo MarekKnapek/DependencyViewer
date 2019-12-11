@@ -895,17 +895,16 @@ void main_window::open()
 
 void main_window::open_files(std::vector<std::wstring> const& file_paths)
 {
-	main_type mo;
-	try
+	main_type_2 mo;
+	bool const processed = process_2(file_paths, &mo);
+	if(processed)
 	{
-		mo = process(file_paths);
+		refresh(std::move(mo));
 	}
-	catch(wchar_t const* const ex)
+	else
 	{
-		int const msgbox = MessageBoxW(m_hwnd, ex, s_msg_error, MB_OK | MB_ICONERROR);
-		return;
+		int const msgbox = MessageBoxW(m_hwnd, L"Failed to process all files.", s_msg_error, MB_OK | MB_ICONERROR);
 	}
-	refresh(std::move(mo));
 }
 
 void main_window::exit()
@@ -913,13 +912,14 @@ void main_window::exit()
 	LRESULT const sent = SendMessageW(m_hwnd, WM_CLOSE, 0, 0);
 }
 
-void main_window::refresh(main_type mo)
+void main_window::refresh(main_type_2&& mo)
 {
 	cancel_all_dbg_tasks();
 
-	auto tmp = std::make_unique<main_type>();
-	tmp->swap(m_mo);
-	m_mo.swap(mo);
+	auto tmp = std::make_unique<main_type_2>();
+	using std::swap;
+	swap(*tmp, m_mo);
+	swap(m_mo, mo);
 	request_mo_deletion(std::move(tmp));
 
 	m_tree_view.refresh();
@@ -963,19 +963,19 @@ void main_window::undecorate()
 
 void main_window::refresh()
 {
-	if(m_mo.m_fi.m_sub_file_infos.empty())
+	file_info_2 const& fi = m_mo.m_fi;
+	std::uint16_t const n = fi.m_import_table.m_dll_count;
+	if(n == 0)
 	{
 		return;
 	}
-	int const n = static_cast<int>(m_mo.m_fi.m_sub_file_infos.size());
 	assert(n >= 1);
 	std::vector<std::wstring> file_paths;
 	file_paths.resize(n);
-	for(int i = 0; i != n; ++i)
+	for(std::uint16_t i = 0; i != n; ++i)
 	{
-		assert(m_mo.m_fi.m_sub_file_infos[i].m_sub_file_infos.size() == 1);
-		file_info const* const orig = m_mo.m_fi.m_sub_file_infos[i].m_sub_file_infos[0].m_orig_instance;
-		wstring_handle const& name = orig ? orig->m_file_path : m_mo.m_fi.m_sub_file_infos[i].m_sub_file_infos[0].m_file_path;
+		file_info_2 const* const orig = fi.m_fis[i].m_orig_instance;
+		wstring_handle const& name = orig ? orig->m_file_path : fi.m_fis[i].m_file_path;
 		file_paths[i].assign(cbegin(name), cend(name));
 	}
 	open_files(file_paths);
@@ -1164,11 +1164,11 @@ void main_window::cancel_all_dbg_tasks()
 	std::for_each(m_dbg_tasks.begin(), m_dbg_tasks.end(), [](auto& e){ static_cast<cancellable_task_param*>(e)->m_canceled.store(true); });
 }
 
-void main_window::request_mo_deletion(std::unique_ptr<main_type>&& mo)
+void main_window::request_mo_deletion(std::unique_ptr<main_type_2>&& mo)
 {
 	struct marshaller
 	{
-		std::unique_ptr<main_type> m_mo;
+		std::unique_ptr<main_type_2> m_mo;
 	};
 	marshaller m;
 	m.m_mo.swap(mo);
@@ -1198,7 +1198,7 @@ void main_window::request_close()
 	request_helper(this, dbg_provider::get(), std::move(m), fn_worker, fn_main);
 }
 
-void main_window::request_symbols_from_addresses(file_info& fi)
+void main_window::request_symbols_from_addresses(file_info_2& fi)
 {
 	pe_export_table_info* const eti = &fi.m_export_table;
 	std::uint16_t n = 0;
@@ -1287,10 +1287,10 @@ void main_window::finish_symbols_from_addresses(symbols_from_addresses_param_t c
 			m_export_view.repaint();
 		}
 	}
-	request_symbol_undecoration_e(*static_cast<file_info*>(param.m_data), param.m_indexes);
+	request_symbol_undecoration_e(*static_cast<file_info_2*>(param.m_data), param.m_indexes);
 }
 
-void main_window::request_symbol_undecoration(file_info& fi)
+void main_window::request_symbol_undecoration(file_info_2& fi)
 {
 	std::vector<std::uint16_t> const empty_indexes;
 	request_symbol_undecoration_e(fi, empty_indexes);
@@ -1301,7 +1301,7 @@ void main_window::request_symbol_undecoration(file_info& fi)
 	}
 }
 
-void main_window::request_symbol_undecoration_e(file_info& fi, std::vector<std::uint16_t> const& input_indexes)
+void main_window::request_symbol_undecoration_e(file_info_2& fi, std::vector<std::uint16_t> const& input_indexes)
 {
 	pe_export_table_info const& eti = fi.m_export_table;
 	auto const fn_is_decorated = [](bool const is_rva, string_handle const& name){ return is_rva && name.m_string && name.m_string != static_cast<string const*>(nullptr) + 1 && cbegin(name)[0] == '?'; };
@@ -1425,7 +1425,7 @@ void main_window::finish_symbol_undecoration_e(undecorated_from_decorated_e_para
 	}
 }
 
-void main_window::request_symbol_undecoration_i(file_info& fi, std::uint16_t const dll_idx)
+void main_window::request_symbol_undecoration_i(file_info_2& fi, std::uint16_t const dll_idx)
 {
 	pe_import_table_info const& iti = fi.m_import_table;
 	std::uint16_t n = 0;

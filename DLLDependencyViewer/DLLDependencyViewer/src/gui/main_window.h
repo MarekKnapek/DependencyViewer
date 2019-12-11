@@ -4,6 +4,7 @@
 #include "export_view.h"
 #include "import_view.h"
 #include "processor.h"
+#include "processor_2.h"
 #include "settings.h"
 #include "smart_menu.h"
 #include "splitter_window.h"
@@ -93,7 +94,7 @@ private:
 	void open();
 	void open_files(std::vector<std::wstring> const& file_paths);
 	void exit();
-	void refresh(main_type mo);
+	void refresh(main_type_2&& mo);
 	void full_paths();
 	void undecorate();
 	void refresh();
@@ -107,14 +108,14 @@ private:
 	void update_staus_bar();
 	void draw_status_bar(DRAWITEMSTRUCT& ds);
 	void cancel_all_dbg_tasks();
-	void request_mo_deletion(std::unique_ptr<main_type>&& mo);
+	void request_mo_deletion(std::unique_ptr<main_type_2>&& mo);
 	void request_close();
-	void request_symbols_from_addresses(file_info& fi);
+	void request_symbols_from_addresses(file_info_2& fi);
 	void finish_symbols_from_addresses(symbols_from_addresses_param_t const& param);
-	void request_symbol_undecoration(file_info& fi);
-	void request_symbol_undecoration_e(file_info& fi, std::vector<std::uint16_t> const& input_indexes);
+	void request_symbol_undecoration(file_info_2& fi);
+	void request_symbol_undecoration_e(file_info_2& fi, std::vector<std::uint16_t> const& input_indexes);
 	void finish_symbol_undecoration_e(undecorated_from_decorated_e_param_t const& param);
-	void request_symbol_undecoration_i(file_info& fi, std::uint16_t const dll_idx);
+	void request_symbol_undecoration_i(file_info_2& fi, std::uint16_t const dll_idx);
 	void finish_symbol_undecoration_i(undecorated_from_decorated_i_param_t const& param);
 private:
 	static ATOM g_class;
@@ -131,7 +132,7 @@ private:
 	std::queue<std::pair<idle_task_t, idle_task_param_t>> m_idle_tasks;
 	std::deque<thread_worker_param_t> m_dbg_tasks;
 private:
-	main_type m_mo;
+	main_type_2 m_mo;
 	settings m_settings;
 private:
 	friend class tree_view;
