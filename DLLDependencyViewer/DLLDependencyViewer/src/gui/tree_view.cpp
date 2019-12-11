@@ -69,9 +69,9 @@ void tree_view::on_notify(NMHDR& nmhdr)
 void tree_view::on_getdispinfow(NMHDR& nmhdr)
 {
 	NMTVDISPINFOW& di = reinterpret_cast<NMTVDISPINFOW&>(nmhdr);
-	file_info const& tmp_fi = *reinterpret_cast<file_info*>(di.item.lParam);
-	file_info const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
-	file_info const* parent_fi = nullptr;
+	file_info_2 const& tmp_fi = *reinterpret_cast<file_info_2*>(di.item.lParam);
+	file_info_2 const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
+	file_info_2 const* parent_fi = nullptr;
 	HTREEITEM const parent_item = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(di.item.hItem)));
 	if(parent_item)
 	{
@@ -80,7 +80,7 @@ void tree_view::on_getdispinfow(NMHDR& nmhdr)
 		ti.mask = TVIF_PARAM;
 		LRESULT const got = SendMessageW(m_hwnd, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
 		assert(got == TRUE);
-		parent_fi = reinterpret_cast<file_info*>(ti.lParam);
+		parent_fi = reinterpret_cast<file_info_2*>(ti.lParam);
 	}
 	if((di.item.mask & TVIF_TEXT) != 0)
 	{
@@ -93,7 +93,9 @@ void tree_view::on_getdispinfow(NMHDR& nmhdr)
 		{
 			if(parent_fi)
 			{
-				int const idx = static_cast<int>(&tmp_fi - parent_fi->m_sub_file_infos.data());
+				auto const idx_ = &tmp_fi - parent_fi->m_fis;
+				assert(idx_ >= 0 && idx_ <= 0xFFFF);
+				std::uint16_t const idx = static_cast<std::uint16_t>(idx_);
 				string_handle const& my_name = parent_fi->m_import_table.m_dll_names[idx];
 				di.item.pszText = const_cast<wchar_t*>(m_string_converter.convert(my_name));
 			}
@@ -109,7 +111,9 @@ void tree_view::on_getdispinfow(NMHDR& nmhdr)
 		bool delay;
 		if(parent_fi)
 		{
-			std::uint16_t const idx = static_cast<std::uint16_t>(&tmp_fi - parent_fi->m_sub_file_infos.data());
+			auto const idx_ = &tmp_fi - parent_fi->m_fis;
+			assert(idx_ >= 0 && idx_ <= 0xFFFF);
+			std::uint16_t const idx = static_cast<std::uint16_t>(idx_);
 			delay = idx >= parent_fi->m_import_table.m_non_delay_dll_count;
 		}
 		else
@@ -249,8 +253,8 @@ void tree_view::on_context_menu(LPARAM const lparam)
 		ti.mask = TVIF_PARAM;
 		LRESULT const got_item = SendMessageW(m_hwnd, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
 		assert(got_item == TRUE);
-		file_info const& tmp_fi = *reinterpret_cast<file_info*>(ti.lParam);
-		file_info const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
+		file_info_2 const& tmp_fi = *reinterpret_cast<file_info_2*>(ti.lParam);
+		file_info_2 const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
 		enable_goto_orig = tmp_fi.m_orig_instance != nullptr;
 		enable_properties = !!fi.m_file_path && fi.m_file_path != get_not_found_string();
 	}
@@ -466,7 +470,7 @@ void tree_view::select_original_instance()
 	ti.mask = TVIF_PARAM;
 	LRESULT const got_item = SendMessageW(m_hwnd, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
 	assert(got_item == TRUE);
-	file_info const& fi = *reinterpret_cast<file_info*>(ti.lParam);
+	file_info_2 const& fi = *reinterpret_cast<file_info_2*>(ti.lParam);
 	if(!fi.m_orig_instance)
 	{
 		return;
@@ -605,8 +609,8 @@ void tree_view::properties()
 	LRESULT const got = SendMessageW(m_hwnd, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
 	assert(got == TRUE);
 	assert(ti.lParam);
-	file_info const& tmp_fi = *reinterpret_cast<file_info*>(ti.lParam);
-	file_info const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
+	file_info_2 const& tmp_fi = *reinterpret_cast<file_info_2*>(ti.lParam);
+	file_info_2 const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
 	if(!fi.m_file_path || fi.m_file_path == get_not_found_string())
 	{
 		return;

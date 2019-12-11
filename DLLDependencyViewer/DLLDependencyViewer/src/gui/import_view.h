@@ -13,7 +13,7 @@
 
 
 class main_window;
-struct file_info;
+struct file_info_2;
 struct pe_import_entry;
 struct pe_import_table_info;
 
@@ -45,9 +45,9 @@ public:
 private:
 	smart_menu create_menu();
 	wchar_t const* on_get_col_type(pe_import_table_info const& iti, std::uint16_t const dll_idx, std::uint16_t const imp_idx);
-	wchar_t const* on_get_col_ordinal(pe_import_table_info const& iti, std::uint16_t const dll_idx, std::uint16_t const imp_idx, file_info const& fi);
-	wchar_t const* on_get_col_hint(pe_import_table_info const& iti, std::uint16_t const dll_idx, std::uint16_t const imp_idx, file_info const& fi);
-	wchar_t const* on_get_col_name(pe_import_table_info const& iti, std::uint16_t const dll_idx, std::uint16_t const imp_idx, file_info const& fi);
+	wchar_t const* on_get_col_ordinal(pe_import_table_info const& iti, std::uint16_t const dll_idx, std::uint16_t const imp_idx, file_info_2 const& fi);
+	wchar_t const* on_get_col_hint(pe_import_table_info const& iti, std::uint16_t const dll_idx, std::uint16_t const imp_idx, file_info_2 const& fi);
+	wchar_t const* on_get_col_name(pe_import_table_info const& iti, std::uint16_t const dll_idx, std::uint16_t const imp_idx, file_info_2 const& fi);
 	void select_matching_instance();
 	int get_type_column_max_width();
 private:

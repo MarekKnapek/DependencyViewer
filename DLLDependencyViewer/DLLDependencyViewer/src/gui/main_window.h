@@ -99,7 +99,7 @@ private:
 	void undecorate();
 	void refresh();
 	int get_ordinal_column_max_width();
-	std::pair<file_info const*, POINT> get_file_info_under_cursor();
+	std::pair<file_info_2 const*, POINT> get_file_info_2_under_cursor();
 	void add_idle_task(idle_task_t const task, idle_task_param_t const param);
 	void on_idle();
 	void process_command_line();

@@ -1040,7 +1040,7 @@ int main_window::get_ordinal_column_max_width()
 	return g_ordinal_column_max_width;
 }
 
-std::pair<file_info const*, POINT> main_window::get_file_info_under_cursor()
+std::pair<file_info_2 const*, POINT> main_window::get_file_info_2_under_cursor()
 {
 	POINT cursor_screen;
 	BOOL const got_cursor_pos = GetCursorPos(&cursor_screen);
@@ -1062,7 +1062,7 @@ std::pair<file_info const*, POINT> main_window::get_file_info_under_cursor()
 	LRESULT const got_item = SendMessageW(m_tree_view.get_hwnd(), TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
 	assert(got_item == TRUE);
 	assert(ti.lParam);
-	file_info const* const fi = reinterpret_cast<file_info*>(ti.lParam);
+	file_info_2 const* const fi = reinterpret_cast<file_info_2*>(ti.lParam);
 	return {fi, cursor_screen};
 }
 
@@ -1278,7 +1278,7 @@ void main_window::finish_symbols_from_addresses(symbols_from_addresses_param_t c
 		ti.hItem = selected;
 		LRESULT const got = SendMessageW(m_tree_view.get_hwnd(), TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
 		assert(got == TRUE);
-		file_info const* const fi = reinterpret_cast<file_info*>(ti.lParam);
+		file_info_2 const* const fi = reinterpret_cast<file_info_2*>(ti.lParam);
 		if(fi == param.m_data || fi->m_orig_instance == param.m_data)
 		{
 			m_import_view.sort_view();
@@ -1414,7 +1414,7 @@ void main_window::finish_symbol_undecoration_e(undecorated_from_decorated_e_para
 		ti.hItem = selected;
 		LRESULT const got = SendMessageW(m_tree_view.get_hwnd(), TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
 		assert(got == TRUE);
-		file_info const* const fi = reinterpret_cast<file_info*>(ti.lParam);
+		file_info_2 const* const fi = reinterpret_cast<file_info_2*>(ti.lParam);
 		if(fi == param.m_data || fi->m_orig_instance == param.m_data)
 		{
 			m_import_view.sort_view();
@@ -1515,7 +1515,7 @@ void main_window::finish_symbol_undecoration_i(undecorated_from_decorated_i_para
 		ti.hItem = selected;
 		LRESULT const got = SendMessageW(m_tree_view.get_hwnd(), TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
 		assert(got == TRUE);
-		file_info const* const fi = reinterpret_cast<file_info*>(ti.lParam);
+		file_info_2 const* const fi = reinterpret_cast<file_info_2*>(ti.lParam);
 		if(fi == param.m_data || fi->m_orig_instance == param.m_data)
 		{
 			m_import_view.sort_view();
