@@ -63,12 +63,12 @@ bool pe_process_import_iat(std::byte const* const file_data, int const file_size
 {
 	assert(iat_in_out);
 	int const n_dlls = iat_in_out->m_tables->m_idt.m_count + iat_in_out->m_tables->m_didt.m_count;
-	std::uint16_t* import_counts = iat_in_out->m_alc->allocate_objects<std::uint16_t>(n_dlls);
-	unsigned** are_ordinals_all = iat_in_out->m_alc->allocate_objects<unsigned*>(n_dlls);
-	std::uint16_t** ordinals_or_hints_all = iat_in_out->m_alc->allocate_objects<std::uint16_t*>(n_dlls);
-	string_handle** names_all = iat_in_out->m_alc->allocate_objects<string_handle*>(n_dlls);
-	string_handle** undecorated_names_all = iat_in_out->m_alc->allocate_objects<string_handle*>(n_dlls);
-	std::uint16_t** matched_exports_all = iat_in_out->m_alc->allocate_objects<std::uint16_t*>(n_dlls);
+	std::uint16_t* const import_counts = iat_in_out->m_alc->allocate_objects<std::uint16_t>(n_dlls);
+	unsigned** const are_ordinals_all = iat_in_out->m_alc->allocate_objects<unsigned*>(n_dlls);
+	std::uint16_t** const ordinals_or_hints_all = iat_in_out->m_alc->allocate_objects<std::uint16_t*>(n_dlls);
+	string_handle** const names_all = iat_in_out->m_alc->allocate_objects<string_handle*>(n_dlls);
+	string_handle** const undecorated_names_all = iat_in_out->m_alc->allocate_objects<string_handle*>(n_dlls);
+	std::uint16_t** const matched_exports_all = iat_in_out->m_alc->allocate_objects<std::uint16_t*>(n_dlls);
 	int ii = 0;
 	for(int i = 0; i != iat_in_out->m_tables->m_idt.m_count; ++i, ++ii)
 	{
@@ -76,12 +76,12 @@ bool pe_process_import_iat(std::byte const* const file_data, int const file_size
 		bool const iat_parsed = pe_parse_import_address_table(file_data, file_size, iat_in_out->m_tables->m_idt.m_table[i], &iat);
 		WARN_M_R(iat_parsed, L"Failed to parse import address table.", false);
 		int const bits_to_dwords = array_bool_space_needed(iat.m_count);
-		unsigned* are_ordinals = iat_in_out->m_alc->allocate_objects<unsigned>(bits_to_dwords);
+		unsigned* const are_ordinals = iat_in_out->m_alc->allocate_objects<unsigned>(bits_to_dwords);
 		std::fill(are_ordinals, are_ordinals + bits_to_dwords, 0u);
-		std::uint16_t* ordinals_or_hints = iat_in_out->m_alc->allocate_objects<std::uint16_t>(iat.m_count);
-		string_handle* names = iat_in_out->m_alc->allocate_objects<string_handle>(iat.m_count);
-		string_handle* undecorated_names = iat_in_out->m_alc->allocate_objects<string_handle>(iat.m_count);
-		std::uint16_t* matched_exports = iat_in_out->m_alc->allocate_objects<std::uint16_t>(iat.m_count);
+		std::uint16_t* const ordinals_or_hints = iat_in_out->m_alc->allocate_objects<std::uint16_t>(iat.m_count);
+		string_handle* const names = iat_in_out->m_alc->allocate_objects<string_handle>(iat.m_count);
+		string_handle* const undecorated_names = iat_in_out->m_alc->allocate_objects<string_handle>(iat.m_count);
+		std::uint16_t* const matched_exports = iat_in_out->m_alc->allocate_objects<std::uint16_t>(iat.m_count);
 		for(int j = 0; j != iat.m_count; ++j)
 		{
 			bool is_ordinal;
@@ -113,12 +113,12 @@ bool pe_process_import_iat(std::byte const* const file_data, int const file_size
 		bool const iat_parsed = pe_parse_delay_import_address_table(file_data, file_size, iat_in_out->m_tables->m_didt.m_table[i], &iat);
 		WARN_M_R(iat_parsed, L"Failed to parse delay import address table.", false);
 		int const bits_to_dwords = array_bool_space_needed(iat.m_count);
-		unsigned* are_ordinals = iat_in_out->m_alc->allocate_objects<unsigned>(bits_to_dwords);
+		unsigned* const are_ordinals = iat_in_out->m_alc->allocate_objects<unsigned>(bits_to_dwords);
 		std::fill(are_ordinals, are_ordinals + bits_to_dwords, 0u);
-		std::uint16_t* ordinals_or_hints = iat_in_out->m_alc->allocate_objects<std::uint16_t>(iat.m_count);
-		string_handle* names = iat_in_out->m_alc->allocate_objects<string_handle>(iat.m_count);
-		string_handle* undecorated_names = iat_in_out->m_alc->allocate_objects<string_handle>(iat.m_count);
-		std::uint16_t* matched_exports = iat_in_out->m_alc->allocate_objects<std::uint16_t>(iat.m_count);
+		std::uint16_t* const ordinals_or_hints = iat_in_out->m_alc->allocate_objects<std::uint16_t>(iat.m_count);
+		string_handle* const names = iat_in_out->m_alc->allocate_objects<string_handle>(iat.m_count);
+		string_handle* const undecorated_names = iat_in_out->m_alc->allocate_objects<string_handle>(iat.m_count);
+		std::uint16_t* const matched_exports = iat_in_out->m_alc->allocate_objects<std::uint16_t>(iat.m_count);
 		for(int j = 0; j != iat.m_count; ++j)
 		{
 			bool is_ordinal;
