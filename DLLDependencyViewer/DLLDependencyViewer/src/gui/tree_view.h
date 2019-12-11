@@ -12,7 +12,7 @@
 
 
 class main_window;
-struct file_info_2;
+struct file_info;
 
 
 class tree_view
@@ -45,7 +45,7 @@ public:
 	void repaint();
 private:
 	smart_menu create_menu();
-	void refresh_view_recursive(file_info_2& fi, void* const ti);
+	void refresh_view_recursive(file_info& fi, void* const ti);
 	void select_original_instance();
 	void expand();
 	void collapse();

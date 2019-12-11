@@ -1,7 +1,7 @@
-#include "processor_impl_2.h"
+#include "processor_impl.h"
 
 #include "import_export_matcher.h"
-#include "processor_2.h"
+#include "processor.h"
 
 #include "../nogui/assert.h"
 #include "../nogui/dependency_locator.h"
@@ -18,15 +18,15 @@ static constexpr wchar_t const s_dummy_textw_r[] = L"";
 static constexpr wstring const s_dummy_textw_s = {s_dummy_textw_r, static_cast<int>(std::size(s_dummy_textw_r)) - 1};
 static constexpr wstring_handle const s_dummy_textw_h = {&s_dummy_textw_s};
 static constexpr char const s_dummy_texta_r[] = "";
-static constexpr string const s_dummy_texta_s ={s_dummy_texta_r, static_cast<int>(std::size(s_dummy_texta_r)) - 1};
+static constexpr string const s_dummy_texta_s = {s_dummy_texta_r, static_cast<int>(std::size(s_dummy_texta_r)) - 1};
 static constexpr string_handle const s_dummy_texta_h = {&s_dummy_texta_s};
 
 
-bool process_impl_2(std::vector<std::wstring> const& file_paths, file_info_2& fi, memory_manager& mm)
+bool process_impl(std::vector<std::wstring> const& file_paths, file_info& fi, memory_manager& mm)
 {
 	WARN_M_R(file_paths.size() < 0xFFFF, L"Too many files to process.", false);
 	std::uint16_t const n = static_cast<std::uint16_t>(file_paths.size());
-	file_info_2* const fis = mm.m_alc.allocate_objects<file_info_2>(n);
+	file_info* const fis = mm.m_alc.allocate_objects<file_info>(n);
 	init(fis, n);
 	string_handle* const dll_names = mm.m_alc.allocate_objects<string_handle>(n);
 	std::fill(dll_names, dll_names + n, s_dummy_texta_h);
@@ -45,7 +45,7 @@ bool process_impl_2(std::vector<std::wstring> const& file_paths, file_info_2& fi
 	to.m_tmp_alc = &tmpalc;
 	for(std::uint16_t i = 0; i != n; ++i)
 	{
-		file_info_2& sub_fi = fi.m_fis[i];
+		file_info& sub_fi = fi.m_fis[i];
 		int const path_len = static_cast<int>(file_paths[i].size());
 		wchar_t const* const cstr = file_paths[i].c_str();
 		wstring_handle const normalized = file_name_provider::get_correct_file_name(cstr, path_len, to.m_mm->m_wstrs, to.m_mm->m_alc);
@@ -57,7 +57,7 @@ bool process_impl_2(std::vector<std::wstring> const& file_paths, file_info_2& fi
 }
 
 
-bool step_1(wstring_handle const& origin, wstring_handle const& file_path, file_info_2& fi, tmp_type& to)
+bool step_1(wstring_handle const& origin, wstring_handle const& file_path, file_info& fi, tmp_type& to)
 {
 	auto const it = to.m_map.find(file_path);
 	if(it != to.m_map.end())
@@ -92,7 +92,7 @@ bool step_1(wstring_handle const& origin, wstring_handle const& file_path, file_
 	fo->m_enpt.m_count = enpt_count;
 	to.m_map[file_path] = fo;
 	std::uint16_t const n = fi.m_import_table.m_dll_count;
-	file_info_2* const fis = to.m_mm->m_alc.allocate_objects<file_info_2>(n);
+	file_info* const fis = to.m_mm->m_alc.allocate_objects<file_info>(n);
 	init(fis, n);
 	fi.m_fis = fis;
 	for(std::uint16_t i = 0; i != n; ++i)
@@ -103,9 +103,9 @@ bool step_1(wstring_handle const& origin, wstring_handle const& file_path, file_
 	return true;
 }
 
-bool step_2(wstring_handle const& origin, file_info_2 const& fi, std::uint16_t const i, tmp_type& to)
+bool step_2(wstring_handle const& origin, file_info const& fi, std::uint16_t const i, tmp_type& to)
 {
-	file_info_2& sub_fi = fi.m_fis[i];
+	file_info& sub_fi = fi.m_fis[i];
 	dependency_locator& dl = to.m_dl;
 	dl.m_main_path = &origin;
 	dl.m_dependency = &fi.m_import_table.m_dll_names[i];

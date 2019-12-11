@@ -306,12 +306,6 @@
     <ClInclude Include="src\nogui\ole.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
-    <ClInclude Include="src\gui\processor_2.h">
-      <Filter>src\gui</Filter>
-    </ClInclude>
-    <ClInclude Include="src\gui\processor_impl_2.h">
-      <Filter>src\gui</Filter>
-    </ClInclude>
     <ClInclude Include="src\nogui\dependency_locator.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
@@ -319,6 +313,12 @@
       <Filter>src\nogui</Filter>
     </ClInclude>
     <ClInclude Include="src\gui\import_export_matcher.h">
+      <Filter>src\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gui\processor.h">
+      <Filter>src\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gui\processor_impl.h">
       <Filter>src\gui</Filter>
     </ClInclude>
   </ItemGroup>
@@ -488,12 +488,6 @@
     <ClCompile Include="src\nogui\ole.cpp">
       <Filter>src\nogui</Filter>
     </ClCompile>
-    <ClCompile Include="src\gui\processor_2.cpp">
-      <Filter>src\gui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\gui\processor_impl_2.cpp">
-      <Filter>src\gui</Filter>
-    </ClCompile>
     <ClCompile Include="src\nogui\dependency_locator.cpp">
       <Filter>src\nogui</Filter>
     </ClCompile>
@@ -501,6 +495,12 @@
       <Filter>src\nogui</Filter>
     </ClCompile>
     <ClCompile Include="src\gui\import_export_matcher.cpp">
+      <Filter>src\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gui\processor.cpp">
+      <Filter>src\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gui\processor_impl.cpp">
       <Filter>src\gui</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include "processor_2.h"
+#include "processor.h"
 
 #include "../nogui/allocator.h"
 #include "../nogui/dependency_locator.h"
@@ -22,7 +22,7 @@ struct enptr_type
 
 struct fat_type
 {
-	file_info_2* m_orig_instance;
+	file_info* m_orig_instance;
 	enptr_type m_enpt;
 };
 
@@ -35,7 +35,7 @@ struct tmp_type
 };
 
 
-bool process_impl_2(std::vector<std::wstring> const& file_paths, file_info_2& fi, memory_manager& mm);
+bool process_impl(std::vector<std::wstring> const& file_paths, file_info& fi, memory_manager& mm);
 
-bool step_1(wstring_handle const& origin, wstring_handle const& file_path, file_info_2& fi, tmp_type& to);
-bool step_2(wstring_handle const& origin, file_info_2 const& fi, std::uint16_t const i, tmp_type& to);
+bool step_1(wstring_handle const& origin, wstring_handle const& file_path, file_info& fi, tmp_type& to);
+bool step_2(wstring_handle const& origin, file_info const& fi, std::uint16_t const i, tmp_type& to);

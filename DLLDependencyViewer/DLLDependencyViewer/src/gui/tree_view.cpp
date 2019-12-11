@@ -68,9 +68,9 @@ void tree_view::on_notify(NMHDR& nmhdr)
 void tree_view::on_getdispinfow(NMHDR& nmhdr)
 {
 	NMTVDISPINFOW& di = reinterpret_cast<NMTVDISPINFOW&>(nmhdr);
-	file_info_2 const& tmp_fi = *reinterpret_cast<file_info_2*>(di.item.lParam);
-	file_info_2 const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
-	file_info_2 const* parent_fi = nullptr;
+	file_info const& tmp_fi = *reinterpret_cast<file_info*>(di.item.lParam);
+	file_info const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
+	file_info const* parent_fi = nullptr;
 	HTREEITEM const parent_item = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(di.item.hItem)));
 	if(parent_item)
 	{
@@ -79,7 +79,7 @@ void tree_view::on_getdispinfow(NMHDR& nmhdr)
 		ti.mask = TVIF_PARAM;
 		LRESULT const got = SendMessageW(m_hwnd, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
 		assert(got == TRUE);
-		parent_fi = reinterpret_cast<file_info_2*>(ti.lParam);
+		parent_fi = reinterpret_cast<file_info*>(ti.lParam);
 	}
 	if((di.item.mask & TVIF_TEXT) != 0)
 	{
@@ -252,8 +252,8 @@ void tree_view::on_context_menu(LPARAM const lparam)
 		ti.mask = TVIF_PARAM;
 		LRESULT const got_item = SendMessageW(m_hwnd, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
 		assert(got_item == TRUE);
-		file_info_2 const& tmp_fi = *reinterpret_cast<file_info_2*>(ti.lParam);
-		file_info_2 const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
+		file_info const& tmp_fi = *reinterpret_cast<file_info*>(ti.lParam);
+		file_info const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
 		enable_goto_orig = tmp_fi.m_orig_instance != nullptr;
 		enable_properties = fi.m_file_path.m_string != nullptr;
 	}
@@ -360,18 +360,18 @@ void tree_view::refresh()
 	LRESULT const deleted = SendMessageW(m_hwnd, TVM_DELETEITEM, 0, reinterpret_cast<LPARAM>(TVI_ROOT));
 	assert(deleted == TRUE);
 
-	file_info_2& fi = m_main_window.m_mo.m_fi;
+	file_info& fi = m_main_window.m_mo.m_fi;
 	std::uint16_t const n = fi.m_import_table.m_dll_count;
 	assert(n >= 1);
 	for(std::uint16_t i = 0; i != n; ++i)
 	{
-		file_info_2& sub_fi = fi.m_fis[i];
+		file_info& sub_fi = fi.m_fis[i];
 		refresh_view_recursive(sub_fi, TVI_ROOT);
 	}
 
 	for(std::uint16_t i = 0; i != n; ++i)
 	{
-		file_info_2& sub_fi = fi.m_fis[i];
+		file_info& sub_fi = fi.m_fis[i];
 		LRESULT const expanded = SendMessageW(m_hwnd, TVM_EXPAND, TVE_EXPAND, reinterpret_cast<LPARAM>(sub_fi.m_tree_item));
 	}
 	HTREEITEM const first = static_cast<HTREEITEM>(fi.m_fis[0].m_tree_item);
@@ -424,7 +424,7 @@ smart_menu tree_view::create_menu()
 	return sm;
 }
 
-void tree_view::refresh_view_recursive(file_info_2& fi, void* const parent_ti)
+void tree_view::refresh_view_recursive(file_info& fi, void* const parent_ti)
 {
 	TVINSERTSTRUCTW tvi;
 	tvi.hParent = reinterpret_cast<HTREEITEM>(parent_ti);
@@ -452,7 +452,7 @@ void tree_view::refresh_view_recursive(file_info_2& fi, void* const parent_ti)
 	std::uint16_t const n = fi.m_import_table.m_dll_count;
 	for(std::uint16_t i = 0; i != n; ++i)
 	{
-		file_info_2& sub_fi = fi.m_fis[i];
+		file_info& sub_fi = fi.m_fis[i];
 		refresh_view_recursive(sub_fi, ti);
 	}
 }
@@ -469,7 +469,7 @@ void tree_view::select_original_instance()
 	ti.mask = TVIF_PARAM;
 	LRESULT const got_item = SendMessageW(m_hwnd, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
 	assert(got_item == TRUE);
-	file_info_2 const& fi = *reinterpret_cast<file_info_2*>(ti.lParam);
+	file_info const& fi = *reinterpret_cast<file_info*>(ti.lParam);
 	if(!fi.m_orig_instance)
 	{
 		return;
@@ -608,8 +608,8 @@ void tree_view::properties()
 	LRESULT const got = SendMessageW(m_hwnd, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
 	assert(got == TRUE);
 	assert(ti.lParam);
-	file_info_2 const& tmp_fi = *reinterpret_cast<file_info_2*>(ti.lParam);
-	file_info_2 const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
+	file_info const& tmp_fi = *reinterpret_cast<file_info*>(ti.lParam);
+	file_info const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
 	if(fi.m_file_path.m_string == nullptr)
 	{
 		return;

@@ -6,34 +6,34 @@
 #include <algorithm>
 
 
-void pair_root(file_info_2& fi, tmp_type& to)
+void pair_root(file_info& fi, tmp_type& to)
 {
 	std::uint16_t const n = fi.m_import_table.m_dll_count;
 	for(std::uint16_t i = 0; i != n; ++i)
 	{
-		file_info_2& sub_fi = fi.m_fis[i];
-		file_info_2& sub_fi_orig = sub_fi.m_orig_instance ? *sub_fi.m_orig_instance : sub_fi;
+		file_info& sub_fi = fi.m_fis[i];
+		file_info& sub_fi_orig = sub_fi.m_orig_instance ? *sub_fi.m_orig_instance : sub_fi;
 		sub_fi.m_matched_imports = to.m_mm->m_alc.allocate_objects<std::uint16_t>(sub_fi_orig.m_export_table.m_count);
 		std::fill(sub_fi.m_matched_imports, sub_fi.m_matched_imports + sub_fi_orig.m_export_table.m_count, static_cast<std::uint16_t>(0xFFFF));
 		pair_all(sub_fi, to);
 	}
 }
 
-void pair_all(file_info_2& fi, tmp_type& to)
+void pair_all(file_info& fi, tmp_type& to)
 {
 	std::uint16_t const n = fi.m_import_table.m_dll_count;
 	for(std::uint16_t i = 0; i != n; ++i)
 	{
-		file_info_2& sub_fi = fi.m_fis[i];
+		file_info& sub_fi = fi.m_fis[i];
 		pair_imports_with_exports(fi, sub_fi, to);
 		pair_exports_with_imports(fi, sub_fi, to);
 		pair_all(sub_fi, to);
 	}
 }
 
-void pair_imports_with_exports(file_info_2& fi, file_info_2& sub_fi, tmp_type& to)
+void pair_imports_with_exports(file_info& fi, file_info& sub_fi, tmp_type& to)
 {
-	file_info_2& sub_fi_proper = sub_fi.m_orig_instance ? *sub_fi.m_orig_instance : sub_fi;
+	file_info& sub_fi_proper = sub_fi.m_orig_instance ? *sub_fi.m_orig_instance : sub_fi;
 	if(sub_fi_proper.m_file_path.m_string == nullptr)
 	{
 		return;
@@ -100,9 +100,9 @@ void pair_imports_with_exports(file_info_2& fi, file_info_2& sub_fi, tmp_type& t
 	}
 }
 
-void pair_exports_with_imports(file_info_2& fi, file_info_2& sub_fi, tmp_type& to)
+void pair_exports_with_imports(file_info& fi, file_info& sub_fi, tmp_type& to)
 {
-	file_info_2& sub_fi_proper = sub_fi.m_orig_instance ? *sub_fi.m_orig_instance : sub_fi;
+	file_info& sub_fi_proper = sub_fi.m_orig_instance ? *sub_fi.m_orig_instance : sub_fi;
 	if(sub_fi_proper.m_file_path.m_string == nullptr)
 	{
 		return;

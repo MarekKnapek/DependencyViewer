@@ -188,8 +188,8 @@ void export_view::on_getdispinfow(NMHDR& nmhdr)
 	ti.mask = TVIF_PARAM;
 	LRESULT const got_selected = SendMessageW(tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
 	assert(got_selected == TRUE);
-	file_info_2 const& fi_tmp = *reinterpret_cast<file_info_2*>(ti.lParam);
-	file_info_2 const& fi = fi_tmp.m_orig_instance ? *fi_tmp.m_orig_instance : fi_tmp;
+	file_info const& fi_tmp = *reinterpret_cast<file_info*>(ti.lParam);
+	file_info const& fi = fi_tmp.m_orig_instance ? *fi_tmp.m_orig_instance : fi_tmp;
 	int const row = nm.item.iItem;
 	int const col = nm.item.iSubItem;
 	pe_export_table_info const& eti = fi.m_export_table;
@@ -311,7 +311,7 @@ void export_view::on_context_menu(LPARAM const lparam)
 	ti.mask = TVIF_PARAM;
 	LRESULT const got_item = SendMessageW(tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
 	assert(got_item == TRUE);
-	file_info_2 const& fi = *reinterpret_cast<file_info_2*>(ti.lParam);
+	file_info const& fi = *reinterpret_cast<file_info*>(ti.lParam);
 	std::uint16_t const& matched = fi.m_matched_imports[ith_export];
 	bool const enable_goto_orig = matched != 0xffff;
 	HMENU const menu = reinterpret_cast<HMENU>(m_menu.get());
@@ -371,8 +371,8 @@ void export_view::refresh()
 	ti.mask = TVIF_PARAM;
 	LRESULT const got_1 = SendMessageW(tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
 	assert(got_1 == TRUE);
-	file_info_2 const& fi_tmp = *reinterpret_cast<file_info_2*>(ti.lParam);
-	file_info_2 const& fi = fi_tmp.m_orig_instance ? *fi_tmp.m_orig_instance : fi_tmp;
+	file_info const& fi_tmp = *reinterpret_cast<file_info*>(ti.lParam);
+	file_info const& fi = fi_tmp.m_orig_instance ? *fi_tmp.m_orig_instance : fi_tmp;
 
 	LRESULT const set_size = SendMessageW(m_hwnd, LVM_SETITEMCOUNT, fi.m_export_table.m_count, 0);
 	assert(set_size != 0);
@@ -432,8 +432,8 @@ void export_view::sort_view()
 		ti.mask = TVIF_PARAM;
 		LRESULT const got_selected = SendMessageW(tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
 		assert(got_selected == TRUE);
-		file_info_2 const& fi_tmp = *reinterpret_cast<file_info_2*>(ti.lParam);
-		file_info_2 const& fi = fi_tmp.m_orig_instance ? *fi_tmp.m_orig_instance : fi_tmp;
+		file_info const& fi_tmp = *reinterpret_cast<file_info*>(ti.lParam);
+		file_info const& fi = fi_tmp.m_orig_instance ? *fi_tmp.m_orig_instance : fi_tmp;
 		pe_export_table_info const& eti = fi.m_export_table;
 
 		std::uint16_t const n_items = eti.m_count;
@@ -706,7 +706,7 @@ void export_view::select_matching_instance()
 	ti.mask = TVIF_PARAM;
 	LRESULT const got_item = SendMessageW(tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
 	assert(got_item == TRUE);
-	file_info_2 const& fi = *reinterpret_cast<file_info_2*>(ti.lParam);
+	file_info const& fi = *reinterpret_cast<file_info*>(ti.lParam);
 	std::uint16_t const& matched_imp = fi.m_matched_imports[ith_export];
 	if(matched_imp == 0xFFFF)
 	{

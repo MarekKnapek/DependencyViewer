@@ -1,6 +1,6 @@
-#include "processor_2.h"
+#include "processor.h"
 
-#include "processor_impl_2.h"
+#include "processor_impl.h"
 
 #include "../nogui/assert.h"
 
@@ -41,24 +41,24 @@ inline constexpr bool is_simple_type_v =
 	std::is_nothrow_swappable_v              	<T>;
 
 
-static_assert(is_simple_type_v<file_info_2>, "");
+static_assert(is_simple_type_v<file_info>, "");
 
 
-void init(file_info_2* const fi)
+void init(file_info* const fi)
 {
 	init(fi, 1);
 }
 
-void init(file_info_2* const fi, int const count)
+void init(file_info* const fi, int const count)
 {
 	std::memset(fi, 0, count * sizeof(*fi));
 }
 
 
-bool process_2(std::vector<std::wstring> const& file_paths, main_type_2* const mo_out)
+bool process(std::vector<std::wstring> const& file_paths, main_type* const mo_out)
 {
 	assert(mo_out);
-	bool const processed = process_impl_2(file_paths, mo_out->m_fi, mo_out->m_mm);
-	WARN_M_R(processed, L"Failed to process_impl_2.", false);
+	bool const processed = process_impl(file_paths, mo_out->m_fi, mo_out->m_mm);
+	WARN_M_R(processed, L"Failed to process_impl.", false);
 	return true;
 }
