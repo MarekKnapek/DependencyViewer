@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../nogui/memory_manager.h"
 #include "../nogui/my_string_handle.h"
 #include "../nogui/pe.h"
 
@@ -19,3 +20,12 @@ struct file_info_2
 };
 void init(file_info_2* const fi);
 void init(file_info_2* const fi, int const count);
+
+struct main_type_2
+{
+	file_info_2 m_fi;
+	memory_manager m_mm;
+};
+
+
+bool process_2(std::vector<std::wstring> const& file_paths, main_type_2* const mo_out);

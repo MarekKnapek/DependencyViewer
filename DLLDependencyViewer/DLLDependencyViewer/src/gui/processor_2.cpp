@@ -1,6 +1,10 @@
 #include "processor_2.h"
 
+#include "processor_impl_2.h"
 
+#include "../nogui/assert.h"
+
+#include <cassert>
 #include <cstring>
 #include <type_traits>
 
@@ -48,4 +52,13 @@ void init(file_info_2* const fi)
 void init(file_info_2* const fi, int const count)
 {
 	std::memset(fi, 0, count * sizeof(*fi));
+}
+
+
+bool process_2(std::vector<std::wstring> const& file_paths, main_type_2* const mo_out)
+{
+	assert(mo_out);
+	bool const processed = process_impl_2(file_paths, mo_out->m_fi, mo_out->m_mm);
+	WARN_M_R(processed, L"Failed to process_impl_2.", false);
+	return true;
 }
