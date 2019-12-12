@@ -9,7 +9,7 @@
 
 struct dependency_locator
 {
-	wstring_handle const* m_main_path;
+	wstring_handle m_main_path;
 	string_handle const* m_dependency;
 	std::wstring m_result;
 	std::string m_tmpn;

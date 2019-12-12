@@ -49,15 +49,34 @@ bool process_impl(std::vector<std::wstring> const& file_paths, file_info& fi, me
 		int const path_len = static_cast<int>(file_paths[i].size());
 		wchar_t const* const cstr = file_paths[i].c_str();
 		wstring_handle const normalized = file_name_provider::get_correct_file_name(cstr, path_len, to.m_mm->m_wstrs, to.m_mm->m_alc);
-		bool const s1 = step_1(normalized, normalized, sub_fi, to);
-		WARN_M_R(s1, L"Failed to step_1.", false);
+		dependency_locator& dl = to.m_dl;
+		dl.m_main_path = normalized;
+		assert(to.m_queue.empty());
+		to.m_queue.push_back({normalized, &sub_fi});
+		bool const step = step_1(to);
+		WARN_M_R(step, L"Failed to step_1.", false);
 	}
 	pair_root(fi, to);
 	return true;
 }
 
 
-bool step_1(wstring_handle const& origin, wstring_handle const& file_path, file_info& fi, tmp_type& to)
+bool step_1(tmp_type& to)
+{
+	while(!to.m_queue.empty())
+	{
+		auto const& e = to.m_queue.front();
+		wstring_handle const file_path = e.first;
+		file_info* const fi = e.second;
+		assert(fi != nullptr);
+		to.m_queue.pop_front();
+		bool const step = step_2(file_path, *fi, to);
+		WARN_M_R(step, L"Failed to step_2.", false);
+	}
+	return true;
+}
+
+bool step_2(wstring_handle const& file_path, file_info& fi, tmp_type& to)
 {
 	auto const it = to.m_map.find(file_path);
 	if(it != to.m_map.end())
@@ -97,25 +116,23 @@ bool step_1(wstring_handle const& origin, wstring_handle const& file_path, file_
 	fi.m_fis = fis;
 	for(std::uint16_t i = 0; i != n; ++i)
 	{
-		bool const s2 = step_2(origin, fi, i, to);
-		WARN_M_R(s2, L"Failed to step_2.", false);
+		bool const step = step_3(fi, i, to);
+		WARN_M_R(step, L"Failed to step_3.", false);
 	}
 	return true;
 }
 
-bool step_2(wstring_handle const& origin, file_info const& fi, std::uint16_t const i, tmp_type& to)
+bool step_3(file_info const& fi, std::uint16_t const i, tmp_type& to)
 {
 	file_info& sub_fi = fi.m_fis[i];
 	dependency_locator& dl = to.m_dl;
-	dl.m_main_path = &origin;
 	dl.m_dependency = &fi.m_import_table.m_dll_names[i];
 	bool const located = locate_dependency(dl);
 	if(located)
 	{
 		std::wstring const& result = dl.m_result;
 		wstring_handle const normalized = file_name_provider::get_correct_file_name(result.c_str(), static_cast<int>(result.size()), to.m_mm->m_wstrs, to.m_mm->m_alc);
-		bool const s1 = step_1(origin, normalized, sub_fi, to);
-		WARN_M_R(s1, L"Failed to step_1.", false);
+		to.m_queue.push_back({normalized, &sub_fi});
 		return true;
 	}
 	else

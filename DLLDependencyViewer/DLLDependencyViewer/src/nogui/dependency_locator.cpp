@@ -54,7 +54,7 @@ bool locate_dependency_known_dlls(dependency_locator& self)
 
 bool locate_dependency_application_dir(dependency_locator& self)
 {
-	wstring_handle const& main_path = *self.m_main_path;
+	wstring_handle const& main_path = self.m_main_path;
 	string_handle const& dependency = *self.m_dependency;
 	std::filesystem::path& tmp_path = self.m_tmp_path;
 	tmp_path.assign(begin(main_path), end(main_path)).replace_filename({begin(dependency), end(dependency)});
