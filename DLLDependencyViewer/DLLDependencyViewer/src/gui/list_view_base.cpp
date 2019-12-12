@@ -96,7 +96,7 @@ void list_view_base::select_item(void const* const hwnd_ptr, void const* const s
 	std::uint16_t const ith_line = sort.empty() ? static_cast<std::uint16_t>(item_idx) : sort[sort.size() / 2 + item_idx];
 	LRESULT const visibility_ensured = SendMessageW(hwnd, LVM_ENSUREVISIBLE, ith_line, FALSE);
 	assert(visibility_ensured == TRUE);
-	LVITEM lvi;
+	LVITEMW lvi;
 	lvi.stateMask = LVIS_FOCUSED | LVIS_SELECTED;
 	lvi.state = 0;
 	LRESULT const selection_cleared = SendMessageW(hwnd, LVM_SETITEMSTATE, WPARAM{0} - 1, reinterpret_cast<LPARAM>(&lvi));
