@@ -74,7 +74,7 @@ bool locate_dependency_system32(dependency_locator& self)
 	UINT const got_sys = GetSystemDirectoryW(buff.data(), static_cast<UINT>(buff.size()));
 	assert(got_sys != 0);
 	assert(got_sys < static_cast<UINT>(buff.size()));
-	tmp_path.assign(buff.data(), buff.data() + got_sys).replace_filename({begin(dependency), end(dependency)});
+	tmp_path.assign(buff.data(), buff.data() + got_sys).append(begin(dependency), end(dependency));
 	if(!std::filesystem::exists(tmp_path))
 	{
 		return false;
@@ -97,7 +97,7 @@ bool locate_dependency_windows(dependency_locator& self)
 	UINT const got_win = GetWindowsDirectoryW(buff.data(), static_cast<UINT>(buff.size()));
 	assert(got_win != 0);
 	assert(got_win < static_cast<UINT>(buff.size()));
-	tmp_path.assign(buff.data(), buff.data() + got_win).replace_filename({begin(dependency), end(dependency)});
+	tmp_path.assign(buff.data(), buff.data() + got_win).append(begin(dependency), end(dependency));
 	if(!std::filesystem::exists(tmp_path))
 	{
 		return false;
@@ -114,7 +114,7 @@ bool locate_dependency_current_dir(dependency_locator& self)
 	DWORD const got_currdir = GetCurrentDirectoryW(static_cast<DWORD>(buff.size()), buff.data());
 	assert(got_currdir != 0);
 	assert(got_currdir < static_cast<DWORD>(buff.size()));
-	tmp_path.assign(buff.data(), buff.data() + got_currdir).replace_filename({begin(dependency), end(dependency)});
+	tmp_path.assign(buff.data(), buff.data() + got_currdir).append(begin(dependency), end(dependency));
 	if(!std::filesystem::exists(tmp_path))
 	{
 		return false;
