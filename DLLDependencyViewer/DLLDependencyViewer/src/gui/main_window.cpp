@@ -228,6 +228,7 @@ main_window::main_window() :
 	m_settings.m_undecorate = false;
 	m_settings.m_import_sort = 0xFF;
 	m_settings.m_export_sort = 0xFF;
+	toolbar_icons_enabled_refresh();
 }
 
 main_window::~main_window()
@@ -703,6 +704,7 @@ void main_window::on_tree_selchangedw()
 {
 	m_import_view.refresh();
 	m_export_view.refresh();
+	toolbar_icons_enabled_refresh();
 }
 
 void main_window::on_toolbar_notify(NMHDR& nmhdr)
@@ -826,6 +828,45 @@ void main_window::on_toolbar_undecorate()
 void main_window::on_toolbar_properties()
 {
 	m_tree_view.on_toolbar_properties();
+}
+
+void main_window::toolbar_icons_enabled_refresh()
+{
+	static constexpr auto const fn_enable_properties = [](HWND const toolbar, bool const enable)
+	{
+		WPARAM const properties_command_id = static_cast<std::uint16_t>(e_toolbar::e_properties);
+		LRESULT const got = SendMessageW(toolbar, TB_GETSTATE, properties_command_id, 0);
+		assert(got != -1);
+		LPARAM new_state = static_cast<LPARAM>(got);
+		if(enable)
+		{
+			new_state |= TBSTATE_ENABLED;
+		}
+		else
+		{
+			new_state &=~ TBSTATE_ENABLED;
+		}
+		LRESULT const set = SendMessageW(toolbar, TB_SETSTATE, properties_command_id, new_state);
+		assert(set != FALSE);
+	};
+
+	HWND const tree = m_tree_view.get_hwnd();
+	HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(tree, TVM_GETNEXTITEM, TVGN_CARET, 0));
+	if(!selected)
+	{
+		fn_enable_properties(m_toolbar, false);
+		return;
+	}
+	TVITEMEXW ti;
+	ti.hItem = selected;
+	ti.mask = TVIF_PARAM;
+	LRESULT const got = SendMessageW(tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
+	assert(got == TRUE);
+	assert(ti.lParam);
+	file_info const& fi_tmp = *reinterpret_cast<file_info*>(ti.lParam);
+	file_info const& fi = fi_tmp.m_orig_instance ? *fi_tmp.m_orig_instance : fi_tmp;
+	bool const enable = fi.m_file_path.m_string != nullptr;
+	fn_enable_properties(m_toolbar, enable);
 }
 
 void main_window::open()
