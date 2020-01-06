@@ -1,11 +1,14 @@
 #pragma once
 
 
+#include "com_ptr.h"
 #include "manifest_parser.h"
-#include "smart_com_interface.h"
 
 #include <cstddef>
 
+#include "my_windows.h"
+
+#include <shlwapi.h>
 #include <xmllite.h>
 
 
@@ -35,6 +38,6 @@ private:
 private:
 	manifest_parser& m_parent;
 	manifest_data m_ret;
-	smart_com_interface m_stream;
-	smart_com_interface m_xml_reader;
+	com_ptr<IStream> m_stream;
+	com_ptr<IXmlReader> m_xml_reader;
 };

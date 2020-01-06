@@ -5,8 +5,6 @@
 #include <algorithm>
 #include <cassert>
 
-#include <shlwapi.h>
-
 
 #define s_very_big_int (2'147'483'647)
 
@@ -109,17 +107,17 @@ manifest_data manifest_parser_impl::parse(std::byte const* const data, int const
 {
 	IStream* const stream = SHCreateMemStream(reinterpret_cast<BYTE const*>(data), static_cast<UINT>(len));
 	WARN_M_R(stream, L"Failed to SHCreateMemStream.", {});
-	m_stream.reset(reinterpret_cast<IUnknown*>(stream));
+	m_stream.reset(stream);
 
 	IXmlReader* xml_reader;
 	HRESULT const xml_reader_created = CreateXmlReader(IID_IXmlReader, reinterpret_cast<void**>(&xml_reader), nullptr);
 	WARN_M_R(xml_reader_created == S_OK && xml_reader, L"Failed to CreateXmlReader.", {});
-	m_xml_reader.reset(reinterpret_cast<IUnknown*>(xml_reader));
+	m_xml_reader.reset(xml_reader);
 
 	HRESULT const dtd_set = xml_reader->lpVtbl->SetProperty(xml_reader, XmlReaderProperty_DtdProcessing, DtdProcessing_Prohibit);
 	WARN_M_R(dtd_set == S_OK, L"Failed to IXmlReader::SetProperty(DtdProcessing, Prohibit).", {});
 
-	HRESULT const input_set = xml_reader->lpVtbl->SetInput(xml_reader, m_stream.get());
+	HRESULT const input_set = xml_reader->lpVtbl->SetInput(xml_reader, m_stream.to_iunknown().get());
 	WARN_M_R(input_set == S_OK, L"Failed to IXmlReader::SetInput.", {});
 
 	bool const parsed_1 = parse_1();
@@ -276,7 +274,7 @@ bool manifest_parser_impl::parse_public_key_token(wchar_t const* const& /*value*
 
 IXmlReader& manifest_parser_impl::get_xml_reader() const
 {
-	return *reinterpret_cast<IXmlReader*>(m_xml_reader.get());
+	return *m_xml_reader;
 }
 
 bool manifest_parser_impl::find_element(wchar_t const* const& element_to_find, int const& element_to_find_len, wchar_t const* const& xmlns_to_find, int const& xmlns_to_find_len)
