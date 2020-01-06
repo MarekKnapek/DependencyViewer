@@ -40,7 +40,6 @@
 #include "nogui/pe_getters.cpp"
 #include "nogui/pe_getters_export.cpp"
 #include "nogui/pe_getters_import.cpp"
-#include "nogui/smart_com_interface.cpp"
 #include "nogui/smart_handle.cpp"
 #include "nogui/smart_library.cpp"
 #include "nogui/smart_reg_key.cpp"

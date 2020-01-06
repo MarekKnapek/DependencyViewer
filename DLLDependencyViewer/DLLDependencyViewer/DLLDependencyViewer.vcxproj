@@ -249,7 +249,6 @@
     <ClInclude Include="src\nogui\pe_getters_export.h" />
     <ClInclude Include="src\nogui\pe_getters_import.h" />
     <ClInclude Include="src\nogui\scope_exit.h" />
-    <ClInclude Include="src\nogui\smart_com_interface.h" />
     <ClInclude Include="src\nogui\smart_handle.h" />
     <ClInclude Include="src\nogui\smart_library.h" />
     <ClInclude Include="src\nogui\smart_reg_key.h" />
@@ -459,10 +458,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\nogui\pe_getters_import.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="src\nogui\smart_com_interface.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>

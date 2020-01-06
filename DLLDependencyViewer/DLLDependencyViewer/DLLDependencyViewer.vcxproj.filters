@@ -174,9 +174,6 @@
     <ClInclude Include="src\nogui\smart_library.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
-    <ClInclude Include="src\nogui\smart_com_interface.h">
-      <Filter>src\nogui</Filter>
-    </ClInclude>
     <ClInclude Include="src\nogui\assert.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
@@ -366,9 +363,6 @@
       <Filter>src\nogui</Filter>
     </ClCompile>
     <ClCompile Include="src\nogui\smart_library.cpp">
-      <Filter>src\nogui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\nogui\smart_com_interface.cpp">
       <Filter>src\nogui</Filter>
     </ClCompile>
     <ClCompile Include="src\nogui\manifest_parser.cpp">
