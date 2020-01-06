@@ -8,11 +8,9 @@
 typedef std::vector<std::wstring> manifests_t;
 
 
-class activation_context
+namespace default_manifests
 {
-public:
-	static const manifests_t& get_system_default_manifests();
-	static void free_system_default_manifests();
-private:
-	static void const* get_system_default_activation_context_data();
+	void init();
+	void deinit();
+	manifests_t const& get();
 };

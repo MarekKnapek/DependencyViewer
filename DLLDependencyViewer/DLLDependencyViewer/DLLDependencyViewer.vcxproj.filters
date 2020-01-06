@@ -141,9 +141,6 @@
     <ClInclude Include="src\gui\test.h">
       <Filter>src\gui</Filter>
     </ClInclude>
-    <ClInclude Include="src\nogui\activation_context.h">
-      <Filter>src\nogui</Filter>
-    </ClInclude>
     <ClInclude Include="src\nogui\allocator.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
@@ -318,6 +315,9 @@
     <ClInclude Include="src\nogui\com_ptr.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
+    <ClInclude Include="src\nogui\default_manifests.h">
+      <Filter>src\nogui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\main.cpp">
@@ -334,9 +334,6 @@
     </ClCompile>
     <ClCompile Include="src\gui\test.cpp">
       <Filter>src\gui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\nogui\activation_context.cpp">
-      <Filter>src\nogui</Filter>
     </ClCompile>
     <ClCompile Include="src\nogui\allocator.cpp">
       <Filter>src\nogui</Filter>
@@ -493,6 +490,9 @@
     </ClCompile>
     <ClCompile Include="src\gui\processor_impl.cpp">
       <Filter>src\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nogui\default_manifests.cpp">
+      <Filter>src\nogui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

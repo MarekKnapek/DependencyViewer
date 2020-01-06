@@ -13,7 +13,6 @@
 #include "gui/test.cpp"
 #include "gui/tree_view.cpp"
 
-#include "nogui/activation_context.cpp"
 #include "nogui/allocator.cpp"
 #include "nogui/allocator_big.cpp"
 #include "nogui/allocator_malloc.cpp"
@@ -23,6 +22,7 @@
 #include "nogui/com.cpp"
 #include "nogui/dbg_provider.cpp"
 #include "nogui/dbghelp.cpp"
+#include "nogui/default_manifests.cpp"
 #include "nogui/dependency_locator.cpp"
 #include "nogui/file_name_provider.cpp"
 #include "nogui/fnv1a.cpp"
