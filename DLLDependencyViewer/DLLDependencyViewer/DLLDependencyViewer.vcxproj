@@ -218,6 +218,7 @@
     <ClInclude Include="src\nogui\array_bool.h" />
     <ClInclude Include="src\nogui\assert.h" />
     <ClInclude Include="src\nogui\com.h" />
+    <ClInclude Include="src\nogui\com_ptr.h" />
     <ClInclude Include="src\nogui\dbghelp.h" />
     <ClInclude Include="src\nogui\dbg_provider.h" />
     <ClInclude Include="src\nogui\dependency_locator.h" />
@@ -511,6 +512,7 @@
     <Xml Include="src\gui\manifest.x86.xml" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="src\nogui\com_ptr.inl" />
     <None Include="src\nogui\static_vector.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
