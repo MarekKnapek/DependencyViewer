@@ -207,9 +207,6 @@
     <ClInclude Include="src\nogui\pe\pe_util.h">
       <Filter>src\nogui\pe</Filter>
     </ClInclude>
-    <ClInclude Include="src\nogui\smart_local_free.h">
-      <Filter>src\nogui</Filter>
-    </ClInclude>
     <ClInclude Include="src\nogui\scope_exit.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
@@ -400,9 +397,6 @@
     </ClCompile>
     <ClCompile Include="src\nogui\pe\pe_util.cpp">
       <Filter>src\nogui\pe</Filter>
-    </ClCompile>
-    <ClCompile Include="src\nogui\smart_local_free.cpp">
-      <Filter>src\nogui</Filter>
     </ClCompile>
     <ClCompile Include="src\nogui\smart_reg_key.cpp">
       <Filter>src\nogui</Filter>

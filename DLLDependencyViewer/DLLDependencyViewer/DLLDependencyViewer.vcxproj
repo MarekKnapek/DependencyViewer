@@ -251,7 +251,6 @@
     <ClInclude Include="src\nogui\smart_com_interface.h" />
     <ClInclude Include="src\nogui\smart_handle.h" />
     <ClInclude Include="src\nogui\smart_library.h" />
-    <ClInclude Include="src\nogui\smart_local_free.h" />
     <ClInclude Include="src\nogui\smart_reg_key.h" />
     <ClInclude Include="src\nogui\static_vector.h" />
     <ClInclude Include="src\nogui\string_converter.h" />
@@ -471,10 +470,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\nogui\smart_library.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="src\nogui\smart_local_free.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>

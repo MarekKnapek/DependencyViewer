@@ -10,7 +10,6 @@
 #include "../nogui/memory_mapped_file.h"
 #include "../nogui/pe.h"
 #include "../nogui/scope_exit.h"
-#include "../nogui/smart_local_free.h"
 #include "../nogui/utils.h"
 
 #include "../res/resources.h"
@@ -1139,7 +1138,7 @@ void main_window::process_command_line()
 	wchar_t const* const cmd_line = GetCommandLineW();
 	int argc;
 	wchar_t** const argv = CommandLineToArgvW(cmd_line, &argc);
-	smart_local_free const sp_argv(reinterpret_cast<void*>(argv));
+	auto const fn_free_argv = mk::make_scope_exit([&](){ [[maybe_unused]] HLOCAL const freed = LocalFree(argv); assert(freed == nullptr); });
 	if(argc == 1)
 	{
 		return;
