@@ -129,7 +129,7 @@ com_ptr<U> com_ptr<T>::query_cast(IID const& iid) const
 	}
 	else
 	{
-		U* ret;
+		U* ret = nullptr;
 		HRESULT const queried = m_ptr->lpVtbl->QueryInterface(m_ptr, iid, reinterpret_cast<void**>(&ret));
 		if(queried == S_OK)
 		{
