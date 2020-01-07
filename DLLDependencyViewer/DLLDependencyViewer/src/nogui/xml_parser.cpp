@@ -9,6 +9,9 @@
 #include <shlwapi.h>
 
 
+#define s_very_big_int (2'147'483'647)
+
+
 xml_parser::xml_parser(std::byte const* const data, int const data_len) :
 	m_xml_reader()
 {
@@ -97,4 +100,40 @@ bool xml_parser::find_element(wchar_t const* const element_to_find, int const el
 		return true;
 	}
 	__assume(false);
+}
+
+bool xml_parser::for_each_attribute(attribute_name_callback_t const name_callback, attribute_value_callback_t const value_callback, void* const data)
+{
+	IXmlReader* const xml_reader = m_xml_reader;
+	UINT attr_count;
+	HRESULT const got_attrib_count = xml_reader->lpVtbl->GetAttributeCount(xml_reader, &attr_count);
+	WARN_M_R(got_attrib_count == S_OK, L"Failed to IXmlReader::GetAttributeCount.", false);
+	if(attr_count != 0)
+	{
+		HRESULT const moved = xml_reader->lpVtbl->MoveToFirstAttribute(xml_reader);
+		WARN_M_R(moved == S_OK, L"Failed to IXmlReader::MoveToFirstAttribute.", false);
+		for(UINT i = 0; i != attr_count; ++i)
+		{
+			wchar_t const* attr_name;
+			UINT attr_name_len;
+			HRESULT const got_attribute = xml_reader->lpVtbl->GetLocalName(xml_reader, &attr_name, &attr_name_len);
+			WARN_M_R(got_attribute == S_OK && attr_name != nullptr, L"Failed to IXmlReader::GetLocalName.", false);
+			bool const want = name_callback(data, attr_name, static_cast<int>(attr_name_len));
+			if(want)
+			{
+				wchar_t const* attr_value;
+				UINT attr_value_len;
+				HRESULT const got_value = xml_reader->lpVtbl->GetValue(xml_reader, &attr_value, &attr_value_len);
+				WARN_M_R(got_value == S_OK, L"Failed to IXmlReader::GetValue.", false);
+				WARN_M_R(attr_value_len < s_very_big_int, L"Attribute is too big.", false);
+				bool const attr_processed = value_callback(data, attr_value, attr_value_len);
+				WARN_M_R(attr_processed, L"Failed to process attribute data.", false);
+			}
+			HRESULT const next = xml_reader->lpVtbl->MoveToNextAttribute(xml_reader);
+			WARN_M_R((next == S_OK && i != attr_count - 1) || (next == S_FALSE && i == attr_count - 1), L"Failed to IXmlReader::MoveToNextAttribute.", false);
+		}
+		HRESULT const moved_back = xml_reader->lpVtbl->MoveToElement(xml_reader);
+		WARN_M_R(moved_back == S_OK, L"Failed to IXmlReader::MoveToElement.", false);
+	}
+	return true;
 }
