@@ -50,6 +50,7 @@
 #include "nogui/unicode.cpp"
 #include "nogui/unique_strings.cpp"
 #include "nogui/utils.cpp"
+#include "nogui/xml_parser.cpp"
 
 #include "nogui/pe/coff.cpp"
 #include "nogui/pe/coff_full.cpp"

@@ -324,6 +324,9 @@
     <ClInclude Include="src\nogui\manifest_parser2_impl.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
+    <ClInclude Include="src\nogui\xml_parser.h">
+      <Filter>src\nogui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\main.cpp">
@@ -504,6 +507,9 @@
       <Filter>src\nogui</Filter>
     </ClCompile>
     <ClCompile Include="src\nogui\manifest_parser2_impl.cpp">
+      <Filter>src\nogui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nogui\xml_parser.cpp">
       <Filter>src\nogui</Filter>
     </ClCompile>
   </ItemGroup>
