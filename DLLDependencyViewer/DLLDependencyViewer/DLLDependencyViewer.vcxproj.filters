@@ -318,6 +318,12 @@
     <ClInclude Include="src\nogui\default_manifests.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
+    <ClInclude Include="src\nogui\manifest_parser2.h">
+      <Filter>src\nogui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nogui\manifest_parser2_impl.h">
+      <Filter>src\nogui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\main.cpp">
@@ -492,6 +498,12 @@
       <Filter>src\gui</Filter>
     </ClCompile>
     <ClCompile Include="src\nogui\default_manifests.cpp">
+      <Filter>src\nogui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nogui\manifest_parser2.cpp">
+      <Filter>src\nogui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nogui\manifest_parser2_impl.cpp">
       <Filter>src\nogui</Filter>
     </ClCompile>
   </ItemGroup>
