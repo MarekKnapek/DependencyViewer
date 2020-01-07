@@ -6,6 +6,7 @@
 
 #include "../nogui/com.h"
 #include "../nogui/dbg_provider.h"
+#include "../nogui/default_act_ctx.h"
 #include "../nogui/default_manifests.h"
 #include "../nogui/file_name_provider.h"
 #include "../nogui/known_dlls.h"
@@ -31,7 +32,8 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE /*hPrevInstance
 	test();
 	dbg_provider::init();
 	auto const dbg_provider_deinit = mk::make_scope_exit([](){ dbg_provider::deinit(); });
-	auto const fn_clean_actctx = mk::make_scope_exit([](){ default_manifests::deinit(); });
+	auto const fn_clean_manifests = mk::make_scope_exit([](){ default_manifests::deinit(); });
+	auto const fn_clean_actctx = mk::make_scope_exit([](){ default_act_ctx::deinit(); });
 	g_instance = hInstance;
 	InitCommonControls();
 	splitter_window_hor::register_class();
