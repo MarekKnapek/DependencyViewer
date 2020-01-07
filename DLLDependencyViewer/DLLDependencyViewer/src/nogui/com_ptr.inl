@@ -78,6 +78,18 @@ void com_ptr<T>::reset(T* const ptr)
 }
 
 template<typename T>
+com_ptr<T>::operator bool() const
+{
+	return m_ptr != nullptr;
+}
+
+template<typename T>
+bool com_ptr<T>::operator!() const
+{
+	return m_ptr == nullptr;
+}
+
+template<typename T>
 T* com_ptr<T>::get() const
 {
 	return m_ptr;

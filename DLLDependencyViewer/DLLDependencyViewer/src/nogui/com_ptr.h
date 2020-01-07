@@ -22,6 +22,8 @@ public:
 public:
 	void reset();
 	void reset(T* const ptr);
+	explicit operator bool() const;
+	bool operator!() const;
 	T* get() const;
 	T* operator->() const;
 	operator T*() const;
