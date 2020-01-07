@@ -102,7 +102,7 @@ bool xml_parser::find_element(wchar_t const* const element_to_find, int const el
 	__assume(false);
 }
 
-bool xml_parser::for_each_attribute(attribute_name_callback_t const name_callback, attribute_value_callback_t const value_callback, void* const data)
+bool xml_parser::for_each_attribute(void* const param, attribute_name_callback_t const name_callback, attribute_value_callback_t const value_callback)
 {
 	IXmlReader* const xml_reader = m_xml_reader;
 	UINT attr_count;
@@ -118,7 +118,7 @@ bool xml_parser::for_each_attribute(attribute_name_callback_t const name_callbac
 			UINT attr_name_len;
 			HRESULT const got_attribute = xml_reader->lpVtbl->GetLocalName(xml_reader, &attr_name, &attr_name_len);
 			WARN_M_R(got_attribute == S_OK && attr_name != nullptr, L"Failed to IXmlReader::GetLocalName.", false);
-			bool const want = name_callback(data, attr_name, static_cast<int>(attr_name_len));
+			bool const want = name_callback(param, attr_name, static_cast<int>(attr_name_len));
 			if(want)
 			{
 				wchar_t const* attr_value;
@@ -126,7 +126,7 @@ bool xml_parser::for_each_attribute(attribute_name_callback_t const name_callbac
 				HRESULT const got_value = xml_reader->lpVtbl->GetValue(xml_reader, &attr_value, &attr_value_len);
 				WARN_M_R(got_value == S_OK, L"Failed to IXmlReader::GetValue.", false);
 				WARN_M_R(attr_value_len < s_very_big_int, L"Attribute is too big.", false);
-				bool const attr_processed = value_callback(data, attr_value, attr_value_len);
+				bool const attr_processed = value_callback(param, attr_value, attr_value_len);
 				WARN_M_R(attr_processed, L"Failed to process attribute data.", false);
 			}
 			HRESULT const next = xml_reader->lpVtbl->MoveToNextAttribute(xml_reader);
