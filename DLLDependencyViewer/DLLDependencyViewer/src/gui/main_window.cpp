@@ -27,8 +27,12 @@
 #include <windowsx.h>
 
 
+#if defined _M_IX86
+static constexpr wchar_t const s_window_title[] = L"DLLDependencyViewer (x86)";
+#elif defined _M_X64
+static constexpr wchar_t const s_window_title[] = L"DLLDependencyViewer (x64)";
+#endif
 static constexpr wchar_t const s_window_class_name[] = L"main_window";
-static constexpr wchar_t const s_window_title[] = L"DLLDependencyViewer";
 static constexpr wchar_t const s_menu_file[] = L"&File";
 static constexpr wchar_t const s_menu_file_open[] = L"&Open...\tCtrl+O";
 static constexpr wchar_t const s_menu_file_exit[] = L"E&xit";
