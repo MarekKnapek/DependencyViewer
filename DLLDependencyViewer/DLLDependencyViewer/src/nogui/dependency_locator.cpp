@@ -77,7 +77,7 @@ bool locate_dependency_known_dlls(dependency_locator& self)
 	std::transform(begin(dependency), end(dependency), begin(tmpn), [](auto const& e){ return to_lowercase(e); });
 	string const dll_name_s{tmpn.c_str(), static_cast<int>(tmpn.size())};
 	string_handle const dll_name_sh{&dll_name_s};
-	std::vector<std::string> const& known_dll_names = get_known_dll_names_sorted_lowercase_ascii();
+	auto const& known_dll_names = known_dlls::get_names_sorted_lowercase_ascii();
 	auto const it = std::lower_bound(known_dll_names.begin(), known_dll_names.end(), dll_name_sh, [](auto const& e, auto const& v){ string const e_s{e.c_str(), static_cast<int>(e.size())}; return string_handle{&e_s} < v; });
 	if(it == known_dll_names.end())
 	{
@@ -88,7 +88,7 @@ bool locate_dependency_known_dlls(dependency_locator& self)
 	{
 		return false;
 	}
-	self.m_result = std::filesystem::path{get_knonw_dlls_path()}.append(*it);
+	self.m_result = std::filesystem::path{known_dlls::get_path()}.append(*it);
 	return true;
 }
 
