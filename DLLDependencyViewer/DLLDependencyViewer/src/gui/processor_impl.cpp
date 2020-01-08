@@ -86,7 +86,6 @@ bool step_2(wstring_handle const& file_path, file_info& fi, tmp_type& to)
 		return true;
 	}
 	fi.m_file_path = file_path;
-	pe_headers hdrs;
 	std::uint16_t const* enpt;
 	std::uint16_t enpt_count;
 	pe_tables tables;
@@ -98,13 +97,11 @@ bool step_2(wstring_handle const& file_path, file_info& fi, tmp_type& to)
 	{
 		memory_mapped_file const mmf = memory_mapped_file(file_path.m_string->m_str);
 		WARN_M_R(mmf.begin() != nullptr, L"Failed to memory_mapped_file.", false);
-		bool const hdrs_processed = pe_process_headers(mmf.begin(), mmf.size(), &hdrs);
-		WARN_M_R(hdrs_processed, L"Failed to pe_process_headers.", false);
-		fi.m_is_32_bit = pe_is_32_bit(hdrs.m_coff->m_32.m_standard);
 		bool const tables_processed = pe_process_all(mmf.begin(), mmf.size(), *to.m_mm, &tables);
 		WARN_M_R(tables_processed, L"Failed to pe_process_all.", false);
 	}
 	assert(to.m_map.find(file_path) == to.m_map.end());
+	fi.m_is_32_bit = tables.m_is_32_bit;
 	fat_type* const fo = to.m_tmp_alc->allocate_objects<fat_type>(1);
 	fo->m_orig_instance = &fi;
 	fo->m_enpt.m_table = enpt;

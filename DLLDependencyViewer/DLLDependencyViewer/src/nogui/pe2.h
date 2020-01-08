@@ -61,6 +61,7 @@ struct pe_tables
 	pe_export_table_info* m_eti_out;
 	std::uint16_t* m_enpt_count_out;
 	std::uint16_t const** m_enpt_out;
+	bool m_is_32_bit;
 };
 
 

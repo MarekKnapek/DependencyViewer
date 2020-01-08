@@ -300,6 +300,7 @@ bool pe_process_all(std::byte const* const file_data, int const file_size, memor
 	pe_headers headers;
 	bool const headers_parsed = pe_process_headers(file_data, file_size, &headers);
 	WARN_M_R(headers_parsed, L"Failed to process headers.", false);
+	tables_in_out->m_is_32_bit = pe_is_32_bit(headers.m_coff->m_32.m_standard);
 
 	pe_import_tables tables;
 	bool const count_parsed = pe_process_import_tables(file_data, file_size, &tables);
