@@ -120,10 +120,10 @@ bool init_known_dlls()
 
 	known_dll_names.reserve(32);
 	BOOLEAN restart = TRUE;
+	ULONG context = 0;
 	for(;;)
 	{
 		buffer_t buff_1;
-		ULONG context;
 		ULONG ret_len;
 		NTSTATUS const queried_1 = NtQueryDirectoryObject_fn(knonw_dll_dir, &buff_1, sizeof(buff_1), TRUE, restart, &context, &ret_len);
 		restart = FALSE;
