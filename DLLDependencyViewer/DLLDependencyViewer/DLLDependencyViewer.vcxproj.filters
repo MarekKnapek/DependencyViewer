@@ -174,12 +174,6 @@
     <ClInclude Include="src\nogui\assert.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
-    <ClInclude Include="src\nogui\manifest_parser.h">
-      <Filter>src\nogui</Filter>
-    </ClInclude>
-    <ClInclude Include="src\nogui\manifest_parser_impl.h">
-      <Filter>src\nogui</Filter>
-    </ClInclude>
     <ClInclude Include="src\nogui\pe\mz.h">
       <Filter>src\nogui\pe</Filter>
     </ClInclude>
@@ -381,12 +375,6 @@
       <Filter>src\nogui</Filter>
     </ClCompile>
     <ClCompile Include="src\nogui\smart_library.cpp">
-      <Filter>src\nogui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\nogui\manifest_parser.cpp">
-      <Filter>src\nogui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\nogui\manifest_parser_impl.cpp">
       <Filter>src\nogui</Filter>
     </ClCompile>
     <ClCompile Include="src\nogui\pe\mz.cpp">
