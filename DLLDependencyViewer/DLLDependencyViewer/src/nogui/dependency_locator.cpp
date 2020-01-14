@@ -1,5 +1,6 @@
 #include "dependency_locator.h"
 
+#include "assert.h"
 #include "default_act_ctx.h"
 #include "default_manifests.h"
 #include "known_dlls.h"
@@ -28,7 +29,27 @@ bool locate_dependency(dependency_locator& self)
 
 bool locate_dependency_sxs(dependency_locator& self)
 {
-	return false;
+	string_handle const& dependency = *self.m_dependency;
+	ACTCTX_SECTION_KEYED_DATA actctx_section_keyed_data{};
+	actctx_section_keyed_data.cbSize = sizeof(actctx_section_keyed_data);
+	BOOL const actctx_data_found = FindActCtxSectionStringA(0, nullptr, ACTIVATION_CONTEXT_SECTION_DLL_REDIRECTION, dependency.m_string->m_str, &actctx_section_keyed_data);
+	if(actctx_data_found == FALSE)
+	{
+		return false;
+	}
+	std::array<wchar_t, 1 * 1024> buff;
+	WARN_M_R(dependency.m_string->m_len < static_cast<int>(buff.size()), L"File name too long.", false);
+	std::transform(begin(dependency), end(dependency), buff.begin(), [](char const& ch) -> wchar_t { return static_cast<wchar_t>(ch); });
+	buff[size(dependency)] = L'\0';
+	self.m_result.resize(32 * 1024);
+	DWORD const found = SearchPathW(nullptr, buff.data(), nullptr, static_cast<int>(self.m_result.size()), self.m_result.data(), nullptr);
+	if(found == 0)
+	{
+		return false;
+	}
+	WARN_M_R(found < self.m_result.size(), L"Path too long.", false);
+	self.m_result.resize(found);
+	return true;
 }
 
 bool locate_dependency_known_dlls(dependency_locator& self)
