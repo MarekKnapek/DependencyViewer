@@ -338,7 +338,7 @@ bool pe_process_all(std::byte const* const file_data, int const file_size, memor
 	exports.m_enpt_count_out = &entp_count;
 	exports.m_enpt_out = &entp;
 	bool const export_eat_processed = pe_process_export_eat(file_data, file_size, &exports);
-	WARN_M_R(export_eat_processed, L"Failed to process export address table.", false);
+	WARN_M_R(export_eat_processed, L"Failed to pe_process_export_eat.", false);
 
 	*tables_in_out->m_iti_out = iti;
 	*tables_in_out->m_eti_out = eti;
