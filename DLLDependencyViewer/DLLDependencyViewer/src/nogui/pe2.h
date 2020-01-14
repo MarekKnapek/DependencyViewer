@@ -61,6 +61,7 @@ struct pe_tables
 	pe_export_table_info* m_eti_out;
 	std::uint16_t* m_enpt_count_out;
 	std::uint16_t const** m_enpt_out;
+	std::uint32_t m_manifest_id;
 	bool m_is_32_bit;
 };
 
@@ -72,5 +73,7 @@ bool pe_process_import_names(std::byte const* const file_data, int const file_si
 bool pe_process_import_iat(std::byte const* const file_data, int const file_size, pe_import_iat* const iat_in_out);
 
 bool pe_process_export_eat(std::byte const* const file_data, int const file_size, pe_export_eat* const eat_in_out);
+
+bool pe_process_resource_manifest(std::byte const* const file_data, std::uint32_t* const manifest_id_out);
 
 bool pe_process_all(std::byte const* const file_data, int const file_size, memory_manager& mm, pe_tables* const tables_in_out);

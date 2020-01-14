@@ -3,6 +3,8 @@
 #include "array_bool.h"
 #include "assert.h"
 
+#include "pe/resource_table.h"
+
 #include <algorithm>
 
 
@@ -288,6 +290,48 @@ bool pe_process_export_eat(std::byte const* const file_data, int const file_size
 #pragma warning(pop)
 
 
+bool pe_process_resource_manifest(std::byte const* const file_data, std::uint32_t* const manifest_id_out)
+{
+	assert(manifest_id_out);
+	pe_resource_directory_table const* res_dir_tbl;
+	pe_section_header const* res_sct;
+	bool const res_dir_tbl_parsed = pe_parse_resource_root_directory_table(file_data, &res_dir_tbl, &res_sct);
+	WARN_M_R(res_dir_tbl_parsed, L"Failed to pe_parse_resource_root_directory_table.", false);
+	if(res_dir_tbl)
+	{
+		for(std::uint16_t i = 0; i != res_dir_tbl->m_number_of_id_entries; ++i)
+		{
+			std::uint32_t type_id;
+			bool const type_id_parsed = pe_parse_resource_directory_id_entry(res_dir_tbl, i, &type_id);
+			WARN_M_R(type_id_parsed, L"Failed to pe_parse_resource_directory_id_entry.", false);
+			if(type_id == 24 /* RT_MANIFEST */)
+			{
+				pe_resource_directory_table const* manifest_dir_table;
+				bool const manifest_dir_table_parsed = pe_parse_resource_sub_directory_table(file_data, *res_sct, res_dir_tbl, res_dir_tbl->m_number_of_name_entries + i, &manifest_dir_table);
+				WARN_M_R(manifest_dir_table_parsed, L"Failed to pe_parse_resource_sub_directory_table.", false);
+				if(manifest_dir_table->m_number_of_id_entries >= 1)
+				{
+					// At least one manifest named by integer. We take the first one (they are sorted).
+					std::uint32_t name_id;
+					bool const name_id_parsed = pe_parse_resource_directory_id_entry(manifest_dir_table, 0, &name_id);
+					WARN_M_R(name_id_parsed, L"Failed to pe_parse_resource_directory_id_entry.", false);
+					if(name_id >= 1 && name_id <= 16)
+					{
+						// ID must be between 1 (MINIMUM_RESERVED_MANIFEST_RESOURCE_ID) and 16 (MAXIMUM_RESERVED_MANIFEST_RESOURCE_ID), both inclusive.
+						// We don't care about language or data.
+						*manifest_id_out = name_id;
+						return true;
+					}
+				}
+				break;
+			}
+		}
+	}
+	*manifest_id_out = 0;
+	return true;
+}
+
+
 bool pe_process_all(std::byte const* const file_data, int const file_size, memory_manager& mm, pe_tables* const tables_in_out)
 {
 	assert(tables_in_out);
@@ -340,9 +384,14 @@ bool pe_process_all(std::byte const* const file_data, int const file_size, memor
 	bool const export_eat_processed = pe_process_export_eat(file_data, file_size, &exports);
 	WARN_M_R(export_eat_processed, L"Failed to pe_process_export_eat.", false);
 
+	std::uint32_t manifest_id;
+	bool const reources_processed = pe_process_resource_manifest(file_data, &manifest_id);
+	WARN_M_R(reources_processed, L"Failed to pe_process_resource_manifest.", false);
+
 	*tables_in_out->m_iti_out = iti;
 	*tables_in_out->m_eti_out = eti;
 	*tables_in_out->m_enpt_count_out = entp_count;
 	*tables_in_out->m_enpt_out = entp;
+	tables_in_out->m_manifest_id = manifest_id;
 	return true;
 }
