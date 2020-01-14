@@ -245,6 +245,7 @@
     <ClInclude Include="src\nogui\manifest_parser_impl.h" />
     <ClInclude Include="src\nogui\memory_manager.h" />
     <ClInclude Include="src\nogui\memory_mapped_file.h" />
+    <ClInclude Include="src\nogui\my_actctx.h" />
     <ClInclude Include="src\nogui\my_string.h" />
     <ClInclude Include="src\nogui\my_string_handle.h" />
     <ClInclude Include="src\nogui\my_vector.h" />
@@ -427,6 +428,10 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\nogui\memory_mapped_file.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="src\nogui\my_actctx.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>

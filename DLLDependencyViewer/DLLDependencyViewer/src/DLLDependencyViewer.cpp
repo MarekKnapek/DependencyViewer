@@ -36,6 +36,7 @@
 #include "nogui/manifest_parser_impl.cpp"
 #include "nogui/memory_manager.cpp"
 #include "nogui/memory_mapped_file.cpp"
+#include "nogui/my_actctx.cpp"
 #include "nogui/my_string.cpp"
 #include "nogui/my_string_handle.cpp"
 #include "nogui/ole.cpp"
