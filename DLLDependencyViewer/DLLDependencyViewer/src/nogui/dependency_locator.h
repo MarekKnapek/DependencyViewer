@@ -20,7 +20,6 @@ struct dependency_locator
 bool locate_dependency(dependency_locator& self);
 
 bool locate_dependency_sxs(dependency_locator& self);
-bool locate_dependency_sxs_default(dependency_locator& self);
 bool locate_dependency_known_dlls(dependency_locator& self);
 bool locate_dependency_application_dir(dependency_locator& self);
 bool locate_dependency_system32(dependency_locator& self);

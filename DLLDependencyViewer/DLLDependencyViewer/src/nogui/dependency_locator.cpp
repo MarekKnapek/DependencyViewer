@@ -28,44 +28,6 @@ bool locate_dependency(dependency_locator& self)
 
 bool locate_dependency_sxs(dependency_locator& self)
 {
-	if(locate_dependency_sxs_default(self)) return true;
-	return false;
-}
-
-bool locate_dependency_sxs_default(dependency_locator& self)
-{
-	string_handle const& dependency = *self.m_dependency;
-	std::string& tmpn = self.m_tmpn;
-	self.m_tmpn.resize(size(dependency));
-	std::transform(begin(dependency), end(dependency), begin(tmpn), [](auto const& e){ return to_lowercase(e); });
-	string const dll_name_s{tmpn.c_str(), static_cast<int>(tmpn.size())};
-	string_handle const dll_name_sh{&dll_name_s};
-	auto const& actxs = default_act_ctx::get();
-	int const n = static_cast<int>(actxs.size());
-	for(int i = 0; i != n; ++i)
-	{
-		auto const& actx = actxs[i];
-		auto const it = std::lower_bound(actx.begin(), actx.end(), dll_name_sh, [](auto const& e, auto const& v){ string const s{e.c_str(), static_cast<int>(e.size())}; return string_handle{&s} < v; });
-		if(it == actx.end())
-		{
-			continue;
-		}
-		string const s{it->c_str(), static_cast<int>(it->size())};
-		if(string_handle{&s} != dll_name_sh)
-		{
-			continue;
-		}
-		auto const& manifests = default_manifests::get();
-		auto const& manifest = manifests[i];
-		std::filesystem::path& tmpp = self.m_tmp_path;
-		tmpp.assign(manifest);
-		auto const stem = tmpp.stem();
-		tmpp.replace_filename("..");
-		tmpp.append(stem.native());
-		tmpp.append(begin(dependency), end(dependency));
-		self.m_result = tmpp;
-		return true;
-	}
 	return false;
 }
 
