@@ -88,7 +88,7 @@
       <LargeAddressAware>true</LargeAddressAware>
     </Link>
     <Manifest>
-      <AdditionalManifestFiles>src/gui/manifest.x86.xml</AdditionalManifestFiles>
+      <AdditionalManifestFiles>src/res/manifest.x86.xml</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -108,7 +108,7 @@
       <AdditionalDependencies>comctl32.lib;xmllite.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Manifest>
-      <AdditionalManifestFiles>src/gui/manifest.amd64.xml</AdditionalManifestFiles>
+      <AdditionalManifestFiles>src/res/manifest.amd64.xml</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -134,7 +134,7 @@
       <SetChecksum>true</SetChecksum>
     </Link>
     <Manifest>
-      <AdditionalManifestFiles>src/gui/manifest.x86.xml</AdditionalManifestFiles>
+      <AdditionalManifestFiles>src/res/manifest.x86.xml</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -159,7 +159,7 @@
       <SetChecksum>true</SetChecksum>
     </Link>
     <Manifest>
-      <AdditionalManifestFiles>src/gui/manifest.amd64.xml</AdditionalManifestFiles>
+      <AdditionalManifestFiles>src/res/manifest.amd64.xml</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -533,12 +533,12 @@
     <ResourceCompile Include="src\res\resources.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="src\gui\manifest.amd64.xml" />
-    <Xml Include="src\gui\manifest.x86.xml" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="src\nogui\com_ptr.inl" />
     <None Include="src\nogui\static_vector.inl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="src\res\manifest.amd64.xml" />
+    <Xml Include="src\res\manifest.x86.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

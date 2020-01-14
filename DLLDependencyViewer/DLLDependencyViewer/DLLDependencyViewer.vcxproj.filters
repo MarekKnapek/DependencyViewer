@@ -548,19 +548,19 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="src\gui\manifest.amd64.xml">
-      <Filter>src\gui</Filter>
-    </Xml>
-    <Xml Include="src\gui\manifest.x86.xml">
-      <Filter>src\gui</Filter>
-    </Xml>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="src\nogui\static_vector.inl">
       <Filter>src\nogui</Filter>
     </None>
     <None Include="src\nogui\com_ptr.inl">
       <Filter>src\nogui</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="src\res\manifest.x86.xml">
+      <Filter>src\res</Filter>
+    </Xml>
+    <Xml Include="src\res\manifest.amd64.xml">
+      <Filter>src\res</Filter>
+    </Xml>
   </ItemGroup>
 </Project>
