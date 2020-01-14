@@ -333,6 +333,9 @@
     <ClInclude Include="src\nogui\pe\resource_table.h">
       <Filter>src\nogui\pe</Filter>
     </ClInclude>
+    <ClInclude Include="src\nogui\act_ctx.h">
+      <Filter>src\nogui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\main.cpp">
@@ -523,6 +526,9 @@
     </ClCompile>
     <ClCompile Include="src\nogui\pe\resource_table.cpp">
       <Filter>src\nogui\pe</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nogui\act_ctx.cpp">
+      <Filter>src\nogui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

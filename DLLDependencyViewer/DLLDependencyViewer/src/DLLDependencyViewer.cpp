@@ -13,6 +13,7 @@
 #include "gui/test.cpp"
 #include "gui/tree_view.cpp"
 
+#include "nogui/act_ctx.cpp"
 #include "nogui/allocator.cpp"
 #include "nogui/allocator_big.cpp"
 #include "nogui/allocator_malloc.cpp"
