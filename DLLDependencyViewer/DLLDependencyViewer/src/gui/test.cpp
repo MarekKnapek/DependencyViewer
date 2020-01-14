@@ -74,21 +74,9 @@ void test()
 			continue;
 		}
 		memory_manager mm;
-		pe_header_info hi;
-		pe_resources_table_info rs;
 		std::uint16_t enpt_count;
 		std::uint16_t const* enpt;
 		allocator enpt_alloc;
-		try
-		{
-			hi = pe_process_header(mmf.begin(), mmf.size());
-		}
-		catch(wchar_t const* const&)
-		{
-			OutputDebugStringW(p.c_str());
-			OutputDebugStringW(L"\n");
-			continue;
-		}
 		pe_import_table_info iti;
 		pe_export_table_info eti;
 		pe_tables tables;
@@ -99,15 +87,6 @@ void test()
 		tables.m_enpt_out = &enpt;
 		bool const tables_processed = pe_process_all(mmf.begin(), mmf.size(), mm, &tables);
 		if(!tables_processed)
-		{
-			OutputDebugStringW(p.c_str());
-			OutputDebugStringW(L"\n");
-		}
-		try
-		{
-			rs = pe_process_resource_table(mmf.begin(), mmf.size(), hi, mm);
-		}
-		catch(wchar_t const* const&)
 		{
 			OutputDebugStringW(p.c_str());
 			OutputDebugStringW(L"\n");
