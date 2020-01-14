@@ -556,10 +556,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="src\res\manifest.x86.xml">
+    <Xml Include="src\res\manifest_amd64.xml">
       <Filter>src\res</Filter>
     </Xml>
-    <Xml Include="src\res\manifest.amd64.xml">
+    <Xml Include="src\res\manifest_x86.xml">
       <Filter>src\res</Filter>
     </Xml>
   </ItemGroup>
