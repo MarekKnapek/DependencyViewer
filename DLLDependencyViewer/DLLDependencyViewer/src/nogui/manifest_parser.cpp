@@ -1,6 +1,6 @@
-#include "manifest_parser2.h"
+#include "manifest_parser.h"
 
-#include "manifest_parser2_impl.h"
+#include "manifest_parser_impl.h"
 
 
 bool parse_files(std::byte const* const data, int const data_len, files_t& out_files)

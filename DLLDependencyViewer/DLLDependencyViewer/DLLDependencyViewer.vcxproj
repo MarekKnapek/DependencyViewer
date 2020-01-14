@@ -239,8 +239,8 @@
     <ClInclude Include="src\nogui\fnv1a.h" />
     <ClInclude Include="src\nogui\int_to_string.h" />
     <ClInclude Include="src\nogui\known_dlls.h" />
-    <ClInclude Include="src\nogui\manifest_parser2.h" />
-    <ClInclude Include="src\nogui\manifest_parser2_impl.h" />
+    <ClInclude Include="src\nogui\manifest_parser.h" />
+    <ClInclude Include="src\nogui\manifest_parser_impl.h" />
     <ClInclude Include="src\nogui\memory_manager.h" />
     <ClInclude Include="src\nogui\memory_mapped_file.h" />
     <ClInclude Include="src\nogui\my_actctx.h" />
@@ -405,11 +405,11 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="src\nogui\manifest_parser2.cpp">
+    <ClCompile Include="src\nogui\manifest_parser.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="src\nogui\manifest_parser2_impl.cpp">
+    <ClCompile Include="src\nogui\manifest_parser_impl.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>

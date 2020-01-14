@@ -2,7 +2,7 @@
 
 #include "assert.h"
 #include "default_manifests.h"
-#include "manifest_parser2.h"
+#include "manifest_parser.h"
 #include "memory_mapped_file.h"
 #include "unicode.h"
 
