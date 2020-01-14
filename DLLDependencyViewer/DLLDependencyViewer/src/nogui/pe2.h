@@ -67,7 +67,7 @@ struct pe_tables
 
 bool pe_process_headers(std::byte const* const file_data, int const file_size, pe_headers* const headers_out);
 
-bool pe_process_import_tables(std::byte const* const file_data, int const file_size, pe_import_tables* const tables_out);
+bool pe_process_import_tables(std::byte const* const file_data, pe_import_tables* const tables_out);
 bool pe_process_import_names(std::byte const* const file_data, int const file_size, pe_import_names* const names_in_out);
 bool pe_process_import_iat(std::byte const* const file_data, int const file_size, pe_import_iat* const iat_in_out);
 

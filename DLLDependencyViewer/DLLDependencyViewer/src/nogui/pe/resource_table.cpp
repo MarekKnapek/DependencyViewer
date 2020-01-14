@@ -8,7 +8,7 @@
 #include <cassert>
 
 
-bool pe_parse_resource_root_directory_table(std::byte const* const file_data, int const file_size, pe_resource_directory_table const** const res_root_dir_tbl_out, pe_section_header const** const res_sct_out)
+bool pe_parse_resource_root_directory_table(std::byte const* const file_data, pe_resource_directory_table const** const res_root_dir_tbl_out, pe_section_header const** const res_sct_out)
 {
 	assert(res_root_dir_tbl_out);
 	assert(res_sct_out);
@@ -29,7 +29,7 @@ bool pe_parse_resource_root_directory_table(std::byte const* const file_data, in
 		return true;
 	}
 	pe_section_header const* sct;
-	std::uint32_t const res_dir_tbl_raw = pe_find_object_in_raw(file_data, file_size, res_dir.m_va, res_dir.m_size, sct);
+	std::uint32_t const res_dir_tbl_raw = pe_find_object_in_raw(file_data, res_dir.m_va, res_dir.m_size, sct);
 	WARN_M_R(res_dir_tbl_raw != 0, L"Resource table not found in any section.", false);
 	std::uint32_t const res_root_dir_tbl_offset = res_dir_tbl_raw - sct->m_raw_ptr;
 	pe_resource_directory_table const* res_root_dir_tbl;

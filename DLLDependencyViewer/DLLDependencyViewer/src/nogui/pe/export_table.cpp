@@ -15,7 +15,7 @@ bool operator==(pe_export_ordinal_entry const& a, pe_export_ordinal_entry const&
 }
 
 
-bool pe_parse_export_directory_table(std::byte const* const file_data, int const file_size, pe_export_directory_table* const edt_out)
+bool pe_parse_export_directory_table(std::byte const* const file_data, pe_export_directory_table* const edt_out)
 {
 	assert(edt_out);
 	pe_dos_header const& dos_hdr = *reinterpret_cast<pe_dos_header const*>(file_data + 0);
@@ -35,7 +35,7 @@ bool pe_parse_export_directory_table(std::byte const* const file_data, int const
 		return true;
 	}
 	pe_section_header const* sct;
-	std::uint32_t const exp_dir_tbl_raw = pe_find_object_in_raw(file_data, file_size, exp_tbl.m_va, exp_tbl.m_size, sct);
+	std::uint32_t const exp_dir_tbl_raw = pe_find_object_in_raw(file_data, exp_tbl.m_va, exp_tbl.m_size, sct);
 	WARN_M_R(exp_dir_tbl_raw != 0, L"Export directory table not found in any section.", false);
 	pe_export_directory_entry const* const edt = reinterpret_cast<pe_export_directory_entry const*>(file_data + exp_dir_tbl_raw);
 	WARN_M_R(edt->m_ordinal_base <= 0xFFFF, L"Ordinal base is too high.", false);
@@ -48,7 +48,7 @@ bool pe_parse_export_directory_table(std::byte const* const file_data, int const
 	return true;
 }
 
-bool pe_parse_export_name_pointer_table(std::byte const* const file_data, int const file_size, pe_export_directory_table const& edt, pe_export_name_pointer_table* const enpt_out)
+bool pe_parse_export_name_pointer_table(std::byte const* const file_data, pe_export_directory_table const& edt, pe_export_name_pointer_table* const enpt_out)
 {
 	assert(enpt_out);
 	if(edt.m_table->m_export_name_table_rva == 0)
@@ -57,7 +57,7 @@ bool pe_parse_export_name_pointer_table(std::byte const* const file_data, int co
 		return true;
 	}
 	pe_section_header const* sct;
-	std::uint32_t const enpt_raw = pe_find_object_in_raw(file_data, file_size, edt.m_table->m_export_name_table_rva, edt.m_table->m_names_count * sizeof(pe_export_name_pointer_entry), sct);
+	std::uint32_t const enpt_raw = pe_find_object_in_raw(file_data, edt.m_table->m_export_name_table_rva, edt.m_table->m_names_count * sizeof(pe_export_name_pointer_entry), sct);
 	WARN_M_R(enpt_raw != 0, L"Export name pointer table not found in any section.", false);
 	pe_export_name_pointer_entry const* enpt = reinterpret_cast<pe_export_name_pointer_entry const*>(file_data + enpt_raw);
 	enpt_out->m_table = enpt;
@@ -65,7 +65,7 @@ bool pe_parse_export_name_pointer_table(std::byte const* const file_data, int co
 	return true;
 }
 
-bool pe_parse_export_ordinal_table(std::byte const* const file_data, int const file_size, pe_export_directory_table const& edt, pe_export_ordinal_table* const eot_out)
+bool pe_parse_export_ordinal_table(std::byte const* const file_data, pe_export_directory_table const& edt, pe_export_ordinal_table* const eot_out)
 {
 	assert(eot_out);
 	if(edt.m_table->m_ordinal_table_rva == 0)
@@ -74,7 +74,7 @@ bool pe_parse_export_ordinal_table(std::byte const* const file_data, int const f
 		return true;
 	}
 	pe_section_header const* sct;
-	std::uint32_t const eot_raw = pe_find_object_in_raw(file_data, file_size, edt.m_table->m_ordinal_table_rva, edt.m_table->m_names_count * sizeof(pe_export_ordinal_entry), sct);
+	std::uint32_t const eot_raw = pe_find_object_in_raw(file_data, edt.m_table->m_ordinal_table_rva, edt.m_table->m_names_count * sizeof(pe_export_ordinal_entry), sct);
 	WARN_M_R(eot_raw != 0, L"Export ordinal table not found in any section.", false);
 	pe_export_ordinal_entry const* eot = reinterpret_cast<pe_export_ordinal_entry const*>(file_data + eot_raw);
 	eot_out->m_table = eot;
@@ -82,7 +82,7 @@ bool pe_parse_export_ordinal_table(std::byte const* const file_data, int const f
 	return true;
 }
 
-bool pe_parse_export_address_table(std::byte const* const file_data, int const file_size, pe_export_directory_table const& edt, pe_export_address_table* const eat_out)
+bool pe_parse_export_address_table(std::byte const* const file_data, pe_export_directory_table const& edt, pe_export_address_table* const eat_out)
 {
 	assert(eat_out);
 	if(edt.m_table->m_export_address_table_rva == 0)
@@ -91,7 +91,7 @@ bool pe_parse_export_address_table(std::byte const* const file_data, int const f
 		return true;
 	}
 	pe_section_header const* sct;
-	std::uint32_t const eot_raw = pe_find_object_in_raw(file_data, file_size, edt.m_table->m_export_address_table_rva, edt.m_table->m_export_address_count * sizeof(pe_export_address_entry), sct);
+	std::uint32_t const eot_raw = pe_find_object_in_raw(file_data, edt.m_table->m_export_address_table_rva, edt.m_table->m_export_address_count * sizeof(pe_export_address_entry), sct);
 	WARN_M_R(eot_raw != 0, L"Export address table not found in any section.", false);
 	pe_export_address_entry const* eat = reinterpret_cast<pe_export_address_entry const*>(file_data + eot_raw);
 	eat_out->m_table = eat;

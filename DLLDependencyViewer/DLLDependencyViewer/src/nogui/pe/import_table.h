@@ -81,12 +81,12 @@ struct pe_delay_load_import_address_table
 };
 
 
-bool pe_parse_import_table(std::byte const* const file_data, int const file_size, pe_import_directory_table* const idt_out);
+bool pe_parse_import_table(std::byte const* const file_data, pe_import_directory_table* const idt_out);
 bool pe_parse_import_dll_name(std::byte const* const file_data, int const file_size, pe_import_directory_entry const& ide, pe_string* const dll_name_out);
-bool pe_parse_import_address_table(std::byte const* const file_data, int const file_size, pe_import_directory_entry const& ide, pe_import_address_table* const iat_out);
+bool pe_parse_import_address_table(std::byte const* const file_data, pe_import_directory_entry const& ide, pe_import_address_table* const iat_out);
 bool pe_parse_import_address(std::byte const* const file_data, int const file_size, pe_import_address_table const& iat_in, int const& idx, bool* const is_ordinal_out, std::uint16_t* const ordinal_out, pe_hint_name* const hint_name_out);
 
-bool pe_parse_delay_import_table(std::byte const* const file_data, int const file_size, pe_delay_import_table* const dlit_out);
+bool pe_parse_delay_import_table(std::byte const* const file_data, pe_delay_import_table* const dlit_out);
 bool pe_parse_delay_import_dll_name(std::byte const* const file_data, int const file_size, pe_delay_load_descriptor const& dld, pe_string* const dll_name_out);
-bool pe_parse_delay_import_address_table(std::byte const* const file_data, int const file_size, pe_delay_load_descriptor const& dld, pe_delay_load_import_address_table* const dliat_out);
+bool pe_parse_delay_import_address_table(std::byte const* const file_data, pe_delay_load_descriptor const& dld, pe_delay_load_import_address_table* const dliat_out);
 bool pe_parse_delay_import_address(std::byte const* const file_data, int const file_size, pe_delay_load_descriptor const& dld, pe_delay_load_import_address_table const& dliat_in, int const& idx, bool* const is_ordinal_out, std::uint16_t* const ordinal_out, pe_hint_name* const hint_name_out);

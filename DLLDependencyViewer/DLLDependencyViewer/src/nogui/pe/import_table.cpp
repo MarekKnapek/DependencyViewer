@@ -28,7 +28,7 @@ bool operator==(pe_delay_load_descriptor const& a, pe_delay_load_descriptor cons
 }
 
 
-bool pe_parse_import_table(std::byte const* const file_data, int const file_size, pe_import_directory_table* const idt_out)
+bool pe_parse_import_table(std::byte const* const file_data, pe_import_directory_table* const idt_out)
 {
 	assert(idt_out);
 	pe_dos_header const& dos_hdr = *reinterpret_cast<pe_dos_header const*>(file_data + 0);
@@ -48,7 +48,7 @@ bool pe_parse_import_table(std::byte const* const file_data, int const file_size
 		return true;
 	}
 	pe_section_header const* sct;
-	std::uint32_t const imp_dir_tbl_raw = pe_find_object_in_raw(file_data, file_size, imp_tbl.m_va, imp_tbl.m_size, sct);
+	std::uint32_t const imp_dir_tbl_raw = pe_find_object_in_raw(file_data, imp_tbl.m_va, imp_tbl.m_size, sct);
 	WARN_M_R(imp_dir_tbl_raw != 0, L"Import directory table not found in any section.", false);
 	std::uint32_t const imp_dir_tbl_cnt_max = std::min(1u * 1024u * 1024u, imp_tbl.m_size / static_cast<int>(sizeof(pe_import_directory_entry)));
 	pe_import_directory_entry const* const d_tbl = reinterpret_cast<pe_import_directory_entry const*>(file_data + imp_dir_tbl_raw);
@@ -75,7 +75,7 @@ bool pe_parse_import_dll_name(std::byte const* const file_data, int const file_s
 	return true;
 }
 
-bool pe_parse_import_address_table(std::byte const* const file_data, int const file_size, pe_import_directory_entry const& ide, pe_import_address_table* const iat_out)
+bool pe_parse_import_address_table(std::byte const* const file_data, pe_import_directory_entry const& ide, pe_import_address_table* const iat_out)
 {
 	assert(iat_out);
 	pe_dos_header const& dos_hdr = *reinterpret_cast<pe_dos_header const*>(file_data + 0);
@@ -84,7 +84,7 @@ bool pe_parse_import_address_table(std::byte const* const file_data, int const f
 	std::uint32_t const iat_rva = ide.m_import_lookup_table != 0 ? ide.m_import_lookup_table : ide.m_import_adress_table;
 	WARN_M_R(iat_rva != 0, L"Import address table not found.", false);
 	pe_section_header const* sct;
-	std::uint32_t const iat_raw = pe_find_object_in_raw(file_data, file_size, iat_rva, is_32 ? sizeof(pe_import_lookup_entry_32) : sizeof(pe_import_lookup_entry_64), sct);
+	std::uint32_t const iat_raw = pe_find_object_in_raw(file_data, iat_rva, is_32 ? sizeof(pe_import_lookup_entry_32) : sizeof(pe_import_lookup_entry_64), sct);
 	WARN_M_R(iat_raw != 0, L"Could not find import address table in any section.", false);
 	if(is_32)
 	{
@@ -137,7 +137,7 @@ bool pe_parse_import_address(std::byte const* const file_data, int const file_si
 		{
 			std::uint32_t const hint_name_rva = ia.m_value & 0x7fffffff;
 			pe_section_header const* sct;
-			std::uint32_t const hint_name_raw = pe_find_object_in_raw(file_data, file_size, hint_name_rva, sizeof(std::uint16_t) + 2 * sizeof(char), sct);
+			std::uint32_t const hint_name_raw = pe_find_object_in_raw(file_data, hint_name_rva, sizeof(std::uint16_t) + 2 * sizeof(char), sct);
 			WARN_M_R(hint_name_raw != 0, L"Could not parse import address name.", false);
 			std::uint16_t const hint = *reinterpret_cast<std::uint16_t const*>(file_data + hint_name_raw + 0);
 			pe_string name;
@@ -167,7 +167,7 @@ bool pe_parse_import_address(std::byte const* const file_data, int const file_si
 			WARN_M_R((ia.m_value & 0x7fffffff80000000ull) == 0, L"Bits 62-31 must be 0.", false);
 			std::uint32_t const hint_name_rva = ia.m_value & 0x000000007fffffffull;
 			pe_section_header const* sct;
-			std::uint32_t const hint_name_raw = pe_find_object_in_raw(file_data, file_size, hint_name_rva, sizeof(std::uint16_t) + 2 * sizeof(char), sct);
+			std::uint32_t const hint_name_raw = pe_find_object_in_raw(file_data, hint_name_rva, sizeof(std::uint16_t) + 2 * sizeof(char), sct);
 			WARN_M_R(hint_name_raw != 0, L"Could not parse import address name.", false);
 			std::uint16_t const hint = *reinterpret_cast<std::uint16_t const*>(file_data + hint_name_raw + 0);
 			pe_string name;
@@ -181,7 +181,7 @@ bool pe_parse_import_address(std::byte const* const file_data, int const file_si
 	}
 }
 
-bool pe_parse_delay_import_table(std::byte const* const file_data, int const file_size, pe_delay_import_table* const dlit_out)
+bool pe_parse_delay_import_table(std::byte const* const file_data, pe_delay_import_table* const dlit_out)
 {
 	assert(dlit_out);
 	pe_dos_header const& dos_hdr = *reinterpret_cast<pe_dos_header const*>(file_data + 0);
@@ -201,7 +201,7 @@ bool pe_parse_delay_import_table(std::byte const* const file_data, int const fil
 		return true;
 	}
 	pe_section_header const* sct;
-	std::uint32_t const dimp_dir_tbl_raw = pe_find_object_in_raw(file_data, file_size, dimp_tbl.m_va, dimp_tbl.m_size, sct);
+	std::uint32_t const dimp_dir_tbl_raw = pe_find_object_in_raw(file_data, dimp_tbl.m_va, dimp_tbl.m_size, sct);
 	WARN_M_R(dimp_dir_tbl_raw != 0, L"Delay import directory table not found in any section.", false);
 	std::uint32_t const dimp_dir_tbl_cnt_max = std::min(1u * 1024u * 1024u, dimp_tbl.m_size / static_cast<int>(sizeof(pe_delay_load_descriptor)));
 	pe_delay_load_descriptor const* const dld_tbl = reinterpret_cast<pe_delay_load_descriptor const*>(file_data + dimp_dir_tbl_raw);
@@ -234,7 +234,7 @@ bool pe_parse_delay_import_dll_name(std::byte const* const file_data, int const 
 	return true;
 }
 
-bool pe_parse_delay_import_address_table(std::byte const* const file_data, int const file_size, pe_delay_load_descriptor const& dld, pe_delay_load_import_address_table* const dliat_out)
+bool pe_parse_delay_import_address_table(std::byte const* const file_data, pe_delay_load_descriptor const& dld, pe_delay_load_import_address_table* const dliat_out)
 {
 	assert(dliat_out);
 	pe_dos_header const& dos_hdr = *reinterpret_cast<pe_dos_header const*>(file_data + 0);
@@ -244,7 +244,7 @@ bool pe_parse_delay_import_address_table(std::byte const* const file_data, int c
 	bool const is_32 = pe_is_32_bit(coff_hdr.m_32.m_standard);
 	std::uint32_t const dliat_rva = dld.m_import_name_table_rva - (delay_ver_2 ? 0u : (is_32 ? coff_hdr.m_32.m_windows.m_image_base : static_cast<std::uint32_t>(coff_hdr.m_64.m_windows.m_image_base)));
 	pe_section_header const* sct;
-	std::uint32_t const dliat_raw = pe_find_object_in_raw(file_data, file_size, dliat_rva, is_32 ? sizeof(pe_import_lookup_entry_32) : sizeof(pe_import_lookup_entry_64), sct);
+	std::uint32_t const dliat_raw = pe_find_object_in_raw(file_data, dliat_rva, is_32 ? sizeof(pe_import_lookup_entry_32) : sizeof(pe_import_lookup_entry_64), sct);
 	WARN_M_R(dliat_raw != 0, L"Could not find delay load import address table in any section.", false);
 	if(is_32)
 	{
@@ -298,7 +298,7 @@ bool pe_parse_delay_import_address(std::byte const* const file_data, int const f
 			bool const delay_ver_2 = (dld.m_attributes & 1u) != 0;
 			std::uint32_t const hint_name_rva = (dlia.m_value & 0x7fffffff) - (delay_ver_2 ? 0u : coff_hdr.m_32.m_windows.m_image_base);
 			pe_section_header const* sct;
-			std::uint32_t const hint_name_raw = pe_find_object_in_raw(file_data, file_size, hint_name_rva, sizeof(std::uint16_t) + 2 * sizeof(char), sct);
+			std::uint32_t const hint_name_raw = pe_find_object_in_raw(file_data, hint_name_rva, sizeof(std::uint16_t) + 2 * sizeof(char), sct);
 			WARN_M_R(hint_name_raw != 0, L"Could not parse delay import address name.", false);
 			std::uint16_t const hint = *reinterpret_cast<std::uint16_t const*>(file_data + hint_name_raw + 0);
 			pe_string name;
@@ -329,7 +329,7 @@ bool pe_parse_delay_import_address(std::byte const* const file_data, int const f
 			bool const delay_ver_2 = (dld.m_attributes & 1u) != 0;
 			std::uint32_t const hint_name_rva = (dlia.m_value & 0x000000007fffffffull) - (delay_ver_2 ? 0u : static_cast<std::uint32_t>(coff_hdr.m_64.m_windows.m_image_base));
 			pe_section_header const* sct;
-			std::uint32_t const hint_name_raw = pe_find_object_in_raw(file_data, file_size, hint_name_rva, sizeof(std::uint16_t) + 2, sct);
+			std::uint32_t const hint_name_raw = pe_find_object_in_raw(file_data, hint_name_rva, sizeof(std::uint16_t) + 2, sct);
 			WARN_M_R(hint_name_raw != 0, L"Could not parse delay import address name.", false);
 			std::uint16_t const hint = *reinterpret_cast<std::uint16_t const*>(file_data + hint_name_raw + 0);
 			pe_string name;

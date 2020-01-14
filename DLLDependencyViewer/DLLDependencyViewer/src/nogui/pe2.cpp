@@ -20,13 +20,13 @@ bool pe_process_headers(std::byte const* const file_data, int const file_size, p
 }
 
 
-bool pe_process_import_tables(std::byte const* const file_data, int const file_size, pe_import_tables* const tables_out)
+bool pe_process_import_tables(std::byte const* const file_data, pe_import_tables* const tables_out)
 {
 	pe_import_directory_table idt;
-	bool const import_table_parsed = pe_parse_import_table(file_data, file_size, &idt);
+	bool const import_table_parsed = pe_parse_import_table(file_data, &idt);
 	WARN_M_R(import_table_parsed, L"Failed to parse import table.", false);
 	pe_delay_import_table didt;
-	bool const dimport_table_parsed = pe_parse_delay_import_table(file_data, file_size, &didt);
+	bool const dimport_table_parsed = pe_parse_delay_import_table(file_data, &didt);
 	WARN_M_R(dimport_table_parsed, L"Failed to parse delay import table.", false);
 	tables_out->m_idt = idt;
 	tables_out->m_didt = didt;
@@ -73,7 +73,7 @@ bool pe_process_import_iat(std::byte const* const file_data, int const file_size
 	for(int i = 0; i != iat_in_out->m_tables->m_idt.m_count; ++i, ++ii)
 	{
 		pe_import_address_table iat;
-		bool const iat_parsed = pe_parse_import_address_table(file_data, file_size, iat_in_out->m_tables->m_idt.m_table[i], &iat);
+		bool const iat_parsed = pe_parse_import_address_table(file_data, iat_in_out->m_tables->m_idt.m_table[i], &iat);
 		WARN_M_R(iat_parsed, L"Failed to parse import address table.", false);
 		int const bits_to_dwords = array_bool_space_needed(iat.m_count);
 		unsigned* const are_ordinals = iat_in_out->m_alc->allocate_objects<unsigned>(bits_to_dwords);
@@ -111,7 +111,7 @@ bool pe_process_import_iat(std::byte const* const file_data, int const file_size
 	for(int i = 0; i != iat_in_out->m_tables->m_didt.m_count; ++i, ++ii)
 	{
 		pe_delay_load_import_address_table iat;
-		bool const iat_parsed = pe_parse_delay_import_address_table(file_data, file_size, iat_in_out->m_tables->m_didt.m_table[i], &iat);
+		bool const iat_parsed = pe_parse_delay_import_address_table(file_data, iat_in_out->m_tables->m_didt.m_table[i], &iat);
 		WARN_M_R(iat_parsed, L"Failed to parse delay import address table.", false);
 		int const bits_to_dwords = array_bool_space_needed(iat.m_count);
 		unsigned* const are_ordinals = iat_in_out->m_alc->allocate_objects<unsigned>(bits_to_dwords);
@@ -175,7 +175,7 @@ bool pe_process_export_eat(std::byte const* const file_data, int const file_size
 	assert(eat_in_out->m_enpt_out);
 
 	pe_export_directory_table edt;
-	bool const edt_parsed = pe_parse_export_directory_table(file_data, file_size, &edt);
+	bool const edt_parsed = pe_parse_export_directory_table(file_data, &edt);
 	WARN_M_R(edt_parsed, L"Failed to parse export directory table.", false);
 	if(!edt.m_table || edt.m_table->m_export_address_count == 0)
 	{
@@ -191,15 +191,15 @@ bool pe_process_export_eat(std::byte const* const file_data, int const file_size
 	std::uint32_t const export_directory_size = dta_dir_table[static_cast<int>(pe_e_directory_table::export_table)].m_size;
 
 	pe_export_name_pointer_table enpt;
-	bool const enpt_parsed = pe_parse_export_name_pointer_table(file_data, file_size, edt, &enpt);
+	bool const enpt_parsed = pe_parse_export_name_pointer_table(file_data, edt, &enpt);
 	WARN_M_R(enpt_parsed, L"Failed to parse export name pointer table.", false);
 	pe_export_ordinal_table eot;
-	bool const eot_parsed = pe_parse_export_ordinal_table(file_data, file_size, edt, &eot);
+	bool const eot_parsed = pe_parse_export_ordinal_table(file_data, edt, &eot);
 	WARN_M_R(eot_parsed, L"Failed to parse export ordinal table.", false);
 	WARN_M_R(enpt.m_count == eot.m_count, L"Export name pointer table and export ordinal table are in fact two columns of the same table.", false);
 	WARN_M_R(enpt.m_count == 0 || (enpt.m_table && eot.m_table), L"Export name pointer table and export ordinal table are in fact two columns of the same table.", false);
 	pe_export_address_table eat;
-	bool const eat_parsed = pe_parse_export_address_table(file_data, file_size, edt, &eat);
+	bool const eat_parsed = pe_parse_export_address_table(file_data, edt, &eat);
 	WARN_M_R(eat_parsed, L"Failed to parse export address table.", false);
 
 	std::uint16_t const eat_count_proper = static_cast<std::uint16_t>(std::count_if(eat.m_table, eat.m_table + eat.m_count, [](pe_export_address_entry const& eae){ return eae.m_export_rva != 0; }));
@@ -303,7 +303,7 @@ bool pe_process_all(std::byte const* const file_data, int const file_size, memor
 	tables_in_out->m_is_32_bit = pe_is_32_bit(headers.m_coff->m_32.m_standard);
 
 	pe_import_tables tables;
-	bool const count_parsed = pe_process_import_tables(file_data, file_size, &tables);
+	bool const count_parsed = pe_process_import_tables(file_data, &tables);
 	WARN_M_R(count_parsed, L"Failed to pe_process_import_tables.", false);
 	pe_import_table_info iti;
 	iti.m_dll_count = tables.m_idt.m_count + tables.m_didt.m_count;
