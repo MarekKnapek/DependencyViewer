@@ -3,6 +3,7 @@
 #include "import_export_matcher.h"
 #include "processor.h"
 
+#include "../nogui/act_ctx.h"
 #include "../nogui/assert.h"
 #include "../nogui/dependency_locator.h"
 #include "../nogui/file_name_provider.h"
@@ -115,6 +116,11 @@ bool step_2(wstring_handle const& file_path, file_info& fi, tmp_type& to)
 	file_info* const fis = to.m_mm->m_alc.allocate_objects<file_info>(n);
 	init(fis, n);
 	fi.m_fis = fis;
+	dependency_locator& dl = to.m_dl;
+	actctx_state_t actctx_state;
+	bool const actctx_created = create_actctx(dl.m_main_path, fi.m_file_path, tables.m_manifest_id, &actctx_state);
+	WARN_M_R(actctx_created, L"Failed to create_actctx.", false);
+	auto const fn_destroy_actctx = mk::make_scope_exit([&](){ destroy_actctx(actctx_state); });
 	for(std::uint16_t i = 0; i != n; ++i)
 	{
 		bool const step = step_3(fi, i, to);
