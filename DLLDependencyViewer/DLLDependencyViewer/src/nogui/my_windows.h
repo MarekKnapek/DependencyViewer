@@ -6,6 +6,9 @@
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
+#ifdef ISOLATION_AWARE_ENABLED
+#undef ISOLATION_AWARE_ENABLED
+#endif
 
 
 #include <windows.h>
