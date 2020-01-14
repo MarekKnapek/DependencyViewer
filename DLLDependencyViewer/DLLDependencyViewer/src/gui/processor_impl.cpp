@@ -13,6 +13,7 @@
 #include "../nogui/scope_exit.h"
 
 #include <algorithm>
+#include <cassert>
 #include <cstdint>
 #include <iterator>
 
