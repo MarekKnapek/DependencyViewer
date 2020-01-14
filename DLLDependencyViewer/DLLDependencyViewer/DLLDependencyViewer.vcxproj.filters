@@ -330,6 +330,9 @@
     <ClInclude Include="src\nogui\default_act_ctx.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
+    <ClInclude Include="src\nogui\pe\resource_table.h">
+      <Filter>src\nogui\pe</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\main.cpp">
@@ -517,6 +520,9 @@
     </ClCompile>
     <ClCompile Include="src\nogui\default_act_ctx.cpp">
       <Filter>src\nogui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nogui\pe\resource_table.cpp">
+      <Filter>src\nogui\pe</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

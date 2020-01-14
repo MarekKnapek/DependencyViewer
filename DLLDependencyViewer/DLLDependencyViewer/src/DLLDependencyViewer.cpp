@@ -61,3 +61,4 @@
 #include "nogui/pe/import_table.cpp"
 #include "nogui/pe/mz.cpp"
 #include "nogui/pe/pe_util.cpp"
+#include "nogui/pe/resource_table.cpp"
