@@ -7,7 +7,9 @@
 #include "../nogui/dependency_locator.h"
 #include "../nogui/file_name_provider.h"
 #include "../nogui/memory_mapped_file.h"
+#include "../nogui/my_actctx.h"
 #include "../nogui/pe2.h"
+#include "../nogui/scope_exit.h"
 
 #include <algorithm>
 #include <cstdint>
@@ -24,6 +26,8 @@ static constexpr string_handle const s_dummy_texta_h = {&s_dummy_texta_s};
 
 bool process_impl(std::vector<std::wstring> const& file_paths, file_info& fi, memory_manager& mm)
 {
+	my_actctx::deactivate();
+	auto const activate_my_actctx = mk::make_scope_exit([](){ my_actctx::activate(); });
 	WARN_M_R(file_paths.size() < 0xFFFF, L"Too many files to process.", false);
 	std::uint16_t const n = static_cast<std::uint16_t>(file_paths.size());
 	file_info* const fis = mm.m_alc.allocate_objects<file_info>(n);
