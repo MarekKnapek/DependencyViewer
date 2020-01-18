@@ -8,6 +8,7 @@
 
 #include "../res/resources.h"
 
+#include <algorithm>
 #include <cassert>
 #include <cstdint>
 
@@ -119,10 +120,27 @@ void tree_view::on_getdispinfow(NMHDR& nmhdr)
 		{
 			delay = false;
 		}
+		bool warning;
+		if(parent_fi && fi.m_file_path.m_string)
+		{
+			auto const dll_idx_ = &tmp_fi - parent_fi->m_fis;
+			assert(dll_idx_ >= 0 && dll_idx_ <= 0xFFFF);
+			std::uint16_t const dll_idx = static_cast<std::uint16_t>(dll_idx_);
+			warning = false;
+			std::uint16_t const* const matched_exports = parent_fi->m_import_table.m_matched_exports[dll_idx];
+			std::uint16_t const n = parent_fi->m_import_table.m_import_counts[dll_idx];
+			auto const it = std::find(matched_exports, matched_exports + n, static_cast<std::uint16_t>(0xFFFF));
+			warning = it != matched_exports + n;
+		}
+		else
+		{
+			warning = false;
+		}
 		bool const is_32_bit = fi.m_is_32_bit;
 		bool const is_duplicate = tmp_fi.m_orig_instance != nullptr;
 		bool const is_missing = fi.m_file_path.m_string == nullptr;
 		bool const is_delay = delay;
+		bool const is_warning = warning;
 		if(is_missing)
 		{
 			if(is_delay)
@@ -142,22 +160,50 @@ void tree_view::on_getdispinfow(NMHDR& nmhdr)
 				{
 					if(is_delay)
 					{
-						di.item.iImage = s_res_icon_duplicate_delay;
+						if(is_warning)
+						{
+							di.item.iImage = s_res_icon_warning_duplicate_delay;
+						}
+						else
+						{
+							di.item.iImage = s_res_icon_duplicate_delay;
+						}
 					}
 					else
 					{
-						di.item.iImage = s_res_icon_duplicate;
+						if(is_warning)
+						{
+							di.item.iImage = s_res_icon_warning_duplicate;
+						}
+						else
+						{
+							di.item.iImage = s_res_icon_duplicate;
+						}
 					}
 				}
 				else
 				{
 					if(is_delay)
 					{
-						di.item.iImage = s_res_icon_duplicate_delay_64;
+						if(is_warning)
+						{
+							di.item.iImage = s_res_icon_warning_duplicate_delay_64;
+						}
+						else
+						{
+							di.item.iImage = s_res_icon_duplicate_delay_64;
+						}
 					}
 					else
 					{
-						di.item.iImage = s_res_icon_duplicate_64;
+						if(is_warning)
+						{
+							di.item.iImage = s_res_icon_warning_duplicate_64;
+						}
+						else
+						{
+							di.item.iImage = s_res_icon_duplicate_64;
+						}
 					}
 				}
 			}
@@ -167,22 +213,50 @@ void tree_view::on_getdispinfow(NMHDR& nmhdr)
 				{
 					if(is_delay)
 					{
-						di.item.iImage = s_res_icon_normal_delay;
+						if(is_warning)
+						{
+							di.item.iImage = s_res_icon_warning_delay;
+						}
+						else
+						{
+							di.item.iImage = s_res_icon_normal_delay;
+						}
 					}
 					else
 					{
-						di.item.iImage = s_res_icon_normal;
+						if(is_warning)
+						{
+							di.item.iImage = s_res_icon_warning;
+						}
+						else
+						{
+							di.item.iImage = s_res_icon_normal;
+						}
 					}
 				}
 				else
 				{
 					if(is_delay)
 					{
-						di.item.iImage = s_res_icon_normal_delay_64;
+						if(is_warning)
+						{
+							di.item.iImage = s_res_icon_warning_delay_64;
+						}
+						else
+						{
+							di.item.iImage = s_res_icon_normal_delay_64;
+						}
 					}
 					else
 					{
-						di.item.iImage = s_res_icon_normal_64;
+						if(is_warning)
+						{
+							di.item.iImage = s_res_icon_warning_64;
+						}
+						else
+						{
+							di.item.iImage = s_res_icon_normal_64;
+						}
 					}
 				}
 			}
