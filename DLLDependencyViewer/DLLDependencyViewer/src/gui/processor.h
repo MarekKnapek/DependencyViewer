@@ -13,10 +13,11 @@ struct file_info
 	file_info* m_fis;
 	file_info* m_orig_instance;
 	wstring_handle m_file_path;
-	bool m_is_32_bit;
 	pe_import_table_info m_import_table;
 	pe_export_table_info m_export_table;
 	std::uint16_t* m_matched_imports;
+	std::uint8_t m_icon;
+	bool m_is_32_bit;
 };
 void init(file_info* const fi);
 void init(file_info* const fi, int const count);

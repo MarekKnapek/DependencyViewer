@@ -63,6 +63,7 @@ bool process_impl(std::vector<std::wstring> const& file_paths, file_info& fi, me
 		WARN_M_R(step, L"Failed to step_1.", false);
 	}
 	pair_root(fi, to);
+	depth_first_visit(fi, &compute_icons, nullptr);
 	return true;
 }
 
@@ -170,4 +171,82 @@ void depth_first_visit_2(file_info const& fi, void(*callback_fn)(file_info const
 		callback_fn(&fi, child_fi, data);
 		depth_first_visit_2(child_fi, callback_fn, data);
 	}
+}
+
+
+void compute_icons(file_info const* const parent_fi, file_info& child_fi, [[maybe_unused]] void* const data)
+{
+	static constexpr auto const fn_get_icon = [](file_info const& tmp_fi, file_info const& fi, file_info const* const parent_fi) -> std::uint8_t
+	{
+		std::uint8_t ret = 0;
+		bool is_delay;
+		if(parent_fi)
+		{
+			auto const dll_idx_ = &tmp_fi - parent_fi->m_fis;
+			assert(dll_idx_ >= 0 && dll_idx_ <= 0xFFFF);
+			std::uint16_t const dll_idx = static_cast<std::uint16_t>(dll_idx_);
+			is_delay = dll_idx >= parent_fi->m_import_table.m_non_delay_dll_count;
+		}
+		else
+		{
+			is_delay = false;
+		}
+		if(is_delay)
+		{
+			ret += 20;
+		}
+		else
+		{
+			ret += 0;
+		}
+		bool const is_missing = fi.m_file_path.m_string == nullptr;
+		if(is_missing)
+		{
+			return ret + 0;
+		}
+		bool const is_32_bit = fi.m_is_32_bit;
+		if(is_32_bit)
+		{
+			ret += 2;
+		}
+		else
+		{
+			ret += 6;
+		}
+		bool const is_duplicate = tmp_fi.m_orig_instance != nullptr;
+		if(is_duplicate)
+		{
+			ret += 1;
+		}
+		else
+		{
+			ret += 0;
+		}
+		bool is_warning;
+		if(parent_fi)
+		{
+			auto const dll_idx_ = &tmp_fi - parent_fi->m_fis;
+			assert(dll_idx_ >= 0 && dll_idx_ <= 0xFFFF);
+			std::uint16_t const dll_idx = static_cast<std::uint16_t>(dll_idx_);
+			std::uint16_t const* const matched_exports = parent_fi->m_import_table.m_matched_exports[dll_idx];
+			std::uint16_t const n = parent_fi->m_import_table.m_import_counts[dll_idx];
+			auto const it = std::find(matched_exports, matched_exports + n, static_cast<std::uint16_t>(0xFFFF));
+			is_warning = it != matched_exports + n;
+		}
+		else
+		{
+			is_warning = false;
+		}
+		if(is_warning)
+		{
+			ret += 2;
+		}
+		else
+		{
+			ret += 0;
+		}
+		return ret;
+	};
+	file_info const& fi = child_fi.m_orig_instance ? *child_fi.m_orig_instance : child_fi;
+	child_fi.m_icon = fn_get_icon(child_fi, fi, parent_fi);
 }
