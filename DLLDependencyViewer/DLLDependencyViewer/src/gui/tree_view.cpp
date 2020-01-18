@@ -108,159 +108,79 @@ void tree_view::on_getdispinfow(NMHDR& nmhdr)
 	}
 	if((di.item.mask & (TVIF_IMAGE | TVIF_SELECTEDIMAGE)) != 0)
 	{
-		bool delay;
-		if(parent_fi)
+		static auto const fn_get_icon = [](file_info const& tmp_fi, file_info const& fi, file_info const* const parent_fi) -> std::uint8_t
 		{
-			auto const idx_ = &tmp_fi - parent_fi->m_fis;
-			assert(idx_ >= 0 && idx_ <= 0xFFFF);
-			std::uint16_t const idx = static_cast<std::uint16_t>(idx_);
-			delay = idx >= parent_fi->m_import_table.m_non_delay_dll_count;
-		}
-		else
-		{
-			delay = false;
-		}
-		bool warning;
-		if(parent_fi && fi.m_file_path.m_string)
-		{
-			auto const dll_idx_ = &tmp_fi - parent_fi->m_fis;
-			assert(dll_idx_ >= 0 && dll_idx_ <= 0xFFFF);
-			std::uint16_t const dll_idx = static_cast<std::uint16_t>(dll_idx_);
-			warning = false;
-			std::uint16_t const* const matched_exports = parent_fi->m_import_table.m_matched_exports[dll_idx];
-			std::uint16_t const n = parent_fi->m_import_table.m_import_counts[dll_idx];
-			auto const it = std::find(matched_exports, matched_exports + n, static_cast<std::uint16_t>(0xFFFF));
-			warning = it != matched_exports + n;
-		}
-		else
-		{
-			warning = false;
-		}
-		bool const is_32_bit = fi.m_is_32_bit;
-		bool const is_duplicate = tmp_fi.m_orig_instance != nullptr;
-		bool const is_missing = fi.m_file_path.m_string == nullptr;
-		bool const is_delay = delay;
-		bool const is_warning = warning;
-		if(is_missing)
-		{
+			std::uint8_t ret = 0;
+			bool is_delay;
+			if(parent_fi)
+			{
+				auto const dll_idx_ = &tmp_fi - parent_fi->m_fis;
+				assert(dll_idx_ >= 0 && dll_idx_ <= 0xFFFF);
+				std::uint16_t const dll_idx = static_cast<std::uint16_t>(dll_idx_);
+				is_delay = dll_idx >= parent_fi->m_import_table.m_non_delay_dll_count;
+			}
+			else
+			{
+				is_delay = false;
+			}
 			if(is_delay)
 			{
-				di.item.iImage = s_res_icon_missing_delay;
+				ret += 20;
 			}
 			else
 			{
-				di.item.iImage = s_res_icon_missing;
+				ret += 0;
 			}
-		}
-		else
-		{
+			bool const is_missing = fi.m_file_path.m_string == nullptr;
+			if(is_missing)
+			{
+				return ret + 0;
+			}
+			bool const is_32_bit = fi.m_is_32_bit;
+			if(is_32_bit)
+			{
+				ret += 2;
+			}
+			else
+			{
+				ret += 6;
+			}
+			bool const is_duplicate = tmp_fi.m_orig_instance != nullptr;
 			if(is_duplicate)
 			{
-				if(is_32_bit)
-				{
-					if(is_delay)
-					{
-						if(is_warning)
-						{
-							di.item.iImage = s_res_icon_warning_duplicate_delay;
-						}
-						else
-						{
-							di.item.iImage = s_res_icon_duplicate_delay;
-						}
-					}
-					else
-					{
-						if(is_warning)
-						{
-							di.item.iImage = s_res_icon_warning_duplicate;
-						}
-						else
-						{
-							di.item.iImage = s_res_icon_duplicate;
-						}
-					}
-				}
-				else
-				{
-					if(is_delay)
-					{
-						if(is_warning)
-						{
-							di.item.iImage = s_res_icon_warning_duplicate_delay_64;
-						}
-						else
-						{
-							di.item.iImage = s_res_icon_duplicate_delay_64;
-						}
-					}
-					else
-					{
-						if(is_warning)
-						{
-							di.item.iImage = s_res_icon_warning_duplicate_64;
-						}
-						else
-						{
-							di.item.iImage = s_res_icon_duplicate_64;
-						}
-					}
-				}
+				ret += 1;
 			}
 			else
 			{
-				if(is_32_bit)
-				{
-					if(is_delay)
-					{
-						if(is_warning)
-						{
-							di.item.iImage = s_res_icon_warning_delay;
-						}
-						else
-						{
-							di.item.iImage = s_res_icon_normal_delay;
-						}
-					}
-					else
-					{
-						if(is_warning)
-						{
-							di.item.iImage = s_res_icon_warning;
-						}
-						else
-						{
-							di.item.iImage = s_res_icon_normal;
-						}
-					}
-				}
-				else
-				{
-					if(is_delay)
-					{
-						if(is_warning)
-						{
-							di.item.iImage = s_res_icon_warning_delay_64;
-						}
-						else
-						{
-							di.item.iImage = s_res_icon_normal_delay_64;
-						}
-					}
-					else
-					{
-						if(is_warning)
-						{
-							di.item.iImage = s_res_icon_warning_64;
-						}
-						else
-						{
-							di.item.iImage = s_res_icon_normal_64;
-						}
-					}
-				}
+				ret += 0;
 			}
-		}
+			bool is_warning;
+			if(parent_fi && fi.m_file_path.m_string)
+			{
+				auto const dll_idx_ = &tmp_fi - parent_fi->m_fis;
+				assert(dll_idx_ >= 0 && dll_idx_ <= 0xFFFF);
+				std::uint16_t const dll_idx = static_cast<std::uint16_t>(dll_idx_);
+				is_warning = false;
+				std::uint16_t const* const matched_exports = parent_fi->m_import_table.m_matched_exports[dll_idx];
+				std::uint16_t const n = parent_fi->m_import_table.m_import_counts[dll_idx];
+				auto const it = std::find(matched_exports, matched_exports + n, static_cast<std::uint16_t>(0xFFFF));
+				is_warning = it != matched_exports + n;
+			}
+			else
+			{
+				is_warning = false;
+			}
+			if(is_warning)
+			{
+				ret += 2;
+			}
+			else
+			{
+				ret += 0;
+			}
+			return ret;
+		};
+		di.item.iImage = fn_get_icon(tmp_fi, fi, parent_fi);
 		di.item.iSelectedImage = di.item.iImage;
 	}
 }
