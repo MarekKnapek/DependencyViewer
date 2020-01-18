@@ -1440,7 +1440,6 @@ void main_window::finish_symbol_undecoration_e(undecorated_from_decorated_e_para
 	{
 		std::uint16_t const idx = param.m_indexes[i];
 		string_handle& undecorated_name = param.m_eti->m_undecorated_names[idx];
-		assert(!undecorated_name);
 		if(!param.m_strings[i].empty())
 		{
 			undecorated_name = m_mo.m_mm.m_strs.add_string(param.m_strings[i].c_str(), static_cast<int>(param.m_strings[i].size()), m_mo.m_mm.m_alc);
@@ -1541,7 +1540,6 @@ void main_window::finish_symbol_undecoration_i(undecorated_from_decorated_i_para
 	{
 		std::uint16_t const idx = param.m_indexes[i];
 		string_handle& undecorated_name = param.m_iti->m_undecorated_names[param.m_dll_idx][idx];
-		assert(!undecorated_name);
 		if(!param.m_strings[i].empty())
 		{
 			undecorated_name = m_mo.m_mm.m_strs.add_string(param.m_strings[i].c_str(), static_cast<int>(param.m_strings[i].size()), m_mo.m_mm.m_alc);
