@@ -374,6 +374,17 @@ smart_menu tree_view::create_menu()
 	return sm;
 }
 
+file_info const* tree_view::get_selection()
+{
+	HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_CARET, LPARAM{0}));
+	if(!selected)
+	{
+		return nullptr;
+	}
+	file_info& ret = htreeitem_2_file_info(selected);
+	return &ret;
+}
+
 file_info& tree_view::htreeitem_2_file_info(htreeitem const& hti)
 {
 	TVITEMW ti;
