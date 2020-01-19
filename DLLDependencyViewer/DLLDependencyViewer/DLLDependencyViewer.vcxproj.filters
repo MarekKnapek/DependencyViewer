@@ -309,15 +309,6 @@
     <ClInclude Include="src\nogui\com_ptr.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
-    <ClInclude Include="src\nogui\default_manifests.h">
-      <Filter>src\nogui</Filter>
-    </ClInclude>
-    <ClInclude Include="src\nogui\xml_parser.h">
-      <Filter>src\nogui</Filter>
-    </ClInclude>
-    <ClInclude Include="src\nogui\default_act_ctx.h">
-      <Filter>src\nogui</Filter>
-    </ClInclude>
     <ClInclude Include="src\nogui\pe\resource_table.h">
       <Filter>src\nogui\pe</Filter>
     </ClInclude>
@@ -325,12 +316,6 @@
       <Filter>src\nogui</Filter>
     </ClInclude>
     <ClInclude Include="src\nogui\my_actctx.h">
-      <Filter>src\nogui</Filter>
-    </ClInclude>
-    <ClInclude Include="src\nogui\manifest_parser.h">
-      <Filter>src\nogui</Filter>
-    </ClInclude>
-    <ClInclude Include="src\nogui\manifest_parser_impl.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
   </ItemGroup>
@@ -500,15 +485,6 @@
     <ClCompile Include="src\gui\processor_impl.cpp">
       <Filter>src\gui</Filter>
     </ClCompile>
-    <ClCompile Include="src\nogui\default_manifests.cpp">
-      <Filter>src\nogui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\nogui\xml_parser.cpp">
-      <Filter>src\nogui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\nogui\default_act_ctx.cpp">
-      <Filter>src\nogui</Filter>
-    </ClCompile>
     <ClCompile Include="src\nogui\pe\resource_table.cpp">
       <Filter>src\nogui\pe</Filter>
     </ClCompile>
@@ -516,12 +492,6 @@
       <Filter>src\nogui</Filter>
     </ClCompile>
     <ClCompile Include="src\nogui\my_actctx.cpp">
-      <Filter>src\nogui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\nogui\manifest_parser.cpp">
-      <Filter>src\nogui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\nogui\manifest_parser_impl.cpp">
       <Filter>src\nogui</Filter>
     </ClCompile>
   </ItemGroup>

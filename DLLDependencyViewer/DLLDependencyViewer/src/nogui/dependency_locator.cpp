@@ -1,8 +1,6 @@
 #include "dependency_locator.h"
 
 #include "assert.h"
-#include "default_act_ctx.h"
-#include "default_manifests.h"
 #include "known_dlls.h"
 #include "unicode.h"
 
