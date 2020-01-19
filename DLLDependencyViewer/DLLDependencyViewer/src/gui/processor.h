@@ -12,6 +12,8 @@ struct file_info
 	void* m_tree_item;
 	file_info* m_fis;
 	file_info* m_orig_instance;
+	file_info* m_prev_instance;
+	file_info* m_next_instance;
 	wstring_handle m_file_path;
 	pe_import_table_info m_import_table;
 	pe_export_table_info m_export_table;

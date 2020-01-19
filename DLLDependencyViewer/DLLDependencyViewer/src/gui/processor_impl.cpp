@@ -88,7 +88,8 @@ bool step_2(wstring_handle const& file_path, file_info& fi, tmp_type& to)
 	if(it != to.m_map.end())
 	{
 		assert(it->second->m_orig_instance);
-		fi.m_orig_instance = it->second->m_orig_instance;
+		file_info* const orig = it->second->m_orig_instance;
+		fi.m_orig_instance = orig;
 		return true;
 	}
 	fi.m_file_path = file_path;
