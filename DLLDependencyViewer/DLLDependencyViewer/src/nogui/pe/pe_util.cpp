@@ -47,7 +47,9 @@ bool pe_parse_string_raw(std::byte const* const file_data, int const /* file_siz
 	static constexpr const std::uint32_t s_str_len_max = 32 * 1024;
 	std::uint32_t const str_len_max = std::min<std::uint32_t>(s_str_len_max, sct.m_raw_ptr + sct.m_raw_size - str_raw);
 	auto const str_end = std::find(str, str + str_len_max, '\0');
-	WARN_M_R(str_end != str + str_len_max, L"Could not find string length.", false);
+	bool const found = str_end != str + str_len_max;
+	bool const could_be_out_of_bounds = str_len_max != s_str_len_max && sct.m_virtual_size > sct.m_raw_size;
+	WARN_M_R(found || could_be_out_of_bounds, L"Could not find string length.", false);
 	std::uint16_t const str_len = static_cast<std::uint16_t>(str_end - str);
 	WARN_M_R(str_len >= 1, L"String is too short.", false);
 	WARN_M_R(pe_is_ascii(str, str_len), L"String is not ASCII.", false);
