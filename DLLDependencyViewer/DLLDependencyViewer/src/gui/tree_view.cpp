@@ -69,7 +69,7 @@ void tree_view::on_notify(NMHDR& nmhdr)
 void tree_view::on_getdispinfow(NMHDR& nmhdr)
 {
 	NMTVDISPINFOW& di = reinterpret_cast<NMTVDISPINFOW&>(nmhdr);
-	file_info const& tmp_fi = *reinterpret_cast<file_info*>(di.item.lParam);
+	file_info& tmp_fi = *reinterpret_cast<file_info*>(di.item.lParam);
 	file_info const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
 	file_info const* parent_fi = nullptr;
 	HTREEITEM const parent_item = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(di.item.hItem)));
@@ -108,7 +108,12 @@ void tree_view::on_getdispinfow(NMHDR& nmhdr)
 	}
 	if((di.item.mask & (TVIF_IMAGE | TVIF_SELECTEDIMAGE)) != 0)
 	{
-		di.item.iImage = tmp_fi.m_icon;
+		if(tmp_fi.m_icon == 0)
+		{
+			tmp_fi.m_icon = get_tree_item_icon(tmp_fi, parent_fi);
+		}
+		assert(tmp_fi.m_icon != 0);
+		di.item.iImage = tmp_fi.m_icon - 1;
 		di.item.iSelectedImage = di.item.iImage;
 	}
 }
@@ -344,6 +349,85 @@ smart_menu tree_view::create_menu()
 		assert(inserted != 0);
 	}
 	return sm;
+}
+
+std::uint8_t tree_view::get_tree_item_icon(file_info const& tmp_fi, file_info const* const parent_fi)
+{
+	assert(tmp_fi.m_icon == 0);
+	static constexpr auto const fn_get_icon = [](file_info const& tmp_fi, file_info const* const parent_fi) -> std::uint8_t
+	{
+		std::uint8_t ret = 0;
+		file_info const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
+		bool is_delay;
+		if(parent_fi)
+		{
+			auto const dll_idx_ = &tmp_fi - parent_fi->m_fis;
+			assert(dll_idx_ >= 0 && dll_idx_ <= 0xFFFF);
+			std::uint16_t const dll_idx = static_cast<std::uint16_t>(dll_idx_);
+			is_delay = dll_idx >= parent_fi->m_import_table.m_non_delay_dll_count;
+		}
+		else
+		{
+			is_delay = false;
+		}
+		if(is_delay)
+		{
+			ret += 20;
+		}
+		else
+		{
+			ret += 0;
+		}
+		bool const is_missing = fi.m_file_path.m_string == nullptr;
+		if(is_missing)
+		{
+			return ret + 0;
+		}
+		bool const is_32_bit = fi.m_is_32_bit;
+		if(is_32_bit)
+		{
+			ret += 2;
+		}
+		else
+		{
+			ret += 6;
+		}
+		bool const is_duplicate = tmp_fi.m_orig_instance != nullptr;
+		if(is_duplicate)
+		{
+			ret += 1;
+		}
+		else
+		{
+			ret += 0;
+		}
+		bool is_warning;
+		if(parent_fi)
+		{
+			auto const dll_idx_ = &tmp_fi - parent_fi->m_fis;
+			assert(dll_idx_ >= 0 && dll_idx_ <= 0xFFFF);
+			std::uint16_t const dll_idx = static_cast<std::uint16_t>(dll_idx_);
+			std::uint16_t const* const matched_exports = parent_fi->m_import_table.m_matched_exports[dll_idx];
+			std::uint16_t const n = parent_fi->m_import_table.m_import_counts[dll_idx];
+			auto const it = std::find(matched_exports, matched_exports + n, static_cast<std::uint16_t>(0xFFFF));
+			is_warning = it != matched_exports + n;
+		}
+		else
+		{
+			is_warning = false;
+		}
+		if(is_warning)
+		{
+			ret += 2;
+		}
+		else
+		{
+			ret += 0;
+		}
+		return ret;
+	};
+	std::uint8_t const icon = fn_get_icon(tmp_fi, parent_fi);
+	return icon + 1;
 }
 
 void tree_view::refresh_view_recursive(file_info& fi, void* const parent_ti)

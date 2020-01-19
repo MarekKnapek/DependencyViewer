@@ -45,5 +45,3 @@ bool step_3(file_info const& fi, std::uint16_t const i, tmp_type& to);
 
 void depth_first_visit(file_info const& fi, void(*callback_fn)(file_info const* const parent_fi, file_info& child_fi, void* const data), void* const data);
 void depth_first_visit_2(file_info const& fi, void(*callback_fn)(file_info const* const parent_fi, file_info& child_fi, void* const data), void* const data);
-
-void compute_icons(file_info const* const parent_fi, file_info& child_fi, void* const data);
