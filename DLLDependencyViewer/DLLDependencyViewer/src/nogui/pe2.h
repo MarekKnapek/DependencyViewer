@@ -74,6 +74,6 @@ bool pe_process_import_iat(std::byte const* const file_data, int const file_size
 
 bool pe_process_export_eat(std::byte const* const file_data, int const file_size, pe_export_eat* const eat_in_out);
 
-bool pe_process_resource_manifest(std::byte const* const file_data, std::uint32_t* const manifest_id_out);
+bool pe_process_resource_manifest(std::byte const* const file_data, bool const is_dll, std::uint32_t* const manifest_id_out);
 
 bool pe_process_all(std::byte const* const file_data, int const file_size, memory_manager& mm, pe_tables* const tables_in_out);

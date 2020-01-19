@@ -8,6 +8,9 @@
 #include <algorithm>
 
 
+static constexpr std::uint16_t const s_image_file_dll_ = 0x2000;
+
+
 bool pe_process_headers(std::byte const* const file_data, int const file_size, pe_headers* const headers_out)
 {
 	pe_dos_header const* dos_header;
@@ -290,7 +293,7 @@ bool pe_process_export_eat(std::byte const* const file_data, int const file_size
 #pragma warning(pop)
 
 
-bool pe_process_resource_manifest(std::byte const* const file_data, std::uint32_t* const manifest_id_out)
+bool pe_process_resource_manifest(std::byte const* const file_data, bool const is_dll, std::uint32_t* const manifest_id_out)
 {
 	assert(manifest_id_out);
 	pe_resource_directory_table const* res_dir_tbl;
@@ -319,8 +322,25 @@ bool pe_process_resource_manifest(std::byte const* const file_data, std::uint32_
 					{
 						// ID must be between 1 (MINIMUM_RESERVED_MANIFEST_RESOURCE_ID) and 16 (MAXIMUM_RESERVED_MANIFEST_RESOURCE_ID), both inclusive.
 						// We don't care about language or data.
-						*manifest_id_out = name_id;
-						return true;
+						// Skip manifest ID 1 for DLLs.
+						if(is_dll && name_id == 1)
+						{
+							if(manifest_dir_table->m_number_of_id_entries >= 2)
+							{
+								bool const name_id_parsed_2 = pe_parse_resource_directory_id_entry(manifest_dir_table, 1, &name_id);
+								WARN_M_R(name_id_parsed_2, L"Failed to pe_parse_resource_directory_id_entry.", false);
+								if(name_id >= 2 && name_id <= 16)
+								{
+									*manifest_id_out = name_id;
+									return true;
+								}
+							}
+						}
+						else
+						{
+							*manifest_id_out = name_id;
+							return true;
+						}
 					}
 				}
 				break;
@@ -345,6 +365,15 @@ bool pe_process_all(std::byte const* const file_data, int const file_size, memor
 	bool const headers_parsed = pe_process_headers(file_data, file_size, &headers);
 	WARN_M_R(headers_parsed, L"Failed to process headers.", false);
 	tables_in_out->m_is_32_bit = pe_is_32_bit(headers.m_coff->m_32.m_standard);
+	bool is_dll;
+	if(tables_in_out->m_is_32_bit)
+	{
+		is_dll = (headers.m_coff->m_32.m_coff.m_characteristics & s_image_file_dll_) != 0;
+	}
+	else
+	{
+		is_dll = (headers.m_coff->m_64.m_coff.m_characteristics & s_image_file_dll_) != 0;
+	}
 
 	pe_import_tables tables;
 	bool const count_parsed = pe_process_import_tables(file_data, &tables);
@@ -385,7 +414,7 @@ bool pe_process_all(std::byte const* const file_data, int const file_size, memor
 	WARN_M_R(export_eat_processed, L"Failed to pe_process_export_eat.", false);
 
 	std::uint32_t manifest_id;
-	bool const reources_processed = pe_process_resource_manifest(file_data, &manifest_id);
+	bool const reources_processed = pe_process_resource_manifest(file_data, is_dll, &manifest_id);
 	WARN_M_R(reources_processed, L"Failed to pe_process_resource_manifest.", false);
 
 	*tables_in_out->m_iti_out = iti;
