@@ -492,47 +492,11 @@ void tree_view::select_original_instance()
 
 void tree_view::expand()
 {
-	static constexpr auto const expand_all = [](HWND const hwnd, HTREEITEM const root_first) -> void
+	static constexpr const auto expand_fn = []([[maybe_unused]] file_info const* const parent_fi, file_info const& child_fi, void* const data)
 	{
-		static constexpr auto const recursion = [](auto const& self, HWND const hwnd, HTREEITEM const item) -> void
-		{
-			HTREEITEM const child_first = reinterpret_cast<HTREEITEM>(SendMessageW(hwnd, TVM_GETNEXTITEM, TVGN_CHILD, reinterpret_cast<LPARAM>(item)));
-			if(child_first)
-			{
-				LRESULT const expanded = SendMessageW(hwnd, TVM_EXPAND, TVE_EXPAND, reinterpret_cast<LPARAM>(item));
-				assert(expanded != 0);
-				self(self, hwnd, child_first);
-			}
-			HTREEITEM child_prev = child_first;
-			for(;;)
-			{
-				HTREEITEM const child_next = reinterpret_cast<HTREEITEM>(SendMessageW(hwnd, TVM_GETNEXTITEM, TVGN_NEXT, reinterpret_cast<LPARAM>(child_prev)));
-				if(child_next)
-				{
-					child_prev = child_next;
-					self(self, hwnd, child_next);
-				}
-				else
-				{
-					break;
-				}
-			}
-		};
-		recursion(recursion, hwnd, root_first);
-		HTREEITEM root_prev = root_first;
-		for(;;)
-		{
-			HTREEITEM const root_next = reinterpret_cast<HTREEITEM>(SendMessageW(hwnd, TVM_GETNEXTITEM, TVGN_NEXT, reinterpret_cast<LPARAM>(root_prev)));
-			if(root_next)
-			{
-				root_prev = root_next;
-				recursion(recursion, hwnd, root_next);
-			}
-			else
-			{
-				break;
-			}
-		}
+		HWND const hwnd = static_cast<HWND>(data);
+		HTREEITEM const& item = static_cast<HTREEITEM>(child_fi.m_tree_item);
+		[[maybe_unused]] LRESULT collapsed = SendMessageW(hwnd, TVM_EXPAND, TVE_EXPAND, reinterpret_cast<LPARAM>(item));
 	};
 	HTREEITEM const root_first = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_ROOT, LPARAM{0}));
 	if(!root_first)
@@ -541,7 +505,7 @@ void tree_view::expand()
 	}
 	HTREEITEM const selection = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_CARET, LPARAM{0}));
 	LRESULT const redr_off = SendMessageW(m_hwnd, WM_SETREDRAW, FALSE, 0);
-	expand_all(m_hwnd, root_first);
+	depth_first_visit(m_main_window.m_mo.m_fi, expand_fn, static_cast<void*>(m_hwnd));
 	LRESULT const redr_on = SendMessageW(m_hwnd, WM_SETREDRAW, TRUE, 0);
 	if(selection)
 	{
@@ -552,46 +516,11 @@ void tree_view::expand()
 
 void tree_view::collapse()
 {
-	static constexpr auto const collapse_all = [](HWND const hwnd, HTREEITEM const root_first) -> void
+	static constexpr const auto collapse_fn = []([[maybe_unused]] file_info const* const parent_fi, file_info const& child_fi, void* const data)
 	{
-		static constexpr auto const recursion = [](auto const& self, HWND const hwnd, HTREEITEM const item) -> void
-		{
-			HTREEITEM const child_first = reinterpret_cast<HTREEITEM>(SendMessageW(hwnd, TVM_GETNEXTITEM, TVGN_CHILD, reinterpret_cast<LPARAM>(item)));
-			if(child_first)
-			{
-				self(self, hwnd, child_first);
-				LRESULT const collapsed = SendMessageW(hwnd, TVM_EXPAND, TVE_COLLAPSE, reinterpret_cast<LPARAM>(item));
-			}
-			HTREEITEM child_prev = child_first;
-			for(;;)
-			{
-				HTREEITEM const child_next = reinterpret_cast<HTREEITEM>(SendMessageW(hwnd, TVM_GETNEXTITEM, TVGN_NEXT, reinterpret_cast<LPARAM>(child_prev)));
-				if(child_next)
-				{
-					child_prev = child_next;
-					self(self, hwnd, child_next);
-				}
-				else
-				{
-					break;
-				}
-			}
-		};
-		recursion(recursion, hwnd, root_first);
-		HTREEITEM root_prev = root_first;
-		for(;;)
-		{
-			HTREEITEM const root_next = reinterpret_cast<HTREEITEM>(SendMessageW(hwnd, TVM_GETNEXTITEM, TVGN_NEXT, reinterpret_cast<LPARAM>(root_prev)));
-			if(root_next)
-			{
-				root_prev = root_next;
-				recursion(recursion, hwnd, root_next);
-			}
-			else
-			{
-				break;
-			}
-		}
+		HWND const hwnd = static_cast<HWND>(data);
+		HTREEITEM const& item = static_cast<HTREEITEM>(child_fi.m_tree_item);
+		[[maybe_unused]] LRESULT collapsed = SendMessageW(hwnd, TVM_EXPAND, TVE_COLLAPSE, reinterpret_cast<LPARAM>(item));
 	};
 	HTREEITEM const root_first = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_ROOT, LPARAM{0}));
 	if(!root_first)
@@ -601,7 +530,7 @@ void tree_view::collapse()
 	LRESULT const selected = SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(root_first));
 	assert(selected == TRUE);
 	LRESULT const redr_off = SendMessageW(m_hwnd, WM_SETREDRAW, FALSE, 0);
-	collapse_all(m_hwnd, root_first);
+	depth_first_visit(m_main_window.m_mo.m_fi, collapse_fn, static_cast<void*>(m_hwnd));
 	LRESULT const redr_on = SendMessageW(m_hwnd, WM_SETREDRAW, TRUE, 0);
 	LRESULT const visibled = SendMessageW(m_hwnd, TVM_ENSUREVISIBLE, 0, reinterpret_cast<LPARAM>(root_first));
 	repaint();
