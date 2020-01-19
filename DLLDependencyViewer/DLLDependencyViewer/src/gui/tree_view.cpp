@@ -304,6 +304,21 @@ void tree_view::refresh()
 		refresh_view_recursive(sub_fi, TVI_ROOT);
 	}
 
+	static constexpr const auto make_doubly_linked_list = []([[maybe_unused]] file_info* const parent_fi, file_info& child_fi, [[maybe_unused]] void* const data)
+	{
+		file_info& fi = child_fi;
+		file_info* const orig = fi.m_orig_instance;
+		if(!orig)
+		{
+			return;
+		}
+		fi.m_next_instance = orig;
+		fi.m_prev_instance = orig->m_prev_instance ? orig->m_prev_instance : orig;
+		(orig->m_prev_instance ? orig->m_prev_instance : orig)->m_next_instance = &fi;
+		orig->m_prev_instance = &fi;
+	};
+	depth_first_visit(fi, make_doubly_linked_list, nullptr);
+
 	for(std::uint16_t i = 0; i != n; ++i)
 	{
 		file_info& sub_fi = fi.m_fis[i];
