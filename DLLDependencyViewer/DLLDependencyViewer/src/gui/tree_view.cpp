@@ -374,6 +374,18 @@ smart_menu tree_view::create_menu()
 	return sm;
 }
 
+file_info& tree_view::htreeitem_2_file_info(htreeitem const& hti)
+{
+	TVITEMW ti;
+	ti.hItem = static_cast<HTREEITEM>(hti);
+	ti.mask = TVIF_PARAM;
+	LRESULT const got_item = SendMessageW(m_hwnd, TVM_GETITEMW, WPARAM{0}, reinterpret_cast<LPARAM>(&ti));
+	assert(got_item == TRUE);
+	assert(ti.lParam);
+	file_info& ret = *reinterpret_cast<file_info*>(ti.lParam);
+	return ret;
+}
+
 std::uint8_t tree_view::get_tree_item_icon(file_info const& tmp_fi, file_info const* const parent_fi)
 {
 	assert(tmp_fi.m_icon == 0);
