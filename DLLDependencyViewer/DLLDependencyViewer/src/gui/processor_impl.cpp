@@ -148,26 +148,3 @@ bool step_3(file_info const& fi, std::uint16_t const i, tmp_type& to)
 		return true;
 	}
 }
-
-
-void depth_first_visit(file_info const& fi, void(*callback_fn)(file_info const* const parent_fi, file_info& child_fi, void* const data), void* const data)
-{
-	std::uint16_t const n = fi.m_import_table.m_dll_count;
-	for(std::uint16_t i = 0; i != n; ++i)
-	{
-		file_info& child_fi = fi.m_fis[i];
-		callback_fn(nullptr, child_fi, data);
-		depth_first_visit_2(child_fi, callback_fn, data);
-	}
-}
-
-void depth_first_visit_2(file_info const& fi, void(*callback_fn)(file_info const* const parent_fi, file_info& child_fi, void* const data), void* const data)
-{
-	std::uint16_t const n = fi.m_import_table.m_dll_count;
-	for(std::uint16_t i = 0; i != n; ++i)
-	{
-		file_info& child_fi = fi.m_fis[i];
-		callback_fn(&fi, child_fi, data);
-		depth_first_visit_2(child_fi, callback_fn, data);
-	}
-}
