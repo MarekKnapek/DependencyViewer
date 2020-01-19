@@ -34,10 +34,14 @@ public:
 	void on_context_menu(LPARAM const lparam);
 	void on_menu(std::uint16_t const menu_id);
 	void on_menu_orig();
+	void on_menu_prev();
+	void on_menu_next();
 	void on_menu_expand();
 	void on_menu_collapse();
 	void on_menu_properties();
 	void on_accel_orig();
+	void on_accel_prev();
+	void on_accel_next();
 	void on_accel_expand();
 	void on_accel_collapse();
 	void on_accel_properties();
@@ -50,10 +54,16 @@ private:
 	file_info& htreeitem_2_file_info(htreeitem const& hti);
 	std::uint8_t get_tree_item_icon(file_info const& tmp_fi, file_info const* const parent_fi);
 	void refresh_view_recursive(file_info& fi, void* const ti);
-	void select_original_instance();
+	void select_orig_instance(htreeitem const data = nullptr);
+	void select_prev_instance(htreeitem const data = nullptr);
+	void select_next_instance(htreeitem const data = nullptr);
+	htreeitem get_orig_data(file_info const* const curr_fi = nullptr);
+	htreeitem get_prev_data(file_info const* const curr_fi = nullptr);
+	htreeitem get_next_data(file_info const* const curr_fi = nullptr);
 	void expand();
 	void collapse();
-	void properties();
+	void properties(wchar_t const* const data = nullptr);
+	wchar_t const* get_properties_data(file_info const* const curr_fi = nullptr);
 private:
 	HWND const m_hwnd;
 	main_window& m_main_window;

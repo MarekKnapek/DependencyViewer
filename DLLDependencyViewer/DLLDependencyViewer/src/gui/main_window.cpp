@@ -69,6 +69,8 @@ enum class e_accel : std::uint16_t
 	e_main_refresh,
 	e_main_matching,
 	e_tree_orig,
+	e_tree_prev,
+	e_tree_next,
 	e_tree_expand,
 	e_tree_collapse,
 	e_tree_properties
@@ -81,6 +83,8 @@ static constexpr ACCEL const s_accel_table[] =
 	{FVIRTKEY,           	VK_F5,    	static_cast<std::uint16_t>(e_accel::e_main_refresh   	)},
 	{FVIRTKEY | FCONTROL,	'M',      	static_cast<std::uint16_t>(e_accel::e_main_matching  	)},
 	{FVIRTKEY | FCONTROL,	'K',      	static_cast<std::uint16_t>(e_accel::e_tree_orig      	)},
+	{FVIRTKEY | FCONTROL,	'B',      	static_cast<std::uint16_t>(e_accel::e_tree_prev      	)},
+	{FVIRTKEY | FCONTROL,	'N',      	static_cast<std::uint16_t>(e_accel::e_tree_next      	)},
 	{FVIRTKEY | FCONTROL,	'E',      	static_cast<std::uint16_t>(e_accel::e_tree_expand    	)},
 	{FVIRTKEY | FCONTROL,	'W',      	static_cast<std::uint16_t>(e_accel::e_tree_collapse  	)},
 	{FVIRTKEY | FALT,    	VK_RETURN,	static_cast<std::uint16_t>(e_accel::e_tree_properties	)}
@@ -645,6 +649,16 @@ void main_window::on_accelerator(WPARAM const wparam)
 		case e_accel::e_tree_orig:
 		{
 			m_tree_view.on_accel_orig();
+		}
+		break;
+		case e_accel::e_tree_prev:
+		{
+			m_tree_view.on_accel_prev();
+		}
+		break;
+		case e_accel::e_tree_next:
+		{
+			m_tree_view.on_accel_next();
 		}
 		break;
 		case e_accel::e_tree_expand:

@@ -20,11 +20,15 @@
 enum class e_tree_menu_id : std::uint16_t
 {
 	e_orig = s_tree_view_menu_min,
+	e_prev,
+	e_next,
 	e_expand,
 	e_collapse,
 	e_properties
 };
 static constexpr wchar_t const s_tree_menu_str_orig[] = L"Highlight &Original Instance\tCtrl+K";
+static constexpr wchar_t const s_tree_menu_str_prev[] = L"Highlight Previous &Instance\tCtrl+B";
+static constexpr wchar_t const s_tree_menu_str_next[] = L"Highlight &Next Instance\tCtrl+N";
 static constexpr wchar_t const s_tree_menu_str_expand[] = L"&Expand All\tCtrl+E";
 static constexpr wchar_t const s_tree_menu_str_collapse[] = L"Co&llapse All\tCtrl+W";
 static constexpr wchar_t const s_tree_menu_str_properties[] = L"&Properties...\tAlt+Enter";
@@ -83,12 +87,8 @@ void tree_view::on_getdispinfow(NMHDR& nmhdr)
 	HTREEITEM const parent_item = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(di.item.hItem)));
 	if(parent_item)
 	{
-		TVITEMEXW ti;
-		ti.hItem = parent_item;
-		ti.mask = TVIF_PARAM;
-		LRESULT const got = SendMessageW(m_hwnd, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-		assert(got == TRUE);
-		parent_fi = reinterpret_cast<file_info*>(ti.lParam);
+		file_info& f = htreeitem_2_file_info(parent_item);
+		parent_fi = &f;
 	}
 	if((di.item.mask & TVIF_TEXT) != 0)
 	{
@@ -134,16 +134,16 @@ void tree_view::on_selchangedw([[maybe_unused]] NMHDR& nmhdr)
 void tree_view::on_context_menu(LPARAM const lparam)
 {
 	POINT cursor_screen;
-	HTREEITEM item;
+	file_info const* curr_fi;
 	if(lparam == LPARAM{-1})
 	{
-		HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_CARET, 0));
-		if(!selected)
+		file_info const* const selection = get_selection();
+		if(!selection)
 		{
 			return;
 		}
 		RECT rect;
-		*reinterpret_cast<HTREEITEM*>(&rect) = selected;
+		*reinterpret_cast<HTREEITEM*>(&rect) = static_cast<HTREEITEM>(selection->m_tree_item);
 		LRESULT const got_rect = SendMessageW(m_hwnd, TVM_GETITEMRECT, TRUE, reinterpret_cast<LPARAM>(&rect));
 		if(got_rect == FALSE)
 		{
@@ -153,7 +153,7 @@ void tree_view::on_context_menu(LPARAM const lparam)
 		cursor_screen.y = rect.top + (rect.bottom - rect.top) / 2;
 		BOOL const converted = ClientToScreen(m_hwnd, &cursor_screen);
 		assert(converted != 0);
-		item = selected;
+		curr_fi = selection;
 	}
 	else
 	{
@@ -170,39 +170,29 @@ void tree_view::on_context_menu(LPARAM const lparam)
 		{
 			LRESULT const selected = SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(hti.hItem));
 			assert(selected == TRUE);
-			item = hti.hItem;
+			file_info& fi = htreeitem_2_file_info(hti.hItem);
+			curr_fi = &fi;
 		}
 		else
 		{
-			item = nullptr;
+			curr_fi = nullptr;
 		}
 	}
 	HMENU const menu = reinterpret_cast<HMENU>(m_menu.get());
-	bool enable_goto_orig;
-	bool enable_properties;
-	if(item)
 	{
-		TVITEMEXW ti;
-		ti.hItem = item;
-		ti.mask = TVIF_PARAM;
-		LRESULT const got_item = SendMessageW(m_hwnd, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-		assert(got_item == TRUE);
-		file_info const& tmp_fi = *reinterpret_cast<file_info*>(ti.lParam);
-		file_info const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
-		enable_goto_orig = tmp_fi.m_orig_instance != nullptr;
-		enable_properties = fi.m_file_path.m_string != nullptr;
-	}
-	else
-	{
-		enable_goto_orig = false;
-		enable_properties = false;
-	}
-	{
-		BOOL const enabled_orig = EnableMenuItem(menu, static_cast<std::uint16_t>(e_tree_menu_id::e_orig), MF_BYCOMMAND | (enable_goto_orig ? MF_ENABLED : MF_GRAYED));
+		BOOL const enabled_orig = EnableMenuItem(menu, static_cast<std::uint16_t>(e_tree_menu_id::e_orig), MF_BYCOMMAND | ((curr_fi && get_orig_data(curr_fi)) ? MF_ENABLED : MF_GRAYED));
 		assert(enabled_orig != -1 && (enabled_orig == MF_ENABLED || enabled_orig == MF_GRAYED));
 	}
 	{
-		BOOL const enabled_properties = EnableMenuItem(menu, static_cast<std::uint16_t>(e_tree_menu_id::e_properties), MF_BYCOMMAND | (enable_properties ? MF_ENABLED : MF_GRAYED));
+		BOOL const enabled_orig = EnableMenuItem(menu, static_cast<std::uint16_t>(e_tree_menu_id::e_prev), MF_BYCOMMAND | ((curr_fi && get_prev_data(curr_fi)) ? MF_ENABLED : MF_GRAYED));
+		assert(enabled_orig != -1 && (enabled_orig == MF_ENABLED || enabled_orig == MF_GRAYED));
+	}
+	{
+		BOOL const enabled_orig = EnableMenuItem(menu, static_cast<std::uint16_t>(e_tree_menu_id::e_next), MF_BYCOMMAND | ((curr_fi && get_next_data(curr_fi)) ? MF_ENABLED : MF_GRAYED));
+		assert(enabled_orig != -1 && (enabled_orig == MF_ENABLED || enabled_orig == MF_GRAYED));
+	}
+	{
+		BOOL const enabled_properties = EnableMenuItem(menu, static_cast<std::uint16_t>(e_tree_menu_id::e_properties), MF_BYCOMMAND | ((curr_fi && get_properties_data(curr_fi)) ? MF_ENABLED : MF_GRAYED));
 		assert(enabled_properties != -1 && (enabled_properties == MF_ENABLED || enabled_properties == MF_GRAYED));
 	}
 	BOOL const tracked = TrackPopupMenu(menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON | TPM_NOANIMATION, cursor_screen.x, cursor_screen.y, 0, m_main_window.m_hwnd, nullptr);
@@ -217,6 +207,16 @@ void tree_view::on_menu(std::uint16_t const menu_id)
 		case e_tree_menu_id::e_orig:
 		{
 			on_menu_orig();
+		}
+		break;
+		case e_tree_menu_id::e_prev:
+		{
+			on_menu_prev();
+		}
+		break;
+		case e_tree_menu_id::e_next:
+		{
+			on_menu_next();
 		}
 		break;
 		case e_tree_menu_id::e_expand:
@@ -244,7 +244,17 @@ void tree_view::on_menu(std::uint16_t const menu_id)
 
 void tree_view::on_menu_orig()
 {
-	select_original_instance();
+	select_orig_instance();
+}
+
+void tree_view::on_menu_prev()
+{
+	select_prev_instance();
+}
+
+void tree_view::on_menu_next()
+{
+	select_next_instance();
 }
 
 void tree_view::on_menu_expand()
@@ -264,7 +274,17 @@ void tree_view::on_menu_properties()
 
 void tree_view::on_accel_orig()
 {
-	select_original_instance();
+	select_orig_instance();
+}
+
+void tree_view::on_accel_prev()
+{
+	select_prev_instance();
+}
+
+void tree_view::on_accel_next()
+{
+	select_next_instance();
 }
 
 void tree_view::on_accel_expand()
@@ -344,6 +364,8 @@ smart_menu tree_view::create_menu()
 	static constexpr std::uint16_t const menu_ids[] =
 	{
 		static_cast<std::uint16_t>(e_tree_menu_id::e_orig),
+		static_cast<std::uint16_t>(e_tree_menu_id::e_prev),
+		static_cast<std::uint16_t>(e_tree_menu_id::e_next),
 		static_cast<std::uint16_t>(e_tree_menu_id::e_expand),
 		static_cast<std::uint16_t>(e_tree_menu_id::e_collapse),
 		static_cast<std::uint16_t>(e_tree_menu_id::e_properties)
@@ -351,6 +373,8 @@ smart_menu tree_view::create_menu()
 	static constexpr wchar_t const* const menu_strs[] =
 	{
 		s_tree_menu_str_orig,
+		s_tree_menu_str_prev,
+		s_tree_menu_str_next,
 		s_tree_menu_str_expand,
 		s_tree_menu_str_collapse,
 		s_tree_menu_str_properties
@@ -509,25 +533,109 @@ void tree_view::refresh_view_recursive(file_info& fi, void* const parent_ti)
 	}
 }
 
-void tree_view::select_original_instance()
+void tree_view::select_orig_instance(htreeitem const data /* = nullptr */)
 {
-	HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_CARET, 0));
-	if(!selected)
+	htreeitem const dta = data ? data : get_orig_data();
+	if(!dta)
 	{
 		return;
 	}
-	TVITEMW ti;
-	ti.hItem = selected;
-	ti.mask = TVIF_PARAM;
-	LRESULT const got_item = SendMessageW(m_hwnd, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-	assert(got_item == TRUE);
-	file_info const& fi = *reinterpret_cast<file_info*>(ti.lParam);
-	if(!fi.m_orig_instance)
-	{
-		return;
-	}
-	LRESULT const orig_selected = SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(fi.m_orig_instance->m_tree_item));
+	LRESULT const orig_selected = SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(dta));
 	assert(orig_selected == TRUE);
+}
+
+void tree_view::select_prev_instance(htreeitem const data /* = nullptr */)
+{
+	htreeitem const dta = data ? data : get_prev_data();
+	if(!dta)
+	{
+		return;
+	}
+	LRESULT const orig_selected = SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(dta));
+	assert(orig_selected == TRUE);
+}
+
+void tree_view::select_next_instance(htreeitem const data /* = nullptr */)
+{
+	htreeitem const dta = data ? data : get_next_data();
+	if(!dta)
+	{
+		return;
+	}
+	LRESULT const orig_selected = SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(dta));
+	assert(orig_selected == TRUE);
+}
+
+htreeitem tree_view::get_orig_data(file_info const* const curr_fi /* = nullptr */)
+{
+	file_info const* fi;
+	if(curr_fi)
+	{
+		fi = curr_fi;
+	}
+	else
+	{
+		file_info const* const f = get_selection();
+		if(!f)
+		{
+			return nullptr;
+		}
+		fi = f;
+	}
+	assert(fi);
+	if(!fi->m_orig_instance)
+	{
+		return nullptr;
+	}
+	return fi->m_orig_instance->m_tree_item;
+}
+
+htreeitem tree_view::get_prev_data(file_info const* const curr_fi /* = nullptr */)
+{
+	file_info const* fi;
+	if(curr_fi)
+	{
+		fi = curr_fi;
+	}
+	else
+	{
+		file_info const* const f = get_selection();
+		if(!f)
+		{
+			return nullptr;
+		}
+		fi = f;
+	}
+	assert(fi);
+	if(!fi->m_orig_instance)
+	{
+		return nullptr;
+	}
+	return fi->m_prev_instance->m_tree_item;
+}
+
+htreeitem tree_view::get_next_data(file_info const* const curr_fi /* = nullptr */)
+{
+	file_info const* fi;
+	if(curr_fi)
+	{
+		fi = curr_fi;
+	}
+	else
+	{
+		file_info const* const f = get_selection();
+		if(!f)
+		{
+			return nullptr;
+		}
+		fi = f;
+	}
+	assert(fi);
+	if(fi->m_next_instance == fi->m_orig_instance)
+	{
+		return nullptr;
+	}
+	return fi->m_next_instance->m_tree_item;
 }
 
 void tree_view::expand()
@@ -576,22 +684,10 @@ void tree_view::collapse()
 	repaint();
 }
 
-void tree_view::properties()
+void tree_view::properties(wchar_t const* const data /* = nullptr */)
 {
-	HTREEITEM const selection = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_CARET, LPARAM{0}));
-	if(!selection)
-	{
-		return;
-	}
-	TVITEMEXW ti;
-	ti.hItem = selection;
-	ti.mask = TVIF_PARAM;
-	LRESULT const got = SendMessageW(m_hwnd, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-	assert(got == TRUE);
-	assert(ti.lParam);
-	file_info const& tmp_fi = *reinterpret_cast<file_info*>(ti.lParam);
-	file_info const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
-	if(fi.m_file_path.m_string == nullptr)
+	wchar_t const* const dta = data ? data : get_properties_data();
+	if(!dta)
 	{
 		return;
 	}
@@ -599,11 +695,37 @@ void tree_view::properties()
 	info.cbSize = sizeof(info);
 	info.fMask = SEE_MASK_INVOKEIDLIST;
 	info.lpVerb = L"properties";
-	info.lpFile = fi.m_file_path.m_string->m_str;
+	info.lpFile = dta;
 	info.nShow = SW_SHOWNORMAL;
 	BOOL const executed = ShellExecuteExW(&info);
 	assert(executed != FALSE);
 	assert(static_cast<int>(reinterpret_cast<std::uintptr_t>(info.hInstApp)) > 32);
+}
+
+wchar_t const* tree_view::get_properties_data(file_info const* const curr_fi /* = nullptr */)
+{
+	file_info const* fi;
+	if(curr_fi)
+	{
+		fi = curr_fi;
+	}
+	else
+	{
+		file_info const* const f = get_selection();
+		if(!f)
+		{
+			return nullptr;
+		}
+		fi = f;
+	}
+	assert(fi);
+	file_info const& real_fi = fi->m_orig_instance ? *fi->m_orig_instance : *fi;
+	wstring const* const str = real_fi.m_file_path.m_string;
+	if(!str)
+	{
+		return nullptr;
+	}
+	return str->m_str;
 }
 
 
