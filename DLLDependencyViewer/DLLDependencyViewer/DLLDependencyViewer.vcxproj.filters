@@ -318,6 +318,9 @@
     <ClInclude Include="src\nogui\my_actctx.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
+    <ClInclude Include="src\nogui\apiset.h">
+      <Filter>src\nogui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\main.cpp">
@@ -492,6 +495,9 @@
       <Filter>src\nogui</Filter>
     </ClCompile>
     <ClCompile Include="src\nogui\my_actctx.cpp">
+      <Filter>src\nogui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nogui\apiset.cpp">
       <Filter>src\nogui</Filter>
     </ClCompile>
   </ItemGroup>

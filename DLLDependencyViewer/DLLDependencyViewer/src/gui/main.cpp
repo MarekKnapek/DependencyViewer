@@ -19,7 +19,7 @@
 
 static HINSTANCE g_instance;
 
-
+bool parse_apiset();
 int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE /*hPrevInstance*/, _In_ PWSTR /*pCmdLine*/, _In_ int nCmdShow)
 {
 	my_actctx::activate();
@@ -81,6 +81,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE /*hPrevInstance
 		}
 	}
 	message_loop_end:;
+	parse_apiset();
 	return ret;
 }
 

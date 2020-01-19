@@ -18,6 +18,7 @@
 #include "nogui/allocator_big.cpp"
 #include "nogui/allocator_malloc.cpp"
 #include "nogui/allocator_small.cpp"
+#include "nogui/apiset.cpp"
 #include "nogui/array_bool.cpp"
 #include "nogui/assert.cpp"
 #include "nogui/com.cpp"
