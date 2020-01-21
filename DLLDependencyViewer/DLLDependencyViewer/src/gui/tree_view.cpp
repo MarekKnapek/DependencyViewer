@@ -324,7 +324,7 @@ void tree_view::refresh()
 		refresh_view_recursive(sub_fi, TVI_ROOT);
 	}
 
-	static constexpr const auto make_doubly_linked_list = []([[maybe_unused]] file_info* const parent_fi, file_info& child_fi, [[maybe_unused]] void* const data)
+	static constexpr auto const make_doubly_linked_list = []([[maybe_unused]] file_info* const parent_fi, file_info& child_fi, [[maybe_unused]] void* const data)
 	{
 		file_info& fi = child_fi;
 		file_info* const orig = fi.m_orig_instance;
@@ -640,7 +640,7 @@ htreeitem tree_view::get_next_data(file_info const* const curr_fi /* = nullptr *
 
 void tree_view::expand()
 {
-	static constexpr const auto expand_fn = []([[maybe_unused]] file_info* const parent_fi, file_info& child_fi, void* const data)
+	static constexpr auto const expand_fn = []([[maybe_unused]] file_info* const parent_fi, file_info& child_fi, void* const data)
 	{
 		HWND const hwnd = static_cast<HWND>(data);
 		HTREEITEM const& item = static_cast<HTREEITEM>(child_fi.m_tree_item);
@@ -664,7 +664,7 @@ void tree_view::expand()
 
 void tree_view::collapse()
 {
-	static constexpr const auto collapse_fn = []([[maybe_unused]] file_info* const parent_fi, file_info& child_fi, void* const data)
+	static constexpr auto const collapse_fn = []([[maybe_unused]] file_info* const parent_fi, file_info& child_fi, void* const data)
 	{
 		HWND const hwnd = static_cast<HWND>(data);
 		HTREEITEM const& item = static_cast<HTREEITEM>(child_fi.m_tree_item);
