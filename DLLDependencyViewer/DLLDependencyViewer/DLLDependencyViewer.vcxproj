@@ -97,6 +97,7 @@
       <SubSystem>Windows</SubSystem>
       <AdditionalDependencies>comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <LargeAddressAware>true</LargeAddressAware>
+      <DelayLoadDLLs>comctl32.dll;comdlg32.dll</DelayLoadDLLs>
     </Link>
     <ResourceCompile>
       <PreprocessorDefinitions>_M_IX86;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -116,6 +117,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
+      <DelayLoadDLLs>comctl32.dll;comdlg32.dll</DelayLoadDLLs>
       <AdditionalDependencies>comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ResourceCompile>
@@ -143,6 +145,7 @@
       <AdditionalDependencies>comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <LargeAddressAware>true</LargeAddressAware>
       <SetChecksum>true</SetChecksum>
+      <DelayLoadDLLs>comctl32.dll;comdlg32.dll</DelayLoadDLLs>
     </Link>
     <ResourceCompile>
       <PreprocessorDefinitions>_M_IX86;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -168,6 +171,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SetChecksum>true</SetChecksum>
+      <DelayLoadDLLs>comctl32.dll;comdlg32.dll</DelayLoadDLLs>
     </Link>
     <ResourceCompile>
       <PreprocessorDefinitions>_M_X64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -518,6 +522,7 @@
     <None Include="src\nogui\static_vector.inl" />
   </ItemGroup>
   <ItemGroup>
+    <Xml Include="src\res\manifest.xml" />
     <Xml Include="src\res\manifest_amd64.xml" />
     <Xml Include="src\res\manifest_x86.xml" />
   </ItemGroup>

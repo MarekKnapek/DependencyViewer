@@ -1,6 +1,9 @@
 #pragma once
 
 
+#define s_res_dependency_manifest 17
+
+
 #define s_res_icons_tree 2
 
 #define s_res_icon_tree_missing 0

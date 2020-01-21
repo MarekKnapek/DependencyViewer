@@ -14,6 +14,8 @@
 
 #include <cassert>
 
+#include "../nogui/my_windows.h"
+
 #include <commctrl.h>
 
 
@@ -22,8 +24,9 @@ static HINSTANCE g_instance;
 
 int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE /*hPrevInstance*/, _In_ PWSTR /*pCmdLine*/, _In_ int nCmdShow)
 {
+	my_actctx::create();
 	my_actctx::activate();
-	auto const deactivate_my_actctx = mk::make_scope_exit([](){ my_actctx::deactivate(); });
+	auto const actctx_done = mk::make_scope_exit([](){ my_actctx::deactivate(); my_actctx::destroy(); });
 	com c;
 	ole o;
 	file_name_provider::init();

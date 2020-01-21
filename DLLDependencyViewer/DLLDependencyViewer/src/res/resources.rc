@@ -3,11 +3,13 @@
 #include "../nogui/my_windows.h"
 
 
+CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "manifest.xml"
+
 #ifdef _M_IX86
-ISOLATIONAWARE_MANIFEST_RESOURCE_ID RT_MANIFEST "manifest_x86.xml"
+s_res_dependency_manifest RT_MANIFEST "manifest_x86.xml"
 #else
 #ifdef _M_X64
-ISOLATIONAWARE_MANIFEST_RESOURCE_ID RT_MANIFEST "manifest_amd64.xml"
+s_res_dependency_manifest RT_MANIFEST "manifest_amd64.xml"
 #else
 #error Unknown architecture.
 #endif

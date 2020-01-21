@@ -520,6 +520,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Xml Include="src\res\manifest.xml">
+      <Filter>src\res</Filter>
+    </Xml>
     <Xml Include="src\res\manifest_amd64.xml">
       <Filter>src\res</Filter>
     </Xml>
