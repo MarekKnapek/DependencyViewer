@@ -1,5 +1,7 @@
 #include "main_window.h"
 
+#include "com_dlg.h"
+#include "common_controls.h"
 #include "constants.h"
 #include "main.h"
 #include "smart_dc.h"
@@ -916,7 +918,7 @@ void main_window::open()
 	ofn.dwReserved = 0;
 	ofn.FlagsEx = 0;
 
-	BOOL const opened = GetOpenFileNameW(&ofn);
+	BOOL const opened = com_dlg::GetOpenFileNameW(&ofn);
 	if(opened == 0)
 	{
 		return;
@@ -1214,7 +1216,7 @@ void main_window::draw_status_bar(DRAWITEMSTRUCT& ds)
 		int const printed = std::swprintf(buff.data(), buff.size(), L"Pending idle tasks: %d, symbol tasks: %d.", idles, dbgs);
 		assert(printed >= 0);
 	}
-	DrawStatusTextW(ds.hDC, &ds.rcItem, buff.data(), SBT_NOBORDERS);
+	common_controls::DrawStatusTextW(ds.hDC, &ds.rcItem, buff.data(), SBT_NOBORDERS);
 }
 
 void main_window::cancel_all_dbg_tasks()

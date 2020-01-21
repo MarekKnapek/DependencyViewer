@@ -1,3 +1,5 @@
+#include "gui/com_dlg.cpp"
+#include "gui/common_controls.cpp"
 #include "gui/export_view.cpp"
 #include "gui/import_export_matcher.cpp"
 #include "gui/import_view.cpp"

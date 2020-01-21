@@ -1,5 +1,7 @@
 #include "main.h"
 
+#include "com_dlg.h"
+#include "common_controls.h"
 #include "main_window.h"
 #include "splitter_window.h"
 #include "test.h"
@@ -27,6 +29,10 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE /*hPrevInstance
 	my_actctx::create();
 	my_actctx::activate();
 	auto const actctx_done = mk::make_scope_exit([](){ my_actctx::deactivate(); my_actctx::destroy(); });
+	common_controls::load();
+	auto const common_controls_unload = mk::make_scope_exit([](){ common_controls::unload(); });
+	com_dlg::load();
+	auto const com_dlg_unload = mk::make_scope_exit([](){ com_dlg::unload(); });
 	com c;
 	ole o;
 	file_name_provider::init();
@@ -36,7 +42,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE /*hPrevInstance
 	dbg_provider::init();
 	auto const dbg_provider_deinit = mk::make_scope_exit([](){ dbg_provider::deinit(); });
 	g_instance = hInstance;
-	InitCommonControls();
+	common_controls::InitCommonControls();
 	splitter_window_hor::register_class();
 	splitter_window_ver::register_class();
 	main_window::register_class();

@@ -1,5 +1,6 @@
 #include "import_view.h"
 
+#include "common_controls.h"
 #include "constants.h"
 #include "list_view_base.h"
 #include "main.h"
@@ -112,7 +113,7 @@ import_view::import_view(HWND const parent, main_window& mw) :
 		auto const inserted = SendMessageW(m_hwnd, LVM_INSERTCOLUMNW, i, reinterpret_cast<LPARAM>(&cl));
 		assert(inserted != -1 && inserted == i);
 	}
-	HIMAGELIST const img_list = ImageList_LoadImageW(get_instance(), MAKEINTRESOURCEW(s_res_icons_import_export), 30, 0, CLR_DEFAULT, IMAGE_BITMAP, LR_DEFAULTCOLOR);
+	HIMAGELIST const img_list = common_controls::ImageList_LoadImageW(get_instance(), MAKEINTRESOURCEW(s_res_icons_import_export), 30, 0, CLR_DEFAULT, IMAGE_BITMAP, LR_DEFAULTCOLOR);
 	assert(img_list);
 	LRESULT const img_list_set = SendMessageW(m_hwnd, LVM_SETIMAGELIST, LVSIL_SMALL, reinterpret_cast<LPARAM>(img_list));
 }
