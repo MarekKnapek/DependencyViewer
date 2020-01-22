@@ -63,22 +63,12 @@ optional<std::uint16_t> pe_get_import_ordinal(pe_import_table_info const& iti, p
 	}
 }
 
-optional<std::uint16_t> pe_get_import_hint(pe_import_table_info const& iti, pe_export_table_info const& eti, std::uint16_t const dll_idx, std::uint16_t const imp_idx)
+optional<std::uint16_t> pe_get_import_hint(pe_import_table_info const& iti, std::uint16_t const dll_idx, std::uint16_t const imp_idx)
 {
 	bool const is_ordinal = array_bool_tst(iti.m_are_ordinals[dll_idx], imp_idx);
 	if(is_ordinal)
 	{
-		std::uint16_t const& matched_export = iti.m_matched_exports[dll_idx][imp_idx];
-		bool const has_matched_export = matched_export != 0xFFFF;
-		if(has_matched_export)
-		{
-			auto const hint_opt = pe_get_export_hint(eti, matched_export);
-			return hint_opt;
-		}
-		else
-		{
-			return {{}, false};
-		}
+		return {{}, false};
 	}
 	else
 	{

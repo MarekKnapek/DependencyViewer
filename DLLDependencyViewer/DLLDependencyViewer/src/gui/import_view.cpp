@@ -198,7 +198,7 @@ void import_view::on_getdispinfow(NMHDR& nmhdr)
 			break;
 			case e_import_column::e_hint:
 			{
-				nm.item.pszText = const_cast<wchar_t*>(on_get_col_hint(parent_fi.m_import_table, dll_idx, imp_idx, fi));
+				nm.item.pszText = const_cast<wchar_t*>(on_get_col_hint(parent_fi.m_import_table, dll_idx, imp_idx));
 			}
 			break;
 			case e_import_column::e_name:
@@ -522,8 +522,8 @@ void import_view::sort_view()
 			{
 				auto const fn_compare_hint = [&](std::uint16_t const a, std::uint16_t const b, auto const& cmp) -> bool
 				{
-					auto const ret_a = pe_get_import_hint(iti, eti, dll_idx, a);
-					auto const ret_b = pe_get_import_hint(iti, eti, dll_idx, b);
+					auto const ret_a = pe_get_import_hint(iti, dll_idx, a);
+					auto const ret_b = pe_get_import_hint(iti, dll_idx, b);
 					return cmp(std::tie(ret_a.m_is_valid, ret_a.m_value), std::tie(ret_b.m_is_valid, ret_b.m_value));
 				};
 				if(cur_sort_asc)
@@ -615,10 +615,10 @@ wchar_t const* import_view::on_get_col_ordinal(pe_import_table_info const& iti, 
 	}
 }
 
-wchar_t const* import_view::on_get_col_hint(pe_import_table_info const& iti, std::uint16_t const dll_idx, std::uint16_t const imp_idx, file_info const& fi)
+wchar_t const* import_view::on_get_col_hint(pe_import_table_info const& iti, std::uint16_t const dll_idx, std::uint16_t const imp_idx)
 {
 	std::uint16_t const& imp_idx_sorted = m_sort.empty() ? imp_idx : m_sort[imp_idx];
-	auto const hint_opt = pe_get_import_hint(iti, fi.m_export_table, dll_idx, imp_idx_sorted);
+	auto const hint_opt = pe_get_import_hint(iti, dll_idx, imp_idx_sorted);
 	if(hint_opt.m_is_valid)
 	{
 		return ordinal_to_string(hint_opt.m_value, m_string_converter);
