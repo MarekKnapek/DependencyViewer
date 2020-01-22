@@ -869,22 +869,8 @@ void main_window::toolbar_icons_enabled_refresh()
 		assert(set != FALSE);
 	};
 
-	HWND const tree = m_tree_view.get_hwnd();
-	HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(tree, TVM_GETNEXTITEM, TVGN_CARET, 0));
-	if(!selected)
-	{
-		fn_enable_properties(m_toolbar, false);
-		return;
-	}
-	TVITEMEXW ti;
-	ti.hItem = selected;
-	ti.mask = TVIF_PARAM;
-	LRESULT const got = SendMessageW(tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-	assert(got == TRUE);
-	assert(ti.lParam);
-	file_info const& fi_tmp = *reinterpret_cast<file_info*>(ti.lParam);
-	file_info const& fi = fi_tmp.m_orig_instance ? *fi_tmp.m_orig_instance : fi_tmp;
-	bool const enable = fi.m_file_path.m_string != nullptr;
+	wchar_t const* const data = m_tree_view.get_properties_data();
+	bool const enable = data != nullptr;
 	fn_enable_properties(m_toolbar, enable);
 }
 
