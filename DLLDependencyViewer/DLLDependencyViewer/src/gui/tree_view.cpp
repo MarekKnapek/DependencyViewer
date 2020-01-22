@@ -193,7 +193,7 @@ void tree_view::on_context_menu(LPARAM const lparam)
 		assert(enabled_orig != -1 && (enabled_orig == MF_ENABLED || enabled_orig == MF_GRAYED));
 	}
 	{
-		BOOL const enabled_properties = EnableMenuItem(menu, static_cast<std::uint16_t>(e_tree_menu_id::e_properties), MF_BYCOMMAND | ((curr_fi && get_properties_data(curr_fi)) ? MF_ENABLED : MF_GRAYED));
+		BOOL const enabled_properties = EnableMenuItem(menu, static_cast<std::uint16_t>(e_tree_menu_id::e_properties), MF_BYCOMMAND | ((curr_fi && m_main_window.get_properties_data(curr_fi)) ? MF_ENABLED : MF_GRAYED));
 		assert(enabled_properties != -1 && (enabled_properties == MF_ENABLED || enabled_properties == MF_GRAYED));
 	}
 	BOOL const tracked = TrackPopupMenu(menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON | TPM_NOANIMATION, cursor_screen.x, cursor_screen.y, 0, m_main_window.m_hwnd, nullptr);
@@ -270,7 +270,7 @@ void tree_view::on_menu_collapse()
 
 void tree_view::on_menu_properties()
 {
-	properties();
+	m_main_window.properties();
 }
 
 void tree_view::on_accel_orig()
@@ -296,16 +296,6 @@ void tree_view::on_accel_expand()
 void tree_view::on_accel_collapse()
 {
 	collapse();
-}
-
-void tree_view::on_accel_properties()
-{
-	properties();
-}
-
-void tree_view::on_toolbar_properties()
-{
-	properties();
 }
 
 void tree_view::refresh()
@@ -360,6 +350,17 @@ void tree_view::repaint()
 	assert(redrawn != 0);
 }
 
+file_info const* tree_view::get_selection()
+{
+	HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_CARET, LPARAM{0}));
+	if(!selected)
+	{
+		return nullptr;
+	}
+	file_info& ret = htreeitem_2_file_info(selected);
+	return &ret;
+}
+
 smart_menu tree_view::create_menu()
 {
 	static constexpr std::uint16_t const menu_ids[] =
@@ -397,17 +398,6 @@ smart_menu tree_view::create_menu()
 		assert(inserted != 0);
 	}
 	return sm;
-}
-
-file_info const* tree_view::get_selection()
-{
-	HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_CARET, LPARAM{0}));
-	if(!selected)
-	{
-		return nullptr;
-	}
-	file_info& ret = htreeitem_2_file_info(selected);
-	return &ret;
 }
 
 file_info& tree_view::htreeitem_2_file_info(htreeitem const& hti)
@@ -683,50 +673,6 @@ void tree_view::collapse()
 	LRESULT const redr_on = SendMessageW(m_hwnd, WM_SETREDRAW, TRUE, 0);
 	LRESULT const visibled = SendMessageW(m_hwnd, TVM_ENSUREVISIBLE, 0, reinterpret_cast<LPARAM>(root_first));
 	repaint();
-}
-
-void tree_view::properties(wchar_t const* const data /* = nullptr */)
-{
-	wchar_t const* const dta = data ? data : get_properties_data();
-	if(!dta)
-	{
-		return;
-	}
-	SHELLEXECUTEINFOW info{};
-	info.cbSize = sizeof(info);
-	info.fMask = SEE_MASK_INVOKEIDLIST;
-	info.lpVerb = L"properties";
-	info.lpFile = dta;
-	info.nShow = SW_SHOWNORMAL;
-	BOOL const executed = ShellExecuteExW(&info);
-	assert(executed != FALSE);
-	assert(static_cast<int>(reinterpret_cast<std::uintptr_t>(info.hInstApp)) > 32);
-}
-
-wchar_t const* tree_view::get_properties_data(file_info const* const curr_fi /* = nullptr */)
-{
-	file_info const* fi;
-	if(curr_fi)
-	{
-		fi = curr_fi;
-	}
-	else
-	{
-		file_info const* const f = get_selection();
-		if(!f)
-		{
-			return nullptr;
-		}
-		fi = f;
-	}
-	assert(fi);
-	file_info const& real_fi = fi->m_orig_instance ? *fi->m_orig_instance : *fi;
-	wstring const* const str = real_fi.m_file_path.m_string;
-	if(!str)
-	{
-		return nullptr;
-	}
-	return str->m_str;
 }
 
 

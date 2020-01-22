@@ -44,13 +44,11 @@ public:
 	void on_accel_next();
 	void on_accel_expand();
 	void on_accel_collapse();
-	void on_accel_properties();
-	void on_toolbar_properties();
 	void refresh();
 	void repaint();
+	file_info const* get_selection();
 private:
 	smart_menu create_menu();
-	file_info const* get_selection();
 	file_info& htreeitem_2_file_info(htreeitem const& hti);
 	std::uint8_t get_tree_item_icon(file_info const& tmp_fi, file_info const* const parent_fi);
 	void refresh_view_recursive(file_info& fi, void* const ti);
@@ -62,8 +60,6 @@ private:
 	htreeitem get_next_data(file_info const* const curr_fi = nullptr);
 	void expand();
 	void collapse();
-	void properties(wchar_t const* const data = nullptr);
-	wchar_t const* get_properties_data(file_info const* const curr_fi = nullptr);
 private:
 	HWND const m_hwnd;
 	main_window& m_main_window;

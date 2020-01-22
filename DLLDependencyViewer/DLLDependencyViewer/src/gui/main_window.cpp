@@ -54,20 +54,21 @@ enum class e_main_menu_id : std::uint16_t
 	e_exit,
 	e_full_paths,
 	e_undecorate,
-	e_refresh
+	e_refresh,
 };
 enum class e_toolbar : std::uint16_t
 {
 	e_open,
 	e_full_paths,
 	e_undecorate,
-	e_properties
+	e_properties,
 };
 enum class e_accel : std::uint16_t
 {
 	e_main_open,
 	e_main_paths,
 	e_main_undecorate,
+	e_main_properties,
 	e_main_refresh,
 	e_main_matching,
 	e_tree_orig,
@@ -75,13 +76,13 @@ enum class e_accel : std::uint16_t
 	e_tree_next,
 	e_tree_expand,
 	e_tree_collapse,
-	e_tree_properties
 };
 static constexpr ACCEL const s_accel_table[] =
 {
 	{FVIRTKEY | FCONTROL,	'O',      	static_cast<std::uint16_t>(e_accel::e_main_open      	)},
 	{FVIRTKEY,           	VK_F9,    	static_cast<std::uint16_t>(e_accel::e_main_paths     	)},
 	{FVIRTKEY,           	VK_F10,   	static_cast<std::uint16_t>(e_accel::e_main_undecorate	)},
+	{FVIRTKEY | FALT,    	VK_RETURN,	static_cast<std::uint16_t>(e_accel::e_main_properties	)},
 	{FVIRTKEY,           	VK_F5,    	static_cast<std::uint16_t>(e_accel::e_main_refresh   	)},
 	{FVIRTKEY | FCONTROL,	'M',      	static_cast<std::uint16_t>(e_accel::e_main_matching  	)},
 	{FVIRTKEY | FCONTROL,	'K',      	static_cast<std::uint16_t>(e_accel::e_tree_orig      	)},
@@ -89,7 +90,6 @@ static constexpr ACCEL const s_accel_table[] =
 	{FVIRTKEY | FCONTROL,	'N',      	static_cast<std::uint16_t>(e_accel::e_tree_next      	)},
 	{FVIRTKEY | FCONTROL,	'E',      	static_cast<std::uint16_t>(e_accel::e_tree_expand    	)},
 	{FVIRTKEY | FCONTROL,	'W',      	static_cast<std::uint16_t>(e_accel::e_tree_collapse  	)},
-	{FVIRTKEY | FALT,    	VK_RETURN,	static_cast<std::uint16_t>(e_accel::e_tree_properties	)}
 };
 
 
@@ -638,6 +638,11 @@ void main_window::on_accelerator(WPARAM const wparam)
 			on_accel_undecorate();
 		}
 		break;
+		case e_accel::e_main_properties:
+		{
+			on_accel_properties();
+		}
+		break;
 		case e_accel::e_main_refresh:
 		{
 			on_accel_refresh();
@@ -671,11 +676,6 @@ void main_window::on_accelerator(WPARAM const wparam)
 		case e_accel::e_tree_collapse:
 		{
 			m_tree_view.on_accel_collapse();
-		}
-		break;
-		case e_accel::e_tree_properties:
-		{
-			m_tree_view.on_accel_properties();
 		}
 		break;
 		default:
@@ -807,6 +807,11 @@ void main_window::on_accel_undecorate()
 	undecorate();
 }
 
+void main_window::on_accel_properties()
+{
+	properties();
+}
+
 void main_window::on_accel_refresh()
 {
 	refresh();
@@ -846,7 +851,7 @@ void main_window::on_toolbar_undecorate()
 
 void main_window::on_toolbar_properties()
 {
-	m_tree_view.on_toolbar_properties();
+	properties();
 }
 
 void main_window::toolbar_icons_enabled_refresh()
@@ -869,7 +874,7 @@ void main_window::toolbar_icons_enabled_refresh()
 		assert(set != FALSE);
 	};
 
-	wchar_t const* const data = m_tree_view.get_properties_data();
+	wchar_t const* const data = get_properties_data();
 	bool const enable = data != nullptr;
 	fn_enable_properties(m_toolbar, enable);
 }
@@ -987,6 +992,50 @@ void main_window::full_paths()
 	assert(menu_state_set != 0);
 
 	m_tree_view.repaint();
+}
+
+void main_window::properties(wchar_t const* const data /* = nullptr */)
+{
+	wchar_t const* const dta = data ? data : get_properties_data();
+	if(!dta)
+	{
+		return;
+	}
+	SHELLEXECUTEINFOW info{};
+	info.cbSize = sizeof(info);
+	info.fMask = SEE_MASK_INVOKEIDLIST;
+	info.lpVerb = L"properties";
+	info.lpFile = dta;
+	info.nShow = SW_SHOWNORMAL;
+	BOOL const executed = ShellExecuteExW(&info);
+	assert(executed != FALSE);
+	assert(static_cast<int>(reinterpret_cast<std::uintptr_t>(info.hInstApp)) > 32);
+}
+
+wchar_t const* main_window::get_properties_data(file_info const* const curr_fi /* = nullptr */)
+{
+	file_info const* fi;
+	if(curr_fi)
+	{
+		fi = curr_fi;
+	}
+	else
+	{
+		file_info const* const f = m_tree_view.get_selection();
+		if(!f)
+		{
+			return nullptr;
+		}
+		fi = f;
+	}
+	assert(fi);
+	file_info const& real_fi = fi->m_orig_instance ? *fi->m_orig_instance : *fi;
+	wstring const* const str = real_fi.m_file_path.m_string;
+	if(!str)
+	{
+		return nullptr;
+	}
+	return str->m_str;
 }
 
 void main_window::undecorate()
