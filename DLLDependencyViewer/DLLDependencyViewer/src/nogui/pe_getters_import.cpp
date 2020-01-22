@@ -39,7 +39,7 @@ bool pe_get_import_is_ordinal(pe_import_table_info const& iti, std::uint16_t con
 	return is_ordinal;
 }
 
-optional<std::uint16_t> pe_get_import_ordinal(pe_import_table_info const& iti, pe_export_table_info const& eti, std::uint16_t const dll_idx, std::uint16_t const imp_idx)
+optional<std::uint16_t> pe_get_import_ordinal(pe_import_table_info const& iti, std::uint16_t const dll_idx, std::uint16_t const imp_idx)
 {
 	bool const is_ordinal = array_bool_tst(iti.m_are_ordinals[dll_idx], imp_idx);
 	if(is_ordinal)
@@ -49,17 +49,7 @@ optional<std::uint16_t> pe_get_import_ordinal(pe_import_table_info const& iti, p
 	}
 	else
 	{
-		std::uint16_t const& matched_export = iti.m_matched_exports[dll_idx][imp_idx];
-		bool const has_matched_export = matched_export != 0xFFFF;
-		if(has_matched_export)
-		{
-			std::uint16_t const ordinal = pe_get_export_ordinal(eti, matched_export);
-			return {ordinal, true};
-		}
-		else
-		{
-			return {{}, false};
-		}
+		return {{}, false};
 	}
 }
 
