@@ -2,11 +2,12 @@
 
 
 #include "allocator.h"
+#include "com_ptr.h"
 #include "unique_strings.h"
 
 #include "my_windows.h"
-#include <objbase.h>
-#include <ole2.h>
+
+#include <oaidl.h>
 
 
 class file_name_provider
@@ -22,6 +23,6 @@ private:
 	wstring_handle get_correct_file_name_(wchar_t const* const& file_name, int const& file_name_len, wunique_strings& us, allocator& alc);
 private:
 	CLSID m_clsid;
-	IDispatch* m_object;
+	com_ptr<IDispatch> m_object;
 	DISPID m_method;
 };

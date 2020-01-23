@@ -4,6 +4,7 @@
 #include "scope_exit.h"
 
 #include <cassert>
+#include <utility>
 
 
 static file_name_provider* g_file_name_provider = nullptr;
@@ -40,26 +41,22 @@ file_name_provider::file_name_provider() :
 	CLSID clsid;
 	HRESULT const get_clsid = CLSIDFromProgID(L"Scripting.FileSystemObject", &clsid);
 	WARN_M_RV(get_clsid == S_OK, L"Failed to CLSIDFromProgID.");
-	IDispatch* object;
+	IDispatch* object = nullptr;
 	HRESULT const instance_created = CoCreateInstance(clsid, nullptr, CLSCTX_INPROC_SERVER, IID_IDispatch, reinterpret_cast<void**>(&object));
-	WARN_M_RV(instance_created == S_OK, L"Failed to CoCreateInstance.");
+	WARN_M_RV(instance_created == S_OK && object != nullptr, L"Failed to CoCreateInstance.");
+	com_ptr<IDispatch> object_sp(object);
 	static constexpr wchar_t const s_method_name[] = L"GetAbsolutePathName";
 	wchar_t const* const method_name = s_method_name;
 	DISPID method;
 	HRESULT const got_method = object->lpVtbl->GetIDsOfNames(object, IID_NULL, const_cast<wchar_t**>(&method_name), 1, LOCALE_USER_DEFAULT, &method);
 	WARN_M_RV(got_method == S_OK, L"Failed to IDispatch::GetIDsOfNames.");
 	m_clsid = clsid;
-	m_object = object;
+	m_object = std::move(object_sp);
 	m_method = method;
 }
 
 file_name_provider::~file_name_provider()
 {
-	if(!m_object)
-	{
-		return;
-	}
-	m_object->lpVtbl->Release(m_object);
 }
 
 bool file_name_provider::ok() const
