@@ -18,6 +18,7 @@ public:
 private:
 	file_name_provider();
 	~file_name_provider();
+	bool ok() const;
 	wstring_handle get_correct_file_name_(wchar_t const* const& file_name, int const& file_name_len, wunique_strings& us, allocator& alc);
 private:
 	CLSID m_clsid;

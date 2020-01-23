@@ -25,6 +25,10 @@ void file_name_provider::deinit()
 wstring_handle file_name_provider::get_correct_file_name(wchar_t const* const& file_name, int const& file_name_len, wunique_strings& us, allocator& alc)
 {
 	assert(g_file_name_provider);
+	if(!g_file_name_provider->ok())
+	{
+		return {};
+	}
 	return g_file_name_provider->get_correct_file_name_(file_name, file_name_len, us, alc);
 }
 
@@ -58,12 +62,13 @@ file_name_provider::~file_name_provider()
 	m_object->lpVtbl->Release(m_object);
 }
 
+bool file_name_provider::ok() const
+{
+	return m_object != nullptr;
+}
+
 wstring_handle file_name_provider::get_correct_file_name_(wchar_t const* const& file_name, int const& file_name_len, wunique_strings& us, allocator& alc)
 {
-	if(!m_object)
-	{
-		return {};
-	}
 	VARIANT arg_1;
 	arg_1.vt = VT_BSTR;
 	arg_1.bstrVal = SysAllocStringLen(file_name, file_name_len);
