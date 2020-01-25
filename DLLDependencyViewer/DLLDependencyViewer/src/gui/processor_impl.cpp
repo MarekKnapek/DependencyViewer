@@ -63,7 +63,7 @@ bool process_impl(std::vector<std::wstring> const& file_paths, file_info& fi, me
 		bool const step = step_1(to);
 		WARN_M_R(step, L"Failed to step_1.", false);
 	}
-	pair_root(fi, to);
+	pair_all(fi, to);
 	make_doubly_linked_list(fi);
 	return true;
 }
