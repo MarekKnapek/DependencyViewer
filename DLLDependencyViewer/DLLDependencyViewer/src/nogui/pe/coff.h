@@ -9,6 +9,7 @@ enum class pe_e_parse_coff_header
 {
 	ok,
 	file_too_small,
+	file_ne,
 	file_not_coff,
 	unknown_machine_type,
 	too_many_sections,

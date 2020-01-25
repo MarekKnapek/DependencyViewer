@@ -7,6 +7,7 @@
 #include <iterator>
 
 
+static constexpr std::uint16_t const s_ne_signature = 0x454E; // NE
 static constexpr std::uint32_t const s_coff_signature = 0x00004550; // PE\0\0
 static constexpr std::uint16_t const s_max_coff_header_sections = 96;
 
@@ -88,6 +89,7 @@ pe_e_parse_coff_header pe_parse_coff_header(std::byte const* const file_data, in
 	pe_dos_header const& dosheader = *reinterpret_cast<pe_dos_header const*>(file_data + 0);
 	WARN_M_R(file_size >= static_cast<int>(dosheader.m_pe_offset + sizeof(pe_coff_header)), L"File is too small to contain coff_header.", pe_e_parse_coff_header::file_too_small);
 	pe_coff_header const& header = *reinterpret_cast<pe_coff_header const*>(file_data + dosheader.m_pe_offset);
+	WARN_M_R((header.m_signature & 0xFFFF) != s_ne_signature, L"File is not PE, it is NE.", pe_e_parse_coff_header::file_ne);
 	WARN_M_R(header.m_signature == s_coff_signature, L"COFF signature not found.", pe_e_parse_coff_header::file_not_coff);
 	WARN_M_R(std::find(std::cbegin(s_image_file_machines), std::cend(s_image_file_machines), header.m_machine) != std::end(s_image_file_machines), L"Unknown machine type.", pe_e_parse_coff_header::unknown_machine_type);
 	WARN_M_R(header.m_section_count <= s_max_coff_header_sections, L"Too many sections.", pe_e_parse_coff_header::too_many_sections);
