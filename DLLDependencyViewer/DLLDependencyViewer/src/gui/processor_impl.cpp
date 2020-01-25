@@ -107,12 +107,12 @@ bool step_2(wstring_handle const& file_path, file_info& fi, tmp_type& to)
 		bool const tables_processed = pe_process_all(mmf.begin(), mmf.size(), *to.m_mm, &tables);
 		WARN_M_R(tables_processed, L"Failed to pe_process_all.", false);
 	}
-	assert(to.m_map.find(file_path) == to.m_map.end());
 	fi.m_is_32_bit = tables.m_is_32_bit;
 	fat_type* const fo = to.m_tmp_alc->allocate_objects<fat_type>(1);
 	fo->m_orig_instance = &fi;
 	fo->m_enpt.m_table = enpt;
 	fo->m_enpt.m_count = enpt_count;
+	assert(to.m_map.find(file_path) == to.m_map.end());
 	to.m_map[file_path] = fo;
 	std::uint16_t const n = fi.m_import_table.m_dll_count;
 	file_info* const fis = to.m_mm->m_alc.allocate_objects<file_info>(n);
