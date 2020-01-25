@@ -117,6 +117,7 @@ bool step_2(wstring_handle const& file_path, file_info& fi, tmp_type& to)
 	std::uint16_t const n = fi.m_import_table.m_dll_count;
 	file_info* const fis = to.m_mm->m_alc.allocate_objects<file_info>(n);
 	init(fis, n);
+	std::for_each(fis, fis + n, [&](file_info& sub_fi){ sub_fi.m_parent = &fi; });
 	fi.m_fis = fis;
 	dependency_locator& dl = to.m_dl;
 	actctx_state_t actctx_state;

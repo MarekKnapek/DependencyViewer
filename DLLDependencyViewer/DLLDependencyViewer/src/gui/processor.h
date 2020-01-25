@@ -11,6 +11,7 @@ struct file_info
 {
 	void* m_tree_item;
 	file_info* m_fis;
+	file_info* m_parent;
 	file_info* m_orig_instance;
 	file_info* m_prev_instance;
 	file_info* m_next_instance;
