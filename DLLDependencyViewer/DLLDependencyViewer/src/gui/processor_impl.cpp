@@ -2,6 +2,7 @@
 
 #include "import_export_matcher.h"
 #include "processor.h"
+#include "tree_algos.h"
 
 #include "../nogui/act_ctx.h"
 #include "../nogui/assert.h"
@@ -63,7 +64,26 @@ bool process_impl(std::vector<std::wstring> const& file_paths, file_info& fi, me
 		WARN_M_R(step, L"Failed to step_1.", false);
 	}
 	pair_root(fi, to);
+	make_doubly_linked_list(fi);
 	return true;
+}
+
+
+void make_doubly_linked_list(file_info& fi)
+{
+	static constexpr auto const make_list = [](file_info& fi, [[maybe_unused]] void* const data)
+	{
+		file_info* const orig = fi.m_orig_instance;
+		if(!orig)
+		{
+			return;
+		}
+		fi.m_next_instance = orig;
+		fi.m_prev_instance = orig->m_prev_instance ? orig->m_prev_instance : orig;
+		(orig->m_prev_instance ? orig->m_prev_instance : orig)->m_next_instance = &fi;
+		orig->m_prev_instance = &fi;
+	};
+	depth_first_visit(fi, make_list, nullptr);
 }
 
 
