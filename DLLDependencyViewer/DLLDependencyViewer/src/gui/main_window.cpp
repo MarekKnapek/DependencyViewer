@@ -1365,15 +1365,9 @@ void main_window::finish_symbols_from_addresses(symbols_from_addresses_param_t c
 			dbg_name.m_string = static_cast<string const*>(nullptr) + 1;
 		}
 	}
-	HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree_view.get_hwnd(), TVM_GETNEXTITEM, TVGN_CARET, 0));
-	if(selected)
+	file_info const* const fi = m_tree_view.get_selection();
+	if(fi)
 	{
-		TVITEMW ti;
-		ti.mask = TVIF_PARAM;
-		ti.hItem = selected;
-		LRESULT const got = SendMessageW(m_tree_view.get_hwnd(), TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-		assert(got == TRUE);
-		file_info const* const fi = reinterpret_cast<file_info*>(ti.lParam);
 		if(fi == param.m_data || fi->m_orig_instance == param.m_data)
 		{
 			m_import_view.sort_view();
@@ -1500,15 +1494,9 @@ void main_window::finish_symbol_undecoration_e(undecorated_from_decorated_e_para
 			undecorated_name.m_string = static_cast<string const*>(nullptr) + 1;
 		}
 	}
-	HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree_view.get_hwnd(), TVM_GETNEXTITEM, TVGN_CARET, 0));
-	if(selected)
+	file_info const* const fi = m_tree_view.get_selection();
+	if(fi)
 	{
-		TVITEMW ti;
-		ti.mask = TVIF_PARAM;
-		ti.hItem = selected;
-		LRESULT const got = SendMessageW(m_tree_view.get_hwnd(), TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-		assert(got == TRUE);
-		file_info const* const fi = reinterpret_cast<file_info*>(ti.lParam);
 		if(fi == param.m_data || fi->m_orig_instance == param.m_data)
 		{
 			m_import_view.sort_view();
@@ -1600,15 +1588,9 @@ void main_window::finish_symbol_undecoration_i(undecorated_from_decorated_i_para
 			undecorated_name.m_string = static_cast<string const*>(nullptr) + 1;
 		}
 	}
-	HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(m_tree_view.get_hwnd(), TVM_GETNEXTITEM, TVGN_CARET, 0));
-	if(selected)
+	file_info const* const fi = m_tree_view.get_selection();
+	if(fi)
 	{
-		TVITEMW ti;
-		ti.mask = TVIF_PARAM;
-		ti.hItem = selected;
-		LRESULT const got = SendMessageW(m_tree_view.get_hwnd(), TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-		assert(got == TRUE);
-		file_info const* const fi = reinterpret_cast<file_info*>(ti.lParam);
 		if(fi == param.m_data || fi->m_orig_instance == param.m_data)
 		{
 			m_import_view.sort_view();

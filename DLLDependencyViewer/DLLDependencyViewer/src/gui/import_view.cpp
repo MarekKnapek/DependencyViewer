@@ -148,12 +148,12 @@ void import_view::on_getdispinfow(NMHDR& nmhdr)
 {
 	NMLVDISPINFOW& nm = reinterpret_cast<NMLVDISPINFOW&>(nmhdr);
 	HWND const tree = m_main_window.m_tree_view.get_hwnd();
-	HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(tree, TVM_GETNEXTITEM, TVGN_CARET, 0));
-	if(!selected)
+	file_info const* const tmp_fi = m_main_window.m_tree_view.get_selection();
+	if(!tmp_fi)
 	{
 		return;
 	}
-	HTREEITEM const parent = reinterpret_cast<HTREEITEM>(SendMessageW(tree, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(selected)));
+	HTREEITEM const parent = reinterpret_cast<HTREEITEM>(SendMessageW(tree, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(tmp_fi->m_tree_item)));
 	if(!parent)
 	{
 		return;
@@ -164,13 +164,8 @@ void import_view::on_getdispinfow(NMHDR& nmhdr)
 	LRESULT const got_parent = SendMessageW(tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
 	assert(got_parent == TRUE);
 	file_info const& parent_fi = *reinterpret_cast<file_info*>(ti.lParam);
-	ti.hItem = selected;
-	ti.mask = TVIF_PARAM;
-	LRESULT const got_selected = SendMessageW(tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-	assert(got_selected == TRUE);
-	file_info const& tmp_fi = *reinterpret_cast<file_info*>(ti.lParam);
-	file_info const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
-	auto const dll_idx_ = &tmp_fi - parent_fi.m_fis;
+	file_info const& fi = tmp_fi->m_orig_instance ? *tmp_fi->m_orig_instance : *tmp_fi;
+	auto const dll_idx_ = tmp_fi - parent_fi.m_fis;
 	assert(dll_idx_ >= 0 && dll_idx_ <= 0xFFFF);
 	std::uint16_t const dll_idx = static_cast<std::uint16_t>(dll_idx_);
 	int const row = nm.item.iItem;
@@ -278,29 +273,23 @@ void import_view::on_context_menu(LPARAM const lparam)
 	}
 	std::uint16_t const import_idx = m_sort.empty() ? line_idx : m_sort[line_idx];
 	HWND const tree = m_main_window.m_tree_view.get_hwnd();
-	HTREEITEM const tree_selected = reinterpret_cast<HTREEITEM>(SendMessageW(tree, TVM_GETNEXTITEM, TVGN_CARET, 0));
-	if(!tree_selected)
+	file_info const* const fi = m_main_window.m_tree_view.get_selection();
+	if(!fi)
 	{
 		return;
 	}
-	HTREEITEM const tree_parent = reinterpret_cast<HTREEITEM>(SendMessageW(tree, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(tree_selected)));
+	HTREEITEM const tree_parent = reinterpret_cast<HTREEITEM>(SendMessageW(tree, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(fi->m_tree_item)));
 	if(!tree_parent)
 	{
 		return;
 	}
-	TVITEMEXW ti;
-	ti.hItem = tree_selected;
-	ti.mask = TVIF_PARAM;
-	LRESULT const got_item = SendMessageW(tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-	assert(got_item == TRUE);
-	file_info const& fi = *reinterpret_cast<file_info*>(ti.lParam);
 	TVITEMEXW ti_2;
 	ti_2.hItem = tree_parent;
 	ti_2.mask = TVIF_PARAM;
 	LRESULT const got_item_2 = SendMessageW(tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti_2));
 	assert(got_item_2 == TRUE);
 	file_info const& parent_fi = *reinterpret_cast<file_info*>(ti_2.lParam);
-	auto const dll_idx_ = &fi - parent_fi.m_fis;
+	auto const dll_idx_ = fi - parent_fi.m_fis;
 	assert(dll_idx_ >= 0 && dll_idx_ <= 0xFFFF);
 	std::uint16_t const dll_idx = static_cast<std::uint16_t>(dll_idx_);
 	std::uint16_t const& matched_export = parent_fi.m_import_table.m_matched_exports[dll_idx][import_idx];
@@ -352,18 +341,12 @@ void import_view::refresh()
 	});
 
 	HWND const tree = m_main_window.m_tree_view.get_hwnd();
-	HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(tree, TVM_GETNEXTITEM, TVGN_CARET, 0));
-	if(!selected)
+	file_info const* const tmp_fi = m_main_window.m_tree_view.get_selection();
+	if(!tmp_fi)
 	{
 		return;
 	}
-	TVITEMEXW ti;
-	ti.hItem = selected;
-	ti.mask = TVIF_PARAM;
-	LRESULT const got_1 = SendMessageW(tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-	assert(got_1 == TRUE);
-	file_info const& fi_tmp = *reinterpret_cast<file_info*>(ti.lParam);
-	HTREEITEM const parent = reinterpret_cast<HTREEITEM>(SendMessageW(tree, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(selected)));
+	HTREEITEM const parent = reinterpret_cast<HTREEITEM>(SendMessageW(tree, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(tmp_fi->m_tree_item)));
 	if(parent)
 	{
 		TVITEMEXW ti_2;
@@ -372,7 +355,7 @@ void import_view::refresh()
 		LRESULT const got_2 = SendMessageW(tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti_2));
 		assert(got_2 == TRUE);
 		file_info const& parent_fi = *reinterpret_cast<file_info*>(ti_2.lParam);
-		auto const idx_ = &fi_tmp - parent_fi.m_fis;
+		auto const idx_ = tmp_fi - parent_fi.m_fis;
 		assert(idx_ >= 0 && idx_ <= 0xFFFF);
 		std::uint16_t const idx = static_cast<std::uint16_t>(idx_);
 
@@ -425,12 +408,12 @@ void import_view::sort_view()
 		std::uint8_t const cur_sort_col = cur_sort_raw &~ (1u << 7u);
 
 		HWND const tree = m_main_window.m_tree_view.get_hwnd();
-		HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(tree, TVM_GETNEXTITEM, TVGN_CARET, 0));
-		if(!selected)
+		file_info const* const tmp_fi = m_main_window.m_tree_view.get_selection();
+		if(!tmp_fi)
 		{
 			return;
 		}
-		HTREEITEM const parent = reinterpret_cast<HTREEITEM>(SendMessageW(tree, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(selected)));
+		HTREEITEM const parent = reinterpret_cast<HTREEITEM>(SendMessageW(tree, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(tmp_fi->m_tree_item)));
 		if(!parent)
 		{
 			return;
@@ -441,13 +424,8 @@ void import_view::sort_view()
 		LRESULT const got_parent = SendMessageW(tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
 		assert(got_parent == TRUE);
 		file_info const& parent_fi = *reinterpret_cast<file_info*>(ti.lParam);
-		ti.hItem = selected;
-		ti.mask = TVIF_PARAM;
-		LRESULT const got_selected = SendMessageW(tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-		assert(got_selected == TRUE);
-		file_info const& fi_tmp = *reinterpret_cast<file_info*>(ti.lParam);
-		file_info const& fi = fi_tmp.m_orig_instance ? *fi_tmp.m_orig_instance : fi_tmp;
-		auto const dll_idx_ = &fi_tmp - parent_fi.m_fis;
+		file_info const& fi = tmp_fi->m_orig_instance ? *tmp_fi->m_orig_instance : *tmp_fi;
+		auto const dll_idx_ = tmp_fi - parent_fi.m_fis;
 		assert(dll_idx_ >= 0 && dll_idx_ <= 0xFFFF);
 		std::uint16_t const dll_idx = static_cast<std::uint16_t>(dll_idx_);
 		pe_import_table_info const& iti = parent_fi.m_import_table;
@@ -682,29 +660,23 @@ void import_view::select_matching_instance()
 	std::uint16_t const line_idx = static_cast<std::uint16_t>(sel);
 	std::uint16_t const import_idx = m_sort.empty() ? line_idx : m_sort[line_idx];
 	HWND const tree = m_main_window.m_tree_view.get_hwnd();
-	HTREEITEM const tree_selected = reinterpret_cast<HTREEITEM>(SendMessageW(tree, TVM_GETNEXTITEM, TVGN_CARET, 0));
-	if(!tree_selected)
+	file_info const* const fi = m_main_window.m_tree_view.get_selection();
+	if(!fi)
 	{
 		return;
 	}
-	HTREEITEM const tree_parent = reinterpret_cast<HTREEITEM>(SendMessageW(tree, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(tree_selected)));
+	HTREEITEM const tree_parent = reinterpret_cast<HTREEITEM>(SendMessageW(tree, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(fi->m_tree_item)));
 	if(!tree_parent)
 	{
 		return;
 	}
-	TVITEMEXW ti;
-	ti.hItem = tree_selected;
-	ti.mask = TVIF_PARAM;
-	LRESULT const got_item = SendMessageW(tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-	assert(got_item == TRUE);
-	file_info const& fi = *reinterpret_cast<file_info*>(ti.lParam);
 	TVITEMEXW ti_2;
 	ti_2.hItem = tree_parent;
 	ti_2.mask = TVIF_PARAM;
 	LRESULT const got_item_2 = SendMessageW(tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti_2));
 	assert(got_item_2 == TRUE);
 	file_info const& parent_fi = *reinterpret_cast<file_info*>(ti_2.lParam);
-	auto const dll_idx_ = &fi - parent_fi.m_fis;
+	auto const dll_idx_ = fi - parent_fi.m_fis;
 	std::uint16_t const dll_idx = static_cast<std::uint16_t>(dll_idx_);
 	std::uint16_t const& matched_exp = parent_fi.m_import_table.m_matched_exports[dll_idx][import_idx];
 	if(matched_exp == 0xFFFF)

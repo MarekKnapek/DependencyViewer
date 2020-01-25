@@ -178,19 +178,12 @@ void export_view::on_notify(NMHDR& nmhdr)
 void export_view::on_getdispinfow(NMHDR& nmhdr)
 {
 	NMLVDISPINFOW& nm = reinterpret_cast<NMLVDISPINFOW&>(nmhdr);
-	HWND const tree = m_main_window.m_tree_view.get_hwnd();
-	HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(tree, TVM_GETNEXTITEM, TVGN_CARET, 0));
-	if(!selected)
+	file_info const* const tmp_fi = m_main_window.m_tree_view.get_selection();
+	if(!tmp_fi)
 	{
 		return;
 	}
-	TVITEMEXW ti;
-	ti.hItem = selected;
-	ti.mask = TVIF_PARAM;
-	LRESULT const got_selected = SendMessageW(tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-	assert(got_selected == TRUE);
-	file_info const& fi_tmp = *reinterpret_cast<file_info*>(ti.lParam);
-	file_info const& fi = fi_tmp.m_orig_instance ? *fi_tmp.m_orig_instance : fi_tmp;
+	file_info const& fi = tmp_fi->m_orig_instance ? *tmp_fi->m_orig_instance : *tmp_fi;
 	int const row = nm.item.iItem;
 	int const col = nm.item.iSubItem;
 	pe_export_table_info const& eti = fi.m_export_table;
@@ -240,7 +233,7 @@ void export_view::on_getdispinfow(NMHDR& nmhdr)
 	if((nm.item.mask & LVIF_IMAGE) != 0)
 	{
 		std::uint16_t const& real_exp_idx = m_sort.empty() ? exp_idx : m_sort[exp_idx];
-		std::uint8_t const img_idx = pe_get_export_icon_id(eti, fi_tmp.m_matched_imports, real_exp_idx);
+		std::uint8_t const img_idx = pe_get_export_icon_id(eti, tmp_fi->m_matched_imports, real_exp_idx);
 		nm.item.iImage = img_idx;
 	}
 }
@@ -301,19 +294,12 @@ void export_view::on_context_menu(LPARAM const lparam)
 		ith_line = static_cast<std::uint16_t>(hti.iItem);
 	}
 	std::uint16_t const ith_export = m_sort.empty() ? ith_line : m_sort[ith_line];
-	HWND const tree = m_main_window.m_tree_view.get_hwnd();
-	HTREEITEM const tree_selected = reinterpret_cast<HTREEITEM>(SendMessageW(tree, TVM_GETNEXTITEM, TVGN_CARET, 0));
-	if(!tree_selected)
+	file_info const* const fi = m_main_window.m_tree_view.get_selection();
+	if(!fi)
 	{
 		return;
 	}
-	TVITEMEXW ti;
-	ti.hItem = tree_selected;
-	ti.mask = TVIF_PARAM;
-	LRESULT const got_item = SendMessageW(tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-	assert(got_item == TRUE);
-	file_info const& fi = *reinterpret_cast<file_info*>(ti.lParam);
-	std::uint16_t const& matched = fi.m_matched_imports[ith_export];
+	std::uint16_t const& matched = fi->m_matched_imports[ith_export];
 	bool const enable_goto_orig = matched != 0xffff;
 	HMENU const menu = reinterpret_cast<HMENU>(m_menu.get());
 	BOOL const enabled = EnableMenuItem(menu, static_cast<std::uint16_t>(e_export_menu_id::e_matching), MF_BYCOMMAND | (enable_goto_orig ? MF_ENABLED : MF_GRAYED));
@@ -361,19 +347,12 @@ void export_view::refresh()
 		repaint();
 	});
 
-	HWND const tree = m_main_window.m_tree_view.get_hwnd();
-	HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(tree, TVM_GETNEXTITEM, TVGN_CARET, 0));
-	if(!selected)
+	file_info const* const tmp_fi = m_main_window.m_tree_view.get_selection();
+	if(!tmp_fi)
 	{
 		return;
 	}
-	TVITEMEXW ti;
-	ti.hItem = selected;
-	ti.mask = TVIF_PARAM;
-	LRESULT const got_1 = SendMessageW(tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-	assert(got_1 == TRUE);
-	file_info const& fi_tmp = *reinterpret_cast<file_info*>(ti.lParam);
-	file_info const& fi = fi_tmp.m_orig_instance ? *fi_tmp.m_orig_instance : fi_tmp;
+	file_info const& fi = tmp_fi->m_orig_instance ? *tmp_fi->m_orig_instance : *tmp_fi;
 
 	LRESULT const set_size = SendMessageW(m_hwnd, LVM_SETITEMCOUNT, fi.m_export_table.m_count, 0);
 	assert(set_size != 0);
@@ -422,19 +401,12 @@ void export_view::sort_view()
 		bool const cur_sort_asc = (cur_sort_raw & (1u << 7u)) == 0u;
 		std::uint8_t const cur_sort_col = cur_sort_raw &~ (1u << 7u);
 
-		HWND const tree = m_main_window.m_tree_view.get_hwnd();
-		HTREEITEM const selected = reinterpret_cast<HTREEITEM>(SendMessageW(tree, TVM_GETNEXTITEM, TVGN_CARET, 0));
-		if(!selected)
+		file_info const* const tmp_fi = m_main_window.m_tree_view.get_selection();
+		if(!tmp_fi)
 		{
 			return;
 		}
-		TVITEMEXW ti;
-		ti.hItem = selected;
-		ti.mask = TVIF_PARAM;
-		LRESULT const got_selected = SendMessageW(tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-		assert(got_selected == TRUE);
-		file_info const& fi_tmp = *reinterpret_cast<file_info*>(ti.lParam);
-		file_info const& fi = fi_tmp.m_orig_instance ? *fi_tmp.m_orig_instance : fi_tmp;
+		file_info const& fi = tmp_fi->m_orig_instance ? *tmp_fi->m_orig_instance : *tmp_fi;
 		pe_export_table_info const& eti = fi.m_export_table;
 
 		std::uint16_t const n_items = eti.m_count;
@@ -452,8 +424,8 @@ void export_view::sort_view()
 			{
 				auto const fn_compare_icon = [&](std::uint16_t const a, std::uint16_t const b, auto const& cmp) -> bool
 				{
-					std::uint8_t const icon_idx_a = pe_get_export_icon_id(eti, fi_tmp.m_matched_imports, a);
-					std::uint8_t const icon_idx_b = pe_get_export_icon_id(eti, fi_tmp.m_matched_imports, b);
+					std::uint8_t const icon_idx_a = pe_get_export_icon_id(eti, tmp_fi->m_matched_imports, a);
+					std::uint8_t const icon_idx_b = pe_get_export_icon_id(eti, tmp_fi->m_matched_imports, b);
 					return cmp(icon_idx_a, icon_idx_b);
 				};
 				if(cur_sort_asc)
@@ -696,19 +668,12 @@ void export_view::select_matching_instance()
 	assert(static_cast<std::size_t>(sel) <= 0xFFFF);
 	std::uint16_t const ith_line = static_cast<std::uint16_t>(sel);
 	std::uint16_t const ith_export = m_sort.empty() ? ith_line : m_sort[ith_line];
-	HWND const tree = m_main_window.m_tree_view.get_hwnd();
-	HTREEITEM const tree_selected = reinterpret_cast<HTREEITEM>(SendMessageW(tree, TVM_GETNEXTITEM, TVGN_CARET, 0));
-	if(!tree_selected)
+	file_info const* const fi = m_main_window.m_tree_view.get_selection();
+	if(!fi)
 	{
 		return;
 	}
-	TVITEMEXW ti;
-	ti.hItem = tree_selected;
-	ti.mask = TVIF_PARAM;
-	LRESULT const got_item = SendMessageW(tree, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-	assert(got_item == TRUE);
-	file_info const& fi = *reinterpret_cast<file_info*>(ti.lParam);
-	std::uint16_t const& matched_imp = fi.m_matched_imports[ith_export];
+	std::uint16_t const& matched_imp = fi->m_matched_imports[ith_export];
 	if(matched_imp == 0xFFFF)
 	{
 		return;
