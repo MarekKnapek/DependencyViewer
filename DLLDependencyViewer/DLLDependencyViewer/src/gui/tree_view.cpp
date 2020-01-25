@@ -35,12 +35,9 @@ static constexpr wchar_t const s_tree_menu_str_collapse[] = L"Co&llapse All\tCtr
 static constexpr wchar_t const s_tree_menu_str_properties[] = L"&Properties...\tAlt+Enter";
 
 
-void breadth_first_visit(file_info& fi, void(*const callback_fn)(file_info* const parent_fi, file_info& child_fi, void* const data), void* const data);
-void breadth_first_visit_2(file_info& fi, void(*const callback_fn)(file_info* const parent_fi, file_info& child_fi, void* const data), void* const data);
-void depth_first_visit(file_info& fi, void(*const callback_fn)(file_info* const parent_fi, file_info& child_fi, void* const data), void* const data);
-void depth_first_visit_2(file_info& fi, void(*const callback_fn)(file_info* const parent_fi, file_info& child_fi, void* const data), void* const data);
-void children_first_visit(file_info& fi, void(*const callback_fn)(file_info* const parent_fi, file_info& child_fi, void* const data), void* const data);
-void children_first_visit_2(file_info& fi, void(*const callback_fn)(file_info* const parent_fi, file_info& child_fi, void* const data), void* const data);
+void breadth_first_visit(file_info& fi, void(*const callback_fn)(file_info& fi, void* const data), void* const data);
+void depth_first_visit(file_info& fi, void(*const callback_fn)(file_info& fi, void* const data), void* const data);
+void children_first_visit(file_info& fi, void(*const callback_fn)(file_info& fi, void* const data), void* const data);
 
 
 tree_view::tree_view(HWND const parent, main_window& mw) :
@@ -309,9 +306,8 @@ void tree_view::refresh()
 		refresh_view_recursive(sub_fi, TVI_ROOT);
 	}
 
-	static constexpr auto const make_doubly_linked_list = []([[maybe_unused]] file_info* const parent_fi, file_info& child_fi, [[maybe_unused]] void* const data)
+	static constexpr auto const make_doubly_linked_list = [](file_info& fi, [[maybe_unused]] void* const data)
 	{
-		file_info& fi = child_fi;
 		file_info* const orig = fi.m_orig_instance;
 		if(!orig)
 		{
@@ -625,10 +621,10 @@ htreeitem tree_view::get_next_data(file_info const* const curr_fi /* = nullptr *
 
 void tree_view::expand()
 {
-	static constexpr auto const expand_fn = []([[maybe_unused]] file_info* const parent_fi, file_info& child_fi, void* const data)
+	static constexpr auto const expand_fn = [](file_info& fi, void* const data)
 	{
 		HWND const hwnd = static_cast<HWND>(data);
-		HTREEITEM const& item = reinterpret_cast<HTREEITEM>(child_fi.m_tree_item);
+		HTREEITEM const& item = reinterpret_cast<HTREEITEM>(fi.m_tree_item);
 		[[maybe_unused]] LRESULT collapsed = SendMessageW(hwnd, TVM_EXPAND, TVE_EXPAND, reinterpret_cast<LPARAM>(item));
 	};
 	HTREEITEM const root_first = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_ROOT, LPARAM{0}));
@@ -649,10 +645,10 @@ void tree_view::expand()
 
 void tree_view::collapse()
 {
-	static constexpr auto const collapse_fn = []([[maybe_unused]] file_info* const parent_fi, file_info& child_fi, void* const data)
+	static constexpr auto const collapse_fn = [](file_info& fi, void* const data)
 	{
 		HWND const hwnd = static_cast<HWND>(data);
-		HTREEITEM const& item = reinterpret_cast<HTREEITEM>(child_fi.m_tree_item);
+		HTREEITEM const& item = reinterpret_cast<HTREEITEM>(fi.m_tree_item);
 		[[maybe_unused]] LRESULT collapsed = SendMessageW(hwnd, TVM_EXPAND, TVE_COLLAPSE, reinterpret_cast<LPARAM>(item));
 	};
 	HTREEITEM const root_first = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_ROOT, LPARAM{0}));
@@ -670,76 +666,39 @@ void tree_view::collapse()
 }
 
 
-void breadth_first_visit(file_info& fi, void(*const callback_fn)(file_info* const parent_fi, file_info& child_fi, void* const data), void* const data)
+void breadth_first_visit(file_info& fi, void(*const callback_fn)(file_info& fi, void* const data), void* const data)
 {
 	std::uint16_t const n = fi.m_import_table.m_dll_count;
 	for(std::uint16_t i = 0; i != n; ++i)
 	{
 		file_info& child_fi = fi.m_fis[i];
-		callback_fn(nullptr, child_fi, data);
+		callback_fn(child_fi, data);
 	}
 	for(std::uint16_t i = 0; i != n; ++i)
 	{
 		file_info& child_fi = fi.m_fis[i];
-		depth_first_visit_2(child_fi, callback_fn, data);
+		depth_first_visit(child_fi, callback_fn, data);
 	}
 }
 
-void breadth_first_visit_2(file_info& fi, void(*const callback_fn)(file_info* const parent_fi, file_info& child_fi, void* const data), void* const data)
+void depth_first_visit(file_info& fi, void(*const callback_fn)(file_info& fi, void* const data), void* const data)
 {
 	std::uint16_t const n = fi.m_import_table.m_dll_count;
 	for(std::uint16_t i = 0; i != n; ++i)
 	{
 		file_info& child_fi = fi.m_fis[i];
-		callback_fn(&fi, child_fi, data);
-	}
-	for(std::uint16_t i = 0; i != n; ++i)
-	{
-		file_info& child_fi = fi.m_fis[i];
-		depth_first_visit_2(child_fi, callback_fn, data);
+		callback_fn(child_fi, data);
+		depth_first_visit(child_fi, callback_fn, data);
 	}
 }
 
-void depth_first_visit(file_info& fi, void(*const callback_fn)(file_info* const parent_fi, file_info& child_fi, void* const data), void* const data)
+void children_first_visit(file_info& fi, void(*const callback_fn)(file_info& fi, void* const data), void* const data)
 {
 	std::uint16_t const n = fi.m_import_table.m_dll_count;
 	for(std::uint16_t i = 0; i != n; ++i)
 	{
 		file_info& child_fi = fi.m_fis[i];
-		callback_fn(nullptr, child_fi, data);
-		depth_first_visit_2(child_fi, callback_fn, data);
-	}
-}
-
-void depth_first_visit_2(file_info& fi, void(*const callback_fn)(file_info* const parent_fi, file_info& child_fi, void* const data), void* const data)
-{
-	std::uint16_t const n = fi.m_import_table.m_dll_count;
-	for(std::uint16_t i = 0; i != n; ++i)
-	{
-		file_info& child_fi = fi.m_fis[i];
-		callback_fn(&fi, child_fi, data);
-		depth_first_visit_2(child_fi, callback_fn, data);
-	}
-}
-
-void children_first_visit(file_info& fi, void(*const callback_fn)(file_info* const parent_fi, file_info& child_fi, void* const data), void* const data)
-{
-	std::uint16_t const n = fi.m_import_table.m_dll_count;
-	for(std::uint16_t i = 0; i != n; ++i)
-	{
-		file_info& child_fi = fi.m_fis[i];
-		children_first_visit_2(child_fi, callback_fn, data);
-		callback_fn(nullptr, child_fi, data);
-	}
-}
-
-void children_first_visit_2(file_info& fi, void(*const callback_fn)(file_info* const parent_fi, file_info& child_fi, void* const data), void* const data)
-{
-	std::uint16_t const n = fi.m_import_table.m_dll_count;
-	for(std::uint16_t i = 0; i != n; ++i)
-	{
-		file_info& child_fi = fi.m_fis[i];
-		children_first_visit_2(child_fi, callback_fn, data);
-		callback_fn(&fi, child_fi, data);
+		children_first_visit(child_fi, callback_fn, data);
+		callback_fn(child_fi, data);
 	}
 }
