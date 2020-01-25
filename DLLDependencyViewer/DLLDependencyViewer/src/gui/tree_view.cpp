@@ -655,7 +655,7 @@ void tree_view::collapse()
 	LRESULT const selected = SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(root_first));
 	assert(selected == TRUE);
 	LRESULT const redr_off = SendMessageW(m_hwnd, WM_SETREDRAW, FALSE, 0);
-	depth_first_visit(m_main_window.m_mo.m_fi, collapse_fn, static_cast<void*>(m_hwnd));
+	children_first_visit(m_main_window.m_mo.m_fi, collapse_fn, static_cast<void*>(m_hwnd));
 	LRESULT const redr_on = SendMessageW(m_hwnd, WM_SETREDRAW, TRUE, 0);
 	LRESULT const visibled = SendMessageW(m_hwnd, TVM_ENSUREVISIBLE, 0, reinterpret_cast<LPARAM>(root_first));
 	repaint();
