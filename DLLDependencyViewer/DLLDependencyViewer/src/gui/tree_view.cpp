@@ -84,13 +84,7 @@ void tree_view::on_getdispinfow(NMHDR& nmhdr)
 	NMTVDISPINFOW& di = reinterpret_cast<NMTVDISPINFOW&>(nmhdr);
 	file_info& tmp_fi = *reinterpret_cast<file_info*>(di.item.lParam);
 	file_info const& fi = tmp_fi.m_orig_instance ? *tmp_fi.m_orig_instance : tmp_fi;
-	file_info const* parent_fi = nullptr;
-	HTREEITEM const parent_item = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(di.item.hItem)));
-	if(parent_item)
-	{
-		file_info& f = htreeitem_2_file_info(reinterpret_cast<htreeitem>(parent_item));
-		parent_fi = &f;
-	}
+	file_info const* const parent_fi = tmp_fi.m_parent;
 	if((di.item.mask & TVIF_TEXT) != 0)
 	{
 		bool const full_paths = m_main_window.m_settings.m_full_paths;
