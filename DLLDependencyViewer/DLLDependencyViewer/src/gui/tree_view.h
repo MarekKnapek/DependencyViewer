@@ -13,7 +13,8 @@
 
 class main_window;
 struct file_info;
-typedef void* htreeitem;
+struct htreeitem_s;
+typedef htreeitem_s* htreeitem;
 
 
 class tree_view

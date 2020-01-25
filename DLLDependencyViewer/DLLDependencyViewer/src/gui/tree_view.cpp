@@ -88,7 +88,7 @@ void tree_view::on_getdispinfow(NMHDR& nmhdr)
 	HTREEITEM const parent_item = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_PARENT, reinterpret_cast<LPARAM>(di.item.hItem)));
 	if(parent_item)
 	{
-		file_info& f = htreeitem_2_file_info(parent_item);
+		file_info& f = htreeitem_2_file_info(reinterpret_cast<htreeitem>(parent_item));
 		parent_fi = &f;
 	}
 	if((di.item.mask & TVIF_TEXT) != 0)
@@ -144,7 +144,7 @@ void tree_view::on_context_menu(LPARAM const lparam)
 			return;
 		}
 		RECT rect;
-		*reinterpret_cast<HTREEITEM*>(&rect) = static_cast<HTREEITEM>(selection->m_tree_item);
+		*reinterpret_cast<HTREEITEM*>(&rect) = reinterpret_cast<HTREEITEM>(selection->m_tree_item);
 		LRESULT const got_rect = SendMessageW(m_hwnd, TVM_GETITEMRECT, TRUE, reinterpret_cast<LPARAM>(&rect));
 		if(got_rect == FALSE)
 		{
@@ -171,7 +171,7 @@ void tree_view::on_context_menu(LPARAM const lparam)
 		{
 			LRESULT const selected = SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(hti.hItem));
 			assert(selected == TRUE);
-			file_info& fi = htreeitem_2_file_info(hti.hItem);
+			file_info& fi = htreeitem_2_file_info(reinterpret_cast<htreeitem>(hti.hItem));
 			curr_fi = &fi;
 		}
 		else
@@ -335,7 +335,7 @@ void tree_view::refresh()
 		file_info& sub_fi = fi.m_fis[i];
 		LRESULT const expanded = SendMessageW(m_hwnd, TVM_EXPAND, TVE_EXPAND, reinterpret_cast<LPARAM>(sub_fi.m_tree_item));
 	}
-	HTREEITEM const first = static_cast<HTREEITEM>(fi.m_fis[0].m_tree_item);
+	HTREEITEM const first = reinterpret_cast<HTREEITEM>(fi.m_fis[0].m_tree_item);
 	LRESULT const visibled = SendMessageW(m_hwnd, TVM_ENSUREVISIBLE, 0, reinterpret_cast<LPARAM>(first));
 	LRESULT const selected = SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(first));
 	assert(selected == TRUE);
@@ -357,7 +357,7 @@ file_info const* tree_view::get_selection()
 	{
 		return nullptr;
 	}
-	file_info& ret = htreeitem_2_file_info(selected);
+	file_info& ret = htreeitem_2_file_info(reinterpret_cast<htreeitem>(selected));
 	return &ret;
 }
 
@@ -403,7 +403,7 @@ smart_menu tree_view::create_menu()
 file_info& tree_view::htreeitem_2_file_info(htreeitem const& hti)
 {
 	TVITEMW ti;
-	ti.hItem = static_cast<HTREEITEM>(hti);
+	ti.hItem = reinterpret_cast<HTREEITEM>(hti);
 	ti.mask = TVIF_PARAM;
 	LRESULT const got_item = SendMessageW(m_hwnd, TVM_GETITEMW, WPARAM{0}, reinterpret_cast<LPARAM>(&ti));
 	assert(got_item == TRUE);
@@ -513,7 +513,7 @@ void tree_view::refresh_view_recursive(file_info& fi, void* const parent_ti)
 	tvi.itemex.iReserved = 0;
 	HTREEITEM const ti = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_INSERTITEMW, 0, reinterpret_cast<LPARAM>(&tvi)));
 	assert(ti != nullptr);
-	fi.m_tree_item = ti;
+	fi.m_tree_item = reinterpret_cast<htreeitem>(ti);
 	m_main_window.request_symbols_from_addresses(fi);
 	m_main_window.request_symbol_undecoration(fi);
 	std::uint16_t const n = fi.m_import_table.m_dll_count;
@@ -634,7 +634,7 @@ void tree_view::expand()
 	static constexpr auto const expand_fn = []([[maybe_unused]] file_info* const parent_fi, file_info& child_fi, void* const data)
 	{
 		HWND const hwnd = static_cast<HWND>(data);
-		HTREEITEM const& item = static_cast<HTREEITEM>(child_fi.m_tree_item);
+		HTREEITEM const& item = reinterpret_cast<HTREEITEM>(child_fi.m_tree_item);
 		[[maybe_unused]] LRESULT collapsed = SendMessageW(hwnd, TVM_EXPAND, TVE_EXPAND, reinterpret_cast<LPARAM>(item));
 	};
 	HTREEITEM const root_first = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_ROOT, LPARAM{0}));
@@ -658,7 +658,7 @@ void tree_view::collapse()
 	static constexpr auto const collapse_fn = []([[maybe_unused]] file_info* const parent_fi, file_info& child_fi, void* const data)
 	{
 		HWND const hwnd = static_cast<HWND>(data);
-		HTREEITEM const& item = static_cast<HTREEITEM>(child_fi.m_tree_item);
+		HTREEITEM const& item = reinterpret_cast<HTREEITEM>(child_fi.m_tree_item);
 		[[maybe_unused]] LRESULT collapsed = SendMessageW(hwnd, TVM_EXPAND, TVE_COLLAPSE, reinterpret_cast<LPARAM>(item));
 	};
 	HTREEITEM const root_first = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_ROOT, LPARAM{0}));

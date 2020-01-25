@@ -7,9 +7,13 @@
 #include <cstdint>
 
 
+struct htreeitem_s;
+typedef htreeitem_s* htreeitem;
+
+
 struct file_info
 {
-	void* m_tree_item;
+	htreeitem m_tree_item;
 	file_info* m_fis;
 	file_info* m_parent;
 	file_info* m_orig_instance;
