@@ -14,9 +14,11 @@
 #include <cassert>
 #include <cstdint>
 
+#include "../nogui/my_windows.h"
+
 #include <commctrl.h>
-#include <windowsx.h>
 #include <shellapi.h>
+#include <windowsx.h>
 
 
 enum class e_tree_menu_id : std::uint16_t

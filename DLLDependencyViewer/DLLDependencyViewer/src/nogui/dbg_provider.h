@@ -2,9 +2,9 @@
 
 
 #include "dbghelp.h"
+#include "my_string_handle.h"
 #include "pe.h"
 #include "thread_worker.h"
-#include "my_string_handle.h"
 
 #include <string>
 #include <vector>

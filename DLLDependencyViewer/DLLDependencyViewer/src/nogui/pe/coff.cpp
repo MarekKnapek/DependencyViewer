@@ -1,7 +1,8 @@
 #include "coff.h"
 
-#include "../assert.h"
 #include "mz.h"
+
+#include "../assert.h"
 
 #include <algorithm>
 #include <iterator>

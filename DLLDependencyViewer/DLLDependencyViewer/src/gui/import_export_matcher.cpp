@@ -4,8 +4,8 @@
 
 #include "../nogui/array_bool.h"
 
-#include <cassert>
 #include <algorithm>
+#include <cassert>
 
 
 void pair_all(file_info& fi, tmp_type& to)

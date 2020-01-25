@@ -3,6 +3,7 @@
 #include <cassert>
 
 #include "my_windows.h"
+
 #include <objbase.h>
 
 

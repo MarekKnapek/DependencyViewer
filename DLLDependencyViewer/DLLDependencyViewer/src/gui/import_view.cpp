@@ -22,6 +22,8 @@
 #include <numeric>
 #include <tuple>
 
+#include "../nogui/my_windows.h"
+
 #include <commctrl.h>
 #include <windowsx.h>
 

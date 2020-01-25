@@ -4,6 +4,8 @@
 
 #include <algorithm>
 
+#include "../nogui/my_windows.h"
+
 #include <windowsx.h>
 
 

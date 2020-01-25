@@ -23,6 +23,8 @@
 #include <cstdlib>
 #include <iterator>
 
+#include "../nogui/my_windows.h"
+
 #include <commctrl.h>
 #include <commdlg.h>
 #include <shellapi.h>

@@ -1,7 +1,8 @@
 #include "pe_util.h"
 
-#include "../assert.h"
 #include "mz.h"
+
+#include "../assert.h"
 
 #include <algorithm>
 

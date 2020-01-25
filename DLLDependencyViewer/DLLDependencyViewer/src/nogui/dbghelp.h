@@ -4,6 +4,7 @@
 #include "smart_library.h"
 
 #include "my_windows.h"
+
 #include <dbghelp.h>
 
 

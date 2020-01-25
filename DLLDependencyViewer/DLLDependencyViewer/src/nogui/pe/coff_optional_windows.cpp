@@ -1,9 +1,10 @@
 #include "coff_optional_windows.h"
 
-#include "../assert.h"
 #include "coff.h"
 #include "coff_optional_standard.h"
 #include "mz.h"
+
+#include "../assert.h"
 
 #include <algorithm>
 #include <iterator>

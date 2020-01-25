@@ -1,8 +1,9 @@
 #include "coff_optional_standard.h"
 
-#include "../assert.h"
 #include "coff.h"
 #include "mz.h"
+
+#include "../assert.h"
 
 
 static constexpr std::uint16_t const s_pe_coff_optional_sig_32 = 0x010b;

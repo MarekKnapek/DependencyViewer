@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "../nogui/my_windows.h"
+
 #include <commctrl.h>
 
 

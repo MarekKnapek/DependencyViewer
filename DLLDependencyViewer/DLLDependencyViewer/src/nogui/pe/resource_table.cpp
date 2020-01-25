@@ -1,9 +1,10 @@
 #include "resource_table.h"
 
-#include "../assert.h"
 #include "coff_full.h"
 #include "mz.h"
 #include "pe_util.h"
+
+#include "../assert.h"
 
 #include <cassert>
 
