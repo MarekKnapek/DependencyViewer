@@ -4,6 +4,7 @@
 #include "constants.h"
 #include "main.h"
 #include "main_window.h"
+#include "tree_algos.h"
 
 #include "../nogui/utils.h"
 
@@ -33,11 +34,6 @@ static constexpr wchar_t const s_tree_menu_str_next[] = L"Highlight &Next Instan
 static constexpr wchar_t const s_tree_menu_str_expand[] = L"&Expand All\tCtrl+E";
 static constexpr wchar_t const s_tree_menu_str_collapse[] = L"Co&llapse All\tCtrl+W";
 static constexpr wchar_t const s_tree_menu_str_properties[] = L"&Properties...\tAlt+Enter";
-
-
-void breadth_first_visit(file_info& fi, void(*const callback_fn)(file_info& fi, void* const data), void* const data);
-void depth_first_visit(file_info& fi, void(*const callback_fn)(file_info& fi, void* const data), void* const data);
-void children_first_visit(file_info& fi, void(*const callback_fn)(file_info& fi, void* const data), void* const data);
 
 
 tree_view::tree_view(HWND const parent, main_window& mw) :
@@ -663,42 +659,4 @@ void tree_view::collapse()
 	LRESULT const redr_on = SendMessageW(m_hwnd, WM_SETREDRAW, TRUE, 0);
 	LRESULT const visibled = SendMessageW(m_hwnd, TVM_ENSUREVISIBLE, 0, reinterpret_cast<LPARAM>(root_first));
 	repaint();
-}
-
-
-void breadth_first_visit(file_info& fi, void(*const callback_fn)(file_info& fi, void* const data), void* const data)
-{
-	std::uint16_t const n = fi.m_import_table.m_dll_count;
-	for(std::uint16_t i = 0; i != n; ++i)
-	{
-		file_info& child_fi = fi.m_fis[i];
-		callback_fn(child_fi, data);
-	}
-	for(std::uint16_t i = 0; i != n; ++i)
-	{
-		file_info& child_fi = fi.m_fis[i];
-		depth_first_visit(child_fi, callback_fn, data);
-	}
-}
-
-void depth_first_visit(file_info& fi, void(*const callback_fn)(file_info& fi, void* const data), void* const data)
-{
-	std::uint16_t const n = fi.m_import_table.m_dll_count;
-	for(std::uint16_t i = 0; i != n; ++i)
-	{
-		file_info& child_fi = fi.m_fis[i];
-		callback_fn(child_fi, data);
-		depth_first_visit(child_fi, callback_fn, data);
-	}
-}
-
-void children_first_visit(file_info& fi, void(*const callback_fn)(file_info& fi, void* const data), void* const data)
-{
-	std::uint16_t const n = fi.m_import_table.m_dll_count;
-	for(std::uint16_t i = 0; i != n; ++i)
-	{
-		file_info& child_fi = fi.m_fis[i];
-		children_first_visit(child_fi, callback_fn, data);
-		callback_fn(child_fi, data);
-	}
 }

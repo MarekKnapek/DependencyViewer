@@ -13,6 +13,7 @@
 #include "gui/smart_menu.cpp"
 #include "gui/splitter_window.cpp"
 #include "gui/test.cpp"
+#include "gui/tree_algos.cpp"
 #include "gui/tree_view.cpp"
 
 #include "nogui/act_ctx.cpp"

@@ -324,6 +324,9 @@
     <ClInclude Include="src\gui\com_dlg.h">
       <Filter>src\gui</Filter>
     </ClInclude>
+    <ClInclude Include="src\gui\tree_algos.h">
+      <Filter>src\gui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\main.cpp">
@@ -504,6 +507,9 @@
       <Filter>src\gui</Filter>
     </ClCompile>
     <ClCompile Include="src\gui\com_dlg.cpp">
+      <Filter>src\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gui\tree_algos.cpp">
       <Filter>src\gui</Filter>
     </ClCompile>
   </ItemGroup>

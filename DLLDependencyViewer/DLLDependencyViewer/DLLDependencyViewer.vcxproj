@@ -218,6 +218,7 @@
     <ClInclude Include="src\gui\smart_menu.h" />
     <ClInclude Include="src\gui\splitter_window.h" />
     <ClInclude Include="src\gui\test.h" />
+    <ClInclude Include="src\gui\tree_algos.h" />
     <ClInclude Include="src\gui\tree_view.h" />
     <ClInclude Include="src\nogui\act_ctx.h" />
     <ClInclude Include="src\nogui\allocator.h" />
@@ -331,6 +332,10 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\gui\test.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="src\gui\tree_algos.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
