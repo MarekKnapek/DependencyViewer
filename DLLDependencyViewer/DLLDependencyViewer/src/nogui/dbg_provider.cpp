@@ -165,11 +165,10 @@ void dbg_provider::init_task()
 
 void dbg_provider::deinit_task()
 {
-	if(!m_sym_inited)
+	if(m_sym_inited)
 	{
-		return;
+		BOOL const cleaned = m_dbghelp.m_fn_SymCleanup(GetCurrentProcess());
+		assert(cleaned != FALSE);
 	}
-	BOOL const cleaned = m_dbghelp.m_fn_SymCleanup(GetCurrentProcess());
-	assert(cleaned != FALSE);
-	m_dbghelp.m_dbghelp_dll.reset();
+	m_dbghelp.deinit();
 }
