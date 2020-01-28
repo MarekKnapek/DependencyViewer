@@ -16,6 +16,7 @@ public:
 	bool init();
 	void deinit();
 private:
+	void set_env();
 	bool load_dll();
 	bool load_funcs();
 private:

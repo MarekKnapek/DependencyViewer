@@ -7,6 +7,7 @@
 #include <array>
 #include <cassert>
 #include <filesystem>
+#include <string>
 
 #include "my_windows.h"
 
@@ -33,6 +34,7 @@ dbghelp::~dbghelp()
 
 bool dbghelp::init()
 {
+	set_env();
 	if(!load_dll()) { return false; }
 	if(!load_funcs()) { return false; }
 	return true;
@@ -49,6 +51,20 @@ void dbghelp::deinit()
 	m_fn_SymFromAddr         	= nullptr;
 	m_fn_UnDecorateSymbolName	= nullptr;
 	m_dbghelp_dll.reset();
+}
+
+void dbghelp::set_env()
+{
+	std::array<wchar_t, 32 * 1024> buff;
+	DWORD const got_evn = GetEnvironmentVariableW(L"_NT_SYMBOL_PATH", buff.data(), static_cast<int>(buff.size()));
+	if(!(got_evn == 0 && GetLastError() == ERROR_ENVVAR_NOT_FOUND)) { return; }
+	DWORD const got_tmp = GetTempPathW(static_cast<int>(buff.size()), buff.data());
+	if(got_tmp == 0 || got_tmp >= static_cast<int>(buff.size())) { return; }
+	std::filesystem::path p(buff.data(), buff.data() + got_tmp);
+	p.append(L"symbols");
+	std::wstring const nt_symbol_path = L"srv*" + p.wstring() + LR"---(*https://msdl.microsoft.com/download/symbols)---";
+	BOOL const set = SetEnvironmentVariableW(L"_NT_SYMBOL_PATH", nt_symbol_path.c_str());
+	if(set == 0) { return; }
 }
 
 bool dbghelp::load_dll()
