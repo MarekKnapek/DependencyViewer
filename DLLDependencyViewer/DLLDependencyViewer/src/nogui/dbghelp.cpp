@@ -42,6 +42,19 @@ bool dbghelp::init()
 	return true;
 }
 
+void dbghelp::deinit()
+{
+	m_fn_SymGetOptions       	= nullptr;
+	m_fn_SymSetOptions       	= nullptr;
+	m_fn_SymInitializeW      	= nullptr;
+	m_fn_SymCleanup          	= nullptr;
+	m_fn_SymLoadModuleExW    	= nullptr;
+	m_fn_SymUnloadModule64   	= nullptr;
+	m_fn_SymFromAddr         	= nullptr;
+	m_fn_UnDecorateSymbolName	= nullptr;
+	m_dbghelp_dll.reset();
+}
+
 void dbghelp::load_dlls()
 {
 	#if defined _M_IX86
