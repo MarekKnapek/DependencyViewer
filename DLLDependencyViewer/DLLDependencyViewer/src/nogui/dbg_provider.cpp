@@ -1,6 +1,7 @@
 #include "dbg_provider.h"
 
 #include "scope_exit.h"
+#include "thread_name.h"
 
 #include <array>
 #include <cassert>
@@ -144,6 +145,7 @@ void dbg_provider::get_undecorated_from_decorated_i_task(undecorated_from_decora
 
 void dbg_provider::init_task()
 {
+	name_current_thread("dbg_provider", L"dbg_provider");
 	bool const dbghelp_inited = m_dbghelp.init();
 	if(!dbghelp_inited)
 	{
