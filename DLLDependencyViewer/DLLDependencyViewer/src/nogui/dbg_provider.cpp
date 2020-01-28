@@ -9,22 +9,18 @@
 static dbg_provider* g_dbg_provider = nullptr;
 
 
-void dbg_provider::init()
-{
-	assert(!g_dbg_provider);
-	g_dbg_provider = new dbg_provider();
-}
-
 void dbg_provider::deinit()
 {
-	assert(g_dbg_provider);
 	delete g_dbg_provider;
 	g_dbg_provider = nullptr;
 }
 
 dbg_provider* dbg_provider::get()
 {
-	assert(g_dbg_provider);;
+	if(!g_dbg_provider)
+	{
+		g_dbg_provider = new dbg_provider();
+	}
 	return g_dbg_provider;
 }
 

@@ -40,7 +40,6 @@ struct undecorated_from_decorated_i_param_t
 class dbg_provider
 {
 public:
-	static void init();
 	static void deinit();
 	static dbg_provider* get();
 private:

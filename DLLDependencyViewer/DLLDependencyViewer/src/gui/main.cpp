@@ -39,7 +39,6 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE /*hPrevInstance
 	auto const file_name_deinit = mk::make_scope_exit([](){ file_name_provider::deinit(); });
 	auto const fn_clean_known_dlls = mk::make_scope_exit([](){ known_dlls::deinit(); });
 	test();
-	dbg_provider::init();
 	auto const dbg_provider_deinit = mk::make_scope_exit([](){ dbg_provider::deinit(); });
 	g_instance = hInstance;
 	common_controls::InitCommonControls();
