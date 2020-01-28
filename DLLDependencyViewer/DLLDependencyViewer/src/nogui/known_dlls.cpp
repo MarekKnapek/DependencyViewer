@@ -4,6 +4,7 @@
 #include "scope_exit.h"
 #include "smart_handle.h"
 #include "unicode.h"
+#include "wow.h"
 
 #include <algorithm>
 #include <cassert>
@@ -49,9 +50,6 @@ struct buffer_t
 };
 
 
-#ifdef _M_IX86
-bool is_wow64();
-#endif
 bool is_section(OBJECT_DIRECTORY_INFORMATION const& odi);
 bool is_symlink(OBJECT_DIRECTORY_INFORMATION const& odi);
 bool is_known_dll_path(OBJECT_DIRECTORY_INFORMATION const& odi);
@@ -219,32 +217,6 @@ std::vector<std::string> const& known_dlls::get_names_sorted_lowercase_ascii()
 	return *g_known_dll_names_sorted_lowercase_ascii;
 }
 
-
-#if defined _M_IX86
-bool is_wow64()
-{
-	auto const IsWow64Process_proc = GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "IsWow64Process");
-	if(!IsWow64Process_proc)
-	{
-		return false;
-	}
-	auto const IsWow64Process_fn = reinterpret_cast<decltype(&IsWow64Process)>(IsWow64Process_proc);
-	BOOL iswow64;
-	BOOL const queried = IsWow64Process_fn(GetCurrentProcess(), &iswow64);
-	assert(queried != 0);
-	if(iswow64 != FALSE)
-	{
-		return true;
-	}
-	else
-	{
-		return false;
-	}
-}
-#elif defined _M_X64
-#else
-	#error Unknown architecture.
-#endif
 
 bool is_section(OBJECT_DIRECTORY_INFORMATION const& odi)
 {

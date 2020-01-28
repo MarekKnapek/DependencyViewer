@@ -264,6 +264,7 @@
     <ClInclude Include="src\nogui\unicode.h" />
     <ClInclude Include="src\nogui\unique_strings.h" />
     <ClInclude Include="src\nogui\utils.h" />
+    <ClInclude Include="src\nogui\wow.h" />
     <ClInclude Include="src\res\resources.h" />
   </ItemGroup>
   <ItemGroup>
@@ -508,6 +509,10 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\nogui\utils.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="src\nogui\wow.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
