@@ -14,10 +14,18 @@ public:
 	dbghelp();
 	~dbghelp();
 	bool init();
-	bool deinit();
-	void load_dlls();
-public:
+	void deinit();
+private:
+	bool load_dll();
+	bool load_funcs();
+private:
+	bool win10_sdk_hardcoded();
+	bool win10_sdk_program_files();
+	bool win10_sdk_registry();
+	bool system_default();
+private:
 	smart_library m_dbghelp_dll;
+public:
 	decltype(&SymGetOptions       	) m_fn_SymGetOptions       	;
 	decltype(&SymSetOptions       	) m_fn_SymSetOptions       	;
 	decltype(&SymInitializeW      	) m_fn_SymInitializeW      	;
