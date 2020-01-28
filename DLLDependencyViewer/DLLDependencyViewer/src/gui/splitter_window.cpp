@@ -12,7 +12,7 @@
 template<splitter_window_orientation orientation>
 void splitter_window<orientation>::register_class()
 {
-	WNDCLASSEXW wc;
+	WNDCLASSEXW wc{};
 	wc.cbSize = sizeof(wc);
 	wc.style = 0;
 	wc.lpfnWndProc = &splitter_window::class_proc;

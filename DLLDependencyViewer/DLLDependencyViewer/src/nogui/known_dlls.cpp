@@ -105,7 +105,7 @@ void known_dlls::init()
 	name.Length = static_cast<USHORT>(known_dlls_folder_name_len * sizeof(wchar_t));
 	name.MaximumLength = name.Length;
 	name.Buffer = const_cast<wchar_t*>(known_dlls_folder_name);
-	OBJECT_ATTRIBUTES oa_1;
+	OBJECT_ATTRIBUTES oa_1{};
 	oa_1.Length = sizeof(oa_1);
 	oa_1.RootDirectory = nullptr;
 	oa_1.ObjectName = &name;
@@ -139,7 +139,7 @@ void known_dlls::init()
 		{
 			WARN_M_RV(known_dll_path.empty(), L"There shall be only one path symlink.");
 			HANDLE symlink;
-			OBJECT_ATTRIBUTES oa_2;
+			OBJECT_ATTRIBUTES oa_2{};
 			oa_2.Length = sizeof(oa_2);
 			oa_2.RootDirectory = knonw_dll_dir;
 			oa_2.ObjectName = &buff_1.m_union.m_odi.Name;

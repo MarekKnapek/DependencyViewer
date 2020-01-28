@@ -60,7 +60,7 @@ bool create_actctx2(wstring_handle const exe, wstring_handle const dll, std::uin
 	assert(diff < static_cast<int>(buff.size()));
 	std::memcpy(buff.data(), b, diff * sizeof(wchar_t));
 	buff[diff] = L'\0';
-	ACTCTXW actctx_request;
+	ACTCTXW actctx_request{};
 	actctx_request.cbSize = sizeof(actctx_request);
 	actctx_request.dwFlags = ACTCTX_FLAG_ASSEMBLY_DIRECTORY_VALID | ACTCTX_FLAG_RESOURCE_NAME_VALID | ACTCTX_FLAG_APPLICATION_NAME_VALID;
 	actctx_request.lpSource = dll.m_string->m_str;

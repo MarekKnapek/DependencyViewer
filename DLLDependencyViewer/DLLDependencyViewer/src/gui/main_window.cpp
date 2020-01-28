@@ -167,7 +167,7 @@ void request_helper(main_window* const self, dbg_provider* const dbg, marshaller
 
 void main_window::register_class()
 {
-	WNDCLASSEXW wc;
+	WNDCLASSEXW wc{};
 	wc.cbSize = sizeof(wc);
 	wc.style = 0;
 	wc.lpfnWndProc = &main_window::class_proc;
@@ -886,7 +886,7 @@ void main_window::open()
 	auto const buff = std::make_unique<std::array<wchar_t, 1 * 1024 * 1024>>();
 	(*buff)[0] = L'\0';
 
-	OPENFILENAMEW ofn;
+	OPENFILENAMEW ofn{};
 	ofn.lStructSize = sizeof(ofn);
 	ofn.hwndOwner = m_hwnd;
 	ofn.hInstance = nullptr;
@@ -986,7 +986,7 @@ void main_window::full_paths()
 	LRESULT const state_set = SendMessageW(m_toolbar, TB_SETSTATE, static_cast<std::uint16_t>(e_toolbar::e_full_paths), (m_settings.m_full_paths ? TBSTATE_PRESSED : 0) | TBSTATE_ENABLED);
 	assert(state_set == TRUE);
 
-	MENUITEMINFOW mi;
+	MENUITEMINFOW mi{};
 	mi.cbSize = sizeof(mi);
 	mi.fMask = MIIM_STATE;
 	mi.fState = m_settings.m_full_paths ? MFS_CHECKED : MFS_UNCHECKED;
@@ -1047,7 +1047,7 @@ void main_window::undecorate()
 	LRESULT const state_set = SendMessageW(m_toolbar, TB_SETSTATE, static_cast<std::uint16_t>(e_toolbar::e_undecorate), (m_settings.m_undecorate ? TBSTATE_PRESSED : 0) | TBSTATE_ENABLED);
 	assert(state_set == TRUE);
 
-	MENUITEMINFOW mi;
+	MENUITEMINFOW mi{};
 	mi.cbSize = sizeof(mi);
 	mi.fMask = MIIM_STATE;
 	mi.fState = m_settings.m_undecorate ? MFS_CHECKED : MFS_UNCHECKED;

@@ -28,7 +28,7 @@ dbg_provider* dbg_provider::get()
 	return g_dbg_provider;
 }
 
-dbg_provider::dbg_provider():
+dbg_provider::dbg_provider() :
 	m_sym_inited(false),
 	m_dbghelp(),
 	m_thread_worker()
@@ -90,7 +90,7 @@ void dbg_provider::get_symbols_from_addresses_task(symbols_from_addresses_param_
 			SYMBOL_INFO sym_info;
 			char buff[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(char)];
 		};
-		symbol_info_t symbol_info_v;
+		symbol_info_t symbol_info_v{};
 		SYMBOL_INFO& symbol_info = symbol_info_v.sym_info;
 		symbol_info.SizeOfStruct = sizeof(symbol_info);
 		symbol_info.MaxNameLen = MAX_SYM_NAME;

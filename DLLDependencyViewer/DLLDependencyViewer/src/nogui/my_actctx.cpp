@@ -14,7 +14,7 @@ static ULONG_PTR g_my_actctx_cookie = 0;
 void my_actctx::create()
 {
 	assert(g_my_actctx_h == nullptr);
-	ACTCTXW actctx_request;
+	ACTCTXW actctx_request{};
 	actctx_request.cbSize = sizeof(actctx_request);
 	actctx_request.dwFlags = ACTCTX_FLAG_RESOURCE_NAME_VALID | ACTCTX_FLAG_HMODULE_VALID;
 	actctx_request.lpSource = nullptr;
