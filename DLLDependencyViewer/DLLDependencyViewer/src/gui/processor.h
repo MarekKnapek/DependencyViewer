@@ -33,7 +33,9 @@ struct main_type
 {
 	file_info m_fi;
 	memory_manager m_mm;
+	void swap(main_type& other) noexcept;
 };
+inline void swap(main_type& a, main_type& b) noexcept { a.swap(b); }
 
 
 bool process(std::vector<std::wstring> const& file_paths, main_type* const mo_out);

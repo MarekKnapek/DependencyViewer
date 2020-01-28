@@ -7,6 +7,7 @@
 #include <cassert>
 #include <cstring>
 #include <type_traits>
+#include <utility>
 
 
 template<typename T>
@@ -52,6 +53,13 @@ void init(file_info* const fi)
 void init(file_info* const fi, int const count)
 {
 	std::memset(fi, 0, count * sizeof(*fi));
+}
+
+void main_type::swap(main_type& other) noexcept
+{
+	using std::swap;
+	swap(m_fi, other.m_fi);
+	swap(m_mm, other.m_mm);
 }
 
 
