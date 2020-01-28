@@ -33,7 +33,7 @@ dbg_provider::dbg_provider() :
 	m_dbghelp(),
 	m_thread_worker()
 {
-	auto const init_task = [](thread_worker_param_t const param)
+	static constexpr auto const init_task = [](thread_worker_param_t const param)
 	{
 		assert(param);
 		dbg_provider& self = *static_cast<dbg_provider*>(param);
@@ -47,7 +47,7 @@ dbg_provider::dbg_provider() :
 
 dbg_provider::~dbg_provider()
 {
-	auto const deinit_task = [](thread_worker_param_t const param)
+	static constexpr auto const deinit_task = [](thread_worker_param_t const param)
 	{
 		assert(param);
 		dbg_provider& self = *static_cast<dbg_provider*>(param);

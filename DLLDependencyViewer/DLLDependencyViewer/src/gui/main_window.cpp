@@ -129,9 +129,9 @@ void request_helper(main_window* const self, dbg_provider* const dbg, marshaller
 		fn_main_tt m_fn_main;
 	};
 
-	auto const fn_thread_generic = [](thread_worker_param_t const param)
+	static constexpr auto const fn_thread_generic = [](thread_worker_param_t const param)
 	{
-		auto const fn_main_generic = [](main_window& self, idle_task_param_t const param)
+		static constexpr auto const fn_main_generic = [](main_window& self, idle_task_param_t const param)
 		{
 			assert(param);
 			marshaller_concrete* const mc = static_cast<marshaller_concrete*>(param);
@@ -232,7 +232,7 @@ main_window::main_window() :
 	BOOL const got_rect = GetClientRect(m_hwnd, &r);
 	LRESULT const moved = on_wm_size(0, ((static_cast<unsigned>(r.bottom) & 0xFFFFu) << 16) | (static_cast<unsigned>(r.right) & 0xFFFFu));
 
-	auto const process_cmd_line_task = [](main_window& self, idle_task_param_t const /*param*/) -> void { self.process_command_line(); };
+	static constexpr auto const process_cmd_line_task = [](main_window& self, idle_task_param_t const /*param*/) -> void { self.process_command_line(); };
 	add_idle_task(process_cmd_line_task, nullptr);
 
 	m_settings.m_full_paths = false;
@@ -1269,10 +1269,10 @@ void main_window::request_mo_deletion(std::unique_ptr<main_type>&& mo)
 	};
 	marshaller m;
 	m.m_mo.swap(mo);
-	auto const fn_worker = [](marshaller&)
+	static constexpr auto const fn_worker = [](marshaller&)
 	{
 	};
-	auto const fn_main = [](main_window&, marshaller&)
+	static constexpr auto const fn_main = [](main_window&, marshaller&)
 	{
 	};
 	request_helper(this, dbg_provider::get(), std::move(m), fn_worker, fn_main);
@@ -1284,10 +1284,10 @@ void main_window::request_close()
 	{
 	};
 	marshaller m;
-	auto const fn_worker = [](marshaller&)
+	static constexpr auto const fn_worker = [](marshaller&)
 	{
 	};
-	auto const fn_main = [](main_window& self, marshaller&)
+	static constexpr auto const fn_main = [](main_window& self, marshaller&)
 	{
 		BOOL const posted = PostMessageW(self.m_hwnd, WM_CLOSE, 0, 0);
 		assert(posted != 0);
@@ -1338,11 +1338,11 @@ void main_window::request_symbols_from_addresses(file_info& fi)
 	m.m_param.m_indexes.swap(indexes);
 	m.m_param.m_strings.resize(n);
 	m.m_param.m_data = &fi;
-	auto const fn_worker = [](marshaller& m)
+	static constexpr auto const fn_worker = [](marshaller& m)
 	{
 		m.m_dbg_provider->get_symbols_from_addresses_task(m.m_param);
 	};
-	auto const fn_main = [](main_window& self, marshaller& m)
+	static constexpr auto const fn_main = [](main_window& self, marshaller& m)
 	{
 		self.finish_symbols_from_addresses(m.m_param);
 	};
@@ -1395,7 +1395,7 @@ void main_window::request_symbol_undecoration(file_info& fi)
 void main_window::request_symbol_undecoration_e(file_info& fi, std::vector<std::uint16_t> const& input_indexes)
 {
 	pe_export_table_info const& eti = fi.m_export_table;
-	auto const fn_is_decorated = [](bool const is_rva, string_handle const& name){ return is_rva && name.m_string && name.m_string != static_cast<string const*>(nullptr) + 1 && cbegin(name)[0] == '?'; };
+	static constexpr auto const fn_is_decorated = [](bool const is_rva, string_handle const& name){ return is_rva && name.m_string && name.m_string != static_cast<string const*>(nullptr) + 1 && cbegin(name)[0] == '?'; };
 	std::uint16_t n = 0;
 	if(input_indexes.empty())
 	{
@@ -1468,11 +1468,11 @@ void main_window::request_symbol_undecoration_e(file_info& fi, std::vector<std::
 	m.m_param.m_indexes.swap(indexes);
 	m.m_param.m_strings.resize(n);
 	m.m_param.m_data = &fi;
-	auto const fn_worker = [](marshaller& m)
+	static constexpr auto const fn_worker = [](marshaller& m)
 	{
 		m.m_dbg_provider->get_undecorated_from_decorated_e_task(m.m_param);
 	};
-	auto const fn_main = [](main_window& self, marshaller& m)
+	static constexpr auto const fn_main = [](main_window& self, marshaller& m)
 	{
 		self.finish_symbol_undecoration_e(m.m_param);
 	};
@@ -1562,11 +1562,11 @@ void main_window::request_symbol_undecoration_i(file_info& fi, std::uint16_t con
 	m.m_param.m_indexes.swap(indexes);
 	m.m_param.m_strings.resize(n);
 	m.m_param.m_data = &fi;
-	auto const fn_worker = [](marshaller& m)
+	static constexpr auto const fn_worker = [](marshaller& m)
 	{
 		m.m_dbg_provider->get_undecorated_from_decorated_i_task(m.m_param);
 	};
-	auto const fn_main = [](main_window& self, marshaller& m)
+	static constexpr auto const fn_main = [](main_window& self, marshaller& m)
 	{
 		self.finish_symbol_undecoration_i(m.m_param);
 	};

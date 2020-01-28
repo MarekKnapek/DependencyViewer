@@ -17,14 +17,16 @@ thread_worker::thread_worker():
 
 thread_worker::~thread_worker()
 {
-	thread_worker_function_t const request_stop_fn = [](thread_worker_param_t const param)
+	static constexpr auto const request_stop_fn = [](thread_worker_param_t const param)
 	{
 		assert(param);
 		thread_worker& self = *reinterpret_cast<thread_worker*>(param);
 		self.m_thread_stop_requested = true;
 	};
-	thread_worker_param_t const param = this;
-	add_task(request_stop_fn, param);
+	thread_worker_function_t const rqst_stp_fn = request_stop_fn;
+	thread_worker_param_t const rqst_stp_param = this;
+
+	add_task(rqst_stp_fn, rqst_stp_param);
 	m_thread.join();
 }
 
