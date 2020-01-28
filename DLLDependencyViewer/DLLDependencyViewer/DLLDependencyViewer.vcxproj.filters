@@ -330,6 +330,9 @@
     <ClInclude Include="src\nogui\wow.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
+    <ClInclude Include="src\nogui\thread_name.h">
+      <Filter>src\nogui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\main.cpp">
@@ -516,6 +519,9 @@
       <Filter>src\gui</Filter>
     </ClCompile>
     <ClCompile Include="src\nogui\wow.cpp">
+      <Filter>src\nogui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nogui\thread_name.cpp">
       <Filter>src\nogui</Filter>
     </ClCompile>
   </ItemGroup>

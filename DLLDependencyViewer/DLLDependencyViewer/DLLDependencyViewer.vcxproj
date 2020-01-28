@@ -260,6 +260,7 @@
     <ClInclude Include="src\nogui\smart_reg_key.h" />
     <ClInclude Include="src\nogui\static_vector.h" />
     <ClInclude Include="src\nogui\string_converter.h" />
+    <ClInclude Include="src\nogui\thread_name.h" />
     <ClInclude Include="src\nogui\thread_worker.h" />
     <ClInclude Include="src\nogui\unicode.h" />
     <ClInclude Include="src\nogui\unique_strings.h" />
@@ -493,6 +494,10 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\nogui\string_converter.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="src\nogui\thread_name.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
