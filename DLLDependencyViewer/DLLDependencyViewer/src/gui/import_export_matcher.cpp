@@ -10,14 +10,6 @@
 
 void pair_all(file_info& fi, tmp_type& to)
 {
-	std::uint16_t const n = fi.m_import_table.m_dll_count;
-	for(std::uint16_t i = 0; i != n; ++i)
-	{
-		file_info& sub_fi = fi.m_fis[i];
-		file_info& sub_fi_orig = sub_fi.m_orig_instance ? *sub_fi.m_orig_instance : sub_fi;
-		sub_fi.m_matched_imports = to.m_mm->m_alc.allocate_objects<std::uint16_t>(sub_fi_orig.m_export_table.m_count);
-		std::fill(sub_fi.m_matched_imports, sub_fi.m_matched_imports + sub_fi_orig.m_export_table.m_count, static_cast<std::uint16_t>(0xFFFF));
-	}
 	static constexpr auto const pair_fn = [](file_info& fi, void* const data)
 	{
 		assert(data);

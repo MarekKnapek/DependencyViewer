@@ -10,7 +10,7 @@
 std::uint8_t pe_get_export_icon_id(pe_export_table_info const& eti, std::uint16_t const* const matched_imports, std::uint16_t const exp_idx)
 {
 	bool const is_used = array_bool_tst(eti.m_are_used, exp_idx);
-	bool const is_matched = matched_imports[exp_idx] != 0xFFFF;
+	bool const is_matched = (matched_imports != nullptr) ? (matched_imports[exp_idx] != 0xFFFF) : false;
 	bool const is_rva = array_bool_tst(eti.m_are_rvas, exp_idx);
 	bool const has_name = eti.m_hints[exp_idx] != 0xFFFF;
 	static constexpr std::int8_t const s_export_images[2][2][2][2] =

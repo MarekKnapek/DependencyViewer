@@ -301,8 +301,8 @@ void export_view::on_context_menu(LPARAM const lparam)
 	{
 		return;
 	}
-	std::uint16_t const& matched = fi->m_matched_imports[ith_export];
-	bool const enable_goto_orig = matched != 0xffff;
+	std::uint16_t const matched = (fi->m_matched_imports != nullptr) ? fi->m_matched_imports[ith_export] : static_cast<std::uint16_t>(0xFFFF);
+	bool const enable_goto_orig = matched != 0xFFFF;
 	HMENU const menu = reinterpret_cast<HMENU>(m_menu.get());
 	BOOL const enabled = EnableMenuItem(menu, static_cast<std::uint16_t>(e_export_menu_id::e_matching), MF_BYCOMMAND | (enable_goto_orig ? MF_ENABLED : MF_GRAYED));
 	assert(enabled != -1 && (enabled == MF_ENABLED || enabled == MF_GRAYED));
@@ -675,7 +675,7 @@ void export_view::select_matching_instance()
 	{
 		return;
 	}
-	std::uint16_t const& matched_imp = fi->m_matched_imports[ith_export];
+	std::uint16_t const matched_imp = (fi->m_matched_imports != nullptr) ? fi->m_matched_imports[ith_export] : static_cast<std::uint16_t>(0xFFFF);
 	if(matched_imp == 0xFFFF)
 	{
 		return;
