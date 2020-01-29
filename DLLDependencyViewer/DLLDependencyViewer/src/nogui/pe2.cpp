@@ -69,7 +69,7 @@ bool pe_process_import_iat(std::byte const* const file_data, int const file_size
 	assert(iat_in_out);
 	int const n_dlls = iat_in_out->m_tables->m_idt.m_count + iat_in_out->m_tables->m_didt.m_count;
 	std::uint16_t* const import_counts = iat_in_out->m_alc->allocate_objects<std::uint16_t>(n_dlls);
-	unsigned** const are_ordinals_all = iat_in_out->m_alc->allocate_objects<unsigned*>(n_dlls);
+	array_bool* const are_ordinals_all = iat_in_out->m_alc->allocate_objects<array_bool>(n_dlls);
 	std::uint16_t** const ordinals_or_hints_all = iat_in_out->m_alc->allocate_objects<std::uint16_t*>(n_dlls);
 	string_handle** const names_all = iat_in_out->m_alc->allocate_objects<string_handle*>(n_dlls);
 	string_handle** const undecorated_names_all = iat_in_out->m_alc->allocate_objects<string_handle*>(n_dlls);
@@ -81,8 +81,8 @@ bool pe_process_import_iat(std::byte const* const file_data, int const file_size
 		bool const iat_parsed = pe_parse_import_address_table(file_data, iat_in_out->m_tables->m_idt.m_table[i], &iat);
 		WARN_M_R(iat_parsed, L"Failed to parse import address table.", false);
 		int const bits_to_dwords = array_bool_space_needed(iat.m_count);
-		unsigned* const are_ordinals = iat_in_out->m_alc->allocate_objects<unsigned>(bits_to_dwords);
-		std::fill(are_ordinals, are_ordinals + bits_to_dwords, 0u);
+		array_bool const are_ordinals{iat_in_out->m_alc->allocate_objects<unsigned>(bits_to_dwords)};
+		std::fill(are_ordinals.m_data, are_ordinals.m_data + bits_to_dwords, 0u);
 		std::uint16_t* const ordinals_or_hints = iat_in_out->m_alc->allocate_objects<std::uint16_t>(iat.m_count);
 		string_handle* const names = iat_in_out->m_alc->allocate_objects<string_handle>(iat.m_count);
 		string_handle* const undecorated_names = iat_in_out->m_alc->allocate_objects<string_handle>(iat.m_count);
@@ -119,8 +119,8 @@ bool pe_process_import_iat(std::byte const* const file_data, int const file_size
 		bool const iat_parsed = pe_parse_delay_import_address_table(file_data, iat_in_out->m_tables->m_didt.m_table[i], &iat);
 		WARN_M_R(iat_parsed, L"Failed to parse delay import address table.", false);
 		int const bits_to_dwords = array_bool_space_needed(iat.m_count);
-		unsigned* const are_ordinals = iat_in_out->m_alc->allocate_objects<unsigned>(bits_to_dwords);
-		std::fill(are_ordinals, are_ordinals + bits_to_dwords, 0u);
+		array_bool const are_ordinals{iat_in_out->m_alc->allocate_objects<unsigned>(bits_to_dwords)};
+		std::fill(are_ordinals.m_data, are_ordinals.m_data + bits_to_dwords, 0u);
 		std::uint16_t* const ordinals_or_hints = iat_in_out->m_alc->allocate_objects<std::uint16_t>(iat.m_count);
 		string_handle* const names = iat_in_out->m_alc->allocate_objects<string_handle>(iat.m_count);
 		string_handle* const undecorated_names = iat_in_out->m_alc->allocate_objects<string_handle>(iat.m_count);
@@ -211,14 +211,14 @@ bool pe_process_export_eat(std::byte const* const file_data, int const file_size
 
 	std::uint16_t* ordinals = eat_in_out->m_alc->allocate_objects<std::uint16_t>(eat_count_proper);
 	int const bits_to_dwords = array_bool_space_needed(eat_count_proper);
-	unsigned* const are_rvas = eat_in_out->m_alc->allocate_objects<unsigned>(bits_to_dwords);
-	std::fill(are_rvas, are_rvas + bits_to_dwords, 0u);
+	array_bool const are_rvas{eat_in_out->m_alc->allocate_objects<unsigned>(bits_to_dwords)};
+	std::fill(are_rvas.m_data, are_rvas.m_data + bits_to_dwords, 0u);
 	pe_rva_or_forwarder* const rvas_or_forwarders = eat_in_out->m_alc->allocate_objects<pe_rva_or_forwarder>(eat_count_proper);
 	std::uint16_t* const hints = eat_in_out->m_alc->allocate_objects<std::uint16_t>(eat_count_proper);
 	string_handle* const names = eat_in_out->m_alc->allocate_objects<string_handle>(eat_count_proper);
 	string_handle* const undecorated_names = eat_in_out->m_alc->allocate_objects<string_handle>(eat_count_proper);
-	unsigned* const are_used = eat_in_out->m_alc->allocate_objects<unsigned>(bits_to_dwords);
-	std::fill(are_used, are_used + bits_to_dwords, 0u);
+	array_bool const are_used{eat_in_out->m_alc->allocate_objects<unsigned>(bits_to_dwords)};
+	std::fill(are_used.m_data, are_used.m_data + bits_to_dwords, 0u);
 
 	std::uint16_t* const enpt_ = eat_in_out->m_tmp_alc->allocate_objects<std::uint16_t>(enpt.m_count);
 	std::fill(enpt_, enpt_ + enpt.m_count, static_cast<std::uint16_t>(0xFFFF));

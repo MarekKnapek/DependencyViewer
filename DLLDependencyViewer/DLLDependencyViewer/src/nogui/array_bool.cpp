@@ -1,10 +1,12 @@
 #include "array_bool.h"
 
+#include <cassert>
 #include <climits>
 
 
 int array_bool_space_needed(int const number_of_bools)
 {
+	assert(number_of_bools >= 0);
 	if(number_of_bools == 0)
 	{
 		return 0;
@@ -15,23 +17,23 @@ int array_bool_space_needed(int const number_of_bools)
 	}
 }
 
-void array_bool_set(unsigned* const arr, int const idx)
+void array_bool_set(array_bool const arr, int const idx)
 {
 	int const i = idx / (static_cast<int>(sizeof(unsigned)) * CHAR_BIT);
 	int const j = idx % (static_cast<int>(sizeof(unsigned)) * CHAR_BIT);
-	arr[i] |= (1u << j);
+	arr.m_data[i] |= (1u << j);
 }
 
-void array_bool_clr(unsigned* const arr, int const idx)
+void array_bool_clr(array_bool const arr, int const idx)
 {
 	int const i = idx / (static_cast<int>(sizeof(unsigned)) * CHAR_BIT);
 	int const j = idx % (static_cast<int>(sizeof(unsigned)) * CHAR_BIT);
-	arr[i] &=~ (1u << j);
+	arr.m_data[i] &=~ (1u << j);
 }
 
-bool array_bool_tst(unsigned const* const arr, int const idx)
+bool array_bool_tst(array_bool const arr, int const idx)
 {
 	int const i = idx / (static_cast<int>(sizeof(unsigned)) * CHAR_BIT);
 	int const j = idx % (static_cast<int>(sizeof(unsigned)) * CHAR_BIT);
-	return (arr[i] & (1u << j)) != 0;
+	return (arr.m_data[i] & (1u << j)) != 0;
 }
