@@ -31,7 +31,7 @@ void init(file_info* const fi, int const count);
 
 struct main_type
 {
-	file_info m_fi;
+	file_info* m_fi;
 	memory_manager m_mm;
 	void swap(main_type& other) noexcept;
 };

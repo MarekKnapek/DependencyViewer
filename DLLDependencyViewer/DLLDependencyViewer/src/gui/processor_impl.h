@@ -37,7 +37,7 @@ struct tmp_type
 };
 
 
-bool process_impl(std::vector<std::wstring> const& file_paths, file_info& fi, memory_manager& mm);
+bool process_impl(std::vector<std::wstring> const& file_paths, main_type& mo);
 
 void make_doubly_linked_list(file_info& fi);
 

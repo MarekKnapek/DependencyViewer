@@ -295,7 +295,7 @@ void tree_view::refresh()
 	LRESULT const deleted = SendMessageW(m_hwnd, TVM_DELETEITEM, 0, reinterpret_cast<LPARAM>(TVI_ROOT));
 	assert(deleted == TRUE);
 
-	file_info& fi = m_main_window.m_mo.m_fi;
+	file_info& fi = *m_main_window.m_mo.m_fi;
 	std::uint16_t const n = fi.m_import_table.m_dll_count;
 	assert(n >= 1);
 	for(std::uint16_t i = 0; i != n; ++i)
@@ -618,7 +618,7 @@ void tree_view::expand()
 	}
 	HTREEITEM const selection = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_CARET, LPARAM{0}));
 	LRESULT const redr_off = SendMessageW(m_hwnd, WM_SETREDRAW, FALSE, 0);
-	depth_first_visit(m_main_window.m_mo.m_fi, expand_fn, static_cast<void*>(m_hwnd));
+	depth_first_visit(*m_main_window.m_mo.m_fi, expand_fn, static_cast<void*>(m_hwnd));
 	LRESULT const redr_on = SendMessageW(m_hwnd, WM_SETREDRAW, TRUE, 0);
 	if(selection)
 	{
@@ -643,7 +643,7 @@ void tree_view::collapse()
 	LRESULT const selected = SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(root_first));
 	assert(selected == TRUE);
 	LRESULT const redr_off = SendMessageW(m_hwnd, WM_SETREDRAW, FALSE, 0);
-	children_first_visit(m_main_window.m_mo.m_fi, collapse_fn, static_cast<void*>(m_hwnd));
+	children_first_visit(*m_main_window.m_mo.m_fi, collapse_fn, static_cast<void*>(m_hwnd));
 	LRESULT const redr_on = SendMessageW(m_hwnd, WM_SETREDRAW, TRUE, 0);
 	LRESULT const visibled = SendMessageW(m_hwnd, TVM_ENSUREVISIBLE, 0, reinterpret_cast<LPARAM>(root_first));
 	repaint();

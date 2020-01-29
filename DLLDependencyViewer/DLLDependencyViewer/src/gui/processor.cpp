@@ -66,7 +66,9 @@ void main_type::swap(main_type& other) noexcept
 bool process(std::vector<std::wstring> const& file_paths, main_type* const mo_out)
 {
 	assert(mo_out);
-	bool const processed = process_impl(file_paths, mo_out->m_fi, mo_out->m_mm);
+	main_type mo;
+	bool const processed = process_impl(file_paths, mo);
 	WARN_M_R(processed, L"Failed to process_impl.", false);
+	mo_out->swap(mo);
 	return true;
 }

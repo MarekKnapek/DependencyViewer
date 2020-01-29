@@ -27,32 +27,34 @@ static constexpr string const s_dummy_texta_s = {s_dummy_texta_r, static_cast<in
 static constexpr string_handle const s_dummy_texta_h = {&s_dummy_texta_s};
 
 
-bool process_impl(std::vector<std::wstring> const& file_paths, file_info& fi, memory_manager& mm)
+bool process_impl(std::vector<std::wstring> const& file_paths, main_type& mo)
 {
 	my_actctx::deactivate();
 	auto const activate_my_actctx = mk::make_scope_exit([](){ my_actctx::activate(); });
 	WARN_M_R(file_paths.size() < 0xFFFF, L"Too many files to process.", false);
+	file_info* const fi = mo.m_mm.m_alc.allocate_objects<file_info>(1);
+	init(fi);
+	mo.m_fi = fi;
 	std::uint16_t const n = static_cast<std::uint16_t>(file_paths.size());
-	file_info* const fis = mm.m_alc.allocate_objects<file_info>(n);
+	file_info* const fis = mo.m_mm.m_alc.allocate_objects<file_info>(n);
 	init(fis, n);
-	string_handle* const dll_names = mm.m_alc.allocate_objects<string_handle>(n);
+	string_handle* const dll_names = mo.m_mm.m_alc.allocate_objects<string_handle>(n);
 	std::fill(dll_names, dll_names + n, s_dummy_texta_h);
-	std::uint16_t* const import_counts = mm.m_alc.allocate_objects<std::uint16_t>(n);
+	std::uint16_t* const import_counts = mo.m_mm.m_alc.allocate_objects<std::uint16_t>(n);
 	std::fill(import_counts, import_counts + n, std::uint16_t{0});
-	init(&fi);
-	fi.m_fis = fis;
-	fi.m_file_path = s_dummy_textw_h;
-	fi.m_import_table.m_dll_count = n;
-	fi.m_import_table.m_non_delay_dll_count = n;
-	fi.m_import_table.m_dll_names = dll_names;
-	fi.m_import_table.m_import_counts = import_counts;
+	fi->m_fis = fis;
+	fi->m_file_path = s_dummy_textw_h;
+	fi->m_import_table.m_dll_count = n;
+	fi->m_import_table.m_non_delay_dll_count = n;
+	fi->m_import_table.m_dll_names = dll_names;
+	fi->m_import_table.m_import_counts = import_counts;
 	allocator tmpalc;
 	tmp_type to;
-	to.m_mm = &mm;
+	to.m_mm = &mo.m_mm;
 	to.m_tmp_alc = &tmpalc;
 	for(std::uint16_t i = 0; i != n; ++i)
 	{
-		file_info& sub_fi = fi.m_fis[i];
+		file_info& sub_fi = fi->m_fis[i];
 		int const path_len = static_cast<int>(file_paths[i].size());
 		wchar_t const* const cstr = file_paths[i].c_str();
 		wstring_handle const normalized = file_name_provider::get_correct_file_name(cstr, path_len, to.m_mm->m_wstrs, to.m_mm->m_alc);
@@ -63,8 +65,8 @@ bool process_impl(std::vector<std::wstring> const& file_paths, file_info& fi, me
 		bool const step = step_1(to);
 		WARN_M_R(step, L"Failed to step_1.", false);
 	}
-	pair_all(fi, to);
-	make_doubly_linked_list(fi);
+	pair_all(*fi, to);
+	make_doubly_linked_list(*fi);
 	return true;
 }
 

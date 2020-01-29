@@ -1060,7 +1060,7 @@ void main_window::undecorate()
 
 void main_window::refresh()
 {
-	file_info const& fi = m_mo.m_fi;
+	file_info const& fi = *m_mo.m_fi;
 	std::uint16_t const n = fi.m_import_table.m_dll_count;
 	if(n == 0)
 	{
