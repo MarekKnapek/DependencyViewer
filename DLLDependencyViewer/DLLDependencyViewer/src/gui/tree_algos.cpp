@@ -18,7 +18,7 @@
 */
 void depth_first_visit(file_info& fi, void(*const callback_fn)(file_info& fi, void* const data), void* const data)
 {
-	std::uint16_t const n = fi.m_import_table.m_dll_count;
+	std::uint16_t const n = fi.m_import_table.m_normal_dll_count + fi.m_import_table.m_delay_dll_count;
 	for(std::uint16_t i = 0; i != n; ++i)
 	{
 		file_info& child_fi = fi.m_fis[i];
@@ -40,7 +40,7 @@ void depth_first_visit(file_info& fi, void(*const callback_fn)(file_info& fi, vo
 */
 void children_first_visit(file_info& fi, void(*const callback_fn)(file_info& fi, void* const data), void* const data)
 {
-	std::uint16_t const n = fi.m_import_table.m_dll_count;
+	std::uint16_t const n = fi.m_import_table.m_normal_dll_count + fi.m_import_table.m_delay_dll_count;
 	for(std::uint16_t i = 0; i != n; ++i)
 	{
 		file_info& child_fi = fi.m_fis[i];

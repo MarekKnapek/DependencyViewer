@@ -379,8 +379,8 @@ bool pe_process_all(std::byte const* const file_data, int const file_size, memor
 	bool const count_parsed = pe_process_import_tables(file_data, &tables);
 	WARN_M_R(count_parsed, L"Failed to pe_process_import_tables.", false);
 	pe_import_table_info iti;
-	iti.m_dll_count = tables.m_idt.m_count + tables.m_didt.m_count;
-	iti.m_non_delay_dll_count = tables.m_idt.m_count;
+	iti.m_normal_dll_count = tables.m_idt.m_count;
+	iti.m_delay_dll_count = tables.m_didt.m_count;
 
 	pe_import_names names;
 	names.m_tables = &tables;

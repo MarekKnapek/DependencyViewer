@@ -1061,7 +1061,7 @@ void main_window::undecorate()
 void main_window::refresh()
 {
 	file_info const& fi = *m_mo.m_fi;
-	std::uint16_t const n = fi.m_import_table.m_dll_count;
+	std::uint16_t const n = fi.m_import_table.m_normal_dll_count + fi.m_import_table.m_delay_dll_count;
 	if(n == 0)
 	{
 		return;
@@ -1385,7 +1385,7 @@ void main_window::request_symbol_undecoration(file_info& fi)
 {
 	std::vector<std::uint16_t> const empty_indexes;
 	request_symbol_undecoration_e(fi, empty_indexes);
-	std::uint16_t const n = fi.m_import_table.m_dll_count;
+	std::uint16_t const n = fi.m_import_table.m_normal_dll_count + fi.m_import_table.m_delay_dll_count;
 	for(std::uint16_t i = 0; i != n; ++i)
 	{
 		request_symbol_undecoration_i(fi, i);

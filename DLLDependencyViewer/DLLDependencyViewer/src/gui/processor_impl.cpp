@@ -44,8 +44,8 @@ bool process_impl(std::vector<std::wstring> const& file_paths, main_type& mo)
 	std::fill(import_counts, import_counts + n, std::uint16_t{0});
 	fi->m_fis = fis;
 	fi->m_file_path = s_dummy_textw_h;
-	fi->m_import_table.m_dll_count = n;
-	fi->m_import_table.m_non_delay_dll_count = n;
+	fi->m_import_table.m_normal_dll_count = n;
+	fi->m_import_table.m_delay_dll_count = 0;
 	fi->m_import_table.m_dll_names = dll_names;
 	fi->m_import_table.m_import_counts = import_counts;
 	allocator tmpalc;
@@ -136,7 +136,7 @@ bool step_2(wstring_handle const& file_path, file_info& fi, tmp_type& to)
 	fo->m_enpt.m_count = enpt_count;
 	assert(to.m_map.find(file_path) == to.m_map.end());
 	to.m_map[file_path] = fo;
-	std::uint16_t const n = fi.m_import_table.m_dll_count;
+	std::uint16_t const n = fi.m_import_table.m_normal_dll_count + fi.m_import_table.m_delay_dll_count;
 	file_info* const fis = to.m_mm->m_alc.allocate_objects<file_info>(n);
 	init(fis, n);
 	std::for_each(fis, fis + n, [&](file_info& sub_fi){ sub_fi.m_parent = &fi; });

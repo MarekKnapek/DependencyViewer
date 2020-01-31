@@ -9,8 +9,8 @@
 
 struct pe_import_table_info
 {
-	std::uint16_t m_dll_count;
-	std::uint16_t m_non_delay_dll_count;
+	std::uint16_t m_normal_dll_count;
+	std::uint16_t m_delay_dll_count;
 	string_handle const* m_dll_names;
 	std::uint16_t const* m_import_counts;
 	array_bool const* m_are_ordinals;

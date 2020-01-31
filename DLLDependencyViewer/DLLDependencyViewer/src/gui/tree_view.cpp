@@ -296,7 +296,7 @@ void tree_view::refresh()
 	assert(deleted == TRUE);
 
 	file_info& fi = *m_main_window.m_mo.m_fi;
-	std::uint16_t const n = fi.m_import_table.m_dll_count;
+	std::uint16_t const n = fi.m_import_table.m_normal_dll_count + fi.m_import_table.m_delay_dll_count;
 	assert(n >= 1);
 	for(std::uint16_t i = 0; i != n; ++i)
 	{
@@ -399,7 +399,7 @@ std::uint8_t tree_view::get_tree_item_icon(file_info const& tmp_fi, file_info co
 			auto const dll_idx_ = &tmp_fi - parent_fi->m_fis;
 			assert(dll_idx_ >= 0 && dll_idx_ <= 0xFFFF);
 			std::uint16_t const dll_idx = static_cast<std::uint16_t>(dll_idx_);
-			is_delay = dll_idx >= parent_fi->m_import_table.m_non_delay_dll_count;
+			is_delay = dll_idx >= parent_fi->m_import_table.m_normal_dll_count;
 		}
 		else
 		{
@@ -490,7 +490,7 @@ void tree_view::refresh_view_recursive(file_info& fi, void* const parent_ti)
 	fi.m_tree_item = reinterpret_cast<htreeitem>(ti);
 	m_main_window.request_symbols_from_addresses(fi);
 	m_main_window.request_symbol_undecoration(fi);
-	std::uint16_t const n = fi.m_import_table.m_dll_count;
+	std::uint16_t const n = fi.m_import_table.m_normal_dll_count + fi.m_import_table.m_delay_dll_count;
 	for(std::uint16_t i = 0; i != n; ++i)
 	{
 		file_info& sub_fi = fi.m_fis[i];

@@ -14,7 +14,7 @@ void pair_all(file_info& fi, tmp_type& to)
 	{
 		assert(data);
 		tmp_type& to = *static_cast<tmp_type*>(data);
-		std::uint16_t const n = fi.m_import_table.m_dll_count;
+		std::uint16_t const n = fi.m_import_table.m_normal_dll_count + fi.m_import_table.m_delay_dll_count;
 		for(std::uint16_t i = 0; i != n; ++i)
 		{
 			file_info& sub_fi = fi.m_fis[i];
