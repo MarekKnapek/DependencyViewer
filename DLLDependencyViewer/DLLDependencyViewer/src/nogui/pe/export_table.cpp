@@ -99,7 +99,7 @@ bool pe_parse_export_address_table(std::byte const* const file_data, pe_export_d
 	return true;
 }
 
-bool pe_parse_export_address_name(std::byte const* const file_data, int const file_size, pe_export_name_pointer_table const& enpt, pe_export_ordinal_table const& eot, std::uint16_t const& idx, std::uint16_t* const hint_out, pe_string* const ean_out)
+bool pe_parse_export_address_name(std::byte const* const file_data, pe_export_name_pointer_table const& enpt, pe_export_ordinal_table const& eot, std::uint16_t const& idx, std::uint16_t* const hint_out, pe_string* const ean_out)
 {
 	assert(hint_out);
 	assert(ean_out);
@@ -119,7 +119,7 @@ bool pe_parse_export_address_name(std::byte const* const file_data, int const fi
 	std::uint16_t const hint = static_cast<std::uint16_t>(it - eot.m_table);
 	std::uint32_t const export_address_name_rva = enpt.m_table[hint].m_export_address_name_rva;
 	pe_string ean;
-	bool const ean_parsed = pe_parse_string_rva(file_data, file_size, export_address_name_rva, &ean);
+	bool const ean_parsed = pe_parse_string_rva(file_data, export_address_name_rva, &ean);
 	WARN_M_R(ean_parsed, L"Could not parse export address name.", false);
 	*hint_out = hint;
 	*ean_out = ean;

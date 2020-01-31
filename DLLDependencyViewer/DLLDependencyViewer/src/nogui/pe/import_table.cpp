@@ -64,12 +64,12 @@ bool pe_parse_import_table(std::byte const* const file_data, pe_import_directory
 	return true;
 }
 
-bool pe_parse_import_dll_name(std::byte const* const file_data, int const file_size, pe_import_directory_entry const& ide, pe_string* const dll_name_out)
+bool pe_parse_import_dll_name(std::byte const* const file_data, pe_import_directory_entry const& ide, pe_string* const dll_name_out)
 {
 	assert(dll_name_out);
 	WARN_M_R(ide.m_name != 0, L"Import directory entry has no DLL name.", false);
 	pe_string dll_name;
-	bool const dll_name_parsed = pe_parse_string_rva(file_data, file_size, ide.m_name, &dll_name);
+	bool const dll_name_parsed = pe_parse_string_rva(file_data, ide.m_name, &dll_name);
 	WARN_M_R(dll_name_parsed, L"Could not find DLL name.", false);
 	WARN_M_R(dll_name.m_len <= 255, L"DLL name is too long.", false);
 	*dll_name_out = dll_name;
@@ -113,7 +113,7 @@ bool pe_parse_import_address_table(std::byte const* const file_data, pe_import_d
 	}
 }
 
-bool pe_parse_import_address(std::byte const* const file_data, int const file_size, pe_import_address_table const& iat_in, int const& idx, bool* const is_ordinal_out, std::uint16_t* const ordinal_out, pe_hint_name* const hint_name_out)
+bool pe_parse_import_address(std::byte const* const file_data, pe_import_address_table const& iat_in, int const& idx, bool* const is_ordinal_out, std::uint16_t* const ordinal_out, pe_hint_name* const hint_name_out)
 {
 	assert(is_ordinal_out);
 	assert(ordinal_out);
@@ -142,7 +142,7 @@ bool pe_parse_import_address(std::byte const* const file_data, int const file_si
 			WARN_M_R(hint_name_raw != 0, L"Could not parse import address name.", false);
 			std::uint16_t const hint = *reinterpret_cast<std::uint16_t const*>(file_data + hint_name_raw + 0);
 			pe_string name;
-			bool const name_parsed = pe_parse_string_raw(file_data, file_size, hint_name_raw + sizeof(std::uint16_t), *sct, &name);
+			bool const name_parsed = pe_parse_string_raw(file_data, hint_name_raw + sizeof(std::uint16_t), *sct, &name);
 			WARN_M_R(name_parsed, L"Failed to parse import name.", false);
 			*is_ordinal_out = false;
 			hint_name_out->m_hint = hint;
@@ -172,7 +172,7 @@ bool pe_parse_import_address(std::byte const* const file_data, int const file_si
 			WARN_M_R(hint_name_raw != 0, L"Could not parse import address name.", false);
 			std::uint16_t const hint = *reinterpret_cast<std::uint16_t const*>(file_data + hint_name_raw + 0);
 			pe_string name;
-			bool const name_parsed = pe_parse_string_raw(file_data, file_size, hint_name_raw + sizeof(std::uint16_t), *sct, &name);
+			bool const name_parsed = pe_parse_string_raw(file_data, hint_name_raw + sizeof(std::uint16_t), *sct, &name);
 			WARN_M_R(name_parsed, L"Failed to parse import name.", false);
 			*is_ordinal_out = false;
 			hint_name_out->m_hint = hint;
@@ -217,7 +217,7 @@ bool pe_parse_delay_import_table(std::byte const* const file_data, pe_delay_impo
 	return true;
 }
 
-bool pe_parse_delay_import_dll_name(std::byte const* const file_data, int const file_size, pe_delay_load_descriptor const& dld, pe_string* const dll_name_out)
+bool pe_parse_delay_import_dll_name(std::byte const* const file_data, pe_delay_load_descriptor const& dld, pe_string* const dll_name_out)
 {
 	assert(dll_name_out);
 	pe_dos_header const& dos_hdr = *reinterpret_cast<pe_dos_header const*>(file_data + 0);
@@ -228,7 +228,7 @@ bool pe_parse_delay_import_dll_name(std::byte const* const file_data, int const 
 	WARN_M_R(is_32 ? true : (delay_ver_2 || (coff_hdr.m_64.m_windows.m_image_base < 0x00000000ffffffffull)), L"Image base is damn too high.", false);
 	std::uint32_t const delay_dll_name_rva = dld.m_dll_name_rva - (delay_ver_2 ? 0u : (is_32 ? coff_hdr.m_32.m_windows.m_image_base : static_cast<std::uint32_t>(coff_hdr.m_64.m_windows.m_image_base)));
 	pe_string dll_name;
-	bool const dll_name_parsed = pe_parse_string_rva(file_data, file_size, delay_dll_name_rva, &dll_name);
+	bool const dll_name_parsed = pe_parse_string_rva(file_data, delay_dll_name_rva, &dll_name);
 	WARN_M_R(dll_name_parsed, L"Could not find delay DLL name.", false);
 	WARN_M_R(dll_name.m_len <= 255, L"Delay DLL name is too long.", false);
 	*dll_name_out = dll_name;
@@ -273,7 +273,7 @@ bool pe_parse_delay_import_address_table(std::byte const* const file_data, pe_de
 	}
 }
 
-bool pe_parse_delay_import_address(std::byte const* const file_data, int const file_size, pe_delay_load_descriptor const& dld, pe_delay_load_import_address_table const& dliat_in, int const& idx, bool* const is_ordinal_out, std::uint16_t* const ordinal_out, pe_hint_name* const hint_name_out)
+bool pe_parse_delay_import_address(std::byte const* const file_data, pe_delay_load_descriptor const& dld, pe_delay_load_import_address_table const& dliat_in, int const& idx, bool* const is_ordinal_out, std::uint16_t* const ordinal_out, pe_hint_name* const hint_name_out)
 {
 	assert(is_ordinal_out);
 	assert(ordinal_out);
@@ -303,7 +303,7 @@ bool pe_parse_delay_import_address(std::byte const* const file_data, int const f
 			WARN_M_R(hint_name_raw != 0, L"Could not parse delay import address name.", false);
 			std::uint16_t const hint = *reinterpret_cast<std::uint16_t const*>(file_data + hint_name_raw + 0);
 			pe_string name;
-			bool const name_parsed = pe_parse_string_raw(file_data, file_size, hint_name_raw + sizeof(std::uint16_t), *sct, &name);
+			bool const name_parsed = pe_parse_string_raw(file_data, hint_name_raw + sizeof(std::uint16_t), *sct, &name);
 			WARN_M_R(name_parsed, L"Failed to parse delay import name.", false);
 			*is_ordinal_out = false;
 			hint_name_out->m_hint = hint;
@@ -334,7 +334,7 @@ bool pe_parse_delay_import_address(std::byte const* const file_data, int const f
 			WARN_M_R(hint_name_raw != 0, L"Could not parse delay import address name.", false);
 			std::uint16_t const hint = *reinterpret_cast<std::uint16_t const*>(file_data + hint_name_raw + 0);
 			pe_string name;
-			bool const name_parsed = pe_parse_string_raw(file_data, file_size, hint_name_raw + sizeof(std::uint16_t), *sct, &name);
+			bool const name_parsed = pe_parse_string_raw(file_data, hint_name_raw + sizeof(std::uint16_t), *sct, &name);
 			WARN_M_R(name_parsed, L"Failed to parse delay import name.", false);
 			*is_ordinal_out = false;
 			hint_name_out->m_hint = hint;

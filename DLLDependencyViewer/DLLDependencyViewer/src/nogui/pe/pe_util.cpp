@@ -30,17 +30,17 @@ std::uint32_t pe_find_object_in_raw(std::byte const* const file_data, std::uint3
 	WARN_M_R(false, L"Object not found in any section.", 0);
 }
 
-bool pe_parse_string_rva(std::byte const* const file_data, int const file_size, std::uint32_t const str_rva, pe_string* const str_out)
+bool pe_parse_string_rva(std::byte const* const file_data, std::uint32_t const str_rva, pe_string* const str_out)
 {
 	assert(str_out);
 	WARN_M_R(str_rva != 0, L"Invalid string.", false);
 	pe_section_header const* sct;
 	std::uint32_t const str_raw = pe_find_object_in_raw(file_data, str_rva, 2, sct);
 	WARN_M_R(str_raw != 0, L"Could not find string in any section.", false);
-	return pe_parse_string_raw(file_data, file_size, str_raw, *sct, str_out);
+	return pe_parse_string_raw(file_data, str_raw, *sct, str_out);
 }
 
-bool pe_parse_string_raw(std::byte const* const file_data, int const /* file_size */, std::uint32_t const str_raw, pe_section_header const& sct, pe_string* const str_out)
+bool pe_parse_string_raw(std::byte const* const file_data, std::uint32_t const str_raw, pe_section_header const& sct, pe_string* const str_out)
 {
 	assert(str_out);
 	WARN_M_R(str_raw != 0, L"Invalid string.", false);

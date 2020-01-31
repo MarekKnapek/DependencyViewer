@@ -38,7 +38,7 @@ bool pe_process_import_tables(std::byte const* const file_data, pe_import_tables
 	return true;
 }
 
-bool pe_process_import_names(std::byte const* const file_data, int const file_size, pe_import_names* const names_in_out)
+bool pe_process_import_names(std::byte const* const file_data, pe_import_names* const names_in_out)
 {
 	assert(names_in_out);
 	std::uint16_t const n1 = names_in_out->m_tables->m_idt.m_count;
@@ -49,14 +49,14 @@ bool pe_process_import_names(std::byte const* const file_data, int const file_si
 	for(int i = 0; i != n1; ++i, ++ii)
 	{
 		pe_string dll_name;
-		bool const name_parsed = pe_parse_import_dll_name(file_data, file_size, names_in_out->m_tables->m_idt.m_table[i], &dll_name);
+		bool const name_parsed = pe_parse_import_dll_name(file_data, names_in_out->m_tables->m_idt.m_table[i], &dll_name);
 		WARN_M_R(name_parsed, L"Failed to parse import DLL name.", false);
 		strings[ii] = names_in_out->m_ustrings->add_string(dll_name.m_str, dll_name.m_len, *names_in_out->m_alc);
 	}
 	for(int i = 0; i != n2; ++i, ++ii)
 	{
 		pe_string dll_name;
-		bool const name_parsed = pe_parse_delay_import_dll_name(file_data, file_size, names_in_out->m_tables->m_didt.m_table[i], &dll_name);
+		bool const name_parsed = pe_parse_delay_import_dll_name(file_data, names_in_out->m_tables->m_didt.m_table[i], &dll_name);
 		WARN_M_R(name_parsed, L"Failed to parse delay import DLL name.", false);
 		strings[ii] = names_in_out->m_ustrings->add_string(dll_name.m_str, dll_name.m_len, *names_in_out->m_alc);
 	}
@@ -64,7 +64,7 @@ bool pe_process_import_names(std::byte const* const file_data, int const file_si
 	return true;
 }
 
-bool pe_process_import_iat(std::byte const* const file_data, int const file_size, pe_import_iat* const iat_in_out)
+bool pe_process_import_iat(std::byte const* const file_data, pe_import_iat* const iat_in_out)
 {
 	assert(iat_in_out);
 	int const n_dlls = iat_in_out->m_tables->m_idt.m_count + iat_in_out->m_tables->m_didt.m_count;
@@ -93,7 +93,7 @@ bool pe_process_import_iat(std::byte const* const file_data, int const file_size
 			bool is_ordinal;
 			std::uint16_t ordinal;
 			pe_hint_name hint_name;
-			bool const address_parsed = pe_parse_import_address(file_data, file_size, iat, j, &is_ordinal, &ordinal, &hint_name);
+			bool const address_parsed = pe_parse_import_address(file_data, iat, j, &is_ordinal, &ordinal, &hint_name);
 			WARN_M_R(address_parsed, L"Failed to parse import address.", false);
 			if(is_ordinal)
 			{
@@ -131,7 +131,7 @@ bool pe_process_import_iat(std::byte const* const file_data, int const file_size
 			bool is_ordinal;
 			std::uint16_t ordinal;
 			pe_hint_name hint_name;
-			bool const address_parsed = pe_parse_delay_import_address(file_data, file_size, iat_in_out->m_tables->m_didt.m_table[i], iat, j, &is_ordinal, &ordinal, &hint_name);
+			bool const address_parsed = pe_parse_delay_import_address(file_data, iat_in_out->m_tables->m_didt.m_table[i], iat, j, &is_ordinal, &ordinal, &hint_name);
 			WARN_M_R(address_parsed, L"Failed to parse delay import address.", false);
 			if(is_ordinal)
 			{
@@ -168,7 +168,7 @@ bool pe_process_import_iat(std::byte const* const file_data, int const file_size
 // potentially uninitialized local pointer variable 'name' used
 // potentially uninitialized local variable 'frwrdr' used
 // potentially uninitialized local pointer variable 'frwrdr' used
-bool pe_process_export_eat(std::byte const* const file_data, int const file_size, pe_export_eat* const eat_in_out)
+bool pe_process_export_eat(std::byte const* const file_data, pe_export_eat* const eat_in_out)
 {
 	assert(eat_in_out);
 	assert(eat_in_out->m_headers);
@@ -238,7 +238,7 @@ bool pe_process_export_eat(std::byte const* const file_data, int const file_size
 		std::uint16_t hint;
 		pe_string ean;
 		string_handle name;
-		bool const ean_parsed = pe_parse_export_address_name(file_data, file_size, enpt, eot, i, &hint, &ean);
+		bool const ean_parsed = pe_parse_export_address_name(file_data, enpt, eot, i, &hint, &ean);
 		WARN_M_R(ean_parsed, L"Failed to parse export address name.", false);
 		bool const has_name = ean.m_len != 0;
 		if(has_name)
@@ -251,7 +251,7 @@ bool pe_process_export_eat(std::byte const* const file_data, int const file_size
 		bool const is_rva = !is_fwd;
 		if(is_fwd)
 		{
-			const bool fwd_parsed = pe_parse_string_rva(file_data, file_size, export_rva, &forwarder);
+			const bool fwd_parsed = pe_parse_string_rva(file_data, export_rva, &forwarder);
 			WARN_M_R(fwd_parsed, L"Failed to parse export forwarder.", false);
 			WARN_M_R(forwarder.m_len >= 3, L"Export forwarder is too short.", false);
 			WARN_M_R(std::find(forwarder.m_str, forwarder.m_str + forwarder.m_len, '.') != forwarder.m_str + forwarder.m_len, L"Bad export forwarder name format.", false);
@@ -386,7 +386,7 @@ bool pe_process_all(std::byte const* const file_data, int const file_size, memor
 	names.m_tables = &tables;
 	names.m_ustrings = &mm.m_strs;
 	names.m_alc = &mm.m_alc;
-	bool const names_processed = pe_process_import_names(file_data, file_size, &names);
+	bool const names_processed = pe_process_import_names(file_data, &names);
 	WARN_M_R(names_processed, L"Failed to pe_process_import_names.", false);
 	iti.m_dll_names = names.m_names_out;
 
@@ -396,7 +396,7 @@ bool pe_process_all(std::byte const* const file_data, int const file_size, memor
 	imports.m_ustrings = &mm.m_strs;
 	imports.m_alc = &mm.m_alc;
 	imports.m_iti_out = &iti;
-	bool const imports_processed = pe_process_import_iat(file_data, file_size, &imports);
+	bool const imports_processed = pe_process_import_iat(file_data, &imports);
 	WARN_M_R(imports_processed, L"Failed to pe_process_import_iat.", false);
 
 	pe_export_table_info eti;
@@ -410,7 +410,7 @@ bool pe_process_all(std::byte const* const file_data, int const file_size, memor
 	exports.m_eti_out = &eti;
 	exports.m_enpt_count_out = &entp_count;
 	exports.m_enpt_out = &entp;
-	bool const export_eat_processed = pe_process_export_eat(file_data, file_size, &exports);
+	bool const export_eat_processed = pe_process_export_eat(file_data, &exports);
 	WARN_M_R(export_eat_processed, L"Failed to pe_process_export_eat.", false);
 
 	std::uint32_t manifest_id;

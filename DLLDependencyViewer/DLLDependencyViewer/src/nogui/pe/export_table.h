@@ -78,4 +78,4 @@ bool pe_parse_export_directory_table(std::byte const* const file_data, pe_export
 bool pe_parse_export_name_pointer_table(std::byte const* const file_data, pe_export_directory_table const& edt, pe_export_name_pointer_table* const enpt_out);
 bool pe_parse_export_ordinal_table(std::byte const* const file_data, pe_export_directory_table const& edt, pe_export_ordinal_table* const eot_out);
 bool pe_parse_export_address_table(std::byte const* const file_data, pe_export_directory_table const& edt, pe_export_address_table* const eat_out);
-bool pe_parse_export_address_name(std::byte const* const file_data, int const file_size, pe_export_name_pointer_table const& enpt, pe_export_ordinal_table const& eot, std::uint16_t const& idx, std::uint16_t* const hint_out, pe_string* const ean_out);
+bool pe_parse_export_address_name(std::byte const* const file_data, pe_export_name_pointer_table const& enpt, pe_export_ordinal_table const& eot, std::uint16_t const& idx, std::uint16_t* const hint_out, pe_string* const ean_out);
