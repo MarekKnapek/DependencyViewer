@@ -103,11 +103,13 @@ bool step_1(tmp_type& to)
 
 bool step_2(file_info& fi, tmp_type& to)
 {
-	auto const it = to.m_map.find(fi.m_file_path);
+	fat_type tmp;
+	tmp.m_orig_instance = &fi;
+	auto const it = to.m_map.find(&tmp);
 	if(it != to.m_map.end())
 	{
-		assert(it->second->m_orig_instance);
-		file_info* const orig = it->second->m_orig_instance;
+		assert((*it)->m_orig_instance);
+		file_info* const orig = (*it)->m_orig_instance;
 		fi.m_orig_instance = orig;
 		fi.m_file_path = wstring_handle{};
 		return true;
@@ -131,8 +133,8 @@ bool step_2(file_info& fi, tmp_type& to)
 	fo->m_orig_instance = &fi;
 	fo->m_enpt.m_table = enpt;
 	fo->m_enpt.m_count = enpt_count;
-	assert(to.m_map.find(fi.m_file_path) == to.m_map.end());
-	to.m_map[fi.m_file_path] = fo;
+	auto const itb = to.m_map.insert(fo);
+	assert(itb.second);
 	std::uint16_t const n = fi.m_import_table.m_normal_dll_count + fi.m_import_table.m_delay_dll_count;
 	file_info* const fis = to.m_mm->m_alc.allocate_objects<file_info>(n);
 	init(fis, n);

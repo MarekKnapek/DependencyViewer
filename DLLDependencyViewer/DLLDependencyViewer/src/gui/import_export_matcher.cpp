@@ -67,9 +67,11 @@ void pair_imports_with_exports(file_info& fi, file_info& sub_fi, tmp_type& to)
 		{
 			std::uint16_t const& hint = fi.m_import_table.m_ordinals_or_hints[dll_idx][i];
 			string_handle const& name = fi.m_import_table.m_names[dll_idx][i];
-			auto const it_2 = to.m_map.find(sub_fi.m_orig_instance ? sub_fi.m_orig_instance->m_file_path : sub_fi.m_file_path);
+			fat_type tmp;
+			tmp.m_orig_instance = sub_fi.m_orig_instance ? sub_fi.m_orig_instance : &sub_fi;
+			auto const it_2 = to.m_map.find(&tmp);
 			assert(it_2 != to.m_map.end());
-			auto const& enpt = it_2->second->m_enpt;
+			auto const& enpt = (*it_2)->m_enpt;
 			if(hint < enpt.m_count && exp.m_names[enpt.m_table[hint]] == name)
 			{
 				matched_export = enpt.m_table[hint];

@@ -27,12 +27,28 @@ struct fat_type
 	enptr_type m_enpt;
 };
 
+struct fat_type_hash
+{
+	std::size_t operator()(fat_type const* const& obj) const
+	{
+		return std::hash<wstring_handle>{}(obj->m_orig_instance->m_file_path);
+	}
+};
+
+struct fat_type_eq
+{
+	bool operator()(fat_type const* const& a, fat_type const* const& b) const
+	{
+		return a->m_orig_instance->m_file_path == b->m_orig_instance->m_file_path;
+	}
+};
+
 struct tmp_type
 {
 	memory_manager* m_mm;
 	allocator m_tmp_alc;
 	std::deque<file_info*> m_queue;
-	std::unordered_map<wstring_handle, fat_type*> m_map;
+	std::unordered_set<fat_type*, fat_type_hash, fat_type_eq> m_map;
 	dependency_locator m_dl;
 };
 
