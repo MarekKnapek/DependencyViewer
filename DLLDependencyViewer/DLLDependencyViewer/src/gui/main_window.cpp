@@ -1167,7 +1167,7 @@ void main_window::add_idle_task(idle_task_t const task, idle_task_param_t const 
 {
 	m_idle_tasks.push({task, param});
 	update_staus_bar();
-	BOOL const posted = PostMessageW(m_hwnd, wm_main_window_process_on_idle, 0, 0);
+	BOOL const posted = PostMessageW(m_hwnd, WM_NULL, 0, 0);
 	assert(posted != 0);
 }
 
@@ -1185,7 +1185,7 @@ void main_window::on_idle()
 	(*task)(*this, param);
 	if(!m_idle_tasks.empty())
 	{
-		BOOL const posted = PostMessageW(m_hwnd, wm_main_window_process_on_idle, 0, 0);
+		BOOL const posted = PostMessageW(m_hwnd, WM_NULL, 0, 0);
 		assert(posted != 0);
 	}
 }
