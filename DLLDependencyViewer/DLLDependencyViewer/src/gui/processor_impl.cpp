@@ -56,10 +56,11 @@ bool process_impl(std::vector<std::wstring> const& file_paths, main_type& mo)
 		int const path_len = static_cast<int>(file_paths[i].size());
 		wchar_t const* const cstr = file_paths[i].c_str();
 		wstring_handle const normalized = file_name_provider::get_correct_file_name(cstr, path_len, to.m_mm->m_wstrs, to.m_mm->m_alc);
+		sub_fi.m_file_path = normalized;
 		dependency_locator& dl = to.m_dl;
 		dl.m_main_path = normalized;
 		assert(to.m_queue.empty());
-		to.m_queue.push_back({normalized, &sub_fi});
+		to.m_queue.push_back(&sub_fi);
 		bool const step = step_1(to);
 		WARN_M_R(step, L"Failed to step_1.", false);
 	}
@@ -91,28 +92,26 @@ bool step_1(tmp_type& to)
 {
 	while(!to.m_queue.empty())
 	{
-		auto const& e = to.m_queue.front();
-		wstring_handle const file_path = e.first;
-		file_info* const fi = e.second;
+		file_info* const fi = to.m_queue.front();
 		assert(fi != nullptr);
 		to.m_queue.pop_front();
-		bool const step = step_2(file_path, *fi, to);
+		bool const step = step_2(*fi, to);
 		WARN_M_R(step, L"Failed to step_2.", false);
 	}
 	return true;
 }
 
-bool step_2(wstring_handle const& file_path, file_info& fi, tmp_type& to)
+bool step_2(file_info& fi, tmp_type& to)
 {
-	auto const it = to.m_map.find(file_path);
+	auto const it = to.m_map.find(fi.m_file_path);
 	if(it != to.m_map.end())
 	{
 		assert(it->second->m_orig_instance);
 		file_info* const orig = it->second->m_orig_instance;
 		fi.m_orig_instance = orig;
+		fi.m_file_path = wstring_handle{};
 		return true;
 	}
-	fi.m_file_path = file_path;
 	std::uint16_t const* enpt;
 	std::uint16_t enpt_count;
 	pe_tables tables;
@@ -122,7 +121,7 @@ bool step_2(wstring_handle const& file_path, file_info& fi, tmp_type& to)
 	tables.m_enpt_count_out = &enpt_count;
 	tables.m_enpt_out = &enpt;
 	{
-		memory_mapped_file const mmf = memory_mapped_file(file_path.m_string->m_str);
+		memory_mapped_file const mmf = memory_mapped_file(fi.m_file_path.m_string->m_str);
 		WARN_M_R(mmf.begin() != nullptr, L"Failed to memory_mapped_file.", false);
 		bool const tables_processed = pe_process_all(mmf.begin(), mmf.size(), *to.m_mm, &tables);
 		WARN_M_R(tables_processed, L"Failed to pe_process_all.", false);
@@ -132,8 +131,8 @@ bool step_2(wstring_handle const& file_path, file_info& fi, tmp_type& to)
 	fo->m_orig_instance = &fi;
 	fo->m_enpt.m_table = enpt;
 	fo->m_enpt.m_count = enpt_count;
-	assert(to.m_map.find(file_path) == to.m_map.end());
-	to.m_map[file_path] = fo;
+	assert(to.m_map.find(fi.m_file_path) == to.m_map.end());
+	to.m_map[fi.m_file_path] = fo;
 	std::uint16_t const n = fi.m_import_table.m_normal_dll_count + fi.m_import_table.m_delay_dll_count;
 	file_info* const fis = to.m_mm->m_alc.allocate_objects<file_info>(n);
 	init(fis, n);
@@ -162,7 +161,8 @@ bool step_3(file_info const& fi, std::uint16_t const i, tmp_type& to)
 	{
 		std::wstring const& result = dl.m_result;
 		wstring_handle const normalized = file_name_provider::get_correct_file_name(result.c_str(), static_cast<int>(result.size()), to.m_mm->m_wstrs, to.m_mm->m_alc);
-		to.m_queue.push_back({normalized, &sub_fi});
+		sub_fi.m_file_path = normalized;
+		to.m_queue.push_back(&sub_fi);
 		return true;
 	}
 	else
