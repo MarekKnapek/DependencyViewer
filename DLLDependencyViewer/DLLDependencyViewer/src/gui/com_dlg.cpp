@@ -11,6 +11,10 @@ static void* g_fn_GetOpenFileNameW = nullptr;
 
 void com_dlg::load()
 {
+	assert((SetLastError(0), true));
+	assert(GetModuleHandleW(L"comdlg32.dll") == nullptr);
+	assert(GetLastError() == ERROR_MOD_NOT_FOUND);
+
 	assert(!g_comdlg32);
 	g_comdlg32 = load_library(L"comdlg32.dll");
 	assert(g_comdlg32);

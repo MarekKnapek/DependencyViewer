@@ -13,6 +13,10 @@ static void* g_fn_DrawStatusTextW = nullptr;
 
 void common_controls::load()
 {
+	assert((SetLastError(0), true));
+	assert(GetModuleHandleW(L"comctl32.dll") == nullptr);
+	assert(GetLastError() == ERROR_MOD_NOT_FOUND);
+
 	assert(!g_comctl32);
 	g_comctl32 = load_library(L"comctl32.dll");
 	assert(g_comctl32);
