@@ -30,7 +30,7 @@ struct fat_type
 struct tmp_type
 {
 	memory_manager* m_mm;
-	allocator* m_tmp_alc;
+	allocator m_tmp_alc;
 	std::deque<std::pair<wstring_handle, file_info*>> m_queue;
 	std::unordered_map<wstring_handle, fat_type*> m_map;
 	dependency_locator m_dl;

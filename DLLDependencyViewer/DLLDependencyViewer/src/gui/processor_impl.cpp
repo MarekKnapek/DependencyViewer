@@ -48,10 +48,8 @@ bool process_impl(std::vector<std::wstring> const& file_paths, main_type& mo)
 	fi->m_import_table.m_delay_dll_count = 0;
 	fi->m_import_table.m_dll_names = dll_names;
 	fi->m_import_table.m_import_counts = import_counts;
-	allocator tmpalc;
 	tmp_type to;
 	to.m_mm = &mo.m_mm;
-	to.m_tmp_alc = &tmpalc;
 	for(std::uint16_t i = 0; i != n; ++i)
 	{
 		file_info& sub_fi = fi->m_fis[i];
@@ -118,7 +116,7 @@ bool step_2(wstring_handle const& file_path, file_info& fi, tmp_type& to)
 	std::uint16_t const* enpt;
 	std::uint16_t enpt_count;
 	pe_tables tables;
-	tables.m_tmp_alc = to.m_tmp_alc;
+	tables.m_tmp_alc = &to.m_tmp_alc;
 	tables.m_iti_out = &fi.m_import_table;
 	tables.m_eti_out = &fi.m_export_table;
 	tables.m_enpt_count_out = &enpt_count;
@@ -130,7 +128,7 @@ bool step_2(wstring_handle const& file_path, file_info& fi, tmp_type& to)
 		WARN_M_R(tables_processed, L"Failed to pe_process_all.", false);
 	}
 	fi.m_is_32_bit = tables.m_is_32_bit;
-	fat_type* const fo = to.m_tmp_alc->allocate_objects<fat_type>(1);
+	fat_type* const fo = to.m_tmp_alc.allocate_objects<fat_type>(1);
 	fo->m_orig_instance = &fi;
 	fo->m_enpt.m_table = enpt;
 	fo->m_enpt.m_count = enpt_count;
