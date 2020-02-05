@@ -29,11 +29,11 @@ void pair_all(file_info& fi, tmp_type& to)
 			file_info* const sub_fi_proper = sub_fi.m_orig_instance ? sub_fi.m_orig_instance : &sub_fi;
 			assert(sub_fi_proper->m_file_path);
 			fat_type tmp;
-			tmp.m_orig_instance = sub_fi_proper;
+			tmp.m_instance = sub_fi_proper;
 			auto const it = to.m_map.find(&tmp);
 			assert(it != to.m_map.end());
-			assert((*it)->m_orig_instance->m_orig_instance == nullptr);
-			assert((*it)->m_orig_instance->m_file_path);
+			assert((*it)->m_instance->m_orig_instance == nullptr);
+			assert((*it)->m_instance->m_file_path);
 			pair_imports_with_exports(fi.m_import_table, i, sub_fi_proper->m_export_table, (*it)->m_enpt);
 			pair_exports_with_imports(fi, sub_fi, to);
 		}

@@ -104,12 +104,12 @@ bool step_1(tmp_type& to)
 bool step_2(file_info& fi, tmp_type& to)
 {
 	fat_type tmp;
-	tmp.m_orig_instance = &fi;
+	tmp.m_instance = &fi;
 	auto const it = to.m_map.find(&tmp);
 	if(it != to.m_map.end())
 	{
-		assert((*it)->m_orig_instance);
-		file_info* const orig = (*it)->m_orig_instance;
+		assert((*it)->m_instance);
+		file_info* const orig = (*it)->m_instance;
 		fi.m_orig_instance = orig;
 		fi.m_file_path = wstring_handle{};
 		return true;
@@ -130,7 +130,7 @@ bool step_2(file_info& fi, tmp_type& to)
 	}
 	fi.m_is_32_bit = tables.m_is_32_bit;
 	fat_type* const fo = to.m_tmp_alc.allocate_objects<fat_type>(1);
-	fo->m_orig_instance = &fi;
+	fo->m_instance = &fi;
 	fo->m_enpt.m_table = enpt;
 	fo->m_enpt.m_count = enpt_count;
 	auto const itb = to.m_map.insert(fo);

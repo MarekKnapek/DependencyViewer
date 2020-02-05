@@ -23,7 +23,7 @@ struct enptr_type
 
 struct fat_type
 {
-	file_info* m_orig_instance;
+	file_info* m_instance;
 	enptr_type m_enpt;
 };
 
@@ -31,7 +31,7 @@ struct fat_type_hash
 {
 	std::size_t operator()(fat_type const* const& obj) const
 	{
-		return std::hash<wstring_handle>{}(obj->m_orig_instance->m_file_path);
+		return std::hash<wstring_handle>{}(obj->m_instance->m_file_path);
 	}
 };
 
@@ -39,7 +39,7 @@ struct fat_type_eq
 {
 	bool operator()(fat_type const* const& a, fat_type const* const& b) const
 	{
-		return a->m_orig_instance->m_file_path == b->m_orig_instance->m_file_path;
+		return a->m_instance->m_file_path == b->m_instance->m_file_path;
 	}
 };
 
