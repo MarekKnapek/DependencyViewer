@@ -8,6 +8,8 @@
 #include "test.h"
 
 #include "../nogui/array_bool.h"
+#include "../nogui/assert.h"
+#include "../nogui/com_ptr.h"
 #include "../nogui/dbg_provider.h"
 #include "../nogui/memory_mapped_file.h"
 #include "../nogui/pe.h"
@@ -16,6 +18,7 @@
 
 #include "../res/resources.h"
 
+#include <array>
 #include <atomic>
 #include <cassert>
 #include <cassert>
@@ -28,6 +31,8 @@
 #include <commctrl.h>
 #include <commdlg.h>
 #include <shellapi.h>
+#include <shlobj.h>
+#include <shobjidl.h>
 #include <windowsx.h>
 
 
@@ -1003,15 +1008,82 @@ void main_window::properties(wstring_handle data /* = wstring_handle{} */)
 	{
 		return;
 	}
-	SHELLEXECUTEINFOW info{};
-	info.cbSize = sizeof(info);
-	info.fMask = SEE_MASK_INVOKEIDLIST;
-	info.lpVerb = L"properties";
-	info.lpFile = dta.m_string->m_str;
-	info.nShow = SW_SHOWNORMAL;
-	BOOL const executed = ShellExecuteExW(&info);
-	assert(executed != FALSE);
-	assert(static_cast<int>(reinterpret_cast<std::uintptr_t>(info.hInstApp)) > 32);
+
+	static constexpr auto const properties_new_style = [](wstring_handle const& file_path) -> bool
+	{
+		IShellFolder* desktop;
+		HRESULT const got_desktop = SHGetDesktopFolder(&desktop);
+		WARN_M_R(got_desktop == S_OK, L"Failed to SHGetDesktopFolder.", false);
+		com_ptr<IShellFolder> const desktop_sp(desktop);
+
+		wchar_t const* const file_path_b = begin(file_path);
+		wchar_t const* const file_name = find_file_name(file_path_b, size(file_path));
+		assert(file_name != file_path_b);
+		std::array<wchar_t, 32 * 1024> file_folder;
+		auto const file_folder_l = file_name - file_path_b;
+		std::memcpy(file_folder.data(), file_path_b, file_folder_l * sizeof(wchar_t));
+		file_folder[file_folder_l] = L'\0';
+
+		ITEMIDLIST_RELATIVE* sub_folder_rel;
+		ULONG attributes_1 = SFGAO_FILESYSTEM;
+		HRESULT const parsed_display_name_1 = desktop->lpVtbl->ParseDisplayName(desktop, nullptr, nullptr, file_folder.data(), nullptr, &sub_folder_rel, &attributes_1);
+		WARN_M_R(parsed_display_name_1 == S_OK, L"Failed to IShellFolder::ParseDisplayName.", false);
+		WARN_M_R((attributes_1 & SFGAO_FILESYSTEM) != 0, L"Shell item has not SFGAO_FILESYSTEM attribute.", false);
+		auto const free_sub_folder_rel = mk::make_scope_exit([&](){ CoTaskMemFree(sub_folder_rel); });
+
+		IShellFolder* sub_folder;
+		HRESULT const bound = desktop->lpVtbl->BindToObject(desktop, sub_folder_rel, nullptr, IID_IShellFolder, reinterpret_cast<void**>(&sub_folder));
+		WARN_M_R(bound == S_OK, L"Failed to IShellFolder::BindToObject.", false);
+		com_ptr<IShellFolder> const sub_folder_sp(sub_folder);
+
+		ITEMIDLIST_RELATIVE* sub_file_rel;
+		ULONG attributes_2 = SFGAO_FILESYSTEM;
+		HRESULT const parsed_display_name_2 = sub_folder->lpVtbl->ParseDisplayName(sub_folder, nullptr, nullptr, const_cast<wchar_t*>(file_name), nullptr, &sub_file_rel, &attributes_2);
+		WARN_M_R(parsed_display_name_2 == S_OK, L"Failed to IShellFolder::ParseDisplayName.", false);
+		WARN_M_R((attributes_2 & SFGAO_FILESYSTEM) != 0, L"Shell item has not SFGAO_FILESYSTEM attribute.", false);
+		auto const free_sub_file_rel = mk::make_scope_exit([&](){ CoTaskMemFree(sub_file_rel); });
+
+		ITEMIDLIST const* chidren[1];
+		chidren[0] = sub_file_rel;
+		IContextMenu* context_menu;
+		HRESULT const got_ui_object = sub_folder->lpVtbl->GetUIObjectOf(sub_folder, nullptr, 1, chidren, IID_IContextMenu, nullptr, reinterpret_cast<void**>(&context_menu));
+		WARN_M_R(got_ui_object == S_OK, L"Failed to IShellFolder::GetUIObjectOf.", false);
+		com_ptr<IContextMenu> const context_menu_sp(context_menu);
+
+		HMENU const menu = CreatePopupMenu();
+		assert(menu);
+		auto const destroy_menu = mk::make_scope_exit([&](){ DestroyMenu(menu); assert(menu != 0); });
+
+		HRESULT const menu_queried = context_menu->lpVtbl->QueryContextMenu(context_menu, menu, 0, 1, 0x7FF, CMF_NORMAL);
+		WARN_M_R(SUCCEEDED(menu_queried), L"Failed to IContextMenu::QueryContextMenu.", false);
+
+		CMINVOKECOMMANDINFO info{};
+		info.cbSize = sizeof(info);
+		info.lpVerb = "properties";
+		HRESULT const command_invoked = context_menu->lpVtbl->InvokeCommand(context_menu, &info);
+		WARN_M_R(command_invoked == S_OK, L"Failed to IContextMenu::InvokeCommand.", false);
+
+		return true;
+	};
+
+	static constexpr auto const properties_old_style = [](wstring_handle const& file_path) -> void
+	{
+		SHELLEXECUTEINFOW info{};
+		info.cbSize = sizeof(info);
+		info.fMask = SEE_MASK_INVOKEIDLIST;
+		info.lpVerb = L"properties";
+		info.lpFile = file_path.m_string->m_str;
+		info.nShow = SW_SHOWNORMAL;
+		BOOL const executed = ShellExecuteExW(&info);
+		assert(executed != FALSE);
+		assert(static_cast<int>(reinterpret_cast<std::uintptr_t>(info.hInstApp)) > 32);
+	};
+
+	bool const new_style_succeeded = properties_new_style(dta);
+	if(!new_style_succeeded)
+	{
+		properties_old_style(dta);
+	}
 }
 
 wstring_handle main_window::get_properties_data(file_info const* const curr_fi /* = nullptr */)
