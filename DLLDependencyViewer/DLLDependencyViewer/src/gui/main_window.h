@@ -97,8 +97,8 @@ private:
 	void exit();
 	void refresh(main_type&& mo);
 	void full_paths();
-	void properties(wchar_t const* const data = nullptr);
-	wchar_t const* get_properties_data(file_info const* const curr_fi = nullptr);
+	void properties(wstring_handle data = wstring_handle{});
+	wstring_handle get_properties_data(file_info const* const curr_fi = nullptr);
 	void undecorate();
 	void refresh();
 	int get_ordinal_column_max_width();

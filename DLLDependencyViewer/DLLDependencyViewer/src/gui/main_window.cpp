@@ -876,8 +876,8 @@ void main_window::toolbar_icons_enabled_refresh()
 		assert(set != FALSE);
 	};
 
-	wchar_t const* const data = get_properties_data();
-	bool const enable = data != nullptr;
+	wstring_handle data = get_properties_data();
+	bool const enable = !!data;
 	fn_enable_properties(m_toolbar, enable);
 }
 
@@ -996,9 +996,9 @@ void main_window::full_paths()
 	m_tree_view.repaint();
 }
 
-void main_window::properties(wchar_t const* const data /* = nullptr */)
+void main_window::properties(wstring_handle data /* = wstring_handle{} */)
 {
-	wchar_t const* const dta = data ? data : get_properties_data();
+	wstring_handle const dta = data ? data : get_properties_data();
 	if(!dta)
 	{
 		return;
@@ -1007,14 +1007,14 @@ void main_window::properties(wchar_t const* const data /* = nullptr */)
 	info.cbSize = sizeof(info);
 	info.fMask = SEE_MASK_INVOKEIDLIST;
 	info.lpVerb = L"properties";
-	info.lpFile = dta;
+	info.lpFile = dta.m_string->m_str;
 	info.nShow = SW_SHOWNORMAL;
 	BOOL const executed = ShellExecuteExW(&info);
 	assert(executed != FALSE);
 	assert(static_cast<int>(reinterpret_cast<std::uintptr_t>(info.hInstApp)) > 32);
 }
 
-wchar_t const* main_window::get_properties_data(file_info const* const curr_fi /* = nullptr */)
+wstring_handle main_window::get_properties_data(file_info const* const curr_fi /* = nullptr */)
 {
 	file_info const* fi;
 	if(curr_fi)
@@ -1026,18 +1026,18 @@ wchar_t const* main_window::get_properties_data(file_info const* const curr_fi /
 		file_info const* const f = m_tree_view.get_selection();
 		if(!f)
 		{
-			return nullptr;
+			return wstring_handle{};
 		}
 		fi = f;
 	}
 	assert(fi);
 	file_info const& real_fi = fi->m_orig_instance ? *fi->m_orig_instance : *fi;
-	wstring const* const str = real_fi.m_file_path.m_string;
+	wstring_handle const& str = real_fi.m_file_path;
 	if(!str)
 	{
-		return nullptr;
+		return wstring_handle{};
 	}
-	return str->m_str;
+	return str;
 }
 
 void main_window::undecorate()
