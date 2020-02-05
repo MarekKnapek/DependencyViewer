@@ -29,18 +29,23 @@ void pair_all(file_info& fi, tmp_type& to)
 void pair_imports_with_exports(file_info& fi, file_info& sub_fi, tmp_type& to)
 {
 	file_info& sub_fi_proper = sub_fi.m_orig_instance ? *sub_fi.m_orig_instance : sub_fi;
-	if(sub_fi_proper.m_file_path.m_string == nullptr)
-	{
-		return;
-	}
 	pe_export_table_info& exp = sub_fi_proper.m_export_table;
 	auto const dll_idx_ = &sub_fi - fi.m_fis;
 	assert(dll_idx_ >= 0 && dll_idx_ <= 0xFFFF);
 	std::uint16_t const dll_idx = static_cast<std::uint16_t>(dll_idx_);
 	std::uint16_t const n = fi.m_import_table.m_import_counts[dll_idx];
+	if(sub_fi_proper.m_file_path.m_string == nullptr)
+	{
+		std::uint16_t* const b = fi.m_import_table.m_matched_exports[dll_idx];
+		std::uint16_t* const e = b + n;
+		assert(std::all_of(b, e, [](auto const& e){ return e == 0xFFFE; }));
+		std::fill(b, e, static_cast<std::uint16_t>(0xFFFF));
+		return;
+	}
 	for(int i = 0; i != n; ++i)
 	{
 		std::uint16_t& matched_export = fi.m_import_table.m_matched_exports[dll_idx][i];
+		assert(matched_export == 0xFFFE);
 		bool const is_ordinal = array_bool_tst(fi.m_import_table.m_are_ordinals[dll_idx], i);
 		if(is_ordinal)
 		{
@@ -60,6 +65,7 @@ void pair_imports_with_exports(file_info& fi, file_info& sub_fi, tmp_type& to)
 				}
 				else
 				{
+					matched_export = 0xFFFF;
 				}
 			}
 		}
@@ -86,6 +92,7 @@ void pair_imports_with_exports(file_info& fi, file_info& sub_fi, tmp_type& to)
 				}
 				else
 				{
+					matched_export = 0xFFFF;
 				}
 			}
 		}

@@ -87,7 +87,7 @@ bool pe_process_import_iat(std::byte const* const file_data, pe_import_iat* cons
 		string_handle* const names = iat_in_out->m_alc->allocate_objects<string_handle>(iat.m_count);
 		string_handle* const undecorated_names = iat_in_out->m_alc->allocate_objects<string_handle>(iat.m_count);
 		std::uint16_t* const matched_exports = iat_in_out->m_alc->allocate_objects<std::uint16_t>(iat.m_count);
-		std::fill(matched_exports,  matched_exports + iat.m_count, std::uint16_t{0xFFFF});
+		assert((std::fill(matched_exports,  matched_exports + iat.m_count, std::uint16_t{0xFFFE}), true));
 		for(int j = 0; j != iat.m_count; ++j)
 		{
 			bool is_ordinal;
@@ -125,7 +125,7 @@ bool pe_process_import_iat(std::byte const* const file_data, pe_import_iat* cons
 		string_handle* const names = iat_in_out->m_alc->allocate_objects<string_handle>(iat.m_count);
 		string_handle* const undecorated_names = iat_in_out->m_alc->allocate_objects<string_handle>(iat.m_count);
 		std::uint16_t* const matched_exports = iat_in_out->m_alc->allocate_objects<std::uint16_t>(iat.m_count);
-		std::fill(matched_exports,  matched_exports + iat.m_count, std::uint16_t{0xFFFF});
+		assert((std::fill(matched_exports,  matched_exports + iat.m_count, std::uint16_t{0xFFFE}), true));
 		for(int j = 0; j != iat.m_count; ++j)
 		{
 			bool is_ordinal;
