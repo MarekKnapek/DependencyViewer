@@ -53,7 +53,7 @@ bool create_actctx2(wstring_handle const exe, wstring_handle const dll, std::uin
 	auto const e = end(exe);
 	auto const it = rfind(b, e, L'\\');
 	WARN_M_R(it != e, L"Could not find directory.", false);
-	auto const diff_ = it - b;
+	auto const diff_ = it - b + 1;
 	assert(diff_ <= s_very_big_int);
 	int const diff = static_cast<int>(diff_);
 	std::array<wchar_t, 32 * 1024> buff;
