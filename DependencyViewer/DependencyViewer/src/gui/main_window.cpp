@@ -217,8 +217,10 @@ main_window::main_window() :
 	m_hwnd(CreateWindowExW(0, reinterpret_cast<wchar_t const*>(g_class), s_window_title, WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, nullptr, create_menu(), get_instance(), nullptr)),
 	m_toolbar(create_toolbar(m_hwnd)),
 	m_main_panel(m_hwnd),
-	m_tree_view(m_main_panel.get_hwnd(), *this),
-	m_right_panel(m_main_panel.get_hwnd()),
+	m_upper_panel(m_main_panel.get_hwnd()),
+	m_modules_view(m_main_panel.get_hwnd(), *this),
+	m_tree_view(m_upper_panel.get_hwnd(), *this),
+	m_right_panel(m_upper_panel.get_hwnd()),
 	m_import_view(m_right_panel.get_hwnd(), *this),
 	m_export_view(m_right_panel.get_hwnd(), *this),
 	m_status_bar(CreateWindowExW(0, reinterpret_cast<wchar_t const*>(STATUSCLASSNAMEW), L"", SBARS_SIZEGRIP | WS_BORDER | WS_VISIBLE | WS_CHILD, 0, 0, 0, 0, m_hwnd, nullptr, get_instance(), nullptr)),
@@ -227,11 +229,16 @@ main_window::main_window() :
 	m_mo(),
 	m_settings()
 {
+	assert(m_hwnd != nullptr);
+
 	LONG_PTR const set = SetWindowLongPtrW(m_hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
 	DragAcceptFiles(m_hwnd, TRUE);
 
-	m_main_panel.set_elements(m_tree_view.get_hwnd(), m_right_panel.get_hwnd());
+	m_main_panel.set_elements(m_upper_panel.get_hwnd(), m_modules_view.get_hwnd());
+	m_upper_panel.set_elements(m_tree_view.get_hwnd(), m_right_panel.get_hwnd());
 	m_right_panel.set_elements(m_import_view.get_hwnd(), m_export_view.get_hwnd());
+
+	m_main_panel.set_position(0.8f);
 
 	RECT r;
 	BOOL const got_rect = GetClientRect(m_hwnd, &r);
@@ -437,7 +444,9 @@ LRESULT main_window::on_wm_size(WPARAM wparam, LPARAM lparam)
 
 	LONG const total_height = tb_height + sb_height;
 	BOOL const moved = MoveWindow(m_main_panel.get_hwnd(), 0, 0 + tb_height, w, h - total_height, TRUE);
-	return DefWindowProcW(m_hwnd, WM_SIZE, wparam, lparam);
+
+	LRESULT const ret = DefWindowProcW(m_hwnd, WM_SIZE, wparam, lparam);
+	return ret;
 }
 
 LRESULT main_window::on_wm_close(WPARAM wparam, LPARAM lparam)
@@ -479,6 +488,10 @@ LRESULT main_window::on_wm_notify(WPARAM wparam, LPARAM lparam)
 	else if(nmhdr.hwndFrom == m_export_view.get_hwnd())
 	{
 		m_export_view.on_notify(nmhdr);
+	}
+	else if(nmhdr.hwndFrom == m_modules_view.get_hwnd())
+	{
+		m_modules_view.on_notify(nmhdr);
 	}
 	else if(nmhdr.hwndFrom == m_toolbar)
 	{
@@ -981,6 +994,7 @@ void main_window::refresh(main_type&& mo)
 	request_mo_deletion(std::move(tmp));
 
 	m_tree_view.refresh();
+	m_modules_view.refresh();
 	SetFocus(m_tree_view.get_hwnd());
 }
 

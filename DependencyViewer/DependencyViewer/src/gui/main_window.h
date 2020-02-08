@@ -3,6 +3,7 @@
 
 #include "export_view.h"
 #include "import_view.h"
+#include "modules_view.h"
 #include "processor.h"
 #include "settings.h"
 #include "smart_menu.h"
@@ -126,7 +127,9 @@ private:
 private:
 	HWND m_hwnd;
 	HWND m_toolbar;
-	splitter_window_ver m_main_panel;
+	splitter_window_hor m_main_panel;
+	splitter_window_ver m_upper_panel;
+	modules_view m_modules_view;
 	tree_view m_tree_view;
 	splitter_window_hor m_right_panel;
 	import_view m_import_view;
@@ -134,13 +137,13 @@ private:
 	HWND m_status_bar;
 	std::queue<std::pair<idle_task_t, idle_task_param_t>> m_idle_tasks;
 	std::deque<thread_worker_param_t> m_dbg_tasks;
-private:
 	main_type m_mo;
 	settings m_settings;
 private:
 	friend class tree_view;
 	friend class import_view;
 	friend class export_view;
+	friend class modules_view;
 	template<typename marshaller_t, typename fn_worker_t, typename fn_main_t>
 	friend void request_helper(main_window* const self, dbg_provider* const dbg, marshaller_t&& mrshllr, fn_worker_t const fn_worker_, fn_main_t const fn_main_);
 };
