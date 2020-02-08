@@ -29,6 +29,12 @@ struct file_info
 void init(file_info* const fi);
 void init(file_info* const fi, int const count);
 
+struct modules_list_t
+{
+	file_info** m_list;
+	int m_count;
+};
+
 struct main_type
 {
 	file_info* m_fi;
