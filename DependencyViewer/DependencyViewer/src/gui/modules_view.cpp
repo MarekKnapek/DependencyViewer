@@ -1,5 +1,6 @@
 #include "modules_view.h"
 
+#include "file_info_getters.h"
 #include "main.h"
 #include "main_window.h"
 
@@ -131,10 +132,19 @@ wchar_t const* modules_view::on_get_col_name(int const& row)
 	assert(row < m_main_window.m_mo.m_modules_list.m_count);
 	file_info const* const fi = m_main_window.m_mo.m_modules_list.m_list[row];
 	assert(!fi->m_orig_instance);
-	assert(fi->m_file_path);
-	wchar_t const* const name = find_file_name(begin(fi->m_file_path), size(fi->m_file_path));
-	assert(name != begin(fi->m_file_path));
-	return name;
+	if(fi->m_file_path)
+	{
+		wchar_t const* const name = find_file_name(begin(fi->m_file_path), size(fi->m_file_path));
+		assert(name != begin(fi->m_file_path));
+		return name;
+	}
+	else
+	{
+		auto const& dll_name_a = get_dll_name_no_path(fi);
+		wchar_t const* const dll_name_w = m_string_converter.convert(dll_name_a);
+		assert(dll_name_w);
+		return dll_name_w;
+	}
 }
 
 wchar_t const* modules_view::on_get_col_path(int const& row)
@@ -142,6 +152,12 @@ wchar_t const* modules_view::on_get_col_path(int const& row)
 	assert(row < m_main_window.m_mo.m_modules_list.m_count);
 	file_info const* const fi = m_main_window.m_mo.m_modules_list.m_list[row];
 	assert(!fi->m_orig_instance);
-	assert(fi->m_file_path);
-	return fi->m_file_path.m_string->m_str;
+	if(fi->m_file_path)
+	{
+		return fi->m_file_path.m_string->m_str;
+	}
+	else
+	{
+		return L"";
+	}
 }

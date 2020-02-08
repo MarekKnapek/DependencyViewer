@@ -2,6 +2,7 @@
 
 
 #include "../nogui/my_windows.h"
+#include "../nogui/string_converter.h"
 
 
 class main_window;
@@ -29,4 +30,5 @@ private:
 private:
 	HWND const m_hwnd;
 	main_window& m_main_window;
+	string_converter m_string_converter;
 };
