@@ -66,6 +66,7 @@ bool process_impl(std::vector<std::wstring> const& file_paths, main_type& mo)
 	}
 	pair_all(*fi, to);
 	make_doubly_linked_list(*fi);
+	mo.m_modules_list = make_modules_list(to);
 	return true;
 }
 
@@ -85,6 +86,18 @@ void make_doubly_linked_list(file_info& fi)
 		orig->m_prev_instance = &fi;
 	};
 	depth_first_visit(fi, make_list, nullptr);
+}
+
+modules_list_t make_modules_list(tmp_type const& to)
+{
+	int const n = static_cast<int>(to.m_map.size());
+	file_info** const modules_list = to.m_mm->m_alc.allocate_objects<file_info*>(n);
+	std::transform(to.m_map.begin(), to.m_map.end(), modules_list, [](auto const& e){ return e->m_instance; });
+	std::sort(modules_list, modules_list + n, [](auto const& a, auto const& b){ return a->m_file_path < b->m_file_path; });
+	modules_list_t ret;
+	ret.m_list = modules_list;
+	ret.m_count = n;
+	return ret;
 }
 
 
