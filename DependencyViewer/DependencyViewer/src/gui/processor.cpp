@@ -59,6 +59,7 @@ void main_type::swap(main_type& other) noexcept
 {
 	using std::swap;
 	swap(m_fi, other.m_fi);
+	swap(m_modules_list, other.m_modules_list);
 	swap(m_mm, other.m_mm);
 }
 

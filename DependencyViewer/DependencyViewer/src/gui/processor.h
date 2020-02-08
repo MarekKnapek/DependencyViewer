@@ -38,6 +38,7 @@ struct modules_list_t
 struct main_type
 {
 	file_info* m_fi;
+	modules_list_t m_modules_list;
 	memory_manager m_mm;
 	void swap(main_type& other) noexcept;
 };
