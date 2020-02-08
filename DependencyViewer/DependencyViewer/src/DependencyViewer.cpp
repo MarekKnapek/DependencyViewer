@@ -6,6 +6,7 @@
 #include "gui/list_view_base.cpp"
 #include "gui/main.cpp"
 #include "gui/main_window.cpp"
+#include "gui/modules_view.cpp"
 #include "gui/processor.cpp"
 #include "gui/processor_impl.cpp"
 #include "gui/settings.cpp"
