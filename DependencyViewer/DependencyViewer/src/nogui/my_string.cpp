@@ -2,6 +2,7 @@
 
 #include "fnv1a.h"
 
+#include <algorithm>
 #include <cassert>
 #include <cstdint>
 #include <cstring>
@@ -123,3 +124,41 @@ bool basic_string_less<wchar_t>::operator()(basic_string<wchar_t> const& a, basi
 
 template struct basic_string_less<char>;
 template struct basic_string_less<wchar_t>;
+
+
+template<typename char_t>
+bool basic_string_case_insensitive_less<char_t>::operator()(basic_string<char_t> const& a, basic_string<char_t> const& b) const
+{
+	if(&a == &b)
+	{
+		return false;
+	}
+	if(a.m_str == b.m_str)
+	{
+		assert(a.m_len == b.m_len);
+		return false;
+	}
+	int const n = (std::min)(a.m_len, b.m_len) + 1;
+	for(int i = 0; i != n; ++i)
+	{
+		char_t const char_a = a.m_str[i] | 0b0010'0000;
+		char_t const char_b = b.m_str[i] | 0b0010'0000;
+		if(char_a < char_b)
+		{
+			return true;
+		}
+		else if(char_b < char_a)
+		{
+			return false;
+		}
+	}
+	#if defined(DEBUG) || defined(_DEBUG)
+	assert(false);
+	return false;
+	#else
+	__assume(0);
+	#endif
+}
+
+template struct basic_string_case_insensitive_less<char>;
+template struct basic_string_case_insensitive_less<wchar_t>;

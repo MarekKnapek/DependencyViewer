@@ -36,6 +36,10 @@ template<typename char_t> struct basic_string_handle_case_insensitive_equal{ boo
 typedef basic_string_handle_case_insensitive_equal<char> string_handle_case_insensitive_equal;
 typedef basic_string_handle_case_insensitive_equal<wchar_t> wstring_handle_case_insensitive_equal;
 
+template<typename char_t> struct basic_string_handle_case_insensitive_less{ bool operator()(basic_string_handle<char_t> const& a, basic_string_handle<char_t> const& b) const { return basic_string_case_insensitive_less<char_t>{}(*a.m_string, *b.m_string); } };
+typedef basic_string_handle_case_insensitive_less<char> string_handle_case_insensitive_less;
+typedef basic_string_handle_case_insensitive_less<wchar_t> wstring_handle_case_insensitive_less;
+
 namespace std { template<> struct hash<basic_string_handle<char>>{ std::size_t operator()(basic_string_handle<char> const& obj) const { return basic_string_hash<char>{}(*obj.m_string); } }; }
 namespace std { template<> struct hash<basic_string_handle<wchar_t>>{ std::size_t operator()(basic_string_handle<wchar_t> const& obj) const { return basic_string_hash<wchar_t>{}(*obj.m_string); } }; }
 

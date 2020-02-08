@@ -79,3 +79,13 @@ struct basic_string_less
 
 typedef basic_string_less<char> string_less;
 typedef basic_string_less<wchar_t> wstring_less;
+
+
+template<typename char_t>
+struct basic_string_case_insensitive_less
+{
+	bool operator()(basic_string<char_t> const& a, basic_string<char_t> const& b) const;
+};
+
+typedef basic_string_case_insensitive_less<char> string_case_insensitive_less;
+typedef basic_string_case_insensitive_less<wchar_t> wstring_case_insensitive_less;
