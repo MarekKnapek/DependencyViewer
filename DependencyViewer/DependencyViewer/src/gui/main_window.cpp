@@ -216,11 +216,11 @@ void main_window::destroy_accel_table()
 main_window::main_window() :
 	m_hwnd(CreateWindowExW(0, reinterpret_cast<wchar_t const*>(g_class), s_window_title, WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, nullptr, create_menu(), get_instance(), nullptr)),
 	m_toolbar(create_toolbar(m_hwnd)),
-	m_splitter_hor(m_hwnd),
-	m_tree_view(m_splitter_hor.get_hwnd(), *this),
-	m_splitter_ver(m_splitter_hor.get_hwnd()),
-	m_import_view(m_splitter_ver.get_hwnd(), *this),
-	m_export_view(m_splitter_ver.get_hwnd(), *this),
+	m_main_panel(m_hwnd),
+	m_tree_view(m_main_panel.get_hwnd(), *this),
+	m_right_panel(m_main_panel.get_hwnd()),
+	m_import_view(m_right_panel.get_hwnd(), *this),
+	m_export_view(m_right_panel.get_hwnd(), *this),
 	m_status_bar(CreateWindowExW(0, reinterpret_cast<wchar_t const*>(STATUSCLASSNAMEW), L"", SBARS_SIZEGRIP | WS_BORDER | WS_VISIBLE | WS_CHILD, 0, 0, 0, 0, m_hwnd, nullptr, get_instance(), nullptr)),
 	m_idle_tasks(),
 	m_dbg_tasks(),
@@ -230,8 +230,8 @@ main_window::main_window() :
 	LONG_PTR const set = SetWindowLongPtrW(m_hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
 	DragAcceptFiles(m_hwnd, TRUE);
 
-	m_splitter_ver.set_elements(m_import_view.get_hwnd(), m_export_view.get_hwnd());
-	m_splitter_hor.set_elements(m_tree_view.get_hwnd(), m_splitter_ver.get_hwnd());
+	m_main_panel.set_elements(m_tree_view.get_hwnd(), m_right_panel.get_hwnd());
+	m_right_panel.set_elements(m_import_view.get_hwnd(), m_export_view.get_hwnd());
 
 	RECT r;
 	BOOL const got_rect = GetClientRect(m_hwnd, &r);
@@ -436,7 +436,7 @@ LRESULT main_window::on_wm_size(WPARAM wparam, LPARAM lparam)
 	LONG const sb_height = sb_rect.bottom - sb_rect.top;
 
 	LONG const total_height = tb_height + sb_height;
-	BOOL const moved = MoveWindow(m_splitter_hor.get_hwnd(), 0, 0 + tb_height, w, h - total_height, TRUE);
+	BOOL const moved = MoveWindow(m_main_panel.get_hwnd(), 0, 0 + tb_height, w, h - total_height, TRUE);
 	return DefWindowProcW(m_hwnd, WM_SIZE, wparam, lparam);
 }
 

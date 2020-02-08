@@ -126,9 +126,9 @@ private:
 private:
 	HWND m_hwnd;
 	HWND m_toolbar;
-	splitter_window_hor m_splitter_hor;
+	splitter_window_ver m_main_panel;
 	tree_view m_tree_view;
-	splitter_window_ver m_splitter_ver;
+	splitter_window_hor m_right_panel;
 	import_view m_import_view;
 	export_view m_export_view;
 	HWND m_status_bar;
