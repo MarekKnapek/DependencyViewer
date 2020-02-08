@@ -167,7 +167,7 @@ void import_view::on_getdispinfow(NMHDR& nmhdr)
 	int const col = nm.item.iSubItem;
 	std::uint16_t const imp_idx = static_cast<std::uint16_t>(row);
 	e_import_column const ecol = static_cast<e_import_column>(col);
-	if((nm.item.mask | LVIF_TEXT) != 0)
+	if((nm.item.mask & LVIF_TEXT) != 0)
 	{
 		switch(ecol)
 		{

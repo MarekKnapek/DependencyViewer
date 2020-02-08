@@ -191,7 +191,7 @@ void export_view::on_getdispinfow(NMHDR& nmhdr)
 	pe_export_table_info const& eti = fi.m_export_table;
 	std::uint16_t const exp_idx = static_cast<std::uint16_t>(row);
 	e_export_column const ecol = static_cast<e_export_column>(col);
-	if((nm.item.mask | LVIF_TEXT) != 0)
+	if((nm.item.mask & LVIF_TEXT) != 0)
 	{
 		switch(ecol)
 		{
