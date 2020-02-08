@@ -288,6 +288,18 @@ LRESULT splitter_window<orientation>::on_wm_lbuttonup(WPARAM const& wparam, LPAR
 	return ret;
 }
 
+template<splitter_window_orientation orientation>
+void splitter_window<orientation>::refresh_children()
+{
+	RECT r;
+	BOOL const got_rect = GetClientRect(m_hwnd, &r);
+	assert(got_rect != 0);
+	unsigned const w = static_cast<unsigned>(r.right) & 0xFFFFu;
+	unsigned const h = static_cast<unsigned>(r.bottom) & 0xFFFFu;
+	LPARAM const size = h << 16 | w;
+	LRESULT const sized = on_wm_size(0, size);
+}
+
 template<> wchar_t const* const splitter_window<splitter_window_orientation::horizontal>::s_window_class_name = L"splitter_window_hor";
 template<> wchar_t const* const splitter_window<splitter_window_orientation::vertical>::s_window_class_name = L"splitter_window_ver";
 template<> wchar_t const* const splitter_window<splitter_window_orientation::horizontal>::s_cursor_id = reinterpret_cast<wchar_t const*>(IDC_SIZENS);

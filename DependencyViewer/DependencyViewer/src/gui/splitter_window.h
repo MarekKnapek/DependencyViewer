@@ -37,6 +37,7 @@ private:
 	LRESULT on_wm_mousemove(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_lbuttondown(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_lbuttonup(WPARAM const& wparam, LPARAM const& lparam);
+	void refresh_children();
 private:
 	static wchar_t const* const s_window_class_name;
 	static wchar_t const* const s_cursor_id;
