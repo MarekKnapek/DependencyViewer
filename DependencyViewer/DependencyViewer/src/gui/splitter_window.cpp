@@ -235,8 +235,9 @@ LRESULT splitter_window<splitter_window_orientation::horizontal>::on_wm_mousemov
 	int const y = GET_Y_LPARAM(lparam);
 	RECT r;
 	BOOL const got_rect = GetClientRect(m_hwnd, &r);
+	assert(got_rect != 0);
 	m_position = (std::min)((std::max)(static_cast<float>(y) / static_cast<float>(r.bottom), 0.01f), 0.99f);
-	LRESULT const moved = on_wm_size(0, ((static_cast<unsigned>(r.bottom) & 0xFFFFu) << 16) | (static_cast<unsigned>(r.right) & 0xFFFFu));
+	refresh_children();
 
 	LRESULT const ret = DefWindowProcW(m_hwnd, WM_MOUSEMOVE, wparam, lparam);
 	return ret;
@@ -254,8 +255,9 @@ LRESULT splitter_window<splitter_window_orientation::vertical>::on_wm_mousemove(
 	int const x = GET_X_LPARAM(lparam);
 	RECT r;
 	BOOL const got_rect = GetClientRect(m_hwnd, &r);
+	assert(got_rect != 0);
 	m_position = (std::min)((std::max)(static_cast<float>(x) / static_cast<float>(r.right), 0.01f), 0.99f);
-	LRESULT const moved = on_wm_size(0, ((static_cast<unsigned>(r.bottom) & 0xFFFFu) << 16) | (static_cast<unsigned>(r.right) & 0xFFFFu));
+	refresh_children();
 
 	LRESULT const ret = DefWindowProcW(m_hwnd, WM_MOUSEMOVE, wparam, lparam);
 	return ret;
