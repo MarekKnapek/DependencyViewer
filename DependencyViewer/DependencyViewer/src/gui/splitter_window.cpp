@@ -68,6 +68,14 @@ void splitter_window<orientation>::set_elements(HWND const& first, HWND const& s
 }
 
 template<splitter_window_orientation orientation>
+void splitter_window<orientation>::set_position(float const& position)
+{
+	assert(position >= 0.01f && position <= 0.99f);
+	m_position = position;
+	refresh_children();
+}
+
+template<splitter_window_orientation orientation>
 LRESULT CALLBACK splitter_window<orientation>::class_proc(HWND const hwnd, UINT const msg, WPARAM const wparam, LPARAM const lparam)
 {
 	LONG_PTR const ptr = GetWindowLongPtrW(hwnd, GWLP_USERDATA);

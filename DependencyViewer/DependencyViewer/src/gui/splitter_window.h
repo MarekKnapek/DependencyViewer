@@ -25,8 +25,8 @@ public:
 	~splitter_window();
 public:
 	HWND const& get_hwnd() const;
-public:
 	void set_elements(HWND const& first, HWND const& second);
+	void set_position(float const& position);
 private:
 	static LRESULT CALLBACK class_proc(HWND const hwnd, UINT const msg, WPARAM const wparam, LPARAM const lparam);
 	LRESULT on_message(UINT const& msg, WPARAM const& wparam, LPARAM const&lparam);
