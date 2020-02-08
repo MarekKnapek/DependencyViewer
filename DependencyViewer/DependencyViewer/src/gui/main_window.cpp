@@ -37,9 +37,9 @@
 
 
 #if defined _M_IX86
-static constexpr wchar_t const s_window_title[] = L"DLLDependencyViewer (x86)";
+static constexpr wchar_t const s_window_title[] = L"DependencyViewer (x86)";
 #elif defined _M_X64
-static constexpr wchar_t const s_window_title[] = L"DLLDependencyViewer (x64)";
+static constexpr wchar_t const s_window_title[] = L"DependencyViewer (x64)";
 #endif
 static constexpr wchar_t const s_window_class_name[] = L"main_window";
 static constexpr wchar_t const s_menu_file[] = L"&File";
@@ -50,7 +50,7 @@ static constexpr wchar_t const s_menu_view_paths[] = L"&Full Paths\tF9";
 static constexpr wchar_t const s_menu_view_undecorate[] = L"&Undecorate C++ Functions\tF10";
 static constexpr wchar_t const s_menu_view_refresh[] = L"&Refresh\tF5";
 static constexpr wchar_t const s_open_file_dialog_file_name_filter[] = L"Executable files and libraries (*.exe;*.dll;*.ocx)\0*.exe;*.dll;*.ocx\0All files\0*.*\0";
-static constexpr wchar_t const s_msg_error[] = L"DLLDependencyViewer error.";
+static constexpr wchar_t const s_msg_error[] = L"DependencyViewer error.";
 static constexpr wchar_t const s_toolbar_tooltip_open[] = L"Open... (Ctrl+O)";
 static constexpr wchar_t const s_toolbar_tooltip_full_paths[] = L"View Full Paths (F9)";
 static constexpr wchar_t const s_toolbar_tooltip_undecorate[] = L"Undecorate C++ Functions (F10)";

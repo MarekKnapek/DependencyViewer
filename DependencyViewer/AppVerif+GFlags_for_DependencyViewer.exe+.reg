@@ -1,6 +1,6 @@
 Windows Registry Editor Version 5.00
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DLLDependencyViewer.exe]
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DependencyViewer.exe]
 "DelayFreeSizeMB"=dword:00000040
 "VerifierDlls"="vrfcore.dll vfbasics.dll vfnws.dll vfcompat.dll vfluapriv.dll vfprint.dll vfnet.dll vfntlmless.dll vfcuzz.dll"
 "VerifierFlags"=dword:81643267
@@ -9,7 +9,7 @@ Windows Registry Editor Version 5.00
 "UseLargePages"=dword:00000001
 "PageHeapFlags"="0x1013"
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DLLDependencyViewer.exe\Core-{E5DCDFAA-3B35-46A8-B370-9D3575A68E53}]
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DependencyViewer.exe\Core-{E5DCDFAA-3B35-46A8-B370-9D3575A68E53}]
 "Propagate"=dword:00000000
 "AutoClr"=dword:00000000
 "AutoDisableStop"=dword:00000001
@@ -17,24 +17,24 @@ Windows Registry Editor Version 5.00
 "ExceptionOnStop"=dword:00000000
 "MinimumMemoryOverhead"=dword:00000000
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DLLDependencyViewer.exe\Cuzz-{2a25b8ce-e5ee-4cd2-abf5-c4504471bebb}]
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DependencyViewer.exe\Cuzz-{2a25b8ce-e5ee-4cd2-abf5-c4504471bebb}]
 "FuzzingLevel"=dword:00000004
 "RandomSeed"=dword:00000000
 "NumBlockedThreads"=dword:00000001
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DLLDependencyViewer.exe\DangerousAPIs-{02A5B40C-2F22-4409-BB37-7EF0D3F34A88}]
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DependencyViewer.exe\DangerousAPIs-{02A5B40C-2F22-4409-BB37-7EF0D3F34A88}]
 "DllMainCheck"=dword:00000000
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DLLDependencyViewer.exe\DirtyStacks-{970bd287-2e5a-4a06-9084-9e394d4c2697}]
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DependencyViewer.exe\DirtyStacks-{970bd287-2e5a-4a06-9084-9e394d4c2697}]
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DLLDependencyViewer.exe\Exceptions-{F86B022F-E589-4e8f-B0DD-6B7AF9D71A59}]
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DependencyViewer.exe\Exceptions-{F86B022F-E589-4e8f-B0DD-6B7AF9D71A59}]
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DLLDependencyViewer.exe\Handles-{9760941A-8DA5-4dbe-843B-0EBD376CAB02}]
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DependencyViewer.exe\Handles-{9760941A-8DA5-4dbe-843B-0EBD376CAB02}]
 "Traces"=dword:00001000
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DLLDependencyViewer.exe\Heaps-{4D056CEB-D8E3-4b85-B148-B543D56D9BDE}]
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DependencyViewer.exe\Heaps-{4D056CEB-D8E3-4b85-B148-B543D56D9BDE}]
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DLLDependencyViewer.exe\HighVersionLie-{6B64DE21-0F4C-4479-9D6C-0FBCA496BCDC}]
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DependencyViewer.exe\HighVersionLie-{6B64DE21-0F4C-4479-9D6C-0FBCA496BCDC}]
 "Major version"=dword:00000000
 "Minor version"=dword:00000000
 "Build number"=dword:00000000
@@ -44,45 +44,45 @@ Windows Registry Editor Version 5.00
 "Product type"=dword:00000000
 "CSD version"=""
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DLLDependencyViewer.exe\Leak-{81EEC8DA-0E61-4942-8037-9A6C4A86510D}]
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DependencyViewer.exe\Leak-{81EEC8DA-0E61-4942-8037-9A6C4A86510D}]
 "ExcludeDlls"=""
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DLLDependencyViewer.exe\Locks-{159D60EC-F459-456b-A27B-1076AD59F8F4}]
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DependencyViewer.exe\Locks-{159D60EC-F459-456b-A27B-1076AD59F8F4}]
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DLLDependencyViewer.exe\LuaPriv-{1ee74803-9d0b-409a-82cf-10cb5e854198}]
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DependencyViewer.exe\LuaPriv-{1ee74803-9d0b-409a-82cf-10cb5e854198}]
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DLLDependencyViewer.exe\Memory-{8A70B8A4-4FA6-41c3-85EE-595FCB3E1051}]
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DependencyViewer.exe\Memory-{8A70B8A4-4FA6-41c3-85EE-595FCB3E1051}]
 "ExecWritePage"=dword:00000000
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DLLDependencyViewer.exe\Networking-{A27E5128-F3EB-402a-A99E-E6189F5E529B}]
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DependencyViewer.exe\Networking-{A27E5128-F3EB-402a-A99E-E6189F5E529B}]
 "FragmentsEnabled"=dword:00000000
 "FragmentSize"=dword:00000001
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DLLDependencyViewer.exe\NTLMCaller-{195c2792-f194-4108-8420-9c15a8139679}]
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DependencyViewer.exe\NTLMCaller-{195c2792-f194-4108-8420-9c15a8139679}]
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DLLDependencyViewer.exe\NTLMDowngrade-{35050f5a-90b5-4dde-9d43-59eef8365534}]
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DependencyViewer.exe\NTLMDowngrade-{35050f5a-90b5-4dde-9d43-59eef8365534}]
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DLLDependencyViewer.exe\PrintAPI-{7025005A-FF58-4DE7-8ACF-679380369109}]
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DependencyViewer.exe\PrintAPI-{7025005A-FF58-4DE7-8ACF-679380369109}]
 "PTConform"=dword:00000001
 "DllMainCheck"=dword:00000001
 "Fault Injection"=dword:00000000
 "FaultRate 0-1000000"=dword:00000000
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DLLDependencyViewer.exe\PrintDriver-{595EE1C4-AF0D-48d6-9589-F141B3B5856E}]
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DependencyViewer.exe\PrintDriver-{595EE1C4-AF0D-48d6-9589-F141B3B5856E}]
 "PTConform"=dword:00000001
 "FaultRate 0-1000000"=dword:00000000
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DLLDependencyViewer.exe\SRWLock-{6335D1CF-7955-414e-8C6A-1A40AC9357AC}]
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DependencyViewer.exe\SRWLock-{6335D1CF-7955-414e-8C6A-1A40AC9357AC}]
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DLLDependencyViewer.exe\Threadpool-{F15FC24E-53A0-444D-8D28-F7697EDD9C83}]
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DependencyViewer.exe\Threadpool-{F15FC24E-53A0-444D-8D28-F7697EDD9C83}]
 "AsyncCheck"=dword:00000000
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DLLDependencyViewer.exe\TimeRollOver-{de35a0c0-d3b8-11d9-8cd5-0800200c9a66}]
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DependencyViewer.exe\TimeRollOver-{de35a0c0-d3b8-11d9-8cd5-0800200c9a66}]
 "Delay"=dword:0000012c
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DLLDependencyViewer.exe\TLS-{EDDA96DB-D216-467d-BE3C-8603745EDA43}]
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DependencyViewer.exe\TLS-{EDDA96DB-D216-467d-BE3C-8603745EDA43}]
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DLLDependencyViewer.exe\Webservices-{E87CCC49-AA8F-4824-A49D-57253967C212}]
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DependencyViewer.exe\Webservices-{E87CCC49-AA8F-4824-A49D-57253967C212}]
 "ValidateObject"=dword:00000001
 "TrackObject"=dword:00000001
 "CheckTimeout"=dword:00000000

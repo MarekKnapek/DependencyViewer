@@ -431,7 +431,7 @@
     <ClCompile Include="src\gui\import_view.cpp">
       <Filter>src\gui</Filter>
     </ClCompile>
-    <ClCompile Include="src\DLLDependencyViewer.cpp">
+    <ClCompile Include="src\DependencyViewer.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\nogui\allocator_small.cpp">

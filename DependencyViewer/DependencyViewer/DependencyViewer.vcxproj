@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{D19B67EA-D502-4CD2-9D1B-A65AEFDB6AB6}</ProjectGuid>
-    <RootNamespace>DLLDependencyViewer</RootNamespace>
+    <RootNamespace>DependencyViewer</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -269,7 +269,7 @@
     <ClInclude Include="src\res\resources.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\DLLDependencyViewer.cpp">
+    <ClCompile Include="src\DependencyViewer.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
