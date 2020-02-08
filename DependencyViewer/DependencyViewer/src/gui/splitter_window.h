@@ -7,7 +7,7 @@
 enum class splitter_window_orientation
 {
 	horizontal,
-	vertical
+	vertical,
 };
 
 
@@ -17,31 +17,29 @@ class splitter_window
 public:
 	static void register_class();
 public:
-	splitter_window(HWND const parent);
+	splitter_window(HWND const& parent);
 	splitter_window(splitter_window const&) = delete;
 	splitter_window(splitter_window&&) = delete;
 	splitter_window& operator=(splitter_window const&) = delete;
 	splitter_window& operator=(splitter_window&&) = delete;
 	~splitter_window();
 public:
-	HWND get_hwnd() const;
+	HWND const& get_hwnd() const;
 public:
-	void set_elements(HWND const first, HWND const second);
+	void set_elements(HWND const& first, HWND const& second);
 private:
-	static LRESULT CALLBACK class_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
+	static LRESULT CALLBACK class_proc(HWND const hwnd, UINT const msg, WPARAM const wparam, LPARAM const lparam);
+	LRESULT on_message(UINT const& msg, WPARAM const& wparam, LPARAM const&lparam);
+	LRESULT on_wm_destroy(WPARAM const& wparam, LPARAM const& lparam);
+	LRESULT on_wm_size(WPARAM const& wparam, LPARAM const& lparam);
+	LRESULT on_wm_notify(WPARAM const& wparam, LPARAM const& lparam);
+	LRESULT on_wm_contextmenu(WPARAM const& wparam, LPARAM const& lparam);
+	LRESULT on_wm_mousemove(WPARAM const& wparam, LPARAM const& lparam);
+	LRESULT on_wm_lbuttondown(WPARAM const& wparam, LPARAM const& lparam);
+	LRESULT on_wm_lbuttonup(WPARAM const& wparam, LPARAM const& lparam);
 private:
-	LRESULT on_message(UINT msg, WPARAM wparam, LPARAM lparam);
-	LRESULT on_wm_destroy(WPARAM wparam, LPARAM lparam);
-	LRESULT on_wm_size(WPARAM wparam, LPARAM lparam);
-	LRESULT on_wm_notify(WPARAM wparam, LPARAM lparam);
-	LRESULT on_wm_contextmenu(WPARAM wparam, LPARAM lparam);
-	LRESULT on_wm_mousemove(WPARAM wparam, LPARAM lparam);
-	LRESULT on_wm_lbuttondown(WPARAM wparam, LPARAM lparam);
-	LRESULT on_wm_lbuttonup(WPARAM wparam, LPARAM lparam);
-private:
-	static wchar_t const s_window_class_name[];
+	static wchar_t const* const s_window_class_name;
 	static wchar_t const* const s_cursor_id;
-private:
 	static ATOM g_class;
 private:
 	HWND m_hwnd;
