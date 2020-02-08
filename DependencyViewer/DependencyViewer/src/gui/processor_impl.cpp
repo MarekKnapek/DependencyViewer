@@ -1,5 +1,6 @@
 #include "processor_impl.h"
 
+#include "file_info_getters.h"
 #include "import_export_matcher.h"
 #include "processor.h"
 #include "tree_algos.h"
@@ -49,6 +50,7 @@ bool process_impl(std::vector<std::wstring> const& file_paths, main_type& mo)
 	fi->m_import_table.m_dll_names = dll_names;
 	fi->m_import_table.m_import_counts = import_counts;
 	tmp_type to;
+	to.m_mo = &mo;
 	to.m_mm = &mo.m_mm;
 	for(std::uint16_t i = 0; i != n; ++i)
 	{
@@ -90,10 +92,59 @@ void make_doubly_linked_list(file_info& fi)
 
 modules_list_t make_modules_list(tmp_type const& to)
 {
-	int const n = static_cast<int>(to.m_map.size());
+	static constexpr auto const make_non_found_modules = [](tmp_type const& to)
+	{
+		struct case_insensitive_file_info_file_name_hash_t
+		{
+			std::size_t operator()(file_info const* const& fi) const
+			{
+				assert(fi);
+				auto const& dll_name = get_dll_name_no_path(fi);
+				assert(dll_name);
+				auto const ret = string_handle_case_insensitive_hash{}(dll_name);
+				return ret;
+			}
+		};
+		struct case_insensitive_file_info_file_name_equals_t
+		{
+			bool operator()(file_info const* const& a, file_info const* const& b) const
+			{
+				assert(a);
+				assert(b);
+				auto const& dll_name_a = get_dll_name_no_path(a);
+				auto const& dll_name_b = get_dll_name_no_path(b);
+				assert(dll_name_a);
+				assert(dll_name_b);
+				auto const ret = string_handle_case_insensitive_equal{}(dll_name_a, dll_name_b);
+				return ret;
+			}
+		};
+		typedef std::unordered_set<file_info*, case_insensitive_file_info_file_name_hash_t, case_insensitive_file_info_file_name_equals_t> not_found_fis_t;
+
+		static constexpr auto const process_not_found_fi = [](file_info& fi, void* const data)
+		{
+			if(!fi.m_orig_instance && !fi.m_file_path)
+			{
+				assert(data);
+				auto& not_found_fis = *static_cast<not_found_fis_t*>(data);
+				not_found_fis.insert(&fi);
+			}
+		};
+
+		not_found_fis_t not_found_fis;
+		depth_first_visit(*to.m_mo->m_fi, process_not_found_fi, &not_found_fis);
+		return not_found_fis;
+	};
+
+	auto const not_found_fis = make_non_found_modules(to);
+	int const n1 = static_cast<int>(not_found_fis.size());
+	int const n2 = static_cast<int>(to.m_map.size());
+	int const n = n1 + n2;
 	file_info** const modules_list = to.m_mm->m_alc.allocate_objects<file_info*>(n);
-	std::transform(to.m_map.begin(), to.m_map.end(), modules_list, [](auto const& e){ return e->m_instance; });
-	std::sort(modules_list, modules_list + n, [](auto const& a, auto const& b){ return a->m_file_path < b->m_file_path; });
+	std::copy(not_found_fis.begin(), not_found_fis.end(), modules_list);
+	std::transform(to.m_map.begin(), to.m_map.end(), modules_list + n1, [](auto const& e){ return e->m_instance; });
+	std::sort(modules_list, modules_list + n, compare_fi_by_path_or_name);
+
 	modules_list_t ret;
 	ret.m_list = modules_list;
 	ret.m_count = n;

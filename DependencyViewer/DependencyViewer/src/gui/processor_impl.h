@@ -45,6 +45,7 @@ struct fat_type_eq
 
 struct tmp_type
 {
+	main_type* m_mo;
 	memory_manager* m_mm;
 	allocator m_tmp_alc;
 	std::deque<file_info*> m_queue;
