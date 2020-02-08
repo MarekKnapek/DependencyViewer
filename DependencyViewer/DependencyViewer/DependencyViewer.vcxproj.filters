@@ -336,6 +336,9 @@
     <ClInclude Include="src\gui\modules_view.h">
       <Filter>src\gui</Filter>
     </ClInclude>
+    <ClInclude Include="src\gui\file_info_getters.h">
+      <Filter>src\gui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\main.cpp">
@@ -528,6 +531,9 @@
       <Filter>src\nogui</Filter>
     </ClCompile>
     <ClCompile Include="src\gui\modules_view.cpp">
+      <Filter>src\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gui\file_info_getters.cpp">
       <Filter>src\gui</Filter>
     </ClCompile>
   </ItemGroup>

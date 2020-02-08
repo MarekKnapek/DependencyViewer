@@ -202,6 +202,7 @@
     <ClInclude Include="src\gui\com_dlg.h" />
     <ClInclude Include="src\gui\constants.h" />
     <ClInclude Include="src\gui\export_view.h" />
+    <ClInclude Include="src\gui\file_info_getters.h" />
     <ClInclude Include="src\gui\import_export_matcher.h" />
     <ClInclude Include="src\gui\import_view.h" />
     <ClInclude Include="src\gui\list_view_base.h" />
@@ -283,6 +284,10 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\gui\export_view.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="src\gui\file_info_getters.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
