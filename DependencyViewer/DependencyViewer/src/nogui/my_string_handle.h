@@ -32,7 +32,7 @@ template<typename char_t> struct basic_string_handle_case_insensitive_hash{ std:
 typedef basic_string_handle_case_insensitive_hash<char> string_handle_case_insensitive_hash;
 typedef basic_string_handle_case_insensitive_hash<wchar_t> wstring_handle_case_insensitive_hash;
 
-template<typename char_t> struct basic_string_handle_case_insensitive_equal{ std::size_t operator()(basic_string_handle<char_t> const& a, basic_string_handle<char_t> const& b) const { return basic_string_case_insensitive_equal<char_t>{}(*a.m_string, *b.m_string); } };
+template<typename char_t> struct basic_string_handle_case_insensitive_equal{ bool operator()(basic_string_handle<char_t> const& a, basic_string_handle<char_t> const& b) const { return basic_string_case_insensitive_equal<char_t>{}(*a.m_string, *b.m_string); } };
 typedef basic_string_handle_case_insensitive_equal<char> string_handle_case_insensitive_equal;
 typedef basic_string_handle_case_insensitive_equal<wchar_t> wstring_handle_case_insensitive_equal;
 
