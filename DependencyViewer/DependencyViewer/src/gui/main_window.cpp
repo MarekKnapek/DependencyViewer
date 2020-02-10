@@ -1146,12 +1146,12 @@ void main_window::undecorate()
 
 void main_window::refresh()
 {
-	file_info const& fi = *m_mo.m_fi;
-	std::uint16_t const n = fi.m_import_table.m_normal_dll_count + fi.m_import_table.m_delay_dll_count;
-	if(n == 0)
+	if(!m_mo.m_fi)
 	{
 		return;
 	}
+	file_info const& fi = *m_mo.m_fi;
+	std::uint16_t const n = fi.m_import_table.m_normal_dll_count + fi.m_import_table.m_delay_dll_count;
 	assert(n >= 1);
 	std::vector<std::wstring> file_paths;
 	file_paths.resize(n);
