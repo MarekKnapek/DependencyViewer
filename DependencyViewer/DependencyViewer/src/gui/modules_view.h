@@ -25,8 +25,8 @@ public:
 	void repaint();
 private:
 	void on_getdispinfow(NMHDR& nmhdr);
-	wchar_t const* on_get_col_name(int const& row);
-	wchar_t const* on_get_col_path(int const& row);
+	wstring on_get_col_name(int const& row);
+	wstring on_get_col_path(int const& row);
 private:
 	HWND const m_hwnd;
 	main_window& m_main_window;

@@ -110,12 +110,16 @@ void modules_view::on_getdispinfow(NMHDR& nmhdr)
 		{
 			case e_modules_column::e_name:
 			{
-				nm.item.pszText = const_cast<wchar_t*>(on_get_col_name(row));
+				wstring const str = on_get_col_name(row);
+				assert(str);
+				nm.item.pszText = const_cast<wchar_t*>(str.m_str);
 			}
 			break;
 			case e_modules_column::e_path:
 			{
-				nm.item.pszText = const_cast<wchar_t*>(on_get_col_path(row));
+				wstring const str = on_get_col_path(row);
+				assert(str);
+				nm.item.pszText = const_cast<wchar_t*>(str.m_str);
 			}
 			break;
 			default:
@@ -127,7 +131,7 @@ void modules_view::on_getdispinfow(NMHDR& nmhdr)
 	}
 }
 
-wchar_t const* modules_view::on_get_col_name(int const& row)
+wstring modules_view::on_get_col_name(int const& row)
 {
 	assert(row < m_main_window.m_mo.m_modules_list.m_count);
 	file_info const* const fi = m_main_window.m_mo.m_modules_list.m_list[row];
@@ -136,28 +140,33 @@ wchar_t const* modules_view::on_get_col_name(int const& row)
 	{
 		wchar_t const* const name = find_file_name(begin(fi->m_file_path), size(fi->m_file_path));
 		assert(name != begin(fi->m_file_path));
-		return name;
+		int const len = size(fi->m_file_path) - static_cast<int>(name - begin(fi->m_file_path));
+		wstring const ret{name, len};
+		return ret;
 	}
 	else
 	{
-		auto const& dll_name_a = get_dll_name_no_path(fi);
+		string_handle const& dll_name_a = get_dll_name_no_path(fi);
 		wchar_t const* const dll_name_w = m_string_converter.convert(dll_name_a);
 		assert(dll_name_w);
-		return dll_name_w;
+		wstring const ret{dll_name_w, size(dll_name_a)};
+		return ret;
 	}
 }
 
-wchar_t const* modules_view::on_get_col_path(int const& row)
+wstring modules_view::on_get_col_path(int const& row)
 {
 	assert(row < m_main_window.m_mo.m_modules_list.m_count);
 	file_info const* const fi = m_main_window.m_mo.m_modules_list.m_list[row];
 	assert(!fi->m_orig_instance);
 	if(fi->m_file_path)
 	{
-		return fi->m_file_path.m_string->m_str;
+		wstring const& ret = *fi->m_file_path.m_string;
+		return ret;
 	}
 	else
 	{
-		return L"";
+		wstring const ret{L"", 0};
+		return ret;
 	}
 }
