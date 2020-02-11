@@ -152,12 +152,8 @@ bool basic_string_case_insensitive_less<char_t>::operator()(basic_string<char_t>
 			return false;
 		}
 	}
-	#if defined(DEBUG) || defined(_DEBUG)
-	assert(false);
+	assert(a.m_len == b.m_len);
 	return false;
-	#else
-	__assume(0);
-	#endif
 }
 
 template struct basic_string_case_insensitive_less<char>;
