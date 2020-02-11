@@ -4,6 +4,9 @@
 #include "../nogui/my_windows.h"
 #include "../nogui/string_converter.h"
 
+#include <cstdint>
+#include <vector>
+
 
 class main_window;
 
@@ -25,10 +28,17 @@ public:
 	void repaint();
 private:
 	void on_getdispinfow(NMHDR& nmhdr);
-	wstring on_get_col_name(int const& row);
-	wstring on_get_col_path(int const& row);
+	void on_columnclick(NMHDR& nmhdr);
+	wstring on_get_col_name(std::uint32_t const& row);
+	wstring on_get_col_path(std::uint32_t const& row);
+	wstring on_get_col_name_unsorted(std::uint32_t const& row);
+	wstring on_get_col_path_unsorted(std::uint32_t const& row);
+	void refresh_headers();
+	void sort_view();
 private:
 	HWND const m_hwnd;
 	main_window& m_main_window;
 	string_converter m_string_converter;
+	std::uint8_t m_sort_direction;
+	std::vector<std::uint32_t> m_sort;
 };
