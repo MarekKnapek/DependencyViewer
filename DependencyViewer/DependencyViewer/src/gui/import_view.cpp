@@ -418,79 +418,79 @@ void import_view::sort_view()
 		{
 			case e_import_column::e_pi:
 			{
-				auto const fn_compare_icon = [&](std::uint16_t const a, std::uint16_t const b, auto const& cmp) -> bool
+				auto const fn_compare_icon = [&](std::uint16_t const a, std::uint16_t const b) -> bool
 				{
 					std::uint8_t const icon_idx_a = pe_get_import_icon_id(iti, dll_idx, a);
 					std::uint8_t const icon_idx_b = pe_get_import_icon_id(iti, dll_idx, b);
-					return cmp(icon_idx_a, icon_idx_b);
+					return icon_idx_a < icon_idx_b;
 				};
 				if(cur_sort_asc)
 				{
-					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_icon(a, b, std::less<>{}); });
+					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_icon(a, b); });
 				}
 				else
 				{
-					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_icon(a, b, std::greater<>{}); });
+					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_icon(b, a); });
 				}
 			}
 			break;
 			case e_import_column::e_type:
 			{
-				auto const fn_compare_type = [&](std::uint16_t const a, std::uint16_t const b, auto const& cmp) -> bool
+				auto const fn_compare_type = [&](std::uint16_t const a, std::uint16_t const b) -> bool
 				{
 					bool const is_ordinal_a = pe_get_import_is_ordinal(iti, dll_idx, a);
 					bool const is_ordinal_b = pe_get_import_is_ordinal(iti, dll_idx, b);
-					return cmp(is_ordinal_a, is_ordinal_b);
+					return is_ordinal_a < is_ordinal_b;
 				};
 				if(cur_sort_asc)
 				{
-					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_type(a, b, std::less<>{}); });
+					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_type(a, b); });
 				}
 				else
 				{
-					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_type(a, b, std::greater<>{}); });
+					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_type(b, a); });
 				}
 			}
 			break;
 			case e_import_column::e_ordinal:
 			{
-				auto const fn_compare_ordinal = [&](std::uint16_t const a, std::uint16_t const b, auto const& cmp) -> bool
+				auto const fn_compare_ordinal = [&](std::uint16_t const a, std::uint16_t const b) -> bool
 				{
 					auto const ret_a = pe_get_import_ordinal(iti, dll_idx, a);
 					auto const ret_b = pe_get_import_ordinal(iti, dll_idx, b);
-					return cmp(std::tie(ret_a.m_is_valid, ret_a.m_value), std::tie(ret_b.m_is_valid, ret_b.m_value));
+					return std::tie(ret_a.m_is_valid, ret_a.m_value) < std::tie(ret_b.m_is_valid, ret_b.m_value);
 				};
 				if(cur_sort_asc)
 				{
-					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_ordinal(a, b, std::less<>{}); });
+					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_ordinal(a, b); });
 				}
 				else
 				{
-					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_ordinal(a, b, std::greater<>{}); });
+					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_ordinal(b, a); });
 				}
 			}
 			break;
 			case e_import_column::e_hint:
 			{
-				auto const fn_compare_hint = [&](std::uint16_t const a, std::uint16_t const b, auto const& cmp) -> bool
+				auto const fn_compare_hint = [&](std::uint16_t const a, std::uint16_t const b) -> bool
 				{
 					auto const ret_a = pe_get_import_hint(iti, dll_idx, a);
 					auto const ret_b = pe_get_import_hint(iti, dll_idx, b);
-					return cmp(std::tie(ret_a.m_is_valid, ret_a.m_value), std::tie(ret_b.m_is_valid, ret_b.m_value));
+					return std::tie(ret_a.m_is_valid, ret_a.m_value) < std::tie(ret_b.m_is_valid, ret_b.m_value);
 				};
 				if(cur_sort_asc)
 				{
-					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_hint(a, b, std::less<>{}); });
+					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_hint(a, b); });
 				}
 				else
 				{
-					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_hint(a, b, std::greater<>{}); });
+					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_hint(b, a); });
 				}
 			}
 			break;
 			case e_import_column::e_name:
 			{
-				auto const fn_compare_name = [&](std::uint16_t const a, std::uint16_t const b, auto const& cmp) -> bool
+				auto const fn_compare_name = [&](std::uint16_t const a, std::uint16_t const b) -> bool
 				{
 					string_handle const ret_a = pe_get_import_name(iti, eti, dll_idx, a);
 					string_handle const ret_b = pe_get_import_name(iti, eti, dll_idx, b);
@@ -498,15 +498,15 @@ void import_view::sort_view()
 					int const proxy_b = !ret_b.m_string ? 2 : (ret_b.m_string == get_export_name_processing().m_string ? 1 : 0);
 					string_helper_imp const sha{ret_a};
 					string_helper_imp const shb{ret_b};
-					return cmp(std::tie(proxy_a, sha), std::tie(proxy_b, shb));
+					return std::tie(proxy_a, sha) < std::tie(proxy_b, shb);
 				};
 				if(cur_sort_asc)
 				{
-					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_name(a, b, std::less<>{}); });
+					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_name(a, b); });
 				}
 				else
 				{
-					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_name(a, b, std::greater<>{}); });
+					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_name(b, a); });
 				}
 			}
 			break;

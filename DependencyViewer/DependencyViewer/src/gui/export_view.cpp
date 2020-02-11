@@ -424,79 +424,79 @@ void export_view::sort_view()
 		{
 			case e_export_column::e_e:
 			{
-				auto const fn_compare_icon = [&](std::uint16_t const a, std::uint16_t const b, auto const& cmp) -> bool
+				auto const fn_compare_icon = [&](std::uint16_t const a, std::uint16_t const b) -> bool
 				{
 					std::uint8_t const icon_idx_a = pe_get_export_icon_id(eti, tmp_fi->m_matched_imports, a);
 					std::uint8_t const icon_idx_b = pe_get_export_icon_id(eti, tmp_fi->m_matched_imports, b);
-					return cmp(icon_idx_a, icon_idx_b);
+					return icon_idx_a < icon_idx_b;
 				};
 				if(cur_sort_asc)
 				{
-					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_icon(a, b, std::less<>{}); });
+					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_icon(a, b); });
 				}
 				else
 				{
-					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_icon(a, b, std::greater<>{}); });
+					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_icon(b, a); });
 				}
 			}
 			break;
 			case e_export_column::e_type:
 			{
-				auto const fn_compare_type = [&](std::uint16_t const a, std::uint16_t const b, auto const& cmp) -> bool
+				auto const fn_compare_type = [&](std::uint16_t const a, std::uint16_t const b) -> bool
 				{
 					bool const is_rva_a = pe_get_export_type(eti, a);
 					bool const is_rva_b = pe_get_export_type(eti, b);
-					return cmp(is_rva_a, is_rva_b);
+					return is_rva_a < is_rva_b;
 				};
 				if(cur_sort_asc)
 				{
-					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_type(a, b, std::less<>{}); });
+					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_type(a, b); });
 				}
 				else
 				{
-					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_type(a, b, std::greater<>{}); });
+					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_type(b, a); });
 				}
 			}
 			break;
 			case e_export_column::e_ordinal:
 			{
-				auto const fn_compare_ordinal = [&](std::uint16_t const a, std::uint16_t const b, auto const& cmp) -> bool
+				auto const fn_compare_ordinal = [&](std::uint16_t const a, std::uint16_t const b) -> bool
 				{
 					std::uint16_t const ordinal_a = pe_get_export_ordinal(eti, a);
 					std::uint16_t const ordinal_b = pe_get_export_ordinal(eti, b);
-					return cmp(ordinal_a, ordinal_b);
+					return ordinal_a < ordinal_b;
 				};
 				if(cur_sort_asc)
 				{
-					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_ordinal(a, b, std::less<>{}); });
+					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_ordinal(a, b); });
 				}
 				else
 				{
-					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_ordinal(a, b, std::greater<>{}); });
+					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_ordinal(b, a); });
 				}
 			}
 			break;
 			case e_export_column::e_hint:
 			{
-				auto const fn_compare_hint = [&](std::uint16_t const a, std::uint16_t const b, auto const& cmp) -> bool
+				auto const fn_compare_hint = [&](std::uint16_t const a, std::uint16_t const b) -> bool
 				{
 					auto const ret_a = pe_get_export_hint(eti, a);
 					auto const ret_b = pe_get_export_hint(eti, b);
-					return cmp(std::tie(ret_a.m_is_valid, ret_a.m_value), std::tie(ret_b.m_is_valid, ret_b.m_value));
+					return std::tie(ret_a.m_is_valid, ret_a.m_value) < std::tie(ret_b.m_is_valid, ret_b.m_value);
 				};
 				if(cur_sort_asc)
 				{
-					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_hint(a, b, std::less<>{}); });
+					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_hint(a, b); });
 				}
 				else
 				{
-					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_hint(a, b, std::greater<>{}); });
+					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_hint(b, a); });
 				}
 			}
 			break;
 			case e_export_column::e_name:
 			{
-				auto const fn_compare_name = [&](std::uint16_t const a, std::uint16_t const b, auto const& cmp) -> bool
+				auto const fn_compare_name = [&](std::uint16_t const a, std::uint16_t const b) -> bool
 				{
 					string_handle const ret_a = pe_get_export_name(eti, a);
 					string_handle const ret_b = pe_get_export_name(eti, b);
@@ -504,21 +504,21 @@ void export_view::sort_view()
 					int const proxy_b = !ret_b.m_string ? 2 : (ret_b.m_string == get_export_name_processing().m_string ? 1 : 0);
 					string_helper_exp const sha{ret_a};
 					string_helper_exp const shb{ret_b};
-					return cmp(std::tie(proxy_a, sha), std::tie(proxy_b, shb));
+					return std::tie(proxy_a, sha) < std::tie(proxy_b, shb);
 				};
 				if(cur_sort_asc)
 				{
-					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_name(a, b, std::less<>{}); });
+					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_name(a, b); });
 				}
 				else
 				{
-					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_name(a, b, std::greater<>{}); });
+					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_name(b, a); });
 				}
 			}
 			break;
 			case e_export_column::e_entry_point:
 			{
-				auto const fn_compare_entry_point = [&](std::uint16_t const a, std::uint16_t const b, auto const& cmp) -> bool
+				auto const fn_compare_entry_point = [&](std::uint16_t const a, std::uint16_t const b) -> bool
 				{
 					bool const is_rva_a = pe_get_export_type(eti, a);
 					bool const is_rva_b = pe_get_export_type(eti, b);
@@ -526,15 +526,15 @@ void export_view::sort_view()
 					pe_rva_or_forwarder const entry_b = pe_get_export_entry_point(eti, b);
 					entry_point_helper const ha{is_rva_a, entry_a};
 					entry_point_helper const hb{is_rva_b, entry_b};
-					return cmp(std::tie(ha), std::tie(hb));
+					return std::tie(ha) < std::tie(hb);
 				};
 				if(cur_sort_asc)
 				{
-					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_entry_point(a, b, std::less<>{}); });
+					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_entry_point(a, b); });
 				}
 				else
 				{
-					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_entry_point(a, b, std::greater<>{}); });
+					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_entry_point(b, a); });
 				}
 			}
 			break;
