@@ -123,66 +123,28 @@ void tree_view::on_selchangedw([[maybe_unused]] NMHDR& nmhdr)
 
 void tree_view::on_context_menu(LPARAM const lparam)
 {
+	file_info const* fi;
 	POINT cursor_screen;
-	file_info const* curr_fi;
-	if(lparam == LPARAM{-1})
+	bool const got_data = get_fi_and_point_for_context_menu(lparam, fi, cursor_screen);
+	if(!got_data)
 	{
-		file_info const* const selection = get_selection();
-		if(!selection)
-		{
-			return;
-		}
-		RECT rect;
-		*reinterpret_cast<HTREEITEM*>(&rect) = reinterpret_cast<HTREEITEM>(selection->m_tree_item);
-		LRESULT const got_rect = SendMessageW(m_hwnd, TVM_GETITEMRECT, TRUE, reinterpret_cast<LPARAM>(&rect));
-		if(got_rect == FALSE)
-		{
-			return;
-		}
-		cursor_screen.x = rect.left + (rect.right - rect.left) / 2;
-		cursor_screen.y = rect.top + (rect.bottom - rect.top) / 2;
-		BOOL const converted = ClientToScreen(m_hwnd, &cursor_screen);
-		assert(converted != 0);
-		curr_fi = selection;
-	}
-	else
-	{
-		cursor_screen.x = GET_X_LPARAM(lparam);
-		cursor_screen.y = GET_Y_LPARAM(lparam);
-		POINT cursor_client = cursor_screen;
-		BOOL const converted = ScreenToClient(m_hwnd, &cursor_client);
-		assert(converted != 0);
-		TVHITTESTINFO hti;
-		hti.pt = cursor_client;
-		[[maybe_unused]] HTREEITEM const hit_tested = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_HITTEST, 0, reinterpret_cast<LPARAM>(&hti)));
-		assert(hit_tested == hti.hItem);
-		if(hti.hItem && (hti.flags & (TVHT_ONITEM | TVHT_ONITEMBUTTON | TVHT_ONITEMICON | TVHT_ONITEMLABEL | TVHT_ONITEMSTATEICON)) != 0)
-		{
-			LRESULT const selected = SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(hti.hItem));
-			assert(selected == TRUE);
-			file_info& fi = htreeitem_2_file_info(reinterpret_cast<htreeitem>(hti.hItem));
-			curr_fi = &fi;
-		}
-		else
-		{
-			curr_fi = nullptr;
-		}
+		return;
 	}
 	HMENU const menu = reinterpret_cast<HMENU>(m_menu.get());
 	{
-		BOOL const enabled_orig = EnableMenuItem(menu, static_cast<std::uint16_t>(e_tree_menu_id::e_orig), MF_BYCOMMAND | ((curr_fi && get_orig_data(curr_fi)) ? MF_ENABLED : MF_GRAYED));
+		BOOL const enabled_orig = EnableMenuItem(menu, static_cast<std::uint16_t>(e_tree_menu_id::e_orig), MF_BYCOMMAND | ((fi && get_orig_data(fi)) ? MF_ENABLED : MF_GRAYED));
 		assert(enabled_orig != -1 && (enabled_orig == MF_ENABLED || enabled_orig == MF_GRAYED));
 	}
 	{
-		BOOL const enabled_orig = EnableMenuItem(menu, static_cast<std::uint16_t>(e_tree_menu_id::e_prev), MF_BYCOMMAND | ((curr_fi && get_prev_data(curr_fi)) ? MF_ENABLED : MF_GRAYED));
+		BOOL const enabled_orig = EnableMenuItem(menu, static_cast<std::uint16_t>(e_tree_menu_id::e_prev), MF_BYCOMMAND | ((fi && get_prev_data(fi)) ? MF_ENABLED : MF_GRAYED));
 		assert(enabled_orig != -1 && (enabled_orig == MF_ENABLED || enabled_orig == MF_GRAYED));
 	}
 	{
-		BOOL const enabled_orig = EnableMenuItem(menu, static_cast<std::uint16_t>(e_tree_menu_id::e_next), MF_BYCOMMAND | ((curr_fi && get_next_data(curr_fi)) ? MF_ENABLED : MF_GRAYED));
+		BOOL const enabled_orig = EnableMenuItem(menu, static_cast<std::uint16_t>(e_tree_menu_id::e_next), MF_BYCOMMAND | ((fi && get_next_data(fi)) ? MF_ENABLED : MF_GRAYED));
 		assert(enabled_orig != -1 && (enabled_orig == MF_ENABLED || enabled_orig == MF_GRAYED));
 	}
 	{
-		BOOL const enabled_properties = EnableMenuItem(menu, static_cast<std::uint16_t>(e_tree_menu_id::e_properties), MF_BYCOMMAND | ((curr_fi && m_main_window.get_properties_data(curr_fi)) ? MF_ENABLED : MF_GRAYED));
+		BOOL const enabled_properties = EnableMenuItem(menu, static_cast<std::uint16_t>(e_tree_menu_id::e_properties), MF_BYCOMMAND | ((fi && m_main_window.get_properties_data(fi)) ? MF_ENABLED : MF_GRAYED));
 		assert(enabled_properties != -1 && (enabled_properties == MF_ENABLED || enabled_properties == MF_GRAYED));
 	}
 	BOOL const tracked = TrackPopupMenu(menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON | TPM_NOANIMATION, cursor_screen.x, cursor_screen.y, 0, m_main_window.m_hwnd, nullptr);
@@ -384,6 +346,61 @@ file_info& tree_view::htreeitem_2_file_info(htreeitem const& hti)
 	assert(ti.lParam);
 	file_info& ret = *reinterpret_cast<file_info*>(ti.lParam);
 	return ret;
+}
+
+bool tree_view::get_fi_and_point_for_context_menu(LPARAM const lparam, file_info const*& out_fi, POINT& out_point)
+{
+	if(lparam == LPARAM{-1})
+	{
+		file_info const* const selection = get_selection();
+		if(!selection)
+		{
+			return false;
+		}
+		RECT rect;
+		*reinterpret_cast<HTREEITEM*>(&rect) = reinterpret_cast<HTREEITEM>(selection->m_tree_item);
+		LRESULT const got_rect = SendMessageW(m_hwnd, TVM_GETITEMRECT, TRUE, reinterpret_cast<LPARAM>(&rect));
+		if(got_rect == FALSE)
+		{
+			return false;
+		}
+		POINT cursor_screen;
+		cursor_screen.x = rect.left + (rect.right - rect.left) / 2;
+		cursor_screen.y = rect.top + (rect.bottom - rect.top) / 2;
+		BOOL const converted = ClientToScreen(m_hwnd, &cursor_screen);
+		assert(converted != 0);
+		out_point = cursor_screen;
+		out_fi = selection;
+		return true;
+	}
+	else
+	{
+		POINT cursor_screen;
+		cursor_screen.x = GET_X_LPARAM(lparam);
+		cursor_screen.y = GET_Y_LPARAM(lparam);
+		POINT cursor_client = cursor_screen;
+		BOOL const converted = ScreenToClient(m_hwnd, &cursor_client);
+		assert(converted != 0);
+		TVHITTESTINFO hti;
+		hti.pt = cursor_client;
+		[[maybe_unused]] HTREEITEM const hit_tested = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_HITTEST, 0, reinterpret_cast<LPARAM>(&hti)));
+		assert(hit_tested == hti.hItem);
+		if(hti.hItem && (hti.flags & (TVHT_ONITEM | TVHT_ONITEMBUTTON | TVHT_ONITEMICON | TVHT_ONITEMLABEL | TVHT_ONITEMSTATEICON)) != 0)
+		{
+			LRESULT const selected = SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(hti.hItem));
+			assert(selected == TRUE);
+			file_info& fi = htreeitem_2_file_info(reinterpret_cast<htreeitem>(hti.hItem));
+			out_fi = &fi;
+			out_point = cursor_screen;
+			return true;
+		}
+		else
+		{
+			out_fi = nullptr;
+			out_point = cursor_screen;
+			return true;
+		}
+	}
 }
 
 std::uint8_t tree_view::get_tree_item_icon(file_info const& tmp_fi, file_info const* const parent_fi)

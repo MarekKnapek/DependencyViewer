@@ -51,6 +51,7 @@ public:
 private:
 	smart_menu create_menu();
 	file_info& htreeitem_2_file_info(htreeitem const& hti);
+	bool get_fi_and_point_for_context_menu(LPARAM const lparam, file_info const*& out_fi, POINT& out_point);
 	std::uint8_t get_tree_item_icon(file_info const& tmp_fi, file_info const* const parent_fi);
 	void refresh_view_recursive(file_info& fi, void* const ti);
 	void select_orig_instance(htreeitem const data = nullptr);
