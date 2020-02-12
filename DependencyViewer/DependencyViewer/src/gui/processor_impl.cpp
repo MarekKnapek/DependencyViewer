@@ -139,7 +139,8 @@ modules_list_t make_modules_list(tmp_type const& to)
 	auto const not_found_fis = make_non_found_modules(to);
 	int const n1 = static_cast<int>(not_found_fis.size());
 	int const n2 = static_cast<int>(to.m_map.size());
-	int const n = n1 + n2;
+	assert(n1 <= 0xFFFF && n2 <= 0xFFFF && n1 + n2 <= 0xFFFF);
+	std::uint16_t const n = static_cast<std::uint16_t>(n1 + n2);
 	file_info** const modules_list = to.m_mm->m_alc.allocate_objects<file_info*>(n);
 	std::copy(not_found_fis.begin(), not_found_fis.end(), modules_list);
 	std::transform(to.m_map.begin(), to.m_map.end(), modules_list + n1, [](auto const& e){ return e->m_instance; });

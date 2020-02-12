@@ -112,6 +112,7 @@ void modules_view::on_getdispinfow(NMHDR& nmhdr)
 	NMLVDISPINFOW& nm = reinterpret_cast<NMLVDISPINFOW&>(nmhdr);
 	int const row = nm.item.iItem;
 	int const col = nm.item.iSubItem;
+	assert(row >= 0 && row <= 0xFFFF);
 	assert(col >= 0 && col <= static_cast<int>(e_modules_column::e_path));
 	auto const ecol = static_cast<e_modules_column>(col);
 	if((nm.item.mask & LVIF_TEXT) != 0)
@@ -120,14 +121,14 @@ void modules_view::on_getdispinfow(NMHDR& nmhdr)
 		{
 			case e_modules_column::e_name:
 			{
-				wstring const str = on_get_col_name(row);
+				wstring const str = on_get_col_name(static_cast<std::uint16_t>(row));
 				assert(str);
 				nm.item.pszText = const_cast<wchar_t*>(str.m_str);
 			}
 			break;
 			case e_modules_column::e_path:
 			{
-				wstring const str = on_get_col_path(row);
+				wstring const str = on_get_col_path(static_cast<std::uint16_t>(row));
 				assert(str);
 				nm.item.pszText = const_cast<wchar_t*>(str.m_str);
 			}
@@ -152,21 +153,21 @@ void modules_view::on_columnclick(NMHDR& nmhdr)
 	repaint();
 }
 
-wstring modules_view::on_get_col_name(std::uint32_t const& row)
+wstring modules_view::on_get_col_name(std::uint16_t const& row)
 {
-	std::uint32_t const idx_unsorted = m_sort.empty() ? row : m_sort[row];
+	std::uint16_t const idx_unsorted = m_sort.empty() ? row : m_sort[row];
 	wstring const ret = on_get_col_name_unsorted(idx_unsorted);
 	return ret;
 }
 
-wstring modules_view::on_get_col_path(std::uint32_t const& row)
+wstring modules_view::on_get_col_path(std::uint16_t const& row)
 {
-	std::uint32_t const idx_unsorted = m_sort.empty() ? row : m_sort[row];
+	std::uint16_t const idx_unsorted = m_sort.empty() ? row : m_sort[row];
 	wstring const ret = on_get_col_path_unsorted(idx_unsorted);
 	return ret;
 }
 
-wstring modules_view::on_get_col_name_unsorted(std::uint32_t const& row)
+wstring modules_view::on_get_col_name_unsorted(std::uint16_t const& row)
 {
 	assert(row < m_main_window.m_mo.m_modules_list.m_count);
 	file_info const* const fi = m_main_window.m_mo.m_modules_list.m_list[row];
@@ -189,7 +190,7 @@ wstring modules_view::on_get_col_name_unsorted(std::uint32_t const& row)
 	}
 }
 
-wstring modules_view::on_get_col_path_unsorted(std::uint32_t const& row)
+wstring modules_view::on_get_col_path_unsorted(std::uint16_t const& row)
 {
 	assert(row < m_main_window.m_mo.m_modules_list.m_count);
 	file_info const* const fi = m_main_window.m_mo.m_modules_list.m_list[row];
@@ -221,11 +222,11 @@ void modules_view::sort_view()
 	}
 	else
 	{
-		std::uint32_t const n = modules_list.m_count;
+		std::uint16_t const n = modules_list.m_count;
 		if(static_cast<int>(m_sort.size()) != n)
 		{
 			m_sort.resize(n);
-			std::iota(m_sort.begin(), m_sort.end(), std::uint32_t{0});
+			std::iota(m_sort.begin(), m_sort.end(), std::uint16_t{0});
 		}
 		bool const cur_sort_asc = (cur_sort_raw & (1u << 7u)) == 0u;
 		std::uint8_t const cur_sort_col = cur_sort_raw &~ (1u << 7u);
@@ -235,7 +236,7 @@ void modules_view::sort_view()
 		{
 			case e_modules_column::e_name:
 			{
-				auto const fn_compare_name = [&](std::uint32_t const& a, std::uint32_t const& b) -> bool
+				auto const fn_compare_name = [&](std::uint16_t const& a, std::uint16_t const& b) -> bool
 				{
 					wstring const val_a = on_get_col_name_unsorted(a);
 					wstring const val_b = on_get_col_name_unsorted(b);
@@ -254,7 +255,7 @@ void modules_view::sort_view()
 			break;
 			case e_modules_column::e_path:
 			{
-				auto const fn_compare_path = [&](std::uint32_t const& a, std::uint32_t const& b) -> bool
+				auto const fn_compare_path = [&](std::uint16_t const& a, std::uint16_t const& b) -> bool
 				{
 					wstring const val_a = on_get_col_path_unsorted(a);
 					wstring const val_b = on_get_col_path_unsorted(b);

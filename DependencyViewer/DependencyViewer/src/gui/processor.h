@@ -32,7 +32,7 @@ void init(file_info* const fi, int const count);
 struct modules_list_t
 {
 	file_info** m_list;
-	std::uint32_t m_count;
+	std::uint16_t m_count;
 };
 
 struct main_type

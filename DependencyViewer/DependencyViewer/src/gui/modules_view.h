@@ -29,10 +29,10 @@ public:
 private:
 	void on_getdispinfow(NMHDR& nmhdr);
 	void on_columnclick(NMHDR& nmhdr);
-	wstring on_get_col_name(std::uint32_t const& row);
-	wstring on_get_col_path(std::uint32_t const& row);
-	wstring on_get_col_name_unsorted(std::uint32_t const& row);
-	wstring on_get_col_path_unsorted(std::uint32_t const& row);
+	wstring on_get_col_name(std::uint16_t const& row);
+	wstring on_get_col_path(std::uint16_t const& row);
+	wstring on_get_col_name_unsorted(std::uint16_t const& row);
+	wstring on_get_col_path_unsorted(std::uint16_t const& row);
 	void refresh_headers();
 	void sort_view();
 private:
@@ -40,5 +40,5 @@ private:
 	main_window& m_main_window;
 	string_converter m_string_converter;
 	std::uint8_t m_sort_direction;
-	std::vector<std::uint32_t> m_sort;
+	std::vector<std::uint16_t> m_sort;
 };
