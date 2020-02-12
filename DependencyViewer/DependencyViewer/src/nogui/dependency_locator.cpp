@@ -57,15 +57,14 @@ bool locate_dependency_known_dlls(dependency_locator& self)
 	self.m_tmpn.resize(size(dependency));
 	std::transform(begin(dependency), end(dependency), begin(tmpn), [](auto const& e){ return to_lowercase(e); });
 	string const dll_name_s{tmpn.c_str(), static_cast<int>(tmpn.size())};
-	string_handle const dll_name_sh{&dll_name_s};
 	auto const& known_dll_names = known_dlls::get_names_sorted_lowercase_ascii();
-	auto const it = std::lower_bound(known_dll_names.begin(), known_dll_names.end(), dll_name_sh, [](auto const& e, auto const& v){ string const e_s{e.c_str(), static_cast<int>(e.size())}; return string_handle{&e_s} < v; });
+	auto const it = std::lower_bound(known_dll_names.begin(), known_dll_names.end(), dll_name_s, [](auto const& e, auto const& v){ string const e_s{e.c_str(), static_cast<int>(e.size())}; return e_s < v; });
 	if(it == known_dll_names.end())
 	{
 		return false;
 	}
 	string const s{it->c_str(), static_cast<int>(it->size())};
-	if(string_handle{&s} != dll_name_sh)
+	if(s != dll_name_s)
 	{
 		return false;
 	}
