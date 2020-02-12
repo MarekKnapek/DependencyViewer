@@ -409,7 +409,7 @@ void import_view::sort_view()
 		if(static_cast<int>(m_sort.size()) != n_items * 2)
 		{
 			m_sort.resize(n_items * 2);
-			std::iota(m_sort.begin(), m_sort.end(), std::uint16_t{0});
+			std::iota(m_sort.begin(), m_sort.begin() + n_items, std::uint16_t{0});
 		}
 		std::uint16_t* const sort = m_sort.data();
 		assert(cur_sort_col >= 0 && cur_sort_col < std::size(s_import_headers));
