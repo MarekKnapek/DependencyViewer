@@ -23,13 +23,15 @@
 
 enum class e_tree_menu_id : std::uint16_t
 {
-	e_orig = s_tree_view_menu_min,
+	e_match = s_tree_view_menu_min,
+	e_orig,
 	e_prev,
 	e_next,
 	e_expand,
 	e_collapse,
-	e_properties
+	e_properties,
 };
+static constexpr wchar_t const s_tree_menu_str_match[] = L"&Highlight Matching Module In List\tCtrl+M";
 static constexpr wchar_t const s_tree_menu_str_orig[] = L"Highlight &Original Instance\tCtrl+K";
 static constexpr wchar_t const s_tree_menu_str_prev[] = L"Highlight Previous &Instance\tCtrl+B";
 static constexpr wchar_t const s_tree_menu_str_next[] = L"Highlight &Next Instance\tCtrl+N";
@@ -132,6 +134,10 @@ void tree_view::on_context_menu(LPARAM const lparam)
 	}
 	HMENU const menu = reinterpret_cast<HMENU>(m_menu.get());
 	{
+		BOOL const enabled_match = EnableMenuItem(menu, static_cast<std::uint16_t>(e_tree_menu_id::e_match), MF_BYCOMMAND | ((fi && get_match_data(fi)) ? MF_ENABLED : MF_GRAYED));
+		assert(enabled_match != -1 && (enabled_match == MF_ENABLED || enabled_match == MF_GRAYED));
+	}
+	{
 		BOOL const enabled_orig = EnableMenuItem(menu, static_cast<std::uint16_t>(e_tree_menu_id::e_orig), MF_BYCOMMAND | ((fi && get_orig_data(fi)) ? MF_ENABLED : MF_GRAYED));
 		assert(enabled_orig != -1 && (enabled_orig == MF_ENABLED || enabled_orig == MF_GRAYED));
 	}
@@ -156,6 +162,11 @@ void tree_view::on_menu(std::uint16_t const menu_id)
 	e_tree_menu_id const e_menu = static_cast<e_tree_menu_id>(menu_id);
 	switch(e_menu)
 	{
+		case e_tree_menu_id::e_match:
+		{
+			on_menu_match();
+		}
+		break;
 		case e_tree_menu_id::e_orig:
 		{
 			on_menu_orig();
@@ -194,6 +205,11 @@ void tree_view::on_menu(std::uint16_t const menu_id)
 	}
 }
 
+void tree_view::on_menu_match()
+{
+	select_match();
+}
+
 void tree_view::on_menu_orig()
 {
 	select_orig_instance();
@@ -222,6 +238,11 @@ void tree_view::on_menu_collapse()
 void tree_view::on_menu_properties()
 {
 	m_main_window.properties();
+}
+
+void tree_view::on_accel_match()
+{
+	select_match();
 }
 
 void tree_view::on_accel_orig()
@@ -301,21 +322,23 @@ smart_menu tree_view::create_menu()
 {
 	static constexpr std::uint16_t const menu_ids[] =
 	{
+		static_cast<std::uint16_t>(e_tree_menu_id::e_match),
 		static_cast<std::uint16_t>(e_tree_menu_id::e_orig),
 		static_cast<std::uint16_t>(e_tree_menu_id::e_prev),
 		static_cast<std::uint16_t>(e_tree_menu_id::e_next),
 		static_cast<std::uint16_t>(e_tree_menu_id::e_expand),
 		static_cast<std::uint16_t>(e_tree_menu_id::e_collapse),
-		static_cast<std::uint16_t>(e_tree_menu_id::e_properties)
+		static_cast<std::uint16_t>(e_tree_menu_id::e_properties),
 	};
 	static constexpr wchar_t const* const menu_strs[] =
 	{
+		s_tree_menu_str_match,
 		s_tree_menu_str_orig,
 		s_tree_menu_str_prev,
 		s_tree_menu_str_next,
 		s_tree_menu_str_expand,
 		s_tree_menu_str_collapse,
-		s_tree_menu_str_properties
+		s_tree_menu_str_properties,
 	};
 	static_assert(std::size(menu_ids) == std::size(menu_strs), "");
 
@@ -515,6 +538,19 @@ void tree_view::refresh_view_recursive(file_info& fi, void* const parent_ti)
 	}
 }
 
+void tree_view::select_match(htreeitem const data /* = nullptr */)
+{
+	htreeitem const dta = data ? data : get_match_data();
+	if(!dta)
+	{
+		return;
+	}
+	file_info const& tmp_fi_ = htreeitem_2_file_info(dta);
+	file_info const* const tmp_fi = &tmp_fi_;
+	file_info const* const fi = tmp_fi->m_orig_instance ? tmp_fi->m_orig_instance : tmp_fi;
+	m_main_window.m_modules_view.select_item(fi);
+}
+
 void tree_view::select_orig_instance(htreeitem const data /* = nullptr */)
 {
 	htreeitem const dta = data ? data : get_orig_data();
@@ -546,6 +582,26 @@ void tree_view::select_next_instance(htreeitem const data /* = nullptr */)
 	}
 	LRESULT const orig_selected = SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(dta));
 	assert(orig_selected == TRUE);
+}
+
+htreeitem tree_view::get_match_data(file_info const* const curr_fi /* = nullptr */)
+{
+	file_info const* fi;
+	if(curr_fi)
+	{
+		fi = curr_fi;
+	}
+	else
+	{
+		file_info const* const f = get_selection();
+		if(!f)
+		{
+			return nullptr;
+		}
+		fi = f;
+	}
+	assert(fi);
+	return fi->m_tree_item;
 }
 
 htreeitem tree_view::get_orig_data(file_info const* const curr_fi /* = nullptr */)

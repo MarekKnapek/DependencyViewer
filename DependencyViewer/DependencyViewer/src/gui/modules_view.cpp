@@ -107,6 +107,19 @@ void modules_view::repaint()
 	assert(redrawn != 0);
 }
 
+void modules_view::select_item(file_info const* const& fi)
+{
+	assert(fi);
+	auto const b = m_main_window.m_mo.m_modules_list.m_list;
+	auto const e = b + m_main_window.m_mo.m_modules_list.m_count;
+	auto const it = std::find(b, e, fi);
+	assert(it != e);
+	auto const idx_ = it - b;
+	assert(idx_ >= 0 && idx_ <= 0xFFFF);
+	std::uint16_t const idx = static_cast<std::uint16_t>(idx_);
+	list_view_base::select_item(&m_hwnd, &m_sort, idx);
+}
+
 void modules_view::on_getdispinfow(NMHDR& nmhdr)
 {
 	NMLVDISPINFOW& nm = reinterpret_cast<NMLVDISPINFOW&>(nmhdr);
@@ -222,12 +235,13 @@ void modules_view::sort_view()
 	}
 	else
 	{
-		std::uint16_t const n = modules_list.m_count;
-		if(static_cast<int>(m_sort.size()) != n)
+		std::uint16_t const& n_items = modules_list.m_count;
+		if(static_cast<int>(m_sort.size()) != n_items * 2)
 		{
-			m_sort.resize(n);
-			std::iota(m_sort.begin(), m_sort.end(), std::uint16_t{0});
+			m_sort.resize(n_items * 2);
+			std::iota(m_sort.begin(), m_sort.begin() + n_items, std::uint16_t{0});
 		}
+		std::uint16_t* const sort = m_sort.data();
 		bool const cur_sort_asc = (cur_sort_raw & (1u << 7u)) == 0u;
 		std::uint8_t const cur_sort_col = cur_sort_raw &~ (1u << 7u);
 		assert(cur_sort_col <= static_cast<std::uint8_t>(e_modules_column::e_path));
@@ -245,11 +259,11 @@ void modules_view::sort_view()
 				};
 				if(cur_sort_asc)
 				{
-					std::stable_sort(m_sort.begin(), m_sort.end(), [&](auto const& a, auto const& b){ return fn_compare_name(a, b); });
+					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_name(a, b); });
 				}
 				else
 				{
-					std::stable_sort(m_sort.begin(), m_sort.end(), [&](auto const& a, auto const& b){ return fn_compare_name(b, a); });
+					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_name(b, a); });
 				}
 			}
 			break;
@@ -264,11 +278,11 @@ void modules_view::sort_view()
 				};
 				if(cur_sort_asc)
 				{
-					std::stable_sort(m_sort.begin(), m_sort.end(), [&](auto const& a, auto const& b){ return fn_compare_path(a, b); });
+					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_path(a, b); });
 				}
 				else
 				{
-					std::stable_sort(m_sort.begin(), m_sort.end(), [&](auto const& a, auto const& b){ return fn_compare_path(b, a); });
+					std::stable_sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_path(b, a); });
 				}
 			}
 			break;
@@ -277,6 +291,10 @@ void modules_view::sort_view()
 				assert(false);
 			}
 			break;
+		}
+		for(std::uint16_t i = 0; i != n_items; ++i)
+		{
+			m_sort[n_items + m_sort[i]] = i;
 		}
 	}
 }

@@ -844,7 +844,11 @@ void main_window::on_accel_matching()
 	{
 		return;
 	}
-	if(focus == m_import_view.get_hwnd())
+	if(focus == m_tree_view.get_hwnd())
+	{
+		m_tree_view.on_accel_match();
+	}
+	else if(focus == m_import_view.get_hwnd())
 	{
 		m_import_view.on_accel_matching();
 	}

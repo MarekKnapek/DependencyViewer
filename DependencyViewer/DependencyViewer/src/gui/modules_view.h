@@ -9,6 +9,7 @@
 
 
 class main_window;
+struct file_info;
 
 
 class modules_view
@@ -26,6 +27,7 @@ public:
 	void on_notify(NMHDR& nmhdr);
 	void refresh();
 	void repaint();
+	void select_item(file_info const* const& fi);
 private:
 	void on_getdispinfow(NMHDR& nmhdr);
 	void on_columnclick(NMHDR& nmhdr);
