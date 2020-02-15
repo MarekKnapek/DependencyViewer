@@ -24,7 +24,7 @@
 #include "nogui/allocator_malloc.cpp"
 #include "nogui/allocator_small.cpp"
 #include "nogui/array_bool.cpp"
-#include "nogui/assert.cpp"
+#include "nogui/assert_my.cpp"
 #include "nogui/com.cpp"
 #include "nogui/dbg_provider.cpp"
 #include "nogui/dbghelp.cpp"

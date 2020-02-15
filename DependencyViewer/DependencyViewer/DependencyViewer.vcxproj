@@ -224,8 +224,8 @@
     <ClInclude Include="src\nogui\allocator_malloc.h" />
     <ClInclude Include="src\nogui\allocator_small.h" />
     <ClInclude Include="src\nogui\array_bool.h" />
-    <ClInclude Include="src\nogui\assert.h" />
-    <ClInclude Include="src\nogui\cassert.h" />
+    <ClInclude Include="src\nogui\assert_my.h" />
+    <ClInclude Include="src\nogui\cassert_my.h" />
     <ClInclude Include="src\nogui\com.h" />
     <ClInclude Include="src\nogui\com_ptr.h" />
     <ClInclude Include="src\nogui\dbghelp.h" />
@@ -376,7 +376,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="src\nogui\assert.cpp">
+    <ClCompile Include="src\nogui\assert_my.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>

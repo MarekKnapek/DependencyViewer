@@ -171,9 +171,6 @@
     <ClInclude Include="src\nogui\smart_library.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
-    <ClInclude Include="src\nogui\assert.h">
-      <Filter>src\nogui</Filter>
-    </ClInclude>
     <ClInclude Include="src\nogui\pe\mz.h">
       <Filter>src\nogui\pe</Filter>
     </ClInclude>
@@ -339,7 +336,10 @@
     <ClInclude Include="src\gui\file_info_getters.h">
       <Filter>src\gui</Filter>
     </ClInclude>
-    <ClInclude Include="src\nogui\cassert.h">
+    <ClInclude Include="src\nogui\assert_my.h">
+      <Filter>src\nogui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nogui\cassert_my.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
   </ItemGroup>
@@ -391,9 +391,6 @@
     </ClCompile>
     <ClCompile Include="src\nogui\pe\coff.cpp">
       <Filter>src\nogui\pe</Filter>
-    </ClCompile>
-    <ClCompile Include="src\nogui\assert.cpp">
-      <Filter>src\nogui</Filter>
     </ClCompile>
     <ClCompile Include="src\nogui\pe\coff_optional_standard.cpp">
       <Filter>src\nogui\pe</Filter>
@@ -538,6 +535,9 @@
     </ClCompile>
     <ClCompile Include="src\gui\file_info_getters.cpp">
       <Filter>src\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nogui\assert_my.cpp">
+      <Filter>src\nogui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
