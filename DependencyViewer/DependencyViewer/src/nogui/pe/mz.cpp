@@ -1,7 +1,7 @@
 #include "mz.h"
 
 #include "../assert.h"
-#include "../cassert.h"
+#include "../cassert_my.h"
 
 
 static constexpr std::uint16_t const s_mz_signature = 0x5a4d; // MZ

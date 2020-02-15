@@ -1,7 +1,7 @@
 #include "pe_getters_export.h"
 
 #include "array_bool.h"
-#include "cassert.h"
+#include "cassert_my.h"
 
 #include "../res/resources.h"
 

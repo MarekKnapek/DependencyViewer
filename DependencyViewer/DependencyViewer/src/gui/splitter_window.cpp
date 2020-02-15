@@ -2,7 +2,7 @@
 
 #include "main.h"
 
-#include "../nogui/cassert.h"
+#include "../nogui/cassert_my.h"
 
 #include <algorithm>
 

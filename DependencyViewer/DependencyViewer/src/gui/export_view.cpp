@@ -8,7 +8,7 @@
 #include "smart_dc.h"
 
 #include "../nogui/array_bool.h"
-#include "../nogui/cassert.h"
+#include "../nogui/cassert_my.h"
 #include "../nogui/int_to_string.h"
 #include "../nogui/pe.h"
 #include "../nogui/pe_getters_export.h"

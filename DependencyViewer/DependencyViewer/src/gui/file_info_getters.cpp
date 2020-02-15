@@ -2,7 +2,7 @@
 
 #include "processor.h"
 
-#include "../nogui/cassert.h"
+#include "../nogui/cassert_my.h"
 
 #include <cstdint>
 

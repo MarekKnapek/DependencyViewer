@@ -7,7 +7,7 @@
 
 #include "../nogui/act_ctx.h"
 #include "../nogui/assert.h"
-#include "../nogui/cassert.h"
+#include "../nogui/cassert_my.h"
 #include "../nogui/dependency_locator.h"
 #include "../nogui/file_name_provider.h"
 #include "../nogui/memory_mapped_file.h"

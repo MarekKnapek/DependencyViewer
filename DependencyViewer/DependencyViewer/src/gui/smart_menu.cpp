@@ -1,6 +1,6 @@
 #include "smart_menu.h"
 
-#include "../nogui/cassert.h"
+#include "../nogui/cassert_my.h"
 
 #include "../nogui/my_windows.h"
 

@@ -1,6 +1,6 @@
 #include "smart_dc.h"
 
-#include "../nogui/cassert.h"
+#include "../nogui/cassert_my.h"
 
 
 smart_dc::smart_dc(HWND const& wnd, HDC const& dc) noexcept :

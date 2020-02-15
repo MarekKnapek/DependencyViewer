@@ -6,7 +6,7 @@
 #include "splitter_window.h"
 #include "test.h"
 
-#include "../nogui/cassert.h"
+#include "../nogui/cassert_my.h"
 #include "../nogui/com.h"
 #include "../nogui/dbg_provider.h"
 #include "../nogui/file_name_provider.h"

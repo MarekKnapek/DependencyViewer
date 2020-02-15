@@ -1,6 +1,6 @@
 #include "my_actctx.h"
 
-#include "cassert.h"
+#include "cassert_my.h"
 
 #include "../res/resources.h"
 

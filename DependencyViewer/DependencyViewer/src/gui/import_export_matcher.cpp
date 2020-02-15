@@ -3,7 +3,7 @@
 #include "tree_algos.h"
 
 #include "../nogui/array_bool.h"
-#include "../nogui/cassert.h"
+#include "../nogui/cassert_my.h"
 
 #include <algorithm>
 

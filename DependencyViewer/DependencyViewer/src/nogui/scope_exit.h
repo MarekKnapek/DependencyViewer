@@ -3,7 +3,7 @@
 #define mk_scope_exit_h_included
 
 
-#include "cassert.h" // assert
+#include "cassert_my.h" // assert
 
 #include <memory> // std::addressof
 #include <type_traits> // std::remove_reference_t

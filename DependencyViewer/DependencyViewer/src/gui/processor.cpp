@@ -3,7 +3,7 @@
 #include "processor_impl.h"
 
 #include "../nogui/assert.h"
-#include "../nogui/cassert.h"
+#include "../nogui/cassert_my.h"
 
 #include <cstring>
 #include <type_traits>

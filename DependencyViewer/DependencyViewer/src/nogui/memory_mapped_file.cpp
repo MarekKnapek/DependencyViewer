@@ -1,7 +1,7 @@
 #include "memory_mapped_file.h"
 
 #include "assert.h"
-#include "cassert.h"
+#include "cassert_my.h"
 
 #include <algorithm>
 #include <utility>

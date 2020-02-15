@@ -1,7 +1,7 @@
 #include "known_dlls.h"
 
 #include "assert.h"
-#include "cassert.h"
+#include "cassert_my.h"
 #include "scope_exit.h"
 #include "smart_handle.h"
 #include "unicode.h"

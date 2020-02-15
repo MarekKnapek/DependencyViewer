@@ -1,6 +1,6 @@
 #include "test.h"
 
-#include "../nogui/cassert.h"
+#include "../nogui/cassert_my.h"
 #include "../nogui/memory_manager.h"
 #include "../nogui/memory_mapped_file.h"
 #include "../nogui/pe.h"

@@ -1,6 +1,6 @@
 #include "com_ptr.h"
 
-#include "cassert.h"
+#include "cassert_my.h"
 
 #include <utility>
 

@@ -1,6 +1,6 @@
 #include "smart_reg_key.h"
 
-#include "cassert.h"
+#include "cassert_my.h"
 
 
 void reg_close_key_deleter::operator()(void* const key) const

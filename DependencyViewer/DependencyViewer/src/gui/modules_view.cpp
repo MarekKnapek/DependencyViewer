@@ -5,7 +5,7 @@
 #include "main.h"
 #include "main_window.h"
 
-#include "../nogui/cassert.h"
+#include "../nogui/cassert_my.h"
 #include "../nogui/scope_exit.h"
 #include "../nogui/utils.h"
 

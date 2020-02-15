@@ -1,7 +1,7 @@
 #include "file_name_provider.h"
 
 #include "assert.h"
-#include "cassert.h"
+#include "cassert_my.h"
 #include "scope_exit.h"
 
 #include <utility>

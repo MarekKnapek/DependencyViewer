@@ -1,6 +1,6 @@
 #include "my_string.h"
 
-#include "cassert.h"
+#include "cassert_my.h"
 #include "fnv1a.h"
 
 #include <algorithm>

@@ -1,6 +1,6 @@
 #include "common_controls.h"
 
-#include "../nogui/cassert.h"
+#include "../nogui/cassert_my.h"
 #include "../nogui/smart_library.h"
 
 

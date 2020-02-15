@@ -1,6 +1,6 @@
 #include "list_view_base.h"
 
-#include "../nogui/cassert.h"
+#include "../nogui/cassert_my.h"
 
 #include <cstdint>
 #include <vector>

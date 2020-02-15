@@ -1,6 +1,6 @@
 #include "smart_library.h"
 
-#include "cassert.h"
+#include "cassert_my.h"
 
 
 void library_deleter::operator()(HMODULE const& library) const

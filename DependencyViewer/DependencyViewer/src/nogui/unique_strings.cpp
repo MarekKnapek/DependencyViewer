@@ -1,7 +1,7 @@
 #include "unique_strings.h"
 
 #include "allocator.h"
-#include "cassert.h"
+#include "cassert_my.h"
 
 #include <cstring>
 #include <utility>

@@ -6,7 +6,7 @@
 #include "main_window.h"
 #include "tree_algos.h"
 
-#include "../nogui/cassert.h"
+#include "../nogui/cassert_my.h"
 #include "../nogui/utils.h"
 
 #include "../res/resources.h"

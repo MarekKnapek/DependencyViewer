@@ -1,6 +1,6 @@
 #include "array_bool.h"
 
-#include "cassert.h"
+#include "cassert_my.h"
 
 #include <climits>
 

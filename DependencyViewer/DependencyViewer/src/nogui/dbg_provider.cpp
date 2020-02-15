@@ -1,6 +1,6 @@
 #include "dbg_provider.h"
 
-#include "cassert.h"
+#include "cassert_my.h"
 #include "scope_exit.h"
 #include "thread_name.h"
 

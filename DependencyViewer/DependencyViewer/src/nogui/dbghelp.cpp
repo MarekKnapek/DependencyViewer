@@ -1,6 +1,6 @@
 #include "dbghelp.h"
 
-#include "cassert.h"
+#include "cassert_my.h"
 #include "scope_exit.h"
 #include "smart_reg_key.h"
 #include "wow.h"
