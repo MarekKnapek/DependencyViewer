@@ -1,7 +1,7 @@
 #include "pe2.h"
 
 #include "array_bool.h"
-#include "assert.h"
+#include "assert_my.h"
 
 #include "pe/resource_table.h"
 

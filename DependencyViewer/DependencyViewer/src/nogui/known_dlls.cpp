@@ -1,6 +1,6 @@
 #include "known_dlls.h"
 
-#include "assert.h"
+#include "assert_my.h"
 #include "cassert_my.h"
 #include "scope_exit.h"
 #include "smart_handle.h"

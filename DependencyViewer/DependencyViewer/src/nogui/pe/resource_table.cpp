@@ -4,7 +4,7 @@
 #include "mz.h"
 #include "pe_util.h"
 
-#include "../assert.h"
+#include "../assert_my.h"
 #include "../cassert_my.h"
 
 

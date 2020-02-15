@@ -4,7 +4,7 @@
 #include "coff_optional_standard.h"
 #include "mz.h"
 
-#include "../assert.h"
+#include "../assert_my.h"
 
 #include <algorithm>
 #include <iterator>

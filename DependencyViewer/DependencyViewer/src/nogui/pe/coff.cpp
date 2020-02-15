@@ -2,7 +2,7 @@
 
 #include "mz.h"
 
-#include "../assert.h"
+#include "../assert_my.h"
 
 #include <algorithm>
 #include <iterator>

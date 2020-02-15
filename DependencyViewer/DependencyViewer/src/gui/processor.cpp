@@ -2,7 +2,7 @@
 
 #include "processor_impl.h"
 
-#include "../nogui/assert.h"
+#include "../nogui/assert_my.h"
 #include "../nogui/cassert_my.h"
 
 #include <cstring>

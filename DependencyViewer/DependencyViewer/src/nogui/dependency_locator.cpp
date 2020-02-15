@@ -1,6 +1,6 @@
 #include "dependency_locator.h"
 
-#include "assert.h"
+#include "assert_my.h"
 #include "cassert_my.h"
 #include "known_dlls.h"
 #include "unicode.h"

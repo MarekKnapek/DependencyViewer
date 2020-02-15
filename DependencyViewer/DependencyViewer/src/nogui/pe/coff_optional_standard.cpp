@@ -3,7 +3,7 @@
 #include "coff.h"
 #include "mz.h"
 
-#include "../assert.h"
+#include "../assert_my.h"
 
 
 static constexpr std::uint16_t const s_pe_coff_optional_sig_32 = 0x010b;
