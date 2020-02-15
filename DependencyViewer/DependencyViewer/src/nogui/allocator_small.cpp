@@ -1,6 +1,7 @@
 #include "allocator_small.h"
 
-#include <cassert>
+#include "cassert.h"
+
 #include <cstddef>
 #include <cstdint>
 #include <utility>

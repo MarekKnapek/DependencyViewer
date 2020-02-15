@@ -1,10 +1,9 @@
 #include "pe_getters_export.h"
 
 #include "array_bool.h"
+#include "cassert.h"
 
 #include "../res/resources.h"
-
-#include <cassert>
 
 
 std::uint8_t pe_get_export_icon_id(pe_export_table_info const& eti, std::uint16_t const* const matched_imports, std::uint16_t const exp_idx)

@@ -1,9 +1,9 @@
 #include "my_string.h"
 
+#include "cassert.h"
 #include "fnv1a.h"
 
 #include <algorithm>
-#include <cassert>
 #include <cstdint>
 #include <cstring>
 #include <cwchar>

@@ -1,6 +1,6 @@
 #include "smart_handle.h"
 
-#include <cassert>
+#include "cassert.h"
 
 #include "my_windows.h"
 

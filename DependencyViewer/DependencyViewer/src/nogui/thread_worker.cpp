@@ -1,6 +1,6 @@
 #include "thread_worker.h"
 
-#include <cassert>
+#include "cassert.h"
 
 
 thread_worker::thread_worker():

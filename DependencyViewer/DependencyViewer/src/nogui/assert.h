@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include <cassert>
+#include "cassert.h"
 
 
 #define WARN_XXX_1(X) L#X

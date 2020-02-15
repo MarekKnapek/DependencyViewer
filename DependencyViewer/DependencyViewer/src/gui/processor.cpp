@@ -3,8 +3,8 @@
 #include "processor_impl.h"
 
 #include "../nogui/assert.h"
+#include "../nogui/cassert.h"
 
-#include <cassert>
 #include <cstring>
 #include <type_traits>
 #include <utility>

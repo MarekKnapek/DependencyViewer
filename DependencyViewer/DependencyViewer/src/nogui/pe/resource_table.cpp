@@ -5,8 +5,7 @@
 #include "pe_util.h"
 
 #include "../assert.h"
-
-#include <cassert>
+#include "../cassert.h"
 
 
 bool pe_parse_resource_root_directory_table(std::byte const* const file_data, pe_resource_directory_table const** const res_root_dir_tbl_out, pe_section_header const** const res_sct_out)

@@ -1,11 +1,11 @@
 #include "dbghelp.h"
 
+#include "cassert.h"
 #include "scope_exit.h"
 #include "smart_reg_key.h"
 #include "wow.h"
 
 #include <array>
-#include <cassert>
 #include <filesystem>
 #include <string>
 

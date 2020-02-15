@@ -1,8 +1,7 @@
 #include "common_controls.h"
 
+#include "../nogui/cassert.h"
 #include "../nogui/smart_library.h"
-
-#include <cassert>
 
 
 static smart_library g_comctl32 = nullptr;

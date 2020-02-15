@@ -1,9 +1,9 @@
 #include "file_name_provider.h"
 
 #include "assert.h"
+#include "cassert.h"
 #include "scope_exit.h"
 
-#include <cassert>
 #include <utility>
 
 

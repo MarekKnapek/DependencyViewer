@@ -1,8 +1,7 @@
 #include "com_dlg.h"
 
+#include "../nogui/cassert.h"
 #include "../nogui/smart_library.h"
-
-#include <cassert>
 
 
 static smart_library g_comdlg32 = nullptr;

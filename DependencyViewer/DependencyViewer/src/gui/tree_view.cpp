@@ -6,12 +6,12 @@
 #include "main_window.h"
 #include "tree_algos.h"
 
+#include "../nogui/cassert.h"
 #include "../nogui/utils.h"
 
 #include "../res/resources.h"
 
 #include <algorithm>
-#include <cassert>
 #include <cstdint>
 
 #include "../nogui/my_windows.h"

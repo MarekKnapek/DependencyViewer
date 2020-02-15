@@ -3,9 +3,9 @@
 #include "tree_algos.h"
 
 #include "../nogui/array_bool.h"
+#include "../nogui/cassert.h"
 
 #include <algorithm>
-#include <cassert>
 
 
 void pair_all(file_info& fi, tmp_type& to)

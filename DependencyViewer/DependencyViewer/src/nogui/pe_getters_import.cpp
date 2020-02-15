@@ -1,11 +1,10 @@
 #include "pe_getters_import.h"
 
 #include "array_bool.h"
+#include "cassert.h"
 #include "pe_getters_export.h"
 
 #include "../res/resources.h"
-
-#include <cassert>
 
 
 std::uint8_t pe_get_import_icon_id(pe_import_table_info const& iti, std::uint16_t const dll_idx, std::uint16_t const imp_idx)

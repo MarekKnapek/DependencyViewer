@@ -5,10 +5,10 @@
 #include "main.h"
 #include "main_window.h"
 
+#include "../nogui/cassert.h"
 #include "../nogui/scope_exit.h"
 #include "../nogui/utils.h"
 
-#include <cassert>
 #include <iterator>
 #include <numeric>
 

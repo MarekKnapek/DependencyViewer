@@ -1,10 +1,10 @@
 #include "dbg_provider.h"
 
+#include "cassert.h"
 #include "scope_exit.h"
 #include "thread_name.h"
 
 #include <array>
-#include <cassert>
 
 
 static dbg_provider* g_dbg_provider = nullptr;

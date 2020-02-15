@@ -9,6 +9,7 @@
 
 #include "../nogui/array_bool.h"
 #include "../nogui/assert.h"
+#include "../nogui/cassert.h"
 #include "../nogui/com_ptr.h"
 #include "../nogui/dbg_provider.h"
 #include "../nogui/memory_mapped_file.h"
@@ -20,8 +21,6 @@
 
 #include <array>
 #include <atomic>
-#include <cassert>
-#include <cassert>
 #include <cstdint>
 #include <cstdlib>
 #include <iterator>

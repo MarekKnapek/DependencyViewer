@@ -1,9 +1,9 @@
 #include "memory_mapped_file.h"
 
 #include "assert.h"
+#include "cassert.h"
 
 #include <algorithm>
-#include <cassert>
 #include <utility>
 
 #include "my_windows.h"

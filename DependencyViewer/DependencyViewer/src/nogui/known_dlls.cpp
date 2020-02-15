@@ -1,13 +1,13 @@
 #include "known_dlls.h"
 
 #include "assert.h"
+#include "cassert.h"
 #include "scope_exit.h"
 #include "smart_handle.h"
 #include "unicode.h"
 #include "wow.h"
 
 #include <algorithm>
-#include <cassert>
 #include <cstddef>
 #include <cstring>
 #include <iterator>

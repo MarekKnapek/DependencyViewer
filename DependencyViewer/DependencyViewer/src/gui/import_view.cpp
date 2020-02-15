@@ -8,6 +8,7 @@
 #include "smart_dc.h"
 
 #include "../nogui/array_bool.h"
+#include "../nogui/cassert.h"
 #include "../nogui/int_to_string.h"
 #include "../nogui/pe.h"
 #include "../nogui/pe_getters_import.h"
@@ -16,7 +17,6 @@
 #include "../res/resources.h"
 
 #include <algorithm>
-#include <cassert>
 #include <functional>
 #include <iterator>
 #include <numeric>

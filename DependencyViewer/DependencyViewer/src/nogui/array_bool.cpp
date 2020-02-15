@@ -1,6 +1,7 @@
 #include "array_bool.h"
 
-#include <cassert>
+#include "cassert.h"
+
 #include <climits>
 
 

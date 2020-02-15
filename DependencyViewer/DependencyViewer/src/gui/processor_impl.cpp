@@ -7,6 +7,7 @@
 
 #include "../nogui/act_ctx.h"
 #include "../nogui/assert.h"
+#include "../nogui/cassert.h"
 #include "../nogui/dependency_locator.h"
 #include "../nogui/file_name_provider.h"
 #include "../nogui/memory_mapped_file.h"
@@ -15,7 +16,6 @@
 #include "../nogui/scope_exit.h"
 
 #include <algorithm>
-#include <cassert>
 #include <cstdint>
 #include <iterator>
 

@@ -1,12 +1,12 @@
 #include "dependency_locator.h"
 
 #include "assert.h"
+#include "cassert.h"
 #include "known_dlls.h"
 #include "unicode.h"
 
 #include <algorithm>
 #include <array>
-#include <cassert>
 
 #include "my_windows.h"
 

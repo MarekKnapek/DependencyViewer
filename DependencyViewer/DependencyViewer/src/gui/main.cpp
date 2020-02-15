@@ -6,6 +6,7 @@
 #include "splitter_window.h"
 #include "test.h"
 
+#include "../nogui/cassert.h"
 #include "../nogui/com.h"
 #include "../nogui/dbg_provider.h"
 #include "../nogui/file_name_provider.h"
@@ -13,8 +14,6 @@
 #include "../nogui/my_actctx.h"
 #include "../nogui/ole.h"
 #include "../nogui/scope_exit.h"
-
-#include <cassert>
 
 #include "../nogui/my_windows.h"
 

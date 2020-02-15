@@ -1,5 +1,6 @@
 #include "test.h"
 
+#include "../nogui/cassert.h"
 #include "../nogui/memory_manager.h"
 #include "../nogui/memory_mapped_file.h"
 #include "../nogui/pe.h"
@@ -7,7 +8,6 @@
 #include "../nogui/scope_exit.h"
 #include "../nogui/smart_handle.h"
 
-#include <cassert>
 #include <cwchar>
 #include <filesystem>
 #include <iterator>

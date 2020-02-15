@@ -1,6 +1,6 @@
 #include "thread_name.h"
 
-#include <cassert>
+#include "cassert.h"
 
 #include "my_windows.h"
 

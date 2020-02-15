@@ -2,8 +2,9 @@
 
 #include "main.h"
 
+#include "../nogui/cassert.h"
+
 #include <algorithm>
-#include <cassert>
 
 #include "../nogui/my_windows.h"
 

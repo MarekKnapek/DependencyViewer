@@ -1,8 +1,8 @@
 #include "my_actctx.h"
 
-#include "../res/resources.h"
+#include "cassert.h"
 
-#include <cassert>
+#include "../res/resources.h"
 
 #include "my_windows.h"
 

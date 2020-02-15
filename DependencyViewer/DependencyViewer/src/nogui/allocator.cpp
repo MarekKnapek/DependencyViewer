@@ -1,7 +1,8 @@
 #include "allocator.h"
 
+#include "cassert.h"
+
 #include <algorithm>
-#include <cassert>
 #include <cstdint>
 
 #include "my_windows.h"
