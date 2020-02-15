@@ -225,6 +225,7 @@
     <ClInclude Include="src\nogui\allocator_small.h" />
     <ClInclude Include="src\nogui\array_bool.h" />
     <ClInclude Include="src\nogui\assert.h" />
+    <ClInclude Include="src\nogui\cassert.h" />
     <ClInclude Include="src\nogui\com.h" />
     <ClInclude Include="src\nogui\com_ptr.h" />
     <ClInclude Include="src\nogui\dbghelp.h" />

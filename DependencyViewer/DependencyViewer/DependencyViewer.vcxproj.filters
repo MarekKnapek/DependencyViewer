@@ -339,6 +339,9 @@
     <ClInclude Include="src\gui\file_info_getters.h">
       <Filter>src\gui</Filter>
     </ClInclude>
+    <ClInclude Include="src\nogui\cassert.h">
+      <Filter>src\nogui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\main.cpp">
