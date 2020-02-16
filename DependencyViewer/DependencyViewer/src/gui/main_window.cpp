@@ -1155,28 +1155,51 @@ void main_window::properties(wstring_handle data /* = wstring_handle{} */)
 
 wstring_handle main_window::get_properties_data(file_info const* const curr_fi /* = nullptr */)
 {
-	file_info const* fi;
 	if(curr_fi)
 	{
-		fi = curr_fi;
-	}
-	else
-	{
-		file_info const* const f = m_tree_view.get_selection();
-		if(!f)
+		file_info const* const real_curr_fi = curr_fi->m_orig_instance ? curr_fi->m_orig_instance : curr_fi;
+		wstring_handle const& curr_fp = real_curr_fi->m_file_path;
+		if(curr_fp)
 		{
-			return wstring_handle{};
+			return curr_fp;
 		}
-		fi = f;
 	}
-	assert(fi);
-	file_info const& real_fi = fi->m_orig_instance ? *fi->m_orig_instance : *fi;
-	wstring_handle const& str = real_fi.m_file_path;
-	if(!str)
+
+	HWND const focus = GetFocus();
+
+	wstring_handle tree_fp{};
+	file_info const* const tree_fi = m_tree_view.get_selection();
+	if(tree_fi)
 	{
-		return wstring_handle{};
+		file_info const* const real_tree_fi = tree_fi->m_orig_instance ? tree_fi->m_orig_instance : tree_fi;
+		tree_fp = real_tree_fi->m_file_path;
 	}
-	return str;
+	if(focus == m_tree_view.get_hwnd() && tree_fp)
+	{
+		return tree_fp;
+	}
+
+	wstring_handle modules_fp{};
+	file_info const* const modules_fi = m_modules_view.get_selection();
+	if(modules_fi)
+	{
+		assert(!modules_fi->m_orig_instance);
+		modules_fp = modules_fi->m_file_path;
+	}
+	if(focus == m_modules_view.get_hwnd() && modules_fp)
+	{
+		return modules_fp;
+	}
+
+	if(tree_fp)
+	{
+		return tree_fp;
+	}
+	if(modules_fp)
+	{
+		return modules_fp;
+	}
+	return {};
 }
 
 void main_window::undecorate()
