@@ -510,6 +510,10 @@ LRESULT main_window::on_wm_contextmenu(WPARAM wparam, LPARAM lparam)
 	{
 		m_tree_view.on_context_menu(lparam);
 	}
+	else if(hwnd == m_modules_view.get_hwnd())
+	{
+		m_modules_view.on_context_menu(lparam);
+	}
 	else if(hwnd == m_import_view.get_hwnd())
 	{
 		m_import_view.on_context_menu(lparam);
@@ -593,6 +597,10 @@ void main_window::on_menu(WPARAM const wparam)
 	if(menu_id >= s_main_view_menu_min && menu_id < s_main_view_menu_max)
 	{
 		on_menu(menu_id);
+	}
+	else if(menu_id >= s_modules_view_menu_min && menu_id < s_modules_view_menu_max)
+	{
+		m_modules_view.on_menu(menu_id);
 	}
 	else if(menu_id >= s_tree_view_menu_min && menu_id < s_tree_view_menu_max)
 	{
@@ -847,6 +855,10 @@ void main_window::on_accel_properties()
 	{
 		m_tree_view.on_accel_properties();
 	}
+	else if(focus == m_modules_view.get_hwnd())
+	{
+		m_modules_view.on_accel_properties();
+	}
 	else
 	{
 		properties();
@@ -868,6 +880,10 @@ void main_window::on_accel_matching()
 	if(focus == m_tree_view.get_hwnd())
 	{
 		m_tree_view.on_accel_match();
+	}
+	else if(focus == m_modules_view.get_hwnd())
+	{
+		m_modules_view.on_accel_matching();
 	}
 	else if(focus == m_import_view.get_hwnd())
 	{

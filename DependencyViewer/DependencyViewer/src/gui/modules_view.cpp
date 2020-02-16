@@ -1,5 +1,6 @@
 #include "modules_view.h"
 
+#include "constants.h"
 #include "file_info_getters.h"
 #include "list_view_base.h"
 #include "main.h"
@@ -17,6 +18,11 @@
 #include <commctrl.h>
 
 
+enum class e_modules_menu_id : std::uint16_t
+{
+	e_matching = s_modules_view_menu_min,
+	e_properties,
+};
 enum class e_modules_column
 {
 	e_name,
@@ -27,11 +33,14 @@ static constexpr wchar_t const* const s_modules_headers[] =
 	L"name",
 	L"path",
 };
+static constexpr wchar_t const s_modules_menu_str_matching[] = L"&Highlight Matching Module In Tree\tCtrl+M";
+static constexpr wchar_t const s_modules_menu_str_properties[] = L"&Properties...\tAlt+Enter";
 
 
 modules_view::modules_view(HWND const parent, main_window& mw) :
 	m_hwnd(CreateWindowExW(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE, WC_LISTVIEWW, nullptr, WS_VISIBLE | WS_CHILD | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA, 0, 0, 0, 0, parent, nullptr, get_instance(), nullptr)),
 	m_main_window(mw),
+	m_menu(create_menu()),
 	m_string_converter(),
 	m_sort_direction(0xFF),
 	m_sort()
@@ -137,6 +146,93 @@ void modules_view::select_item(file_info const* const& fi)
 	list_view_base::select_item(&m_hwnd, &m_sort, idx);
 }
 
+void modules_view::on_context_menu(LPARAM const lparam)
+{
+	int item_idx_;
+	POINT screen_pos;
+	bool const context_found = list_view_base::get_context_menu(&m_hwnd, &lparam, &m_sort, &item_idx_, &screen_pos);
+	if(!context_found)
+	{
+		return;
+	}
+	assert(item_idx_ >= 0 && item_idx_ <= 0xFFFF);
+	std::uint16_t const item_idx = static_cast<std::uint16_t>(item_idx_);
+	assert(item_idx < m_main_window.m_mo.m_modules_list.m_count);
+	file_info const* const fi = m_main_window.m_mo.m_modules_list.m_list[item_idx];
+	assert(fi);
+	assert(!fi->m_orig_instance);
+	bool const enable_properties = !!fi->m_file_path;
+	HMENU const menu = reinterpret_cast<HMENU>(m_menu.get());
+	BOOL const enabled = EnableMenuItem(menu, static_cast<std::uint16_t>(e_modules_menu_id::e_properties), MF_BYCOMMAND | (enable_properties ? MF_ENABLED : MF_GRAYED));
+	assert(enabled != -1 && (enabled == MF_ENABLED || enabled == MF_GRAYED));
+	BOOL const tracked = TrackPopupMenu(menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON | TPM_NOANIMATION, screen_pos.x, screen_pos.y, 0, m_main_window.m_hwnd, nullptr);
+	assert(tracked != 0);
+}
+
+void modules_view::on_menu(std::uint16_t const menu_id)
+{
+	e_modules_menu_id const e_menu = static_cast<e_modules_menu_id>(menu_id);
+	switch(e_menu)
+	{
+		case e_modules_menu_id::e_matching:
+		{
+			on_menu_matching();
+		}
+		break;
+		case e_modules_menu_id::e_properties:
+		{
+			on_menu_properties();
+		}
+		break;
+		default:
+		{
+			assert(false);
+		}
+		break;
+	}
+}
+
+void modules_view::on_accel_matching()
+{
+	matching();
+}
+
+void modules_view::on_accel_properties()
+{
+	properties();
+}
+
+smart_menu modules_view::create_menu()
+{
+	static constexpr std::uint16_t const menu_ids[] =
+	{
+		static_cast<std::uint16_t>(e_modules_menu_id::e_matching),
+		static_cast<std::uint16_t>(e_modules_menu_id::e_properties),
+	};
+	static constexpr wchar_t const* const menu_strs[] =
+	{
+		s_modules_menu_str_matching,
+		s_modules_menu_str_properties,
+	};
+	static_assert(std::size(menu_ids) == std::size(menu_strs), "");
+
+	HMENU const tree_menu = CreatePopupMenu();
+	assert(tree_menu);
+	smart_menu sm{tree_menu};
+	for(int i = 0; i != static_cast<int>(std::size(menu_ids)); ++i)
+	{
+		MENUITEMINFOW mi{};
+		mi.cbSize = sizeof(mi);
+		mi.fMask = MIIM_ID | MIIM_STRING | MIIM_FTYPE;
+		mi.fType = MFT_STRING;
+		mi.wID = menu_ids[i];
+		mi.dwTypeData = const_cast<wchar_t*>(menu_strs[i]);
+		BOOL const inserted = InsertMenuItemW(tree_menu, i, TRUE, &mi);
+		assert(inserted != 0);
+	}
+	return sm;
+}
+
 void modules_view::on_getdispinfow(NMHDR& nmhdr)
 {
 	NMLVDISPINFOW& nm = reinterpret_cast<NMLVDISPINFOW&>(nmhdr);
@@ -235,6 +331,57 @@ wstring modules_view::on_get_col_path_unsorted(std::uint16_t const& row)
 		wstring const ret{L"", 0};
 		return ret;
 	}
+}
+
+void modules_view::on_menu_matching()
+{
+	matching();
+}
+
+void modules_view::on_menu_properties()
+{
+	properties();
+}
+
+void modules_view::matching()
+{
+	int const sel = list_view_base::get_selection(&m_hwnd);
+	if(sel == -1)
+	{
+		return;
+	}
+	assert(sel >= 0 && sel <= 0xFFFF);
+	std::uint16_t const line_idx = static_cast<std::uint16_t>(sel);
+	std::uint16_t const item_idx = m_sort.empty() ? line_idx : m_sort[line_idx];
+
+	assert(item_idx < m_main_window.m_mo.m_modules_list.m_count);
+	file_info const* const fi = m_main_window.m_mo.m_modules_list.m_list[item_idx];
+	assert(fi);
+	HTREEITEM const item = reinterpret_cast<HTREEITEM>(fi->m_tree_item);
+
+	HWND const tree = m_main_window.m_tree_view.get_hwnd();
+	LRESULT const visibled = SendMessageW(tree, TVM_ENSUREVISIBLE, 0, reinterpret_cast<LPARAM>(item));
+	LRESULT const selected = SendMessageW(tree, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(item));
+	assert(selected != FALSE);
+	SetFocus(tree);
+}
+
+void modules_view::properties()
+{
+	wstring_handle fp{};
+	int const sel = list_view_base::get_selection(&m_hwnd);
+	if(sel != -1)
+	{
+		assert(sel >= 0 && sel <= 0xFFFF);
+		std::uint16_t const line_idx = static_cast<std::uint16_t>(sel);
+		std::uint16_t const item_idx = m_sort.empty() ? line_idx : m_sort[line_idx];
+		assert(item_idx < m_main_window.m_mo.m_modules_list.m_count);
+		file_info const* const fi = m_main_window.m_mo.m_modules_list.m_list[item_idx];
+		assert(fi);
+		assert(!fi->m_orig_instance);
+		fp = fi->m_file_path;
+	}
+	m_main_window.properties(fp);
 }
 
 void modules_view::refresh_headers()
