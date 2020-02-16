@@ -1028,12 +1028,6 @@ void main_window::full_paths()
 
 void main_window::properties(wstring_handle data /* = wstring_handle{} */)
 {
-	wstring_handle const dta = data ? data : get_properties_data();
-	if(!dta)
-	{
-		return;
-	}
-
 	static constexpr auto const properties_new_style = [](wstring_handle const& file_path) -> bool
 	{
 		IShellFolder* desktop;
@@ -1104,6 +1098,15 @@ void main_window::properties(wstring_handle data /* = wstring_handle{} */)
 		assert(static_cast<int>(reinterpret_cast<std::uintptr_t>(info.hInstApp)) > 32);
 	};
 
+	wstring_handle dta = data;
+	if(!dta)
+	{
+		dta = get_properties_data();
+	}
+	if(!dta)
+	{
+		return;
+	}
 	bool const new_style_succeeded = properties_new_style(dta);
 	if(!new_style_succeeded)
 	{
