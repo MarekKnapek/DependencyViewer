@@ -90,6 +90,21 @@ void list_view_base::refresh_headers(void const* const handle, int const n_heade
 	}
 }
 
+int list_view_base::get_selection(void const* const handle)
+{
+	assert(handle);
+	HWND const& hwnd = *static_cast<HWND const*>(handle);
+	LRESULT const sel = SendMessageW(hwnd, LVM_GETNEXTITEM, WPARAM{0} - 1, LVNI_SELECTED);
+	if(sel == -1)
+	{
+		return -1;
+	}
+	assert(sel >= 0 && sel <= 0xFFFF);
+	std::uint16_t const line_idx = static_cast<std::uint16_t>(sel);
+	int const ret = line_idx;
+	return ret;
+}
+
 void list_view_base::select_item(void const* const hwnd_ptr, void const* const sort_ptr, int const item_idx)
 {
 	HWND const& hwnd = *static_cast<HWND const*>(hwnd_ptr);
