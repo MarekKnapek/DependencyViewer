@@ -47,6 +47,7 @@ public:
 	void on_accel_next();
 	void on_accel_expand();
 	void on_accel_collapse();
+	void on_accel_properties();
 	void refresh();
 	void repaint();
 	file_info const* get_selection();
@@ -66,6 +67,7 @@ private:
 	htreeitem get_next_data(file_info const* const curr_fi = nullptr);
 	void expand();
 	void collapse();
+	void properties();
 private:
 	HWND const m_hwnd;
 	main_window& m_main_window;

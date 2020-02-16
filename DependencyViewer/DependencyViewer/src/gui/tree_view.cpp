@@ -237,7 +237,7 @@ void tree_view::on_menu_collapse()
 
 void tree_view::on_menu_properties()
 {
-	m_main_window.properties();
+	properties();
 }
 
 void tree_view::on_accel_match()
@@ -268,6 +268,11 @@ void tree_view::on_accel_expand()
 void tree_view::on_accel_collapse()
 {
 	collapse();
+}
+
+void tree_view::on_accel_properties()
+{
+	properties();
 }
 
 void tree_view::refresh()
@@ -720,4 +725,9 @@ void tree_view::collapse()
 	LRESULT const redr_on = SendMessageW(m_hwnd, WM_SETREDRAW, TRUE, 0);
 	LRESULT const visibled = SendMessageW(m_hwnd, TVM_ENSUREVISIBLE, 0, reinterpret_cast<LPARAM>(root_first));
 	repaint();
+}
+
+void tree_view::properties()
+{
+	m_main_window.properties();
 }

@@ -828,7 +828,15 @@ void main_window::on_accel_undecorate()
 
 void main_window::on_accel_properties()
 {
-	properties();
+	HWND const focus = GetFocus();
+	if(focus == m_tree_view.get_hwnd())
+	{
+		m_tree_view.on_accel_properties();
+	}
+	else
+	{
+		properties();
+	}
 }
 
 void main_window::on_accel_refresh()
