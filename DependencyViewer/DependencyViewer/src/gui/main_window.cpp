@@ -250,7 +250,7 @@ main_window::main_window() :
 	m_settings.m_undecorate = false;
 	m_settings.m_import_sort = 0xFF;
 	m_settings.m_export_sort = 0xFF;
-	toolbar_icons_enabled_refresh();
+	commands_availability_refresh();
 }
 
 main_window::~main_window()
@@ -742,7 +742,7 @@ void main_window::on_tree_selchangedw()
 {
 	m_import_view.refresh();
 	m_export_view.refresh();
-	toolbar_icons_enabled_refresh();
+	commands_availability_refresh();
 }
 
 void main_window::on_toolbar_notify(NMHDR& nmhdr)
@@ -885,9 +885,9 @@ void main_window::on_toolbar_properties()
 	properties();
 }
 
-void main_window::toolbar_icons_enabled_refresh()
+void main_window::commands_availability_refresh()
 {
-	static constexpr auto const fn_enable_properties = [](HWND const toolbar, bool const enable)
+	static constexpr auto const fn_enable_properties_toolbar = [](HWND const toolbar, bool const enable)
 	{
 		WPARAM const properties_command_id = static_cast<std::uint16_t>(e_toolbar::e_properties);
 		LRESULT const got = SendMessageW(toolbar, TB_GETSTATE, properties_command_id, 0);
@@ -907,7 +907,7 @@ void main_window::toolbar_icons_enabled_refresh()
 
 	wstring_handle data = get_properties_data();
 	bool const enable = !!data;
-	fn_enable_properties(m_toolbar, enable);
+	fn_enable_properties_toolbar(m_toolbar, enable);
 }
 
 void main_window::open()

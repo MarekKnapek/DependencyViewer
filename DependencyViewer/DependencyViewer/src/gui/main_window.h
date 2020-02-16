@@ -92,7 +92,7 @@ private:
 	void on_toolbar_full_paths();
 	void on_toolbar_undecorate();
 	void on_toolbar_properties();
-	void toolbar_icons_enabled_refresh();
+	void commands_availability_refresh();
 	void open();
 	void open_files(std::vector<std::wstring> const& file_paths);
 	void exit();
