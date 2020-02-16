@@ -252,51 +252,15 @@ void export_view::on_columnclick(NMHDR& nmhdr)
 
 void export_view::on_context_menu(LPARAM const lparam)
 {
-	POINT cursor_screen;
-	std::uint16_t item_idx;
-	if(lparam == LPARAM{-1})
+	int item_idx_;
+	POINT screen_pos;
+	bool const context_found = list_view_base::get_context_menu(&m_hwnd, &lparam, &m_sort, &item_idx_, &screen_pos);
+	if(!context_found)
 	{
-		int const sel = list_view_base::get_selection(&m_hwnd);
-		if(sel == -1)
-		{
-			return;
-		}
-		assert(sel >= 0 && sel <= 0xFFFF);
-		std::uint16_t const line_idx = static_cast<std::uint16_t>(sel);
-		item_idx = m_sort.empty() ? line_idx : m_sort[line_idx];
-		RECT rect;
-		rect.top = static_cast<int>(e_export_column::e_type);
-		rect.left = LVIR_BOUNDS;
-		LRESULT const got_rect = SendMessageW(m_hwnd, LVM_GETSUBITEMRECT, sel, reinterpret_cast<LPARAM>(&rect));
-		if(got_rect == 0)
-		{
-			return;
-		}
-		cursor_screen.x = rect.left + (rect.right - rect.left) / 2;
-		cursor_screen.y = rect.top + (rect.bottom - rect.top) / 2;
-		BOOL const converted = ClientToScreen(m_hwnd, &cursor_screen);
-		assert(converted != 0);
+		return;
 	}
-	else
-	{
-		cursor_screen.x = GET_X_LPARAM(lparam);
-		cursor_screen.y = GET_Y_LPARAM(lparam);
-		POINT cursor_client = cursor_screen;
-		BOOL const converted = ScreenToClient(m_hwnd, &cursor_client);
-		assert(converted != 0);
-		LVHITTESTINFO hti;
-		hti.pt = cursor_client;
-		hti.flags = LVHT_ONITEM;
-		LPARAM const hit_tested = SendMessageW(m_hwnd, LVM_HITTEST, 0, reinterpret_cast<LPARAM>(&hti));
-		if(hit_tested == -1)
-		{
-			return;
-		}
-		assert(hit_tested == hti.iItem);
-		assert(hti.iItem >= 0 && hti.iItem <= 0xFFFF);
-		std::uint16_t const line_idx = static_cast<std::uint16_t>(hti.iItem);
-		item_idx = m_sort.empty() ? line_idx : m_sort[line_idx];
-	}
+	assert(item_idx_ >= 0 && item_idx_ <= 0xFFFF);
+	std::uint16_t const item_idx = static_cast<std::uint16_t>(item_idx_);
 	file_info const* const fi = m_main_window.m_tree_view.get_selection();
 	if(!fi)
 	{
@@ -307,7 +271,7 @@ void export_view::on_context_menu(LPARAM const lparam)
 	HMENU const menu = reinterpret_cast<HMENU>(m_menu.get());
 	BOOL const enabled = EnableMenuItem(menu, static_cast<std::uint16_t>(e_export_menu_id::e_matching), MF_BYCOMMAND | (enable_goto_orig ? MF_ENABLED : MF_GRAYED));
 	assert(enabled != -1 && (enabled == MF_ENABLED || enabled == MF_GRAYED));
-	BOOL const tracked = TrackPopupMenu(menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON | TPM_NOANIMATION, cursor_screen.x, cursor_screen.y, 0, m_main_window.m_hwnd, nullptr);
+	BOOL const tracked = TrackPopupMenu(menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON | TPM_NOANIMATION, screen_pos.x, screen_pos.y, 0, m_main_window.m_hwnd, nullptr);
 	assert(tracked != 0);
 }
 
