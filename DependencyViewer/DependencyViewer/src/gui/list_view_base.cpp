@@ -8,6 +8,7 @@
 #include "../nogui/my_windows.h"
 
 #include <commctrl.h>
+#include <windowsx.h>
 
 
 int list_view_base::on_columnclick(void const* const param, [[maybe_unused]] int const n_headers, int const curr_sort)
@@ -129,4 +130,70 @@ void list_view_base::select_item(void const* const hwnd_ptr, void const* const s
 	assert(selection_set == TRUE);
 	[[maybe_unused]] HWND const prev_focus = SetFocus(hwnd);
 	assert(prev_focus != nullptr);
+}
+
+bool list_view_base::get_context_menu(void const* const hwnd_ptr, void const* const lparam_ptr, void const* const sort_ptr, int* const out_item_idx, void* const out_screen_pos_ptr)
+{
+	assert(hwnd_ptr);
+	HWND const& hwnd = *static_cast<HWND const*>(hwnd_ptr);
+	assert(IsWindow(hwnd) != 0);
+	assert(lparam_ptr);
+	LPARAM const& lparam = *static_cast<LPARAM const*>(lparam_ptr);
+	assert(sort_ptr);
+	std::vector<std::uint16_t> const& sort = *static_cast<std::vector<std::uint16_t> const*>(sort_ptr);
+	assert(out_item_idx);
+	assert(out_screen_pos_ptr);
+	POINT& out_screen_pos = *static_cast<POINT*>(out_screen_pos_ptr);
+	if(lparam == LPARAM{-1})
+	{
+		int const sel = list_view_base::get_selection(&hwnd);
+		if(sel == -1)
+		{
+			return false;
+		}
+		assert(sel >= 0 && sel <= 0xFFFF);
+		std::uint16_t const line_idx = static_cast<std::uint16_t>(sel);
+		std::uint16_t const item_idx = sort.empty() ? line_idx : sort[line_idx];
+		RECT rect;
+		rect.top = 1;
+		rect.left = LVIR_BOUNDS;
+		LRESULT const got_rect = SendMessageW(hwnd, LVM_GETSUBITEMRECT, line_idx, reinterpret_cast<LPARAM>(&rect));
+		if(got_rect == 0)
+		{
+			return false;
+		}
+		POINT client_pos;
+		client_pos.x = rect.left + (rect.right - rect.left) / 2;
+		client_pos.y = rect.top + (rect.bottom - rect.top) / 2;
+		POINT screen_pos = client_pos;
+		BOOL const converted = ClientToScreen(hwnd, &screen_pos);
+		assert(converted != 0);
+		*out_item_idx = item_idx;
+		out_screen_pos = screen_pos;
+		return true;
+	}
+	else
+	{
+		POINT screen_pos;
+		screen_pos.x = GET_X_LPARAM(lparam);
+		screen_pos.y = GET_Y_LPARAM(lparam);
+		POINT client_pos = screen_pos;
+		BOOL const converted = ScreenToClient(hwnd, &client_pos);
+		assert(converted != 0);
+		LVHITTESTINFO hti;
+		hti.pt = client_pos;
+		hti.flags = LVHT_ONITEM;
+		LPARAM const hit_tested = SendMessageW(hwnd, LVM_HITTEST, 0, reinterpret_cast<LPARAM>(&hti));
+		if(hit_tested == -1)
+		{
+			return false;
+		}
+		assert(hit_tested == hti.iItem);
+		assert(hti.iItem >= 0 && hti.iItem <= 0xFFFF);
+		std::uint16_t const line_idx = static_cast<std::uint16_t>(hti.iItem);
+		std::uint16_t const item_idx = sort.empty() ? line_idx : sort[line_idx];
+		*out_item_idx = item_idx;
+		out_screen_pos = screen_pos;
+		return true;
+	}
 }
