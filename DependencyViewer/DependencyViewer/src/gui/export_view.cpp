@@ -253,14 +253,17 @@ void export_view::on_columnclick(NMHDR& nmhdr)
 void export_view::on_context_menu(LPARAM const lparam)
 {
 	POINT cursor_screen;
-	std::uint16_t ith_line;
+	std::uint16_t item_idx;
 	if(lparam == LPARAM{-1})
 	{
-		LRESULT const sel = SendMessageW(m_hwnd, LVM_GETNEXTITEM, WPARAM{0} - 1, LVNI_SELECTED);
+		int const sel = list_view_base::get_selection(&m_hwnd);
 		if(sel == -1)
 		{
 			return;
 		}
+		assert(sel >= 0 && sel <= 0xFFFF);
+		std::uint16_t const line_idx = static_cast<std::uint16_t>(sel);
+		item_idx = m_sort.empty() ? line_idx : m_sort[line_idx];
 		RECT rect;
 		rect.top = static_cast<int>(e_export_column::e_type);
 		rect.left = LVIR_BOUNDS;
@@ -273,8 +276,6 @@ void export_view::on_context_menu(LPARAM const lparam)
 		cursor_screen.y = rect.top + (rect.bottom - rect.top) / 2;
 		BOOL const converted = ClientToScreen(m_hwnd, &cursor_screen);
 		assert(converted != 0);
-		assert(static_cast<std::size_t>(sel) <= 0xFFFF);
-		ith_line = static_cast<std::uint16_t>(sel);
 	}
 	else
 	{
@@ -292,16 +293,16 @@ void export_view::on_context_menu(LPARAM const lparam)
 			return;
 		}
 		assert(hit_tested == hti.iItem);
-		assert(hti.iItem <= 0xFFFF);
-		ith_line = static_cast<std::uint16_t>(hti.iItem);
+		assert(hti.iItem >= 0 && hti.iItem <= 0xFFFF);
+		std::uint16_t const line_idx = static_cast<std::uint16_t>(hti.iItem);
+		item_idx = m_sort.empty() ? line_idx : m_sort[line_idx];
 	}
-	std::uint16_t const ith_export = m_sort.empty() ? ith_line : m_sort[ith_line];
 	file_info const* const fi = m_main_window.m_tree_view.get_selection();
 	if(!fi)
 	{
 		return;
 	}
-	std::uint16_t const matched = (fi->m_matched_imports != nullptr) ? fi->m_matched_imports[ith_export] : static_cast<std::uint16_t>(0xFFFF);
+	std::uint16_t const matched = (fi->m_matched_imports != nullptr) ? fi->m_matched_imports[item_idx] : static_cast<std::uint16_t>(0xFFFF);
 	bool const enable_goto_orig = matched != 0xFFFF;
 	HMENU const menu = reinterpret_cast<HMENU>(m_menu.get());
 	BOOL const enabled = EnableMenuItem(menu, static_cast<std::uint16_t>(e_export_menu_id::e_matching), MF_BYCOMMAND | (enable_goto_orig ? MF_ENABLED : MF_GRAYED));
@@ -662,20 +663,20 @@ wchar_t const* export_view::on_get_col_address(pe_export_table_info const& eti, 
 
 void export_view::select_matching_instance()
 {
-	LRESULT const sel = SendMessageW(m_hwnd, LVM_GETNEXTITEM, WPARAM{0} - 1, LVNI_SELECTED);
+	int const sel = list_view_base::get_selection(&m_hwnd);
 	if(sel == -1)
 	{
 		return;
 	}
-	assert(static_cast<std::size_t>(sel) <= 0xFFFF);
-	std::uint16_t const ith_line = static_cast<std::uint16_t>(sel);
-	std::uint16_t const ith_export = m_sort.empty() ? ith_line : m_sort[ith_line];
+	assert(sel >= 0 && sel <= 0xFFFF);
+	std::uint16_t const line_idx = static_cast<std::uint16_t>(sel);
+	std::uint16_t const item_idx = m_sort.empty() ? line_idx : m_sort[line_idx];
 	file_info const* const fi = m_main_window.m_tree_view.get_selection();
 	if(!fi)
 	{
 		return;
 	}
-	std::uint16_t const matched_imp = (fi->m_matched_imports != nullptr) ? fi->m_matched_imports[ith_export] : static_cast<std::uint16_t>(0xFFFF);
+	std::uint16_t const matched_imp = (fi->m_matched_imports != nullptr) ? fi->m_matched_imports[item_idx] : static_cast<std::uint16_t>(0xFFFF);
 	if(matched_imp == 0xFFFF)
 	{
 		return;

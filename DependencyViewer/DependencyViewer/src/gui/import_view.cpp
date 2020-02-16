@@ -224,14 +224,17 @@ void import_view::on_columnclick(NMHDR& nmhdr)
 void import_view::on_context_menu(LPARAM const lparam)
 {
 	POINT cursor_screen;
-	std::uint16_t line_idx;
+	std::uint16_t item_idx;
 	if(lparam == LPARAM{-1})
 	{
-		LRESULT const sel = SendMessageW(m_hwnd, LVM_GETNEXTITEM, WPARAM{0} - 1, LVNI_SELECTED);
+		int const sel = list_view_base::get_selection(&m_hwnd);
 		if(sel == -1)
 		{
 			return;
 		}
+		assert(sel >= 0 && sel <= 0xFFFF);
+		std::uint16_t const line_idx = static_cast<std::uint16_t>(sel);
+		item_idx = m_sort.empty() ? line_idx : m_sort[line_idx];
 		RECT rect;
 		rect.top = static_cast<int>(e_import_column::e_type);
 		rect.left = LVIR_BOUNDS;
@@ -244,8 +247,6 @@ void import_view::on_context_menu(LPARAM const lparam)
 		cursor_screen.y = rect.top + (rect.bottom - rect.top) / 2;
 		BOOL const converted = ClientToScreen(m_hwnd, &cursor_screen);
 		assert(converted != 0);
-		assert(static_cast<std::size_t>(sel) <= 0xFFFF);
-		line_idx = static_cast<std::uint16_t>(sel);
 	}
 	else
 	{
@@ -263,10 +264,10 @@ void import_view::on_context_menu(LPARAM const lparam)
 			return;
 		}
 		assert(hit_tested == hti.iItem);
-		assert(hti.iItem <= 0xFFFF);
-		line_idx = static_cast<std::uint16_t>(hti.iItem);
+		assert(hti.iItem >= 0 && hti.iItem <= 0xFFFF);
+		std::uint16_t const line_idx = static_cast<std::uint16_t>(hti.iItem);
+		item_idx = m_sort.empty() ? line_idx : m_sort[line_idx];
 	}
-	std::uint16_t const import_idx = m_sort.empty() ? line_idx : m_sort[line_idx];
 	file_info const* const fi = m_main_window.m_tree_view.get_selection();
 	if(!fi)
 	{
@@ -280,7 +281,7 @@ void import_view::on_context_menu(LPARAM const lparam)
 	auto const dll_idx_ = fi - parent_fi->m_fis;
 	assert(dll_idx_ >= 0 && dll_idx_ <= 0xFFFF);
 	std::uint16_t const dll_idx = static_cast<std::uint16_t>(dll_idx_);
-	std::uint16_t const& matched_export = parent_fi->m_import_table.m_matched_exports[dll_idx][import_idx];
+	std::uint16_t const& matched_export = parent_fi->m_import_table.m_matched_exports[dll_idx][item_idx];
 	bool const enable_goto_orig = matched_export != 0xFFFF;
 	HMENU const menu = reinterpret_cast<HMENU>(m_menu.get());
 	BOOL const enabled = EnableMenuItem(menu, static_cast<std::uint16_t>(e_import_menu_id::e_matching), MF_BYCOMMAND | (enable_goto_orig ? MF_ENABLED : MF_GRAYED));
@@ -625,14 +626,14 @@ wchar_t const* import_view::on_get_col_name(pe_import_table_info const& iti, std
 
 void import_view::select_matching_instance()
 {
-	LRESULT const sel = SendMessageW(m_hwnd, LVM_GETNEXTITEM, WPARAM{0} - 1, LVNI_SELECTED);
+	int const sel = list_view_base::get_selection(&m_hwnd);
 	if(sel == -1)
 	{
 		return;
 	}
-	assert(static_cast<std::size_t>(sel) <= 0xFFFF);
+	assert(sel >= 0 && sel <= 0xFFFF);
 	std::uint16_t const line_idx = static_cast<std::uint16_t>(sel);
-	std::uint16_t const import_idx = m_sort.empty() ? line_idx : m_sort[line_idx];
+	std::uint16_t const item_idx = m_sort.empty() ? line_idx : m_sort[line_idx];
 	file_info const* const fi = m_main_window.m_tree_view.get_selection();
 	if(!fi)
 	{
@@ -644,8 +645,9 @@ void import_view::select_matching_instance()
 		return;
 	}
 	auto const dll_idx_ = fi - parent_fi->m_fis;
+	assert(dll_idx_ >= 0 && dll_idx_ <= 0xFFFF);
 	std::uint16_t const dll_idx = static_cast<std::uint16_t>(dll_idx_);
-	std::uint16_t const& matched_exp = parent_fi->m_import_table.m_matched_exports[dll_idx][import_idx];
+	std::uint16_t const& matched_exp = parent_fi->m_import_table.m_matched_exports[dll_idx][item_idx];
 	if(matched_exp == 0xFFFF)
 	{
 		return;

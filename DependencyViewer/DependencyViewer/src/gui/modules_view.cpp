@@ -107,6 +107,23 @@ void modules_view::repaint()
 	assert(redrawn != 0);
 }
 
+file_info const* modules_view::get_selection()
+{
+	int const sel = list_view_base::get_selection(&m_hwnd);
+	if(sel == -1)
+	{
+		return nullptr;
+	}
+	assert(sel >= 0 && sel <= 0xFFFF);
+	std::uint16_t const line_idx = static_cast<std::uint16_t>(sel);
+	std::uint16_t const item_idx = m_sort.empty() ? line_idx : m_sort[line_idx];
+	assert(item_idx < m_main_window.m_mo.m_modules_list.m_count);
+	file_info const* const fi = m_main_window.m_mo.m_modules_list.m_list[item_idx];
+	assert(fi);
+	assert(!fi->m_orig_instance);
+	return fi;
+}
+
 void modules_view::select_item(file_info const* const& fi)
 {
 	assert(fi);

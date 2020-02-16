@@ -27,6 +27,7 @@ public:
 	void on_notify(NMHDR& nmhdr);
 	void refresh();
 	void repaint();
+	file_info const* get_selection();
 	void select_item(file_info const* const& fi);
 private:
 	void on_getdispinfow(NMHDR& nmhdr);
