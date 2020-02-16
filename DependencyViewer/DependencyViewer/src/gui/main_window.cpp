@@ -762,6 +762,11 @@ void main_window::on_tree_selchangedw()
 	commands_availability_refresh();
 }
 
+void main_window::on_modules_itemchanged()
+{
+	commands_availability_refresh();
+}
+
 void main_window::on_toolbar_notify(NMHDR& nmhdr)
 {
 	switch(nmhdr.code)

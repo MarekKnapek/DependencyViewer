@@ -76,6 +76,7 @@ private:
 	void on_accelerator(WPARAM const wparam);
 	void on_toolbar(WPARAM const wparam);
 	void on_tree_selchangedw();
+	void on_modules_itemchanged();
 	void on_toolbar_notify(NMHDR& nmhdr);
 	void on_menu_open();
 	void on_menu_exit();

@@ -91,6 +91,11 @@ void modules_view::on_notify(NMHDR& nmhdr)
 			on_columnclick(nmhdr);
 		}
 		break;
+		case LVN_ITEMCHANGED:
+		{
+			on_itemchanged(nmhdr);
+		}
+		break;
 	}
 }
 
@@ -277,6 +282,11 @@ void modules_view::on_columnclick(NMHDR& nmhdr)
 	refresh_headers();
 	sort_view();
 	repaint();
+}
+
+void modules_view::on_itemchanged([[maybe_unused]] NMHDR& nmhdr)
+{
+	m_main_window.on_modules_itemchanged();
 }
 
 wstring modules_view::on_get_col_name(std::uint16_t const& row)

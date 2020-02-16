@@ -39,6 +39,7 @@ private:
 	smart_menu create_menu();
 	void on_getdispinfow(NMHDR& nmhdr);
 	void on_columnclick(NMHDR& nmhdr);
+	void on_itemchanged(NMHDR& nmhdr);
 	wstring on_get_col_name(std::uint16_t const& row);
 	wstring on_get_col_path(std::uint16_t const& row);
 	wstring on_get_col_name_unsorted(std::uint16_t const& row);
