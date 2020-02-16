@@ -484,6 +484,10 @@ LRESULT main_window::on_wm_notify(WPARAM wparam, LPARAM lparam)
 	{
 		m_tree_view.on_notify(nmhdr);
 	}
+	else if(nmhdr.hwndFrom == m_modules_view.get_hwnd())
+	{
+		m_modules_view.on_notify(nmhdr);
+	}
 	else if(nmhdr.hwndFrom == m_import_view.get_hwnd())
 	{
 		m_import_view.on_notify(nmhdr);
@@ -491,10 +495,6 @@ LRESULT main_window::on_wm_notify(WPARAM wparam, LPARAM lparam)
 	else if(nmhdr.hwndFrom == m_export_view.get_hwnd())
 	{
 		m_export_view.on_notify(nmhdr);
-	}
-	else if(nmhdr.hwndFrom == m_modules_view.get_hwnd())
-	{
-		m_modules_view.on_notify(nmhdr);
 	}
 	else if(nmhdr.hwndFrom == m_toolbar)
 	{
