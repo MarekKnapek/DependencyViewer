@@ -918,10 +918,19 @@ void main_window::commands_availability_refresh()
 		LRESULT const set = SendMessageW(toolbar, TB_SETSTATE, properties_command_id, new_state);
 		assert(set != FALSE);
 	};
+	static constexpr auto const fn_enable_properties_menu = [](HWND const window, bool const enable)
+	{
+		HMENU const menu_bar = GetMenu(window);
+		assert(menu_bar != nullptr);
+		UINT const u_enable = MF_BYCOMMAND | (enable ? MF_ENABLED : (MF_GRAYED | MF_DISABLED));
+		BOOL const enabled = EnableMenuItem(menu_bar, static_cast<std::uint16_t>(e_main_menu_id::e_properties), u_enable);
+		assert(enabled != 1);
+	};
 
 	wstring_handle data = get_properties_data();
 	bool const enable = !!data;
 	fn_enable_properties_toolbar(m_toolbar, enable);
+	fn_enable_properties_menu(m_hwnd, enable);
 }
 
 void main_window::open()
