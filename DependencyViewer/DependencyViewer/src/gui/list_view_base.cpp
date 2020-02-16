@@ -48,9 +48,11 @@ int list_view_base::on_columnclick(void const* const param, [[maybe_unused]] int
 	return new_sort;
 }
 
-void list_view_base::refresh_headers(void const* const handle, int const n_headers, int const curr_sort)
+void list_view_base::refresh_headers(void const* const hwnd_ptr, int const n_headers, int const curr_sort)
 {
-	HWND const& hwnd = *static_cast<HWND const*>(handle);
+	assert(hwnd_ptr);
+	HWND const& hwnd = *static_cast<HWND const*>(hwnd_ptr);
+	assert(IsWindow(hwnd) != 0);
 	HWND const hdr = reinterpret_cast<HWND>(SendMessageW(hwnd, LVM_GETHEADER, 0, 0));
 	assert(hdr != nullptr);
 	for(int i = 0; i != n_headers; ++i)
@@ -90,10 +92,11 @@ void list_view_base::refresh_headers(void const* const handle, int const n_heade
 	}
 }
 
-int list_view_base::get_selection(void const* const handle)
+int list_view_base::get_selection(void const* const hwnd_ptr)
 {
-	assert(handle);
-	HWND const& hwnd = *static_cast<HWND const*>(handle);
+	assert(hwnd_ptr);
+	HWND const& hwnd = *static_cast<HWND const*>(hwnd_ptr);
+	assert(IsWindow(hwnd) != 0);
 	LRESULT const sel = SendMessageW(hwnd, LVM_GETNEXTITEM, WPARAM{0} - 1, LVNI_SELECTED);
 	if(sel == -1)
 	{
@@ -107,7 +110,10 @@ int list_view_base::get_selection(void const* const handle)
 
 void list_view_base::select_item(void const* const hwnd_ptr, void const* const sort_ptr, int const item_idx)
 {
+	assert(hwnd_ptr);
 	HWND const& hwnd = *static_cast<HWND const*>(hwnd_ptr);
+	assert(IsWindow(hwnd) != 0);
+	assert(sort_ptr);
 	std::vector<std::uint16_t> const& sort = *static_cast<std::vector<std::uint16_t> const*>(sort_ptr);
 	assert(item_idx <= 0xFFFF);
 	std::uint16_t const ith_line = sort.empty() ? static_cast<std::uint16_t>(item_idx) : sort[sort.size() / 2 + item_idx];
