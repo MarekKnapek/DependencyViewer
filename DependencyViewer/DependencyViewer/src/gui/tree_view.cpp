@@ -729,5 +729,12 @@ void tree_view::collapse()
 
 void tree_view::properties()
 {
-	m_main_window.properties();
+	wstring_handle fp{};
+	file_info const* const fi = get_selection();
+	if(fi)
+	{
+		file_info const* const real_fi = fi->m_orig_instance ? fi->m_orig_instance : fi;
+		fp = real_fi->m_file_path;
+	}
+	m_main_window.properties(fp);
 }
