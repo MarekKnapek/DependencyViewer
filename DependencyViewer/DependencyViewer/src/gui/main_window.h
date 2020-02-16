@@ -82,6 +82,7 @@ private:
 	void on_menu_paths();
 	void on_menu_undecorate();
 	void on_menu_refresh();
+	void on_menu_properties();
 	void on_accel_open();
 	void on_accel_paths();
 	void on_accel_undecorate();

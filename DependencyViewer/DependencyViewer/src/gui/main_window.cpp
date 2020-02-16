@@ -48,6 +48,7 @@ static constexpr wchar_t const s_menu_view[] = L"&View";
 static constexpr wchar_t const s_menu_view_paths[] = L"&Full Paths\tF9";
 static constexpr wchar_t const s_menu_view_undecorate[] = L"&Undecorate C++ Functions\tF10";
 static constexpr wchar_t const s_menu_view_refresh[] = L"&Refresh\tF5";
+static constexpr wchar_t const s_menu_view_properties[] = L"&Properties...\tAlt+Enter";
 static constexpr wchar_t const s_open_file_dialog_file_name_filter[] = L"Executable files and libraries (*.exe;*.dll;*.ocx)\0*.exe;*.dll;*.ocx\0All files\0*.*\0";
 static constexpr wchar_t const s_msg_error[] = L"DependencyViewer error.";
 static constexpr wchar_t const s_toolbar_tooltip_open[] = L"Open... (Ctrl+O)";
@@ -61,6 +62,7 @@ enum class e_main_menu_id : std::uint16_t
 	e_full_paths,
 	e_undecorate,
 	e_refresh,
+	e_properties,
 };
 enum class e_toolbar : std::uint16_t
 {
@@ -290,6 +292,8 @@ HMENU main_window::create_menu()
 	assert(menu_view_undecorate_appended != 0);
 	BOOL const menu_view_refresh_appended = AppendMenuW(menu_view, MF_STRING, static_cast<std::uint16_t>(e_main_menu_id::e_refresh), s_menu_view_refresh);
 	assert(menu_view_refresh_appended != 0);
+	BOOL const menu_view_properties_appended = AppendMenuW(menu_view, MF_STRING, static_cast<std::uint16_t>(e_main_menu_id::e_properties), s_menu_view_properties);
+	assert(menu_view_properties_appended != 0);
 
 	return menu_bar;
 }
@@ -634,6 +638,11 @@ void main_window::on_menu(std::uint16_t const menu_id)
 			on_menu_refresh();
 		}
 		break;
+		case e_main_menu_id::e_properties:
+		{
+			on_menu_properties();
+		}
+		break;
 	}
 }
 
@@ -809,6 +818,11 @@ void main_window::on_menu_undecorate()
 void main_window::on_menu_refresh()
 {
 	refresh();
+}
+
+void main_window::on_menu_properties()
+{
+	properties();
 }
 
 void main_window::on_accel_open()
