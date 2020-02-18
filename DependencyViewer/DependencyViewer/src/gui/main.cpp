@@ -23,7 +23,18 @@
 static HINSTANCE g_instance;
 
 
-int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE /*hPrevInstance*/, _In_ PWSTR /*pCmdLine*/, _In_ int nCmdShow)
+HINSTANCE get_instance()
+{
+	return g_instance;
+}
+
+
+int message_loop(main_window& mw);
+void process_message(main_window& mw, MSG& msg);
+void process_on_idle(main_window& mw);
+
+
+int WINAPI wWinMain(_In_ HINSTANCE hInstance, [[maybe_unused]] _In_opt_ HINSTANCE hPrevInstance, [[maybe_unused]] _In_ PWSTR pCmdLine, _In_ int nCmdShow)
 {
 	my_actctx::create();
 	my_actctx::activate();
@@ -49,49 +60,55 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE /*hPrevInstance
 	main_window mw;
 	BOOL const shown = ShowWindow(mw.get_hwnd(), nCmdShow);
 	BOOL const updated = UpdateWindow(mw.get_hwnd());
-	int ret;
+	int const exit_code = message_loop(mw);
+	return exit_code;
+}
+
+
+int message_loop(main_window& mw)
+{
 	for(;;)
 	{
 		MSG msg;
-		while(PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE) != 0)
+		BOOL const peeked_msg = PeekMessageW(&msg, nullptr, 0, 0, PM_NOREMOVE);
+		bool const msg_avail = peeked_msg != 0;
+		if(!msg_avail)
 		{
-			if(msg.message == WM_QUIT)
-			{
-				ret = static_cast<int>(msg.wParam);
-				goto message_loop_end;
-			}
-			int const acc_transated = TranslateAcceleratorW(mw.get_hwnd(), mw.get_accell_table(), &msg);
-			if(acc_transated == 0)
-			{
-				BOOL const translated = TranslateMessage(&msg);
-				LRESULT const dispatched = DispatchMessageW(&msg);
-			}
+			process_on_idle(mw);
 		}
-		LRESULT const sent = SendMessageW(mw.get_hwnd(), wm_main_window_process_on_idle, 0, 0);
 		BOOL const got_msg = GetMessageW(&msg, nullptr, 0, 0);
 		if(got_msg == 0)
 		{
-			ret = static_cast<int>(msg.wParam);
-			break;
+			assert(msg.hwnd == nullptr);
+			assert(msg.message == WM_QUIT);
+			int const exit_code = static_cast<int>(msg.wParam);
+			return exit_code;
 		}
-		else if(got_msg == -1)
-		{
-			assert(false);
-			ret = 1;
-			break;
-		}
-		int const acc_transated = TranslateAcceleratorW(mw.get_hwnd(), mw.get_accell_table(), &msg);
-		if(acc_transated == 0)
-		{
-			BOOL const translated = TranslateMessage(&msg);
-			LRESULT const dispatched = DispatchMessageW(&msg);
-		}
+		assert(got_msg != -1);
+		process_message(mw, msg);
 	}
-	message_loop_end:;
-	return ret;
 }
 
-HINSTANCE get_instance()
+void process_message(main_window& mw, MSG& msg)
 {
-	return g_instance;
+	bool accel_translated;
+	BOOL const is_child = IsChild(mw.get_hwnd(), msg.hwnd);
+	if(is_child != 0)
+	{
+		accel_translated = TranslateAcceleratorW(mw.get_hwnd(), mw.get_accell_table(), &msg) != 0;
+	}
+	else
+	{
+		accel_translated = false;
+	}
+	if(!accel_translated)
+	{
+		BOOL const translated = TranslateMessage(&msg);
+		LRESULT const dispatched = DispatchMessageW(&msg);
+	}
+}
+
+void process_on_idle(main_window& mw)
+{
+	LRESULT const res = SendMessageW(mw.get_hwnd(), wm_main_window_process_on_idle, 0, 0);
 }
