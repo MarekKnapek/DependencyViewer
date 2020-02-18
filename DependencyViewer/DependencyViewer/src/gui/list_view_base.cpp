@@ -117,16 +117,16 @@ void list_view_base::select_item(void const* const hwnd_ptr, void const* const s
 	assert(sort_ptr);
 	std::vector<std::uint16_t> const& sort = *static_cast<std::vector<std::uint16_t> const*>(sort_ptr);
 	assert(item_idx <= 0xFFFF);
-	std::uint16_t const ith_line = sort.empty() ? static_cast<std::uint16_t>(item_idx) : sort[sort.size() / 2 + item_idx];
-	LRESULT const visibility_ensured = SendMessageW(hwnd, LVM_ENSUREVISIBLE, ith_line, FALSE);
+	std::uint16_t const line_idx = sort.empty() ? static_cast<std::uint16_t>(item_idx) : sort[sort.size() / 2 + item_idx];
+	LRESULT const visibility_ensured = SendMessageW(hwnd, LVM_ENSUREVISIBLE, line_idx, FALSE);
 	assert(visibility_ensured == TRUE);
 	LVITEMW lvi;
 	lvi.stateMask = LVIS_FOCUSED | LVIS_SELECTED;
 	lvi.state = 0;
-	LRESULT const selection_cleared = SendMessageW(hwnd, LVM_SETITEMSTATE, WPARAM{0} - 1, reinterpret_cast<LPARAM>(&lvi));
+	LRESULT const selection_cleared = SendMessageW(hwnd, LVM_SETITEMSTATE, WPARAM(-1), reinterpret_cast<LPARAM>(&lvi));
 	assert(selection_cleared == TRUE);
 	lvi.state = LVIS_FOCUSED | LVIS_SELECTED;
-	LRESULT const selection_set = SendMessageW(hwnd, LVM_SETITEMSTATE, static_cast<WPARAM>(ith_line), reinterpret_cast<LPARAM>(&lvi));
+	LRESULT const selection_set = SendMessageW(hwnd, LVM_SETITEMSTATE, static_cast<WPARAM>(line_idx), reinterpret_cast<LPARAM>(&lvi));
 	assert(selection_set == TRUE);
 	[[maybe_unused]] HWND const prev_focus = SetFocus(hwnd);
 	assert(prev_focus != nullptr);
@@ -146,7 +146,7 @@ bool list_view_base::get_context_menu(void const* const hwnd_ptr, void const* co
 	POINT& out_screen_pos = *static_cast<POINT*>(out_screen_pos_ptr);
 	if(lparam == LPARAM{-1})
 	{
-		int const sel = list_view_base::get_selection(&hwnd);
+		int const sel = get_selection(&hwnd);
 		if(sel == -1)
 		{
 			return false;
