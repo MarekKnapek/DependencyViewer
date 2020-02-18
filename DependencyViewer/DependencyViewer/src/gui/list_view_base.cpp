@@ -192,6 +192,7 @@ bool list_view_base::get_context_menu(void const* const hwnd_ptr, void const* co
 		assert(hti.iItem >= 0 && hti.iItem <= 0xFFFF);
 		std::uint16_t const line_idx = static_cast<std::uint16_t>(hti.iItem);
 		std::uint16_t const item_idx = sort.empty() ? line_idx : sort[line_idx];
+		select_item(&hwnd, &sort, item_idx);
 		*out_item_idx = item_idx;
 		out_screen_pos = screen_pos;
 		return true;
