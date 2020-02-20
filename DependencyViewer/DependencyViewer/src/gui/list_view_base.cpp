@@ -1,14 +1,22 @@
 #include "list_view_base.h"
 
-#include "../nogui/cassert_my.h"
+#include "smart_dc.h"
 
+#include "../nogui/cassert_my.h"
+#include "../nogui/scope_exit.h"
+
+#include <algorithm>
 #include <cstdint>
+#include <utility>
 #include <vector>
 
 #include "../nogui/my_windows.h"
 
 #include <commctrl.h>
 #include <windowsx.h>
+
+
+int g_column_uint16_max_width;
 
 
 int list_view_base::on_columnclick(void const* const param, [[maybe_unused]] int const n_headers, int const curr_sort)
@@ -197,4 +205,36 @@ bool list_view_base::get_context_menu(void const* const hwnd_ptr, void const* co
 		out_screen_pos = screen_pos;
 		return true;
 	}
+}
+
+int list_view_base::get_column_max_width(void const* const hwnd_ptr, void const* const strings_ptr, int const count)
+{
+	assert(hwnd_ptr);
+	HWND const& hwnd = *static_cast<HWND const*>(hwnd_ptr);
+	assert(IsWindow(hwnd) != 0);
+	assert(strings_ptr);
+	std::pair<wchar_t const*, int> const* const strings = static_cast<std::pair<wchar_t const*, int> const*>(strings_ptr);
+	assert(count >= 1);
+
+	HDC const dc = GetDC(hwnd);
+	assert(dc != nullptr);
+	smart_dc const sdc(hwnd, dc);
+	LRESULT const lfont = SendMessageW(hwnd, WM_GETFONT, 0, 0);
+	assert(lfont != 0);
+	HFONT const hfont = reinterpret_cast<HFONT>(lfont);
+	HGDIOBJ const orig_font = SelectObject(dc, hfont);
+	auto const fn_revert = mk::make_scope_exit([&](){ SelectObject(dc, orig_font); });
+
+	int maximum = 0;
+	for(int i = 0; i != count; ++i)
+	{
+		SIZE size;
+		BOOL const got = GetTextExtentPointW(dc, strings[i].first, strings[i].second, &size);
+		assert(got != 0);
+		maximum = (std::max)(maximum, static_cast<int>(size.cx));
+	}
+
+	static constexpr int const s_trailing_label_padding = 12;
+	int const ret = maximum + s_trailing_label_padding;
+	return ret;
 }
