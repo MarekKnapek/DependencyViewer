@@ -5,7 +5,6 @@
 #include "list_view_base.h"
 #include "main.h"
 #include "main_window.h"
-#include "smart_dc.h"
 
 #include "../nogui/array_bool.h"
 #include "../nogui/cassert_my.h"
@@ -21,6 +20,7 @@
 #include <iterator>
 #include <numeric>
 #include <tuple>
+#include <utility>
 
 #include "../nogui/my_windows.h"
 
@@ -312,7 +312,7 @@ void import_view::refresh()
 	sort_view();
 
 	int const import_type_column_max_width = get_type_column_max_width();
-	int const ordinal_column_max_width = m_main_window.get_ordinal_column_max_width();
+	int const ordinal_column_max_width = list_view_base::get_column_uint16_max_width(&m_hwnd);
 
 	LRESULT const auto_sized_pi = SendMessageW(m_hwnd, LVM_SETCOLUMNWIDTH, static_cast<int>(e_import_column::e_pi), LVSCW_AUTOSIZE);
 	assert(auto_sized_pi == TRUE);
@@ -626,24 +626,13 @@ int import_view::get_type_column_max_width()
 		return g_import_type_column_max_width;
 	}
 
-	HDC const dc = GetDC(m_hwnd);
-	assert(dc != NULL);
-	smart_dc const sdc(m_hwnd, dc);
-	auto const orig_font = SelectObject(dc, reinterpret_cast<HFONT>(SendMessageW(m_hwnd, WM_GETFONT, 0, 0)));
-	auto const fn_revert = mk::make_scope_exit([&](){ SelectObject(dc, orig_font); });
+	static constexpr std::pair<wchar_t const*, int> s_strings[] =
+	{
+		{s_import_type_true, static_cast<int>(std::size(s_import_type_true) - 1)},
+		{s_import_type_false, static_cast<int>(std::size(s_import_type_false) - 1)}
+	};
+	int const max_size = list_view_base::get_column_max_width(&m_hwnd, &s_strings, static_cast<int>(std::size(s_strings)));
 
-	int maximum = 0;
-	SIZE size;
-
-	BOOL const got1 = GetTextExtentPointW(dc, s_import_type_true, static_cast<int>(std::size(s_import_type_true)) - 1, &size);
-	assert(got1 != 0);
-	maximum = (std::max)(maximum, static_cast<int>(size.cx));
-
-	BOOL const got2 = GetTextExtentPointW(dc, s_import_type_false, static_cast<int>(std::size(s_import_type_false)) - 1, &size);
-	assert(got2 != 0);
-	maximum = (std::max)(maximum, static_cast<int>(size.cx));
-
-	static constexpr int const s_trailing_label_padding = 12;
-	g_import_type_column_max_width = maximum + s_trailing_label_padding;
-	return maximum;
+	g_import_type_column_max_width = max_size;
+	return g_import_type_column_max_width;
 }

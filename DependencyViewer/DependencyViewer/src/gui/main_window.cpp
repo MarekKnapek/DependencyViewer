@@ -4,7 +4,6 @@
 #include "common_controls.h"
 #include "constants.h"
 #include "main.h"
-#include "smart_dc.h"
 #include "test.h"
 
 #include "../nogui/array_bool.h"
@@ -99,9 +98,6 @@ static constexpr ACCEL const s_accel_table[] =
 	{FVIRTKEY | FCONTROL,	'E',      	static_cast<std::uint16_t>(e_accel::e_tree_expand    	)},
 	{FVIRTKEY | FCONTROL,	'W',      	static_cast<std::uint16_t>(e_accel::e_tree_collapse  	)},
 };
-
-
-static int g_ordinal_column_max_width = 0;
 
 
 struct cancellable_task_param
@@ -1243,65 +1239,6 @@ void main_window::refresh()
 		file_paths[i].assign(cbegin(name), cend(name));
 	}
 	open_files(file_paths);
-}
-
-int main_window::get_ordinal_column_max_width()
-{
-	static constexpr std::uint16_t const s_ordinals[] =
-	{
-		11111,
-		22222,
-		33333,
-		44444,
-		55555,
-		0x1111,
-		0x2222,
-		0x3333,
-		0x4444,
-		0x5555,
-		0x6666,
-		0x7777,
-		0x8888,
-		0x9999,
-		0xAAAA,
-		0xBBBB,
-		0xCCCC,
-		0xDDDD,
-		0xEEEE,
-		0xFFFF,
-	};
-
-	if(g_ordinal_column_max_width != 0)
-	{
-		return g_ordinal_column_max_width;
-	}
-
-	HWND const imprt = m_import_view.get_hwnd();
-	HDC const dc = GetDC(imprt);
-	assert(dc != NULL);
-	smart_dc const sdc(imprt, dc);
-	auto const orig_font = SelectObject(dc, reinterpret_cast<HFONT>(SendMessageW(imprt, WM_GETFONT, 0, 0)));
-	auto const fn_revert = mk::make_scope_exit([&](){ SelectObject(dc, orig_font); });
-
-	int maximum = 0;
-	for(auto const& oridnal : s_ordinals)
-	{
-		static_assert(sizeof(std::uint16_t) == sizeof(unsigned short int), "");
-		std::array<wchar_t, 15> buff;
-		auto const n = static_cast<unsigned short int>(oridnal);
-		int const printed = std::swprintf(buff.data(), buff.size(), L"%hu (0x%04hx)", n, n);
-		assert(printed >= 0);
-
-		SIZE size;
-		BOOL const got = GetTextExtentPointW(dc, buff.data(), printed, &size);
-		assert(got != 0);
-
-		maximum = (std::max)(maximum, static_cast<int>(size.cx));
-	}
-
-	static constexpr int const s_trailing_label_padding = 12;
-	g_ordinal_column_max_width = maximum + s_trailing_label_padding;
-	return g_ordinal_column_max_width;
 }
 
 std::pair<file_info const*, POINT> main_window::get_file_info_2_under_cursor()
