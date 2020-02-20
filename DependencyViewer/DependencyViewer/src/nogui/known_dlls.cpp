@@ -18,6 +18,8 @@
 #pragma warning(disable:4201) // warning C4201: nonstandard extension used: nameless struct/union
 #pragma warning(disable:4324) // warning C4324: 'xxx': structure was padded due to alignment specifier
 #pragma warning(disable:4471) // warning C4471: 'xxx': a forward declaration of an unscoped enumeration must have an underlying type
+typedef GUID* PGUID;
+typedef DWORD DEVICE_TYPE;
 #include <phnt.h>
 #pragma warning(pop)
 
