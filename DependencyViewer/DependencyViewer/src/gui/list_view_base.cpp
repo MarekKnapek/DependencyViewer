@@ -6,7 +6,10 @@
 #include "../nogui/scope_exit.h"
 
 #include <algorithm>
+#include <array>
 #include <cstdint>
+#include <cwchar>
+#include <iterator>
 #include <utility>
 #include <vector>
 
@@ -237,4 +240,53 @@ int list_view_base::get_column_max_width(void const* const hwnd_ptr, void const*
 	static constexpr int const s_trailing_label_padding = 12;
 	int const ret = maximum + s_trailing_label_padding;
 	return ret;
+}
+
+int list_view_base::get_column_uint16_max_width(void const* const hwnd_ptr)
+{
+	if(g_column_uint16_max_width != 0)
+	{
+		return g_column_uint16_max_width;
+	}
+
+	static constexpr std::uint16_t const s_ordinals[] =
+	{
+		11111, /*  11111 (0x2b67) */
+		22222, /*  22222 (0x56ce) */
+		33333, /*  33333 (0x8235) */
+		44444, /*  44444 (0xad9c) */
+		55555, /*  55555 (0xd903) */
+		0x1111, /*  4369 (0x1111) */
+		0x2222, /*  8738 (0x2222) */
+		0x3333, /* 13107 (0x3333) */
+		0x4444, /* 17476 (0x4444) */
+		0x5555, /* 21845 (0x5555) */
+		0x6666, /* 26214 (0x6666) */
+		0x7777, /* 30583 (0x7777) */
+		0x8888, /* 34952 (0x8888) */
+		0x9999, /* 39321 (0x9999) */
+		0xAAAA, /* 43690 (0xaaaa) */
+		0xBBBB, /* 48059 (0xbbbb) */
+		0xCCCC, /* 52428 (0xcccc) */
+		0xDDDD, /* 56797 (0xdddd) */
+		0xEEEE, /* 61166 (0xeeee) */
+		0xFFFF, /* 65535 (0xffff) */
+	};
+
+	int maximum = 0;
+	for(auto const& ordinal : s_ordinals)
+	{
+		static_assert(sizeof(std::uint16_t) == sizeof(unsigned short int), "");
+		std::array<wchar_t, 15> buff;
+		unsigned short const n = static_cast<unsigned short int>(ordinal);
+		int const printed = std::swprintf(buff.data(), buff.size(), L"%hu (0x%04hx)", n, n);
+		assert(printed >= 0);
+
+		std::pair<wchar_t const*, int> const str = {buff.data(), printed};
+		int const size = get_column_max_width(hwnd_ptr, &str, 1);
+		maximum = (std::max)(maximum, static_cast<int>(size));
+	}
+
+	g_column_uint16_max_width = maximum;
+	return g_column_uint16_max_width;
 }
