@@ -4,10 +4,10 @@
 #include "../nogui/smart_library.h"
 
 
-static smart_library g_comctl32 = nullptr;
-static void* g_fn_InitCommonControls = nullptr;
-static void* g_fn_ImageList_LoadImageW = nullptr;
-static void* g_fn_DrawStatusTextW = nullptr;
+static smart_library g_comctl32;
+static void* g_fn_InitCommonControls;
+static void* g_fn_ImageList_LoadImageW;
+static void* g_fn_DrawStatusTextW;
 
 
 void common_controls::load()
@@ -22,14 +22,17 @@ void common_controls::load()
 
 	auto const proc_InitCommonControls = GetProcAddress(g_comctl32.get(), "InitCommonControls");
 	assert(proc_InitCommonControls != nullptr);
+	assert(!g_fn_InitCommonControls);
 	g_fn_InitCommonControls = proc_InitCommonControls;
 
 	auto const proc_ImageList_LoadImageW = GetProcAddress(g_comctl32.get(), "ImageList_LoadImageW");
 	assert(proc_ImageList_LoadImageW != nullptr);
+	assert(!g_fn_ImageList_LoadImageW);
 	g_fn_ImageList_LoadImageW = proc_ImageList_LoadImageW;
 
 	auto const proc_DrawStatusTextW = GetProcAddress(g_comctl32.get(), "DrawStatusTextW");
 	assert(proc_DrawStatusTextW != nullptr);
+	assert(!g_fn_DrawStatusTextW);
 	g_fn_DrawStatusTextW = proc_DrawStatusTextW;
 }
 
@@ -37,7 +40,9 @@ void common_controls::unload()
 {
 	assert(g_comctl32);
 	g_comctl32.reset();
-	assert(!g_comctl32);
+	g_fn_InitCommonControls = nullptr;
+	g_fn_ImageList_LoadImageW = nullptr;
+	g_fn_DrawStatusTextW = nullptr;
 }
 
 void common_controls::InitCommonControls()

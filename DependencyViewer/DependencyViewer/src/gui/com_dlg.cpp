@@ -4,8 +4,8 @@
 #include "../nogui/smart_library.h"
 
 
-static smart_library g_comdlg32 = nullptr;
-static void* g_fn_GetOpenFileNameW = nullptr;
+static smart_library g_comdlg32;
+static void* g_fn_GetOpenFileNameW;
 
 
 void com_dlg::load()
@@ -20,6 +20,7 @@ void com_dlg::load()
 
 	auto const proc_GetOpenFileNameW = GetProcAddress(g_comdlg32.get(), "GetOpenFileNameW");
 	assert(proc_GetOpenFileNameW != nullptr);
+	assert(!g_fn_GetOpenFileNameW);
 	g_fn_GetOpenFileNameW = proc_GetOpenFileNameW;
 }
 
@@ -27,7 +28,7 @@ void com_dlg::unload()
 {
 	assert(g_comdlg32);
 	g_comdlg32.reset();
-	assert(!g_comdlg32);
+	g_fn_GetOpenFileNameW = nullptr;
 }
 
 BOOL com_dlg::GetOpenFileNameW(LPOPENFILENAMEW ofn)
