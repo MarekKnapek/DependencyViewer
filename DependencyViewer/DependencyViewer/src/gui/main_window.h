@@ -19,7 +19,7 @@
 #include <utility>
 #include <vector>
 
-#include "../nogui/my_windows.h"
+#include "../nogui/windows_my.h"
 
 
 struct _TREEITEM;

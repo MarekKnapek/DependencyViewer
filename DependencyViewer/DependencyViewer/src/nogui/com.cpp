@@ -2,7 +2,7 @@
 
 #include "cassert_my.h"
 
-#include "my_windows.h"
+#include "windows_my.h"
 
 #include <objbase.h>
 

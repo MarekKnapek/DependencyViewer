@@ -22,7 +22,7 @@
 #include <tuple>
 #include <utility>
 
-#include "../nogui/my_windows.h"
+#include "../nogui/windows_my.h"
 
 #include <commctrl.h>
 #include <windowsx.h>

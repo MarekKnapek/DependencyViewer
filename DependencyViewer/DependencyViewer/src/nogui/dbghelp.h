@@ -3,7 +3,7 @@
 
 #include "smart_library.h"
 
-#include "my_windows.h"
+#include "windows_my.h"
 
 #include <dbghelp.h>
 

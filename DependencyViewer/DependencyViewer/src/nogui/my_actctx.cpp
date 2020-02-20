@@ -4,7 +4,7 @@
 
 #include "../res/resources.h"
 
-#include "my_windows.h"
+#include "windows_my.h"
 
 
 static HANDLE g_my_actctx_h = nullptr;

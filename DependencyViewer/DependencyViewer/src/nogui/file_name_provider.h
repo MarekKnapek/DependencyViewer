@@ -5,7 +5,7 @@
 #include "com_ptr.h"
 #include "unique_strings.h"
 
-#include "my_windows.h"
+#include "windows_my.h"
 
 #include <oaidl.h>
 

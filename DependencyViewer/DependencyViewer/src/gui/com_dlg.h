@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include "../nogui/my_windows.h"
+#include "../nogui/windows_my.h"
 
 #include <commdlg.h>
 

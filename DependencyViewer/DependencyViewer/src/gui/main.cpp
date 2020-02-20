@@ -15,7 +15,7 @@
 #include "../nogui/ole.h"
 #include "../nogui/scope_exit.h"
 
-#include "../nogui/my_windows.h"
+#include "../nogui/windows_my.h"
 
 #include <commctrl.h>
 

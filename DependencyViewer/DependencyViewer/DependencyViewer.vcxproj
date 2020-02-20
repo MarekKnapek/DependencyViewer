@@ -241,7 +241,6 @@
     <ClInclude Include="src\nogui\my_string.h" />
     <ClInclude Include="src\nogui\my_string_handle.h" />
     <ClInclude Include="src\nogui\my_vector.h" />
-    <ClInclude Include="src\nogui\my_windows.h" />
     <ClInclude Include="src\nogui\ole.h" />
     <ClInclude Include="src\nogui\pe.h" />
     <ClInclude Include="src\nogui\pe2.h" />
@@ -268,6 +267,7 @@
     <ClInclude Include="src\nogui\unicode.h" />
     <ClInclude Include="src\nogui\unique_strings.h" />
     <ClInclude Include="src\nogui\utils.h" />
+    <ClInclude Include="src\nogui\windows_my.h" />
     <ClInclude Include="src\nogui\wow.h" />
     <ClInclude Include="src\res\resources.h" />
   </ItemGroup>

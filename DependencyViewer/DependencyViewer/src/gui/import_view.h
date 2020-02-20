@@ -9,7 +9,7 @@
 
 #include "../nogui/string_converter.h"
 
-#include "../nogui/my_windows.h"
+#include "../nogui/windows_my.h"
 
 
 class main_window;

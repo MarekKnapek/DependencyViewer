@@ -3,7 +3,7 @@
 
 #include "smart_menu.h"
 
-#include "../nogui/my_windows.h"
+#include "../nogui/windows_my.h"
 #include "../nogui/string_converter.h"
 
 #include <cstdint>

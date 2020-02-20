@@ -13,7 +13,7 @@
 #include <iterator>
 #include <numeric>
 
-#include "../nogui/my_windows.h"
+#include "../nogui/windows_my.h"
 
 #include <commctrl.h>
 

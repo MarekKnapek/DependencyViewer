@@ -207,9 +207,6 @@
     <ClInclude Include="src\nogui\dbg_provider.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
-    <ClInclude Include="src\nogui\my_windows.h">
-      <Filter>src\nogui</Filter>
-    </ClInclude>
     <ClInclude Include="src\gui\smart_menu.h">
       <Filter>src\gui</Filter>
     </ClInclude>
@@ -340,6 +337,9 @@
       <Filter>src\nogui</Filter>
     </ClInclude>
     <ClInclude Include="src\nogui\cassert_my.h">
+      <Filter>src\nogui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nogui\windows_my.h">
       <Filter>src\nogui</Filter>
     </ClInclude>
   </ItemGroup>

@@ -2,7 +2,7 @@
 
 #include "../nogui/cassert_my.h"
 
-#include "../nogui/my_windows.h"
+#include "../nogui/windows_my.h"
 
 
 void smart_menu_deleter::operator()(void* const ptr) const
