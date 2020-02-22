@@ -6,6 +6,8 @@
 #include "processor.h"
 
 #include "../nogui/cassert_my.h"
+#include "../nogui/int_to_string.h"
+#include "../nogui/pe_getters_import.h"
 #include "../nogui/scope_exit.h"
 
 #include "../res/resources.h"
@@ -36,6 +38,11 @@ static constexpr wchar_t const* const s_import_headers___2[] =
 };
 static constexpr wchar_t const s_import_type_true___2[] = L"ordinal";
 static constexpr wchar_t const s_import_type_false___2[] = L"name";
+static constexpr wchar_t const s_import_ordinal_na___2[] = L"N/A";
+static constexpr wchar_t const s_import_hint_na___2[] = L"N/A";
+static constexpr wchar_t const s_import_name_na___2[] = L"N/A";
+static constexpr wchar_t const s_import_name_processing___2[] = L"Processing...";
+static constexpr wchar_t const s_import_name_undecorating___2[] = L"Undecorating...";
 
 
 ATOM import_window_impl::g_class;
@@ -45,7 +52,9 @@ int import_window_impl::g_column_type_max_width;
 import_window_impl::import_window_impl(HWND const& self) :
 	m_self(self),
 	m_list_view(),
-	m_fi()
+	m_fi(),
+	m_undecorate(),
+	m_string_converter()
 {
 	assert(self != nullptr);
 
@@ -267,6 +276,25 @@ LRESULT import_window_impl::on_wm_setfi(WPARAM const& wparam, LPARAM const& lpar
 void import_window_impl::on_getdispinfow(NMHDR& nmhdr)
 {
 	NMLVDISPINFOW& nm = reinterpret_cast<NMLVDISPINFOW&>(nmhdr);
+	file_info const* const tmp_fi = m_fi;
+	if(!tmp_fi)
+	{
+		return;
+	}
+	file_info const* const parent_fi = tmp_fi->m_parent;
+	if(!parent_fi)
+	{
+		return;
+	}
+	file_info const* const fi = tmp_fi->m_orig_instance ? tmp_fi->m_orig_instance : tmp_fi;
+	auto const dll_idx_ = tmp_fi - parent_fi->m_fis;
+	assert(dll_idx_ >= 0 && dll_idx_ <= 0xFFFF);
+	std::uint16_t const dll_idx = static_cast<std::uint16_t>(dll_idx_);
+	pe_import_table_info const& iti = parent_fi->m_import_table;
+	pe_export_table_info const& eti = fi->m_export_table;
+	int const row = nm.item.iItem;
+	assert(row >= 0 && row <= 0xFFFF);
+	std::uint16_t const imp_idx = static_cast<std::uint16_t>(row);
 	if((nm.item.mask & LVIF_TEXT) != 0)
 	{
 		int const col_ = nm.item.iSubItem;
@@ -282,22 +310,22 @@ void import_window_impl::on_getdispinfow(NMHDR& nmhdr)
 			break;
 			case e_import_column___2::e_type:
 			{
-				nm.item.pszText = const_cast<wchar_t*>(L"");
+				nm.item.pszText = const_cast<wchar_t*>(get_col_type(iti, dll_idx, imp_idx));
 			}
 			break;
 			case e_import_column___2::e_ordinal:
 			{
-				nm.item.pszText = const_cast<wchar_t*>(L"");
+				nm.item.pszText = const_cast<wchar_t*>(get_col_ordinal(iti, dll_idx, imp_idx));
 			}
 			break;
 			case e_import_column___2::e_hint:
 			{
-				nm.item.pszText = const_cast<wchar_t*>(L"");
+				nm.item.pszText = const_cast<wchar_t*>(get_col_hint(iti, dll_idx, imp_idx));
 			}
 			break;
 			case e_import_column___2::e_name:
 			{
-				nm.item.pszText = const_cast<wchar_t*>(L"");
+				nm.item.pszText = const_cast<wchar_t*>(get_col_name(iti, dll_idx, imp_idx, eti));
 			}
 			break;
 			default:
@@ -309,8 +337,97 @@ void import_window_impl::on_getdispinfow(NMHDR& nmhdr)
 	}
 	if((nm.item.mask & LVIF_IMAGE) != 0)
 	{
-		nm.item.iImage = 0;
+		nm.item.iImage = get_col_icon(iti, dll_idx, imp_idx);
 	}
+}
+
+wchar_t const* import_window_impl::get_col_type(pe_import_table_info const& iti, std::uint16_t const dll_idx, std::uint16_t const imp_idx)
+{
+	bool const is_ordinal = pe_get_import_is_ordinal(iti, dll_idx, imp_idx);
+	if(is_ordinal)
+	{
+		return s_import_type_true___2;
+	}
+	else
+	{
+		return s_import_type_false___2;
+	}
+}
+
+wchar_t const* import_window_impl::get_col_ordinal(pe_import_table_info const& iti, std::uint16_t const dll_idx, std::uint16_t const imp_idx)
+{
+	auto const oridnal_opt = pe_get_import_ordinal(iti, dll_idx, imp_idx);
+	if(oridnal_opt.m_is_valid)
+	{
+		wchar_t const* const ret = ordinal_to_string(oridnal_opt.m_value, m_string_converter);
+		return ret;
+	}
+	else
+	{
+		return s_import_ordinal_na___2;
+	}
+}
+
+wchar_t const* import_window_impl::get_col_hint(pe_import_table_info const& iti, std::uint16_t const dll_idx, std::uint16_t const imp_idx)
+{
+	auto const hint_opt = pe_get_import_hint(iti, dll_idx, imp_idx);
+	if(hint_opt.m_is_valid)
+	{
+		wchar_t const* const ret = ordinal_to_string(hint_opt.m_value, m_string_converter);
+		return ret;
+	}
+	else
+	{
+		return s_import_hint_na___2;
+	}
+}
+
+wchar_t const* import_window_impl::get_col_name(pe_import_table_info const& iti, std::uint16_t const dll_idx, std::uint16_t const imp_idx, pe_export_table_info const& eti)
+{
+	if(m_undecorate)
+	{
+		string_handle const name = pe_get_import_name_undecorated(iti, eti, dll_idx, imp_idx);
+		if(!name.m_string)
+		{
+			return s_import_name_na___2;
+		}
+		else if(name.m_string == get_export_name_processing().m_string)
+		{
+			return s_import_name_processing___2;
+		}
+		else if(name.m_string == get_name_undecorating().m_string)
+		{
+			return s_import_name_undecorating___2;
+		}
+		else
+		{
+			wchar_t const* const ret = m_string_converter.convert(name);
+			return ret;
+		}
+	}
+	else
+	{
+		string_handle const name = pe_get_import_name(iti, eti, dll_idx, imp_idx);
+		if(!name.m_string)
+		{
+			return s_import_name_na___2;
+		}
+		else if(name.m_string == get_export_name_processing().m_string)
+		{
+			return s_import_name_processing___2;
+		}
+		else
+		{
+			wchar_t const* const ret = m_string_converter.convert(name);
+			return ret;
+		}
+	}
+}
+
+std::uint8_t import_window_impl::get_col_icon(pe_import_table_info const& iti, std::uint16_t const dll_idx, std::uint16_t const imp_idx)
+{
+	std::uint8_t const icon_idx = pe_get_import_icon_id(iti, dll_idx, imp_idx);
+	return icon_idx;
 }
 
 void import_window_impl::refresh()
