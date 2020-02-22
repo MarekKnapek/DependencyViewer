@@ -6,6 +6,9 @@
 #include "../nogui/windows_my.h"
 
 
+struct file_info;
+
+
 class import_window_impl
 {
 private:
@@ -29,6 +32,7 @@ private:
 	LRESULT on_message(UINT const& msg, WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_size(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_notify(WPARAM const& wparam, LPARAM const& lparam);
+	LRESULT on_wm_setfi(WPARAM const& wparam, LPARAM const& lparam);
 	void on_getdispinfow(NMHDR& nmhdr);
 	void repaint();
 private:
@@ -36,4 +40,5 @@ private:
 private:
 	HWND const m_self;
 	HWND m_list_view;
+	file_info const* m_fi;
 };

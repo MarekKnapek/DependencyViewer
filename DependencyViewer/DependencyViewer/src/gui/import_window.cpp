@@ -53,6 +53,15 @@ void import_window::deinit()
 	import_window_impl::deinit();
 }
 
+void import_window::setfi(file_info const* const& fi)
+{
+	assert(m_hwnd != nullptr);
+	UINT const msg = static_cast<std::uint32_t>(wm::wm_setfi);
+	WPARAM const wparam = 0;
+	LPARAM const lparam = reinterpret_cast<LPARAM>(fi);
+	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
+}
+
 HWND const& import_window::get_hwnd() const
 {
 	return m_hwnd;

@@ -1,11 +1,21 @@
 #pragma once
 
 
+#include <cstdint>
+
 #include "../nogui/windows_my.h"
+
+
+struct file_info;
 
 
 class import_window
 {
+public:
+	enum class wm : std::uint32_t
+	{
+		wm_setfi = WM_USER + 1,
+	};
 public:
 	import_window() noexcept;
 	import_window(HWND const& parent);
@@ -18,6 +28,8 @@ public:
 public:
 	static void init();
 	static void deinit();
+public:
+	void setfi(file_info const* const& fi);
 public:
 	HWND const& get_hwnd() const;
 private:
