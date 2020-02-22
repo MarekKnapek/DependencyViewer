@@ -1,9 +1,12 @@
 #include "import_window_impl.h"
 
 #include "common_controls.h"
+#include "list_view_base.h"
 #include "main.h"
+#include "processor.h"
 
 #include "../nogui/cassert_my.h"
+#include "../nogui/scope_exit.h"
 
 #include "../res/resources.h"
 
@@ -83,6 +86,8 @@ import_window_impl::import_window_impl(HWND const& self) :
 	HIMAGELIST const img_list = common_controls::ImageList_LoadImageW(get_instance(), MAKEINTRESOURCEW(s_res_icons_import_export), 30, 0, CLR_DEFAULT, IMAGE_BITMAP, LR_DEFAULTCOLOR);
 	assert(img_list);
 	LRESULT const prev_imgs = SendMessageW(m_list_view, LVM_SETIMAGELIST, LVSIL_SMALL, reinterpret_cast<LPARAM>(img_list));
+
+	refresh();
 }
 
 import_window_impl::~import_window_impl()
@@ -252,6 +257,7 @@ LRESULT import_window_impl::on_wm_setfi(WPARAM const& wparam, LPARAM const& lpar
 {
 	file_info const* const fi = reinterpret_cast<file_info const*>(lparam);
 	m_fi = fi;
+	refresh();
 
 	UINT const msg = static_cast<std::uint32_t>(import_window::wm::wm_setfi);
 	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
@@ -304,6 +310,45 @@ void import_window_impl::on_getdispinfow(NMHDR& nmhdr)
 	if((nm.item.mask & LVIF_IMAGE) != 0)
 	{
 		nm.item.iImage = 0;
+	}
+}
+
+void import_window_impl::refresh()
+{
+	LRESULT const redr_off = SendMessageW(m_list_view, WM_SETREDRAW, FALSE, 0);
+	assert(redr_off == 0);
+	auto const fn_redraw = mk::make_scope_exit([&]()
+	{
+		LRESULT const auto_sized_pi = SendMessageW(m_list_view, LVM_SETCOLUMNWIDTH, static_cast<int>(e_import_column___2::e_pi), LVSCW_AUTOSIZE);
+		assert(auto_sized_pi == TRUE);
+		LRESULT const type_sized = SendMessageW(m_list_view, LVM_SETCOLUMNWIDTH, static_cast<int>(e_import_column___2::e_type), get_column_type_max_width());
+		assert(type_sized == TRUE);
+		LRESULT const ordinal_sized = SendMessageW(m_list_view, LVM_SETCOLUMNWIDTH, static_cast<int>(e_import_column___2::e_ordinal), list_view_base::get_column_uint16_max_width(&m_list_view));
+		assert(ordinal_sized == TRUE);
+		LRESULT const hint_sized = SendMessageW(m_list_view, LVM_SETCOLUMNWIDTH, static_cast<int>(e_import_column___2::e_hint), list_view_base::get_column_uint16_max_width(&m_list_view));
+		assert(hint_sized == TRUE);
+
+		LRESULT const redr_on = SendMessageW(m_list_view, WM_SETREDRAW, TRUE, 0);
+		assert(redr_on == 0);
+		repaint();
+	});
+
+	LRESULT const deleted = SendMessageW(m_list_view, LVM_DELETEALLITEMS, 0, 0);
+	assert(deleted == TRUE);
+	file_info const* const tmp_fi = m_fi;
+	if(!tmp_fi)
+	{
+		return;
+	}
+	file_info const* const parent_fi = tmp_fi->m_parent;
+	if(parent_fi)
+	{
+		auto const dll_idx_ = tmp_fi - parent_fi->m_fis;
+		assert(dll_idx_ >= 0 && dll_idx_ <= 0xFFFF);
+		std::uint16_t const dll_idx = static_cast<std::uint16_t>(dll_idx_);
+		std::uint16_t const& count = parent_fi->m_import_table.m_import_counts[dll_idx];
+		LRESULT const set_size = SendMessageW(m_list_view, LVM_SETITEMCOUNT, count, 0);
+		assert(set_size != 0);
 	}
 }
 
