@@ -470,12 +470,22 @@ void import_window_impl::on_menu(WPARAM const& wparam)
 	e_import_menu_id___2 const menu_id = static_cast<e_import_menu_id___2>(menu_id_);
 	switch(menu_id)
 	{
+		case e_import_menu_id___2::e_matching:
+		{
+			on_menu_matching();
+		}
+		break;
 		default:
 		{
 			assert(false);
 		}
 		break;
 	}
+}
+
+void import_window_impl::on_menu_matching()
+{
+	command_matching();
 }
 
 wchar_t const* import_window_impl::get_col_type(pe_import_table_info const& iti, std::uint16_t const dll_idx, std::uint16_t const imp_idx)
