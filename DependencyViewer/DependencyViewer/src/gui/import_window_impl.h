@@ -35,8 +35,10 @@ private:
 	LRESULT on_wm_setfi(WPARAM const& wparam, LPARAM const& lparam);
 	void on_getdispinfow(NMHDR& nmhdr);
 	void repaint();
+	int get_column_type_max_width();
 private:
 	static ATOM g_class;
+	static int g_column_type_max_width;
 private:
 	HWND const m_self;
 	HWND m_list_view;

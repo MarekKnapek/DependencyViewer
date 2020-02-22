@@ -31,9 +31,12 @@ static constexpr wchar_t const* const s_import_headers___2[] =
 	L"hint",
 	L"name",
 };
+static constexpr wchar_t const s_import_type_true___2[] = L"ordinal";
+static constexpr wchar_t const s_import_type_false___2[] = L"name";
 
 
 ATOM import_window_impl::g_class;
+int import_window_impl::g_column_type_max_width;
 
 
 import_window_impl::import_window_impl(HWND const& self) :
@@ -308,4 +311,19 @@ void import_window_impl::repaint()
 {
 	BOOL const redrawn = RedrawWindow(m_list_view, nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_FRAME);
 	assert(redrawn != 0);
+}
+
+int import_window_impl::get_column_type_max_width()
+{
+	if(g_column_type_max_width != 0)
+	{
+		return g_column_type_max_width;
+	}
+	static constexpr std::pair<wchar_t const* const, int const> const s_strings[] =
+	{
+		{s_import_type_true___2, static_cast<int>(std::size(s_import_type_true___2)) - 1},
+		{s_import_type_false___2, static_cast<int>(std::size(s_import_type_false___2)) - 1},
+	};
+	g_column_type_max_width = list_view_base::get_column_max_width(&m_list_view, &s_strings, static_cast<int>(std::size(s_strings)));
+	return g_column_type_max_width;
 }
