@@ -286,3 +286,9 @@ void import_window_impl::on_getdispinfow(NMHDR& nmhdr)
 		nm.item.iImage = 0;
 	}
 }
+
+void import_window_impl::repaint()
+{
+	BOOL const redrawn = RedrawWindow(m_list_view, nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_FRAME);
+	assert(redrawn != 0);
+}

@@ -30,6 +30,7 @@ private:
 	LRESULT on_wm_size(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_notify(WPARAM const& wparam, LPARAM const& lparam);
 	void on_getdispinfow(NMHDR& nmhdr);
+	void repaint();
 private:
 	static ATOM g_class;
 private:
