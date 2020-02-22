@@ -53,6 +53,16 @@ void import_window::deinit()
 	import_window_impl::deinit();
 }
 
+bool import_window::translateaccelerator(MSG& message)
+{
+	bool translated;
+	UINT const msg = static_cast<std::uint32_t>(wm::wm_translateaccelerator);
+	WPARAM const wparam = reinterpret_cast<WPARAM>(&translated);
+	LPARAM const lparam = reinterpret_cast<LPARAM>(&message);
+	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
+	return translated;
+}
+
 void import_window::setfi(file_info const* const& fi)
 {
 	assert(m_hwnd != nullptr);

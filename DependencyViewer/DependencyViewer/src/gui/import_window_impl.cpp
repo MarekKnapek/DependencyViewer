@@ -268,6 +268,12 @@ LRESULT import_window_impl::on_message(UINT const& msg, WPARAM const& wparam, LP
 			return ret;
 		}
 		break;
+		case static_cast<std::uint32_t>(import_window::wm::wm_translateaccelerator):
+		{
+			LRESULT const ret = on_wm_translateaccelerator(wparam, lparam);
+			return ret;
+		}
+		break;
 		case static_cast<std::uint32_t>(import_window::wm::wm_setfi):
 		{
 			LRESULT const ret = on_wm_setfi(wparam, lparam);
@@ -370,6 +376,20 @@ LRESULT import_window_impl::on_wm_command(WPARAM const& wparam, LPARAM const& lp
 		on_menu(wparam);
 	}
 	LRESULT const ret = DefWindowProcW(m_self, WM_COMMAND, wparam, lparam);
+	return ret;
+}
+
+LRESULT import_window_impl::on_wm_translateaccelerator(WPARAM const& wparam, LPARAM const& lparam)
+{
+	bool& translated = *reinterpret_cast<bool*>(wparam);
+	MSG* const message = reinterpret_cast<MSG*>(lparam);
+
+	assert(g_accel != nullptr);
+	int const trnsltd = TranslateAcceleratorW(m_self, g_accel, message);
+	translated = trnsltd != 0;
+
+	UINT const msg = static_cast<std::uint32_t>(import_window::wm::wm_translateaccelerator);
+	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
 	return ret;
 }
 
