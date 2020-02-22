@@ -14,7 +14,8 @@ class import_window
 public:
 	enum class wm : std::uint32_t
 	{
-		wm_translateaccelerator = WM_USER + 1,
+		wm_repaint = WM_USER + 1,
+		wm_translateaccelerator,
 		wm_setfi,
 		wm_setundecorate,
 		wm_selectitem,
@@ -35,6 +36,7 @@ public:
 	static void init();
 	static void deinit();
 public:
+	void repaint();
 	bool translateaccelerator(MSG& message);
 	void setfi(file_info const* const& fi);
 	void setundecorate(bool const& undecorate);
