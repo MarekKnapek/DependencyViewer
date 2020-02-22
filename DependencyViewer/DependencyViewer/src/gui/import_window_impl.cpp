@@ -12,8 +12,11 @@
 
 #include "../res/resources.h"
 
+#include <algorithm>
 #include <cstdint>
 #include <iterator>
+#include <numeric>
+#include <tuple>
 
 #include "../nogui/windows_my.h"
 
@@ -372,12 +375,15 @@ void import_window_impl::on_columnclick(NMHDR& nmhdr)
 	int const new_sort = list_view_base::on_columnclick(&nmlv, static_cast<int>(std::size(s_import_headers___2)), m_sort_col);
 	assert(new_sort >= 0 && new_sort <= 0xFF);
 	m_sort_col = static_cast<std::uint8_t>(new_sort);
+	sort_view();
 	list_view_base::refresh_headers(&m_list_view, static_cast<int>(std::size(s_import_headers___2)), m_sort_col);
+	repaint();
 }
 
 wchar_t const* import_window_impl::get_col_type(pe_import_table_info const& iti, std::uint16_t const dll_idx, std::uint16_t const imp_idx)
 {
-	bool const is_ordinal = pe_get_import_is_ordinal(iti, dll_idx, imp_idx);
+	std::uint16_t const& imp_idx_sorted = m_sort.empty() ? imp_idx : m_sort[imp_idx];
+	bool const is_ordinal = pe_get_import_is_ordinal(iti, dll_idx, imp_idx_sorted);
 	if(is_ordinal)
 	{
 		return s_import_type_true___2;
@@ -390,7 +396,8 @@ wchar_t const* import_window_impl::get_col_type(pe_import_table_info const& iti,
 
 wchar_t const* import_window_impl::get_col_ordinal(pe_import_table_info const& iti, std::uint16_t const dll_idx, std::uint16_t const imp_idx)
 {
-	auto const oridnal_opt = pe_get_import_ordinal(iti, dll_idx, imp_idx);
+	std::uint16_t const& imp_idx_sorted = m_sort.empty() ? imp_idx : m_sort[imp_idx];
+	auto const oridnal_opt = pe_get_import_ordinal(iti, dll_idx, imp_idx_sorted);
 	if(oridnal_opt.m_is_valid)
 	{
 		wchar_t const* const ret = ordinal_to_string(oridnal_opt.m_value, m_string_converter);
@@ -404,7 +411,8 @@ wchar_t const* import_window_impl::get_col_ordinal(pe_import_table_info const& i
 
 wchar_t const* import_window_impl::get_col_hint(pe_import_table_info const& iti, std::uint16_t const dll_idx, std::uint16_t const imp_idx)
 {
-	auto const hint_opt = pe_get_import_hint(iti, dll_idx, imp_idx);
+	std::uint16_t const& imp_idx_sorted = m_sort.empty() ? imp_idx : m_sort[imp_idx];
+	auto const hint_opt = pe_get_import_hint(iti, dll_idx, imp_idx_sorted);
 	if(hint_opt.m_is_valid)
 	{
 		wchar_t const* const ret = ordinal_to_string(hint_opt.m_value, m_string_converter);
@@ -418,9 +426,10 @@ wchar_t const* import_window_impl::get_col_hint(pe_import_table_info const& iti,
 
 wchar_t const* import_window_impl::get_col_name(pe_import_table_info const& iti, std::uint16_t const dll_idx, std::uint16_t const imp_idx, pe_export_table_info const& eti)
 {
+	std::uint16_t const& imp_idx_sorted = m_sort.empty() ? imp_idx : m_sort[imp_idx];
 	if(m_undecorate)
 	{
-		string_handle const name = pe_get_import_name_undecorated(iti, eti, dll_idx, imp_idx);
+		string_handle const name = pe_get_import_name_undecorated(iti, eti, dll_idx, imp_idx_sorted);
 		if(!name.m_string)
 		{
 			return s_import_name_na___2;
@@ -441,7 +450,7 @@ wchar_t const* import_window_impl::get_col_name(pe_import_table_info const& iti,
 	}
 	else
 	{
-		string_handle const name = pe_get_import_name(iti, eti, dll_idx, imp_idx);
+		string_handle const name = pe_get_import_name(iti, eti, dll_idx, imp_idx_sorted);
 		if(!name.m_string)
 		{
 			return s_import_name_na___2;
@@ -460,7 +469,8 @@ wchar_t const* import_window_impl::get_col_name(pe_import_table_info const& iti,
 
 std::uint8_t import_window_impl::get_col_icon(pe_import_table_info const& iti, std::uint16_t const dll_idx, std::uint16_t const imp_idx)
 {
-	std::uint8_t const icon_idx = pe_get_import_icon_id(iti, dll_idx, imp_idx);
+	std::uint16_t const& imp_idx_sorted = m_sort.empty() ? imp_idx : m_sort[imp_idx];
+	std::uint8_t const icon_idx = pe_get_import_icon_id(iti, dll_idx, imp_idx_sorted);
 	return icon_idx;
 }
 
@@ -470,6 +480,8 @@ void import_window_impl::refresh()
 	assert(redr_off == 0);
 	auto const fn_redraw = mk::make_scope_exit([&]()
 	{
+		sort_view();
+
 		LRESULT const auto_sized_pi = SendMessageW(m_list_view, LVM_SETCOLUMNWIDTH, static_cast<int>(e_import_column___2::e_pi), LVSCW_AUTOSIZE);
 		assert(auto_sized_pi == TRUE);
 		LRESULT const type_sized = SendMessageW(m_list_view, LVM_SETCOLUMNWIDTH, static_cast<int>(e_import_column___2::e_type), get_column_type_max_width());
@@ -522,4 +534,149 @@ int import_window_impl::get_column_type_max_width()
 	};
 	g_column_type_max_width = list_view_base::get_column_max_width(&m_list_view, &s_strings, static_cast<int>(std::size(s_strings)));
 	return g_column_type_max_width;
+}
+
+void import_window_impl::sort_view()
+{
+	m_sort.clear();
+	std::uint8_t const cur_sort_raw = m_sort_col;
+	if(cur_sort_raw == 0xFF)
+	{
+		return;
+	}
+	bool const asc = (cur_sort_raw & (1u << 7u)) == 0u;
+	std::uint8_t const col_ = cur_sort_raw &~ (1u << 7u);
+	file_info const* const tmp_fi = m_fi;
+	if(!tmp_fi)
+	{
+		return;
+	}
+	file_info const* const parent_fi = tmp_fi->m_parent;
+	if(!parent_fi)
+	{
+		return;
+	}
+	file_info const* const fi = tmp_fi->m_orig_instance ? tmp_fi->m_orig_instance : tmp_fi;
+	auto const dll_idx_ = tmp_fi - parent_fi->m_fis;
+	assert(dll_idx_ >= 0 && dll_idx_ <= 0xFFFF);
+	std::uint16_t const dll_idx = static_cast<std::uint16_t>(dll_idx_);
+	pe_import_table_info const& iti = parent_fi->m_import_table;
+	pe_export_table_info const& eti = fi->m_export_table;
+	std::uint16_t const n_items = iti.m_import_counts[dll_idx];
+	assert(n_items <= 0xFFFF / 2);
+	m_sort.resize(n_items * 2);
+	std::iota(m_sort.begin(), m_sort.begin() + n_items, std::uint16_t{0});
+	std::uint16_t* const sort = m_sort.data();
+	assert(col_ >= static_cast<std::uint16_t>(e_import_column___2::e_pi));
+	assert(col_ <= static_cast<std::uint16_t>(e_import_column___2::e_name));
+	e_import_column___2 const col = static_cast<e_import_column___2>(col_);
+	switch(col)
+	{
+		case e_import_column___2::e_pi:
+		{
+			auto const fn_compare_icon = [&](std::uint16_t const a, std::uint16_t const b) -> bool
+			{
+				std::uint8_t const icon_idx_a = pe_get_import_icon_id(iti, dll_idx, a);
+				std::uint8_t const icon_idx_b = pe_get_import_icon_id(iti, dll_idx, b);
+				bool const ret = icon_idx_a < icon_idx_b;
+				return ret;
+			};
+			if(asc)
+			{
+				std::sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_icon(a, b); });
+			}
+			else
+			{
+				std::sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_icon(b, a); });
+			}
+		}
+		break;
+		case e_import_column___2::e_type:
+		{
+			auto const fn_compare_type = [&](std::uint16_t const a, std::uint16_t const b) -> bool
+			{
+				bool const is_ordinal_a = pe_get_import_is_ordinal(iti, dll_idx, a);
+				bool const is_ordinal_b = pe_get_import_is_ordinal(iti, dll_idx, b);
+				bool const ret = is_ordinal_a < is_ordinal_b;
+				return ret;
+			};
+			if(asc)
+			{
+				std::sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_type(a, b); });
+			}
+			else
+			{
+				std::sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_type(b, a); });
+			}
+		}
+		break;
+		case e_import_column___2::e_ordinal:
+		{
+			auto const fn_compare_ordinal = [&](std::uint16_t const a, std::uint16_t const b) -> bool
+			{
+				auto const a2 = pe_get_import_ordinal(iti, dll_idx, a);
+				auto const b2 = pe_get_import_ordinal(iti, dll_idx, b);
+				bool const ret = std::tie(a2.m_is_valid, a2.m_value) < std::tie(b2.m_is_valid, b2.m_value);
+				return ret;
+			};
+			if(asc)
+			{
+				std::sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_ordinal(a, b); });
+			}
+			else
+			{
+				std::sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_ordinal(b, a); });
+			}
+		}
+		break;
+		case e_import_column___2::e_hint:
+		{
+			auto const fn_compare_hint = [&](std::uint16_t const a, std::uint16_t const b) -> bool
+			{
+				auto const a2 = pe_get_import_hint(iti, dll_idx, a);
+				auto const b2 = pe_get_import_hint(iti, dll_idx, b);
+				bool const ret = std::tie(a2.m_is_valid, a2.m_value) < std::tie(b2.m_is_valid, b2.m_value);
+				return ret;
+			};
+			if(asc)
+			{
+				std::sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_hint(a, b); });
+			}
+			else
+			{
+				std::sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_hint(b, a); });
+			}
+		}
+		break;
+		case e_import_column___2::e_name:
+		{
+			auto const fn_compare_name = [&](std::uint16_t const a, std::uint16_t const b) -> bool
+			{
+				string_handle const a2 = pe_get_import_name(iti, eti, dll_idx, a);
+				string_handle const b2 = pe_get_import_name(iti, eti, dll_idx, b);
+				int const a3 = (a2.m_string != nullptr) ? 2 : (a2.m_string == get_export_name_processing().m_string ? 1 : 0);
+				int const b3 = (b2.m_string != nullptr) ? 2 : (b2.m_string == get_export_name_processing().m_string ? 1 : 0);
+				bool const ret = std::tie(a3, a2) < std::tie(b3, b2);
+				return ret;
+			};
+			if(asc)
+			{
+				std::sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_name(a, b); });
+			}
+			else
+			{
+				std::sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_name(b, a); });
+			}
+		}
+		break;
+		default:
+		{
+			assert(false);
+		}
+		break;
+	}
+	for(std::uint16_t i = 0; i != n_items; ++i)
+	{
+		m_sort[n_items + m_sort[i]] = i;
+	}
 }
