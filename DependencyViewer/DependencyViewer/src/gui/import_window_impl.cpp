@@ -54,6 +54,8 @@ import_window_impl::import_window_impl(HWND const& self) :
 	m_list_view(),
 	m_fi(),
 	m_undecorate(),
+	m_sort_col(0xFF),
+	m_sort(),
 	m_string_converter()
 {
 	assert(self != nullptr);
@@ -261,6 +263,11 @@ LRESULT import_window_impl::on_wm_notify(WPARAM const& wparam, LPARAM const& lpa
 				on_getdispinfow(nmhdr);
 			}
 			break;
+			case LVN_COLUMNCLICK:
+			{
+				on_columnclick(nmhdr);
+			}
+			break;
 		}
 	}
 
@@ -357,6 +364,15 @@ void import_window_impl::on_getdispinfow(NMHDR& nmhdr)
 	{
 		nm.item.iImage = get_col_icon(iti, dll_idx, imp_idx);
 	}
+}
+
+void import_window_impl::on_columnclick(NMHDR& nmhdr)
+{
+	NMLISTVIEW const& nmlv = reinterpret_cast<NMLISTVIEW&>(nmhdr);
+	int const new_sort = list_view_base::on_columnclick(&nmlv, static_cast<int>(std::size(s_import_headers___2)), m_sort_col);
+	assert(new_sort >= 0 && new_sort <= 0xFF);
+	m_sort_col = static_cast<std::uint8_t>(new_sort);
+	list_view_base::refresh_headers(&m_list_view, static_cast<int>(std::size(s_import_headers___2)), m_sort_col);
 }
 
 wchar_t const* import_window_impl::get_col_type(pe_import_table_info const& iti, std::uint16_t const dll_idx, std::uint16_t const imp_idx)
