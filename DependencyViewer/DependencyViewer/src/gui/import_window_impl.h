@@ -40,6 +40,7 @@ private:
 	LRESULT on_message(UINT const& msg, WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_size(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_notify(WPARAM const& wparam, LPARAM const& lparam);
+	LRESULT on_wm_contextmenu(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setfi(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setundecorate(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setcmdmatching(WPARAM const& wparam, LPARAM const& lparam);
