@@ -375,6 +375,10 @@ LRESULT import_window_impl::on_wm_command(WPARAM const& wparam, LPARAM const& lp
 	{
 		on_menu(wparam);
 	}
+	else if(HIWORD(wparam) == 1 && lparam == 0)
+	{
+		on_accelerator(wparam);
+	}
 	LRESULT const ret = DefWindowProcW(m_self, WM_COMMAND, wparam, lparam);
 	return ret;
 }
@@ -530,7 +534,33 @@ void import_window_impl::on_menu(WPARAM const& wparam)
 	}
 }
 
+void import_window_impl::on_accelerator(WPARAM const& wparam)
+{
+	std::uint16_t const accel_id_ = static_cast<std::uint16_t>(LOWORD(wparam));
+	assert(accel_id_ >= static_cast<std::uint16_t>(e_import_accel_id::e_matching));
+	assert(accel_id_ <= static_cast<std::uint16_t>(e_import_accel_id::e_matching));
+	e_import_accel_id const accel_id = static_cast<e_import_accel_id>(accel_id_);
+	switch(accel_id)
+	{
+		case e_import_accel_id::e_matching:
+		{
+			on_accel_matching();
+		}
+		break;
+		default:
+		{
+			assert(false);
+		}
+		break;
+	}
+}
+
 void import_window_impl::on_menu_matching()
+{
+	command_matching();
+}
+
+void import_window_impl::on_accel_matching()
 {
 	command_matching();
 }
