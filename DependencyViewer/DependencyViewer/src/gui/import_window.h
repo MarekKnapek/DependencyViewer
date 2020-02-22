@@ -15,6 +15,7 @@ public:
 	enum class wm : std::uint32_t
 	{
 		wm_setfi = WM_USER + 1,
+		wm_setundecorate,
 	};
 public:
 	import_window() noexcept;
@@ -30,6 +31,7 @@ public:
 	static void deinit();
 public:
 	void setfi(file_info const* const& fi);
+	void setundecorate(bool const& undecorate);
 public:
 	HWND const& get_hwnd() const;
 private:
