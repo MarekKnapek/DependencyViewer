@@ -4,6 +4,8 @@
 #include "gui/file_info_getters.cpp"
 #include "gui/import_export_matcher.cpp"
 #include "gui/import_view.cpp"
+#include "gui/import_window.cpp"
+#include "gui/import_window_impl.cpp"
 #include "gui/list_view_base.cpp"
 #include "gui/main.cpp"
 #include "gui/main_window.cpp"
