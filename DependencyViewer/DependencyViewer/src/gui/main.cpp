@@ -2,6 +2,7 @@
 
 #include "com_dlg.h"
 #include "common_controls.h"
+#include "import_window.h"
 #include "main_window.h"
 #include "splitter_window.h"
 #include "test.h"
@@ -57,6 +58,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, [[maybe_unused]] _In_opt_ HINSTANC
 	main_window::register_class();
 	main_window::create_accel_table();
 	auto const fn_destroy_main_accel_table = mk::make_scope_exit([](){ main_window::destroy_accel_table(); });
+	import_window::init(); auto const fn_import_window_deinit = mk::make_scope_exit([](){ import_window::deinit(); });
 	main_window mw;
 	BOOL const shown = ShowWindow(mw.get_hwnd(), nCmdShow);
 	BOOL const updated = UpdateWindow(mw.get_hwnd());
@@ -92,10 +94,9 @@ int message_loop(main_window& mw)
 void process_message(main_window& mw, MSG& msg)
 {
 	bool accel_translated;
-	BOOL const is_child = IsChild(mw.get_hwnd(), msg.hwnd);
-	if(is_child != 0)
+	if(IsChild(mw.get_hwnd(), msg.hwnd) != 0 || msg.hwnd == mw.get_hwnd())
 	{
-		accel_translated = TranslateAcceleratorW(mw.get_hwnd(), mw.get_accell_table(), &msg) != 0;
+		accel_translated = mw.translate_accelerator(msg);
 	}
 	else
 	{

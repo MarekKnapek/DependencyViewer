@@ -645,7 +645,7 @@ void export_view::select_matching_instance()
 	{
 		return;
 	}
-	m_main_window.m_import_view.select_item(matched_imp);
+	m_main_window.m_import_window.selectitem(matched_imp);
 }
 
 int export_view::get_type_column_max_width()

@@ -2,7 +2,7 @@
 
 
 #include "export_view.h"
-#include "import_view.h"
+#include "import_window.h"
 #include "modules_view.h"
 #include "processor.h"
 #include "settings.h"
@@ -55,6 +55,7 @@ public:
 	~main_window();
 public:
 	HWND get_hwnd() const;
+	bool translate_accelerator(MSG& message);
 private:
 	static HMENU create_menu();
 	static HWND create_toolbar(HWND const& parent);
@@ -133,7 +134,7 @@ private:
 	modules_view m_modules_view;
 	tree_view m_tree_view;
 	splitter_window_hor m_right_panel;
-	import_view m_import_view;
+	import_window m_import_window;
 	export_view m_export_view;
 	HWND m_status_bar;
 	std::queue<std::pair<idle_task_t, idle_task_param_t>> m_idle_tasks;
@@ -142,7 +143,6 @@ private:
 	settings m_settings;
 private:
 	friend class tree_view;
-	friend class import_view;
 	friend class export_view;
 	friend class modules_view;
 	template<typename marshaller_t, typename fn_worker_t, typename fn_main_t>
