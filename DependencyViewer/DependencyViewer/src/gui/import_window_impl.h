@@ -51,6 +51,7 @@ private:
 	std::uint8_t get_col_icon(pe_import_table_info const& iti, std::uint16_t const dll_idx, std::uint16_t const imp_idx);
 	smart_menu create_context_menu();
 	bool command_matching_available(std::uint16_t const& item_idx, std::uint16_t* const out_item_idx);
+	void command_matching();
 	void refresh();
 	void repaint();
 	int get_column_type_max_width();
@@ -67,4 +68,6 @@ private:
 	std::vector<std::uint16_t> m_sort;
 	string_converter m_string_converter;
 	smart_menu m_context_menu;
+	import_window::cmd_matching_fn_t m_cmd_matching_fn;
+	import_window::cmd_matching_ctx_t m_cmd_matching_ctx;
 };

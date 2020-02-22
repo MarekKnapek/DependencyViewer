@@ -17,6 +17,8 @@ public:
 		wm_setfi = WM_USER + 1,
 		wm_setundecorate,
 	};
+	using cmd_matching_ctx_t = void*;
+	using cmd_matching_fn_t = void(*)(cmd_matching_ctx_t const, std::uint16_t const);
 public:
 	import_window() noexcept;
 	import_window(HWND const& parent);

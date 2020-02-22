@@ -66,7 +66,9 @@ import_window_impl::import_window_impl(HWND const& self) :
 	m_sort_col(0xFF),
 	m_sort(),
 	m_string_converter(),
-	m_context_menu()
+	m_context_menu(),
+	m_cmd_matching_fn(),
+	m_cmd_matching_ctx()
 {
 	assert(self != nullptr);
 
@@ -520,6 +522,31 @@ bool import_window_impl::command_matching_available(std::uint16_t const& item_id
 		*out_item_idx = matched_export;
 	}
 	return available;
+}
+
+void import_window_impl::command_matching()
+{
+	int const sel = list_view_base::get_selection(&m_list_view);
+	if(sel == -1)
+	{
+		return;
+	}
+	assert(sel >= 0 && sel <= 0xFFFF);
+	std::uint16_t const line_idx = static_cast<std::uint16_t>(sel);
+	std::uint16_t const item_idx = m_sort.empty() ? line_idx : m_sort[line_idx];
+
+	std::uint16_t other_item_idx;
+	bool const available = command_matching_available(item_idx, &other_item_idx);
+	if(!available)
+	{
+		return;
+	}
+
+	if(!m_cmd_matching_fn)
+	{
+		return;
+	}
+	m_cmd_matching_fn(m_cmd_matching_ctx, other_item_idx);
 }
 
 void import_window_impl::refresh()
