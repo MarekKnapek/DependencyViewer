@@ -47,6 +47,7 @@ private:
 	LRESULT on_wm_setcmdmatching(WPARAM const& wparam, LPARAM const& lparam);
 	void on_getdispinfow(NMHDR& nmhdr);
 	void on_columnclick(NMHDR& nmhdr);
+	void on_menu(WPARAM const& wparam);
 	wchar_t const* get_col_type(pe_import_table_info const& iti, std::uint16_t const dll_idx, std::uint16_t const imp_idx);
 	wchar_t const* get_col_ordinal(pe_import_table_info const& iti, std::uint16_t const dll_idx, std::uint16_t const imp_idx);
 	wchar_t const* get_col_hint(pe_import_table_info const& iti, std::uint16_t const dll_idx, std::uint16_t const imp_idx);
