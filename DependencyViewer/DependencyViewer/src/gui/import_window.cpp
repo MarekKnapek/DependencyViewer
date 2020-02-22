@@ -81,6 +81,15 @@ void import_window::setundecorate(bool const& undecorate)
 	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
 }
 
+void import_window::selectitem(std::uint16_t const& item_idx)
+{
+	assert(m_hwnd != nullptr);
+	UINT const msg = static_cast<std::uint32_t>(wm::wm_selectitem);
+	WPARAM const wparam = item_idx;
+	LPARAM const lparam = 0;
+	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
+}
+
 void import_window::setcmdmatching(cmd_matching_fn_t const& cmd_matching_fn, cmd_matching_ctx_t const& cmd_matching_ctx)
 {
 	assert(m_hwnd != nullptr);
