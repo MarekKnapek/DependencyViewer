@@ -23,6 +23,12 @@
 #include <commctrl.h>
 
 
+enum class e_import_menu_id___2 : std::uint16_t
+{
+	e_matching,
+};
+static constexpr wchar_t const s_import_menu_orig_str___2[] = L"&Highlight Matching Export Function\tCtrl+M";
+
 enum class e_import_column___2 : std::uint16_t
 {
 	e_pi,
@@ -59,7 +65,8 @@ import_window_impl::import_window_impl(HWND const& self) :
 	m_undecorate(),
 	m_sort_col(0xFF),
 	m_sort(),
-	m_string_converter()
+	m_string_converter(),
+	m_context_menu()
 {
 	assert(self != nullptr);
 
@@ -472,6 +479,47 @@ std::uint8_t import_window_impl::get_col_icon(pe_import_table_info const& iti, s
 	std::uint16_t const& imp_idx_sorted = m_sort.empty() ? imp_idx : m_sort[imp_idx];
 	std::uint8_t const icon_idx = pe_get_import_icon_id(iti, dll_idx, imp_idx_sorted);
 	return icon_idx;
+}
+
+smart_menu import_window_impl::create_context_menu()
+{
+	HMENU const menu = CreatePopupMenu();
+	assert(menu);
+	smart_menu menu_sp{menu};
+	MENUITEMINFOW mi{};
+	mi.cbSize = sizeof(mi);
+	mi.fMask = MIIM_ID | MIIM_STRING | MIIM_FTYPE;
+	mi.fType = MFT_STRING;
+	mi.wID = static_cast<std::uint16_t>(e_import_menu_id___2::e_matching);
+	mi.dwTypeData = const_cast<wchar_t*>(s_import_menu_orig_str___2);
+	BOOL const inserted = InsertMenuItemW(menu, 0, TRUE, &mi);
+	assert(inserted != 0);
+	return menu_sp;
+}
+
+bool import_window_impl::command_matching_available(std::uint16_t const& item_idx, std::uint16_t* const out_item_idx)
+{
+	file_info const* const fi = m_fi;
+	if(!fi)
+	{
+		return false;
+	}
+	file_info const* const parent_fi = fi->m_parent;
+	if(!parent_fi)
+	{
+		return false;
+	}
+	auto const dll_idx_ = fi - parent_fi->m_fis;
+	assert(dll_idx_ >= 0 && dll_idx_ <= 0xFFFF);
+	std::uint16_t const dll_idx = static_cast<std::uint16_t>(dll_idx_);
+	pe_import_table_info const& iti = parent_fi->m_import_table;
+	std::uint16_t const& matched_export = iti.m_matched_exports[dll_idx][item_idx];
+	bool const available = matched_export != 0xFFFF;
+	if(available && out_item_idx)
+	{
+		*out_item_idx = matched_export;
+	}
+	return available;
 }
 
 void import_window_impl::refresh()

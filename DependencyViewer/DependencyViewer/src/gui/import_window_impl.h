@@ -2,6 +2,7 @@
 
 
 #include "import_window.h"
+#include "smart_menu.h"
 
 #include "../nogui/string_converter.h"
 
@@ -48,6 +49,8 @@ private:
 	wchar_t const* get_col_hint(pe_import_table_info const& iti, std::uint16_t const dll_idx, std::uint16_t const imp_idx);
 	wchar_t const* get_col_name(pe_import_table_info const& iti, std::uint16_t const dll_idx, std::uint16_t const imp_idx, pe_export_table_info const& eti);
 	std::uint8_t get_col_icon(pe_import_table_info const& iti, std::uint16_t const dll_idx, std::uint16_t const imp_idx);
+	smart_menu create_context_menu();
+	bool command_matching_available(std::uint16_t const& item_idx, std::uint16_t* const out_item_idx);
 	void refresh();
 	void repaint();
 	int get_column_type_max_width();
@@ -63,4 +66,5 @@ private:
 	std::uint8_t m_sort_col;
 	std::vector<std::uint16_t> m_sort;
 	string_converter m_string_converter;
+	smart_menu m_context_menu;
 };
