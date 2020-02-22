@@ -29,6 +29,15 @@ enum class e_import_menu_id___2 : std::uint16_t
 };
 static constexpr wchar_t const s_import_menu_orig_str___2[] = L"&Highlight Matching Export Function\tCtrl+M";
 
+enum class e_import_accel_id : std::uint16_t
+{
+	e_matching,
+};
+static constexpr ACCEL const s_import_accel_table[] =
+{
+	{FVIRTKEY | FCONTROL, 'M', static_cast<std::uint16_t>(e_import_accel_id::e_matching)},
+};
+
 enum class e_import_column___2 : std::uint16_t
 {
 	e_pi,
@@ -55,6 +64,7 @@ static constexpr wchar_t const s_import_name_undecorating___2[] = L"Undecorating
 
 
 ATOM import_window_impl::g_class;
+HACCEL import_window_impl::g_accel;
 int import_window_impl::g_column_type_max_width;
 
 
@@ -120,10 +130,12 @@ import_window_impl::~import_window_impl()
 void import_window_impl::init()
 {
 	register_class();
+	create_accel_table();
 }
 
 void import_window_impl::deinit()
 {
+	destroy_accel_table();
 	unregister_class();
 }
 
@@ -160,6 +172,21 @@ void import_window_impl::unregister_class()
 	BOOL const unregistered = UnregisterClassW(reinterpret_cast<wchar_t const*>(g_class), get_instance());
 	assert(unregistered != 0);
 	g_class = 0;
+}
+
+void import_window_impl::create_accel_table()
+{
+	assert(g_accel == nullptr);
+	g_accel = CreateAcceleratorTableW(const_cast<ACCEL*>(s_import_accel_table), static_cast<int>(std::size(s_import_accel_table)));
+	assert(g_accel != nullptr);
+}
+
+void import_window_impl::destroy_accel_table()
+{
+	assert(g_accel != nullptr);
+	BOOL const destroyed = DestroyAcceleratorTable(g_accel);
+	assert(destroyed != 0);
+	g_accel = nullptr;
 }
 
 LRESULT CALLBACK import_window_impl::class_proc(HWND const hwnd, UINT const msg, WPARAM const wparam, LPARAM const lparam)

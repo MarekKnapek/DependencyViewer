@@ -34,6 +34,8 @@ public:
 private:
 	static void register_class();
 	static void unregister_class();
+	static void create_accel_table();
+	static void destroy_accel_table();
 	static LRESULT CALLBACK class_proc(HWND const hwnd, UINT const msg, WPARAM const wparam, LPARAM const lparam);
 	static LRESULT on_wm_create(HWND const& hwnd, WPARAM const& wparam, LPARAM const& lparam);
 	static LRESULT on_wm_destroy(HWND const& hwnd, WPARAM const& wparam, LPARAM const& lparam);
@@ -63,6 +65,7 @@ private:
 	void sort_view();
 private:
 	static ATOM g_class;
+	static HACCEL g_accel;
 	static int g_column_type_max_width;
 private:
 	HWND const m_self;
