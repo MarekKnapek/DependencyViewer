@@ -17,6 +17,7 @@ private:
 	void* find_block(int const size, int const align);
 	void* allocate_block();
 	void* allocate_from_block(void* const block, int const size, int const align);
+	void commit_memory(void* const block, int const alloc_size);
 private:
 	void* m_state;
 };
