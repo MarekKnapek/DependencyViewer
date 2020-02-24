@@ -10,7 +10,6 @@
 
 static constexpr std::uint32_t const s_chunk_size = 64 * 1024 * 1024;
 static constexpr std::uint32_t const s_page_size = 4 * 1024;
-static constexpr std::uint32_t const s_treshold = 64 * 1024;
 
 
 allocator_small::allocator_small() noexcept :
@@ -50,7 +49,7 @@ void allocator_small::swap(allocator_small& other) noexcept
 
 void* allocator_small::allocate_bytes(std::uint32_t const size, std::uint32_t const align)
 {
-	assert(size < s_treshold);
+	assert(size < 2 * 1024 * 1024);
 	assert(align <= alignof(std::max_align_t));
 	header* block = find_block(size, align);
 	if(!block)

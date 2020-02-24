@@ -51,7 +51,7 @@ void* allocator::allocate_bytes(int const size, int const align)
 	return m_mallocator.allocate_bytes(size, align);
 	#else
 	assert(align <= alignof(std::max_align_t));
-	if(size < 64 * 1024)
+	if(size < 2 * 1024 * 1024)
 	{
 		return m_small.allocate_bytes(size, align);
 	}
