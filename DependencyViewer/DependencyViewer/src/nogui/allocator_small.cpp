@@ -3,21 +3,14 @@
 #include "cassert_my.h"
 
 #include <cstddef>
-#include <cstdint>
 #include <utility>
 
 #include "windows_my.h"
 
 
-struct header
-{
-	std::uint32_t m_used;
-	header* m_prev;
-};
-
-
 static constexpr std::uint32_t const s_chunk_size = 64 * 1024 * 1024;
 static constexpr std::uint32_t const s_page_size = 4 * 1024;
+static constexpr std::uint32_t const s_treshold = 64 * 1024;
 
 
 allocator_small::allocator_small() noexcept :
@@ -39,12 +32,12 @@ allocator_small& allocator_small::operator=(allocator_small&& other) noexcept
 
 allocator_small::~allocator_small() noexcept
 {
-	header* self = static_cast<header*>(m_state);
-	while(self)
+	header* block = m_state;
+	while(block)
 	{
-		header* const old_self = self;
-		self = self->m_prev;
-		BOOL const freed = VirtualFree(old_self, 0, MEM_RELEASE);
+		header* const old_block = block;
+		block = block->m_prev;
+		BOOL const freed = VirtualFree(old_block, 0, MEM_RELEASE);
 		assert(freed != 0);
 	}
 }
@@ -55,27 +48,28 @@ void allocator_small::swap(allocator_small& other) noexcept
 	swap(m_state, other.m_state);
 }
 
-void* allocator_small::allocate_bytes(int const size, int const align)
+void* allocator_small::allocate_bytes(std::uint32_t const size, std::uint32_t const align)
 {
-	assert(size < 64 * 1024);
+	assert(size < s_treshold);
 	assert(align <= alignof(std::max_align_t));
-	header* block = static_cast<header*>(find_block(size, align));
+	header* block = find_block(size, align);
 	if(!block)
 	{
-		block = static_cast<header*>(allocate_block());
+		[[unlikely]]
+		block = allocate_block();
 		assert(block);
-		header* const self = static_cast<header*>(m_state);
-		block->m_prev = self;
+		block->m_prev = m_state;
 		m_state = block;
 	}
-	return allocate_from_block(block, size, align);
+	void* const ret = allocate_from_block(block, size, align);
+	assert(ret);
+	return ret;
 }
 
-void* allocator_small::find_block(int const size, int const align)
+allocator_small::header* allocator_small::find_block(std::uint32_t const size, std::uint32_t const align)
 {
 	std::uint32_t const needed = size + align - 1;
-	header* self = static_cast<header*>(m_state);
-	header* block = self;
+	header* block = m_state;
 	while(block)
 	{
 		std::uint32_t const available = s_chunk_size - block->m_used;
@@ -88,7 +82,7 @@ void* allocator_small::find_block(int const size, int const align)
 	return nullptr;
 }
 
-void* allocator_small::allocate_block()
+allocator_small::header* allocator_small::allocate_block()
 {
 	void* const new_mem = VirtualAlloc(nullptr, s_chunk_size, MEM_RESERVE, PAGE_READWRITE);
 	assert(new_mem);
@@ -100,40 +94,35 @@ void* allocator_small::allocate_block()
 	return block;
 }
 
-void* allocator_small::allocate_from_block(void* const block, int const size, int const align)
+void allocator_small::commit_memory(header* const block, std::uint32_t const alloc_size)
 {
 	assert(block);
-	std::uint32_t const sz = size;
-	std::uint32_t const algn = align;
-	header* const self = static_cast<header*>(block);
-	std::uint32_t const needed = sz + algn - 1;
-	std::uint32_t const available = s_chunk_size - self->m_used;
+	std::uint32_t const old_page = ((block->m_used + 0 - 1) / s_page_size) * s_page_size;
+	std::uint32_t const new_page = ((block->m_used + alloc_size - 1) / s_page_size) * s_page_size;
+	if(new_page != old_page)
+	{
+		[[maybe_unused]] void* const commited = VirtualAlloc(reinterpret_cast<char*>(block) + block->m_used, alloc_size, MEM_COMMIT, PAGE_READWRITE);
+		assert(reinterpret_cast<std::uintptr_t>(commited) == ((reinterpret_cast<std::uintptr_t>(block) + block->m_used) / s_page_size) * s_page_size);
+	}
+}
+
+void* allocator_small::allocate_from_block(header* const block, std::uint32_t const size, std::uint32_t const align)
+{
+	assert(block);
+	std::uint32_t const needed = size + align - 1;
+	std::uint32_t const available = s_chunk_size - block->m_used;
 	assert(available >= needed);
-	char* const begin = reinterpret_cast<char*>(self) + self->m_used;
+	char* const begin = reinterpret_cast<char*>(block) + block->m_used;
 	std::uint32_t i = 0;
-	while((reinterpret_cast<std::uintptr_t>(begin + i) % algn) != 0)
+	while((reinterpret_cast<std::uintptr_t>(begin + i) % align) != 0)
 	{
 		++i;
 	};
+	assert(i < align);
 	char* const ret = begin + i;
-	assert(i < algn);
-	std::uint32_t const this_alloc_size = sz + i;
-	commit_memory(self, this_alloc_size);
-	self->m_used += this_alloc_size;
-	assert(self->m_used <= s_chunk_size);
+	std::uint32_t const this_alloc_size = size + i;
+	commit_memory(block, this_alloc_size);
+	block->m_used += this_alloc_size;
+	assert(block->m_used <= s_chunk_size);
 	return ret;
-}
-
-void allocator_small::commit_memory(void* const block, int const alloc_size)
-{
-	assert(block);
-	header* const self = static_cast<header*>(block);
-	std::uint32_t const allc_sz = alloc_size;
-	std::uint32_t const old_page = ((self->m_used - 1) / s_page_size) * s_page_size;
-	std::uint32_t const new_page = ((self->m_used + allc_sz - 1) / s_page_size) * s_page_size;
-	if(old_page != new_page)
-	{
-		[[maybe_unused]] void* const commited = VirtualAlloc(static_cast<char*>(block) + self->m_used, allc_sz, MEM_COMMIT, PAGE_READWRITE);
-		assert(reinterpret_cast<std::uintptr_t>(commited) == ((reinterpret_cast<std::uintptr_t>(block) + self->m_used) / s_page_size) * s_page_size);
-	}
 }

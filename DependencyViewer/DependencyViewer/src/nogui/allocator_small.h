@@ -1,8 +1,17 @@
 #pragma once
 
 
+#include <cstdint>
+
+
 class allocator_small
 {
+private:
+	struct header
+	{
+		std::uint32_t m_used;
+		header* m_prev;
+	};
 public:
 	allocator_small() noexcept;
 	allocator_small(allocator_small const&) = delete;
@@ -12,14 +21,14 @@ public:
 	~allocator_small() noexcept;
 	void swap(allocator_small& other) noexcept;
 public:
-	void* allocate_bytes(int const size, int const align);
+	void* allocate_bytes(std::uint32_t const size, std::uint32_t const align);
 private:
-	void* find_block(int const size, int const align);
-	void* allocate_block();
-	void* allocate_from_block(void* const block, int const size, int const align);
-	void commit_memory(void* const block, int const alloc_size);
+	header* find_block(std::uint32_t const size, std::uint32_t const align);
+	header* allocate_block();
+	void commit_memory(header* const block, std::uint32_t const alloc_size);
+	void* allocate_from_block(header* const block, std::uint32_t const size, std::uint32_t const align);
 private:
-	void* m_state;
+	header* m_state;
 };
 
 inline void swap(allocator_small& a, allocator_small& b) noexcept { a.swap(b); }
