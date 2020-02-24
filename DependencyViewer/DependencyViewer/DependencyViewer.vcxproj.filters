@@ -195,12 +195,15 @@
 		<ResourceCompile Include="src\res\resources.rc"><Filter>src\res</Filter></ResourceCompile>
 	</ItemGroup>
 	<ItemGroup>
-		<None Include="src\nogui\com_ptr.inl"><Filter>src\nogui</Filter></None>
-		<None Include="src\nogui\static_vector.inl"><Filter>src\nogui</Filter></None>
+		<None Include="src\nogui\com_ptr.inl">      	<Filter>src\nogui</Filter></None>
+		<None Include="src\nogui\static_vector.inl">	<Filter>src\nogui</Filter></None>
 	</ItemGroup>
 	<ItemGroup>
-		<Xml Include="src\res\manifest.xml"><Filter>src\res</Filter></Xml>
-		<Xml Include="src\res\manifest_amd64.xml"><Filter>src\res</Filter></Xml>
-		<Xml Include="src\res\manifest_x86.xml"><Filter>src\res</Filter></Xml>
+		<Xml Include="src\res\manifest.xml">      	<Filter>src\res</Filter></Xml>
+		<Xml Include="src\res\manifest_amd64.xml">	<Filter>src\res</Filter></Xml>
+		<Xml Include="src\res\manifest_x86.xml">  	<Filter>src\res</Filter></Xml>
+	</ItemGroup>
+	<ItemGroup>
+		<Natvis Include="src\DependencyViewer.natvis"><Filter>src</Filter></Natvis>
 	</ItemGroup>
 </Project>

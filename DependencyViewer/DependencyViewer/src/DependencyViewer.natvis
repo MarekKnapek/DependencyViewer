@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+	<Type Name="allocator_small::header">
+		<DisplayString>{{allocated={m_used}, remaining={64 * 1024 * 1024 - m_used}}}</DisplayString>
+		<Expand>
+			<Item Name="[allocated]">m_used</Item>
+			<Item Name="[remaining]">64 * 1024 * 1024 - m_used</Item>
+			<Item Name="[previous]">m_prev</Item>
+		</Expand>
+	</Type>
+</AutoVisualizer>

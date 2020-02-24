@@ -357,6 +357,9 @@
 		<Xml Include="src\res\manifest_amd64.xml" />
 		<Xml Include="src\res\manifest_x86.xml" />
 	</ItemGroup>
+	<ItemGroup>
+		<Natvis Include="src\DependencyViewer.natvis" />
+	</ItemGroup>
 	<Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 	<ImportGroup Label="ExtensionTargets">
 	</ImportGroup>
