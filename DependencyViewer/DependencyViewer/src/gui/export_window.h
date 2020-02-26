@@ -6,12 +6,16 @@
 #include "../nogui/windows_my.h"
 
 
+struct file_info;
+
+
 class export_window
 {
 public:
 	enum class wm : std::uint32_t
 	{
 		wm_repaint = WM_USER + 1,
+		wm_setfi,
 	};
 public:
 	export_window() noexcept;
@@ -27,6 +31,7 @@ public:
 	static void deinit();
 public:
 	void repaint();
+	void setfi(file_info const* const& fi);
 public:
 	HWND const& get_hwnd() const;
 private:

@@ -40,7 +40,8 @@ ATOM export_window_impl::g_class;
 
 export_window_impl::export_window_impl(HWND const& self) :
 	m_self(self),
-	m_list_view()
+	m_list_view(),
+	m_fi()
 {
 	assert(self != nullptr);
 
@@ -205,6 +206,12 @@ LRESULT export_window_impl::on_message(UINT const& msg, WPARAM const& wparam, LP
 			return ret;
 		}
 		break;
+		case static_cast<std::uint32_t>(export_window::wm::wm_setfi):
+		{
+			LRESULT const ret = on_wm_setfi(wparam, lparam);
+			return ret;
+		}
+		break;
 		default:
 		{
 			LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
@@ -251,6 +258,16 @@ LRESULT export_window_impl::on_wm_repaint(WPARAM const& wparam, LPARAM const& lp
 	repaint();
 
 	UINT const msg = static_cast<std::uint32_t>(export_window::wm::wm_repaint);
+	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
+	return ret;
+}
+
+LRESULT export_window_impl::on_wm_setfi(WPARAM const& wparam, LPARAM const& lparam)
+{
+	file_info const* const fi = reinterpret_cast<file_info const*>(lparam);
+	m_fi = fi;
+
+	UINT const msg = static_cast<std::uint32_t>(export_window::wm::wm_setfi);
 	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
 	return ret;
 }
