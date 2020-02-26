@@ -27,8 +27,12 @@ private:
 	static LRESULT on_wm_create(HWND const& hwnd, WPARAM const& wparam, LPARAM const& lparam);
 	static LRESULT on_wm_destroy(HWND const& hwnd, WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_message(UINT const& msg, WPARAM const& wparam, LPARAM const& lparam);
+	LRESULT on_wm_size(WPARAM const& wparam, LPARAM const& lparam);
+	LRESULT on_wm_notify(WPARAM const& wparam, LPARAM const& lparam);
+	void on_getdispinfow(NMHDR& nmhdr);
 private:
 	static ATOM g_class;
 private:
 	HWND const m_self;
+	HWND m_list_view;
 };
