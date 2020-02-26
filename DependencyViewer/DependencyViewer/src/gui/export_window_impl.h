@@ -52,6 +52,7 @@ private:
 	void refresh();
 	void repaint();
 	int get_column_type_max_width();
+	void sort_view();
 private:
 	static ATOM g_class;
 	static int g_column_type_max_width;
