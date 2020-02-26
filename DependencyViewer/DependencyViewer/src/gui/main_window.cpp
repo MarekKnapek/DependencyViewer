@@ -219,7 +219,7 @@ main_window::main_window() :
 	m_tree_view(m_upper_panel.get_hwnd(), *this),
 	m_right_panel(m_upper_panel.get_hwnd()),
 	m_import_window(m_right_panel.get_hwnd()),
-	m_export_view(m_right_panel.get_hwnd(), *this),
+	m_export_window(m_right_panel.get_hwnd()),
 	m_status_bar(CreateWindowExW(0, reinterpret_cast<wchar_t const*>(STATUSCLASSNAMEW), L"", SBARS_SIZEGRIP | WS_BORDER | WS_VISIBLE | WS_CHILD, 0, 0, 0, 0, m_hwnd, nullptr, get_instance(), nullptr)),
 	m_idle_tasks(),
 	m_dbg_tasks(),
@@ -233,7 +233,7 @@ main_window::main_window() :
 
 	m_main_panel.set_elements(m_upper_panel.get_hwnd(), m_modules_view.get_hwnd());
 	m_upper_panel.set_elements(m_tree_view.get_hwnd(), m_right_panel.get_hwnd());
-	m_right_panel.set_elements(m_import_window.get_hwnd(), m_export_view.get_hwnd());
+	m_right_panel.set_elements(m_import_window.get_hwnd(), m_export_window.get_hwnd());
 
 	m_main_panel.set_position(0.8f);
 
@@ -241,15 +241,25 @@ main_window::main_window() :
 	BOOL const got_rect = GetClientRect(m_hwnd, &r);
 	LRESULT const moved = on_wm_size(0, ((static_cast<unsigned>(r.bottom) & 0xFFFFu) << 16) | (static_cast<unsigned>(r.right) & 0xFFFFu));
 
-	static constexpr auto const cmd_matching_fn_ = [](import_window::cmd_matching_ctx_t const ctx, std::uint16_t const item_idx) -> void
+	static constexpr auto const imp_cmd_matching_fn_ = [](import_window::cmd_matching_ctx_t const ctx, std::uint16_t const item_idx) -> void
 	{
 		assert(ctx);
 		main_window* const self = static_cast<main_window*>(ctx);
-		self->m_export_view.select_item(item_idx);
+		self->m_export_window.selectitem(item_idx);
 	};
-	import_window::cmd_matching_fn_t const cmd_matching_fn = cmd_matching_fn_;
-	import_window::cmd_matching_ctx_t const cmd_matching_ctx = this;
-	m_import_window.setcmdmatching(cmd_matching_fn, cmd_matching_ctx);
+	import_window::cmd_matching_fn_t const imp_cmd_matching_fn = imp_cmd_matching_fn_;
+	import_window::cmd_matching_ctx_t const imp_cmd_matching_ctx = this;
+	m_import_window.setcmdmatching(imp_cmd_matching_fn, imp_cmd_matching_ctx);
+
+	static constexpr auto const exp_cmd_matching_fn_ = [](export_window::cmd_matching_ctx_t const ctx, std::uint16_t const item_idx) -> void
+	{
+		assert(ctx);
+		main_window* const self = static_cast<main_window*>(ctx);
+		self->m_import_window.selectitem(item_idx);
+	};
+	export_window::cmd_matching_fn_t const exp_cmd_matching_fn = exp_cmd_matching_fn_;
+	export_window::cmd_matching_ctx_t const exp_cmd_matching_ctx = this;
+	m_export_window.setcmdmatching(exp_cmd_matching_fn, exp_cmd_matching_ctx);
 
 	static constexpr auto const process_cmd_line_task = [](main_window& self, idle_task_param_t const /*param*/) -> void { self.process_command_line(); };
 	add_idle_task(process_cmd_line_task, nullptr);
@@ -278,6 +288,10 @@ bool main_window::translate_accelerator(MSG& message)
 	if(IsChild(m_import_window.get_hwnd(), message.hwnd) != 0 || m_import_window.get_hwnd() == message.hwnd)
 	{
 		translated = m_import_window.translateaccelerator(message);
+	}
+	else if(IsChild(m_export_window.get_hwnd(), message.hwnd) != 0 || m_export_window.get_hwnd() == message.hwnd)
+	{
+		translated = m_export_window.translateaccelerator(message);
 	}
 	else
 	{
@@ -513,10 +527,6 @@ LRESULT main_window::on_wm_notify(WPARAM wparam, LPARAM lparam)
 	{
 		m_modules_view.on_notify(nmhdr);
 	}
-	else if(nmhdr.hwndFrom == m_export_view.get_hwnd())
-	{
-		m_export_view.on_notify(nmhdr);
-	}
 	else if(nmhdr.hwndFrom == m_toolbar)
 	{
 		on_toolbar_notify(nmhdr);
@@ -534,10 +544,6 @@ LRESULT main_window::on_wm_contextmenu(WPARAM wparam, LPARAM lparam)
 	else if(hwnd == m_modules_view.get_hwnd())
 	{
 		m_modules_view.on_context_menu(lparam);
-	}
-	else if(hwnd == m_export_view.get_hwnd())
-	{
-		m_export_view.on_context_menu(lparam);
 	}
 	return DefWindowProcW(m_hwnd, WM_CONTEXTMENU, wparam, lparam);
 }
@@ -622,10 +628,6 @@ void main_window::on_menu(WPARAM const wparam)
 	else if(menu_id >= s_tree_view_menu_min && menu_id < s_tree_view_menu_max)
 	{
 		m_tree_view.on_menu(menu_id);
-	}
-	else if(menu_id >= s_export_view_menu_min && menu_id < s_export_view_menu_max)
-	{
-		m_export_view.on_menu(menu_id);
 	}
 }
 
@@ -770,8 +772,9 @@ void main_window::on_toolbar(WPARAM const wparam)
 
 void main_window::on_tree_selchangedw()
 {
-	m_import_window.setfi(m_tree_view.get_selection());
-	m_export_view.refresh();
+	file_info const* const fi = m_tree_view.get_selection();
+	m_import_window.setfi(fi);
+	m_export_window.setfi(fi);
 	commands_availability_refresh();
 }
 
@@ -902,10 +905,6 @@ void main_window::on_accel_matching()
 	else if(focus == m_modules_view.get_hwnd())
 	{
 		m_modules_view.on_accel_matching();
-	}
-	else if(focus == m_export_view.get_hwnd())
-	{
-		m_export_view.on_accel_matching();
 	}
 }
 
@@ -1231,7 +1230,7 @@ void main_window::undecorate()
 	assert(menu_state_set != 0);
 
 	m_import_window.setundecorate(m_settings.m_undecorate);
-	m_export_view.repaint();
+	m_export_window.setundecorate(m_settings.m_undecorate);
 }
 
 void main_window::refresh()
@@ -1490,8 +1489,7 @@ void main_window::finish_symbols_from_addresses(symbols_from_addresses_param_t c
 		if(fi == param.m_data || fi->m_orig_instance == param.m_data)
 		{
 			m_import_window.repaint();
-			m_export_view.sort_view();
-			m_export_view.repaint();
+			m_export_window.repaint();
 		}
 	}
 	request_symbol_undecoration_e(*static_cast<file_info*>(param.m_data), param.m_indexes);
@@ -1618,8 +1616,7 @@ void main_window::finish_symbol_undecoration_e(undecorated_from_decorated_e_para
 		if(fi == param.m_data || fi->m_orig_instance == param.m_data)
 		{
 			m_import_window.repaint();
-			m_export_view.sort_view();
-			m_export_view.repaint();
+			m_export_window.repaint();
 		}
 	}
 }
@@ -1711,8 +1708,7 @@ void main_window::finish_symbol_undecoration_i(undecorated_from_decorated_i_para
 		if(fi == param.m_data || fi->m_orig_instance == param.m_data)
 		{
 			m_import_window.repaint();
-			m_export_view.sort_view();
-			m_export_view.repaint();
+			m_export_window.repaint();
 		}
 	}
 }

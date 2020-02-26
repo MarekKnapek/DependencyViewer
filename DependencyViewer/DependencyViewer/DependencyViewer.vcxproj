@@ -201,7 +201,6 @@
 		<ClInclude Include="src\gui\com_dlg.h" />
 		<ClInclude Include="src\gui\common_controls.h" />
 		<ClInclude Include="src\gui\constants.h" />
-		<ClInclude Include="src\gui\export_view.h" />
 		<ClInclude Include="src\gui\export_window.h" />
 		<ClInclude Include="src\gui\export_window_impl.h" />
 		<ClInclude Include="src\gui\file_info_getters.h" />
@@ -278,7 +277,6 @@
 		<ClCompile Include="src\DependencyViewer.cpp">               	<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild><ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild></ClCompile>
 		<ClCompile Include="src\gui\com_dlg.cpp">                    	<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild><ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild></ClCompile>
 		<ClCompile Include="src\gui\common_controls.cpp">            	<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild><ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild></ClCompile>
-		<ClCompile Include="src\gui\export_view.cpp">                	<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild><ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild></ClCompile>
 		<ClCompile Include="src\gui\export_window.cpp">              	<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild><ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild></ClCompile>
 		<ClCompile Include="src\gui\export_window_impl.cpp">         	<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild><ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild></ClCompile>
 		<ClCompile Include="src\gui\file_info_getters.cpp">          	<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild><ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild></ClCompile>

@@ -23,22 +23,22 @@
 #include <commctrl.h>
 
 
-enum class e_export_menu_id___2 : std::uint16_t
+enum class e_export_menu_id : std::uint16_t
 {
 	e_matching,
 };
-static constexpr wchar_t const s_export_menu_orig_str___2[] = L"&Highlight Matching Import Function\tCtrl+M";
+static constexpr wchar_t const s_export_menu_orig_str[] = L"&Highlight Matching Import Function\tCtrl+M";
 
-enum class e_export_accel_id___2 : std::uint16_t
+enum class e_export_accel_id : std::uint16_t
 {
 	e_matching,
 };
-static constexpr ACCEL const s_export_accel_table___2[] =
+static constexpr ACCEL const s_export_accel_table[] =
 {
-	{FVIRTKEY | FCONTROL, 'M', static_cast<std::uint16_t>(e_export_accel_id___2::e_matching)},
+	{FVIRTKEY | FCONTROL, 'M', static_cast<std::uint16_t>(e_export_accel_id::e_matching)},
 };
 
-enum class e_export_column___2 : std::uint16_t
+enum class e_export_column : std::uint16_t
 {
 	e_e,
 	e_type,
@@ -47,7 +47,7 @@ enum class e_export_column___2 : std::uint16_t
 	e_name,
 	e_entry_point,
 };
-static constexpr wchar_t const* const s_export_headers___2[] =
+static constexpr wchar_t const* const s_export_headers[] =
 {
 	L"E",
 	L"type",
@@ -56,12 +56,12 @@ static constexpr wchar_t const* const s_export_headers___2[] =
 	L"name",
 	L"entry point",
 };
-static constexpr wchar_t const s_export_type_true___2[] = L"address";
-static constexpr wchar_t const s_export_type_false___2[] = L"forwarder";
-static constexpr wchar_t const s_export_hint_na___2[] = L"N/A";
-static constexpr wchar_t const s_export_name_processing___2[] = L"Processing...";
-static constexpr wchar_t const s_export_name_na___2[] = L"N/A";
-static constexpr wchar_t const s_export_name_undecorating___2[] = L"Undecorating...";
+static constexpr wchar_t const s_export_type_true[] = L"address";
+static constexpr wchar_t const s_export_type_false[] = L"forwarder";
+static constexpr wchar_t const s_export_hint_na[] = L"N/A";
+static constexpr wchar_t const s_export_name_processing[] = L"Processing...";
+static constexpr wchar_t const s_export_name_na[] = L"N/A";
+static constexpr wchar_t const s_export_name_undecorating[] = L"Undecorating...";
 
 
 ATOM export_window_impl::g_class;
@@ -99,13 +99,13 @@ export_window_impl::export_window_impl(HWND const& self) :
 	assert(m_list_view != nullptr);
 	unsigned const extended_lv_styles = LVS_EX_FULLROWSELECT | LVS_EX_LABELTIP | LVS_EX_DOUBLEBUFFER;
 	LRESULT const prev_style = SendMessageW(m_list_view, LVM_SETEXTENDEDLISTVIEWSTYLE, extended_lv_styles, extended_lv_styles);
-	for(int i = 0; i != static_cast<int>(std::size(s_export_headers___2)); ++i)
+	for(int i = 0; i != static_cast<int>(std::size(s_export_headers)); ++i)
 	{
 		LVCOLUMNW cl;
 		cl.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
 		cl.fmt = LVCFMT_LEFT;
 		cl.cx = 200;
-		cl.pszText = const_cast<LPWSTR>(s_export_headers___2[i]);
+		cl.pszText = const_cast<LPWSTR>(s_export_headers[i]);
 		cl.cchTextMax = 0;
 		cl.iSubItem = i;
 		cl.iImage = 0;
@@ -178,7 +178,7 @@ void export_window_impl::unregister_class()
 void export_window_impl::create_accel_table()
 {
 	assert(g_accel == nullptr);
-	g_accel = CreateAcceleratorTableW(const_cast<ACCEL*>(s_export_accel_table___2), static_cast<int>(std::size(s_export_accel_table___2)));
+	g_accel = CreateAcceleratorTableW(const_cast<ACCEL*>(s_export_accel_table), static_cast<int>(std::size(s_export_accel_table)));
 	assert(g_accel != nullptr);
 }
 
@@ -371,7 +371,7 @@ LRESULT export_window_impl::on_wm_contextmenu(WPARAM const& wparam, LPARAM const
 		}
 		HMENU const menu = reinterpret_cast<HMENU>(m_context_menu.get());
 		auto const matching_available = command_matching_available(item_idx, nullptr);
-		BOOL const prev = EnableMenuItem(menu, static_cast<std::uint16_t>(e_export_menu_id___2::e_matching), MF_BYCOMMAND | (matching_available ? MF_ENABLED : (MF_GRAYED | MF_DISABLED)));
+		BOOL const prev = EnableMenuItem(menu, static_cast<std::uint16_t>(e_export_menu_id::e_matching), MF_BYCOMMAND | (matching_available ? MF_ENABLED : (MF_GRAYED | MF_DISABLED)));
 		assert(prev != -1 && (prev == MF_ENABLED || prev == (MF_GRAYED | MF_DISABLED)));
 		BOOL const tracked = TrackPopupMenu(menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON | TPM_NOANIMATION, screen_pos.x, screen_pos.y, 0, m_self, nullptr);
 		assert(tracked != 0);
@@ -483,37 +483,37 @@ void export_window_impl::on_getdispinfow(NMHDR& nmhdr)
 	if((nm.item.mask & LVIF_TEXT) != 0)
 	{
 		int const col_ = nm.item.iSubItem;
-		assert(col_ >= static_cast<std::uint16_t>(e_export_column___2::e_e));
-		assert(col_ <= static_cast<std::uint16_t>(e_export_column___2::e_entry_point));
-		e_export_column___2 const col = static_cast<e_export_column___2>(col_);
+		assert(col_ >= static_cast<std::uint16_t>(e_export_column::e_e));
+		assert(col_ <= static_cast<std::uint16_t>(e_export_column::e_entry_point));
+		e_export_column const col = static_cast<e_export_column>(col_);
 		switch(col)
 		{
-			case e_export_column___2::e_e:
+			case e_export_column::e_e:
 			{
 				nm.item.pszText = const_cast<wchar_t*>(L"");
 			}
 			break;
-			case e_export_column___2::e_type:
+			case e_export_column::e_type:
 			{
 				nm.item.pszText = const_cast<wchar_t*>(get_col_type(eti, exp_idx));
 			}
 			break;
-			case e_export_column___2::e_ordinal:
+			case e_export_column::e_ordinal:
 			{
 				nm.item.pszText = const_cast<wchar_t*>(get_col_ordinal(eti, exp_idx));
 			}
 			break;
-			case e_export_column___2::e_hint:
+			case e_export_column::e_hint:
 			{
 				nm.item.pszText = const_cast<wchar_t*>(get_col_hint(eti, exp_idx));
 			}
 			break;
-			case e_export_column___2::e_name:
+			case e_export_column::e_name:
 			{
 				nm.item.pszText = const_cast<wchar_t*>(get_col_name(eti, exp_idx));
 			}
 			break;
-			case e_export_column___2::e_entry_point:
+			case e_export_column::e_entry_point:
 			{
 				nm.item.pszText = const_cast<wchar_t*>(get_col_address(eti, exp_idx));
 			}
@@ -534,23 +534,23 @@ void export_window_impl::on_getdispinfow(NMHDR& nmhdr)
 void export_window_impl::on_columnclick(NMHDR& nmhdr)
 {
 	NMLISTVIEW const& nmlv = reinterpret_cast<NMLISTVIEW&>(nmhdr);
-	int const new_sort = list_view_base::on_columnclick(&nmlv, static_cast<int>(std::size(s_export_headers___2)), m_sort_col);
+	int const new_sort = list_view_base::on_columnclick(&nmlv, static_cast<int>(std::size(s_export_headers)), m_sort_col);
 	assert(new_sort >= 0 && new_sort <= 0xFF);
 	m_sort_col = static_cast<std::uint8_t>(new_sort);
 	sort_view();
-	list_view_base::refresh_headers(&m_list_view, static_cast<int>(std::size(s_export_headers___2)), m_sort_col);
+	list_view_base::refresh_headers(&m_list_view, static_cast<int>(std::size(s_export_headers)), m_sort_col);
 	repaint();
 }
 
 void export_window_impl::on_menu(WPARAM const& wparam)
 {
 	std::uint16_t const menu_id_ = static_cast<std::uint16_t>(LOWORD(wparam));
-	assert(menu_id_ >= static_cast<std::uint16_t>(e_export_menu_id___2::e_matching));
-	assert(menu_id_ <= static_cast<std::uint16_t>(e_export_menu_id___2::e_matching));
-	e_export_menu_id___2 const menu_id = static_cast<e_export_menu_id___2>(menu_id_);
+	assert(menu_id_ >= static_cast<std::uint16_t>(e_export_menu_id::e_matching));
+	assert(menu_id_ <= static_cast<std::uint16_t>(e_export_menu_id::e_matching));
+	e_export_menu_id const menu_id = static_cast<e_export_menu_id>(menu_id_);
 	switch(menu_id)
 	{
-		case e_export_menu_id___2::e_matching:
+		case e_export_menu_id::e_matching:
 		{
 			on_menu_matching();
 		}
@@ -566,12 +566,12 @@ void export_window_impl::on_menu(WPARAM const& wparam)
 void export_window_impl::on_accelerator(WPARAM const& wparam)
 {
 	std::uint16_t const accel_id_ = static_cast<std::uint16_t>(LOWORD(wparam));
-	assert(accel_id_ >= static_cast<std::uint16_t>(e_export_accel_id___2::e_matching));
-	assert(accel_id_ <= static_cast<std::uint16_t>(e_export_accel_id___2::e_matching));
-	e_export_accel_id___2 const accel_id = static_cast<e_export_accel_id___2>(accel_id_);
+	assert(accel_id_ >= static_cast<std::uint16_t>(e_export_accel_id::e_matching));
+	assert(accel_id_ <= static_cast<std::uint16_t>(e_export_accel_id::e_matching));
+	e_export_accel_id const accel_id = static_cast<e_export_accel_id>(accel_id_);
 	switch(accel_id)
 	{
-		case e_export_accel_id___2::e_matching:
+		case e_export_accel_id::e_matching:
 		{
 			on_accel_matching();
 		}
@@ -600,11 +600,11 @@ wchar_t const* export_window_impl::get_col_type(pe_export_table_info const& eti,
 	bool const is_rva = pe_get_export_type(eti, exp_idx_sorted);
 	if(is_rva)
 	{
-		return s_export_type_true___2;
+		return s_export_type_true;
 	}
 	else
 	{
-		return s_export_type_false___2;
+		return s_export_type_false;
 	}
 }
 
@@ -628,7 +628,7 @@ wchar_t const* export_window_impl::get_col_hint(pe_export_table_info const& eti,
 	}
 	else
 	{
-		return s_export_hint_na___2;
+		return s_export_hint_na;
 	}
 }
 
@@ -641,15 +641,15 @@ wchar_t const* export_window_impl::get_col_name(pe_export_table_info const& eti,
 		string_handle const name = pe_get_export_name_undecorated(eti, exp_idx_sorted);
 		if(!name.m_string)
 		{
-			return s_export_name_na___2;
+			return s_export_name_na;
 		}
 		else if(name.m_string == get_export_name_processing().m_string)
 		{
-			return s_export_name_processing___2;
+			return s_export_name_processing;
 		}
 		else if(name.m_string == get_name_undecorating().m_string)
 		{
-			return s_export_name_undecorating___2;
+			return s_export_name_undecorating;
 		}
 		else
 		{
@@ -662,11 +662,11 @@ wchar_t const* export_window_impl::get_col_name(pe_export_table_info const& eti,
 		string_handle const name = pe_get_export_name(eti, exp_idx_sorted);
 		if(!name.m_string)
 		{
-			return s_export_name_na___2;
+			return s_export_name_na;
 		}
 		else if(name.m_string == get_export_name_processing().m_string)
 		{
-			return s_export_name_processing___2;
+			return s_export_name_processing;
 		}
 		else
 		{
@@ -709,8 +709,8 @@ smart_menu export_window_impl::create_context_menu()
 	mi.cbSize = sizeof(mi);
 	mi.fMask = MIIM_ID | MIIM_STRING | MIIM_FTYPE;
 	mi.fType = MFT_STRING;
-	mi.wID = static_cast<std::uint16_t>(e_export_menu_id___2::e_matching);
-	mi.dwTypeData = const_cast<wchar_t*>(s_export_menu_orig_str___2);
+	mi.wID = static_cast<std::uint16_t>(e_export_menu_id::e_matching);
+	mi.dwTypeData = const_cast<wchar_t*>(s_export_menu_orig_str);
 	BOOL const inserted = InsertMenuItemW(menu, 0, TRUE, &mi);
 	assert(inserted != 0);
 	return menu_sp;
@@ -774,13 +774,13 @@ void export_window_impl::refresh()
 	{
 		sort_view();
 
-		LRESULT const auto_sized_e = SendMessageW(m_list_view, LVM_SETCOLUMNWIDTH, static_cast<int>(e_export_column___2::e_e), LVSCW_AUTOSIZE);
+		LRESULT const auto_sized_e = SendMessageW(m_list_view, LVM_SETCOLUMNWIDTH, static_cast<int>(e_export_column::e_e), LVSCW_AUTOSIZE);
 		assert(auto_sized_e == TRUE);
-		LRESULT const type_sized = SendMessageW(m_list_view, LVM_SETCOLUMNWIDTH, static_cast<int>(e_export_column___2::e_type), get_column_type_max_width());
+		LRESULT const type_sized = SendMessageW(m_list_view, LVM_SETCOLUMNWIDTH, static_cast<int>(e_export_column::e_type), get_column_type_max_width());
 		assert(type_sized == TRUE);
-		LRESULT const ordinal_sized = SendMessageW(m_list_view, LVM_SETCOLUMNWIDTH, static_cast<int>(e_export_column___2::e_ordinal), list_view_base::get_column_uint16_max_width(&m_list_view));
+		LRESULT const ordinal_sized = SendMessageW(m_list_view, LVM_SETCOLUMNWIDTH, static_cast<int>(e_export_column::e_ordinal), list_view_base::get_column_uint16_max_width(&m_list_view));
 		assert(ordinal_sized == TRUE);
-		LRESULT const hint_sized = SendMessageW(m_list_view, LVM_SETCOLUMNWIDTH, static_cast<int>(e_export_column___2::e_hint), list_view_base::get_column_uint16_max_width(&m_list_view));
+		LRESULT const hint_sized = SendMessageW(m_list_view, LVM_SETCOLUMNWIDTH, static_cast<int>(e_export_column::e_hint), list_view_base::get_column_uint16_max_width(&m_list_view));
 		assert(hint_sized == TRUE);
 
 		LRESULT const redr_on = SendMessageW(m_list_view, WM_SETREDRAW, TRUE, 0);
@@ -816,8 +816,8 @@ int export_window_impl::get_column_type_max_width()
 	}
 	static constexpr std::pair<wchar_t const* const, int const> const s_strings[] =
 	{
-		{s_export_type_true___2, static_cast<int>(std::size(s_export_type_true___2)) - 1},
-		{s_export_type_false___2, static_cast<int>(std::size(s_export_type_false___2)) - 1},
+		{s_export_type_true, static_cast<int>(std::size(s_export_type_true)) - 1},
+		{s_export_type_false, static_cast<int>(std::size(s_export_type_false)) - 1},
 	};
 	g_column_type_max_width = list_view_base::get_column_max_width(&m_list_view, &s_strings, static_cast<int>(std::size(s_strings)));
 	return g_column_type_max_width;
@@ -846,12 +846,12 @@ void export_window_impl::sort_view()
 	m_sort.resize(n_items * 2);
 	std::iota(m_sort.begin(), m_sort.begin() + n_items, std::uint16_t{0});
 	std::uint16_t* const sort = m_sort.data();
-	assert(col_ >= static_cast<std::uint16_t>(e_export_column___2::e_e));
-	assert(col_ <= static_cast<std::uint16_t>(e_export_column___2::e_entry_point));
-	e_export_column___2 const col = static_cast<e_export_column___2>(col_);
+	assert(col_ >= static_cast<std::uint16_t>(e_export_column::e_e));
+	assert(col_ <= static_cast<std::uint16_t>(e_export_column::e_entry_point));
+	e_export_column const col = static_cast<e_export_column>(col_);
 	switch(col)
 	{
-		case e_export_column___2::e_e:
+		case e_export_column::e_e:
 		{
 			auto const fn_compare_icon = [&](std::uint16_t const a, std::uint16_t const b) -> bool
 			{
@@ -870,7 +870,7 @@ void export_window_impl::sort_view()
 			}
 		}
 		break;
-		case e_export_column___2::e_type:
+		case e_export_column::e_type:
 		{
 			auto const fn_compare_type = [&](std::uint16_t const a, std::uint16_t const b) -> bool
 			{
@@ -889,7 +889,7 @@ void export_window_impl::sort_view()
 			}
 		}
 		break;
-		case e_export_column___2::e_ordinal:
+		case e_export_column::e_ordinal:
 		{
 			auto const fn_compare_ordinal = [&](std::uint16_t const a, std::uint16_t const b) -> bool
 			{
@@ -908,7 +908,7 @@ void export_window_impl::sort_view()
 			}
 		}
 		break;
-		case e_export_column___2::e_hint:
+		case e_export_column::e_hint:
 		{
 			auto const fn_compare_hint = [&](std::uint16_t const a, std::uint16_t const b) -> bool
 			{
@@ -927,7 +927,7 @@ void export_window_impl::sort_view()
 			}
 		}
 		break;
-		case e_export_column___2::e_name:
+		case e_export_column::e_name:
 		{
 			auto const fn_compare_name = [&](std::uint16_t const a, std::uint16_t const b) -> bool
 			{
@@ -948,7 +948,7 @@ void export_window_impl::sort_view()
 			}
 		}
 		break;
-		case e_export_column___2::e_entry_point:
+		case e_export_column::e_entry_point:
 		{
 			auto const fn_compare_entry_point = [&](std::uint16_t const a, std::uint16_t const b) -> bool
 			{
