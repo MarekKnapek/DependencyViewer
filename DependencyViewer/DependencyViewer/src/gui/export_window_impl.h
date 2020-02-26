@@ -48,6 +48,7 @@ private:
 	void on_getdispinfow(NMHDR& nmhdr);
 	void on_columnclick(NMHDR& nmhdr);
 	void on_menu(WPARAM const& wparam);
+	void on_menu_matching();
 	wchar_t const* get_col_type(pe_export_table_info const& eti, std::uint16_t const exp_idx);
 	wchar_t const* get_col_ordinal(pe_export_table_info const& eti, std::uint16_t const exp_idx);
 	wchar_t const* get_col_hint(pe_export_table_info const& eti, std::uint16_t const exp_idx);

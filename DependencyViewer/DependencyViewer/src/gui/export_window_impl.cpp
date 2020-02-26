@@ -483,12 +483,22 @@ void export_window_impl::on_menu(WPARAM const& wparam)
 	e_export_menu_id___2 const menu_id = static_cast<e_export_menu_id___2>(menu_id_);
 	switch(menu_id)
 	{
+		case e_export_menu_id___2::e_matching:
+		{
+			on_menu_matching();
+		}
+		break;
 		default:
 		{
 			assert(false);
 		}
 		break;
 	}
+}
+
+void export_window_impl::on_menu_matching()
+{
+	command_matching();
 }
 
 wchar_t const* export_window_impl::get_col_type(pe_export_table_info const& eti, std::uint16_t const exp_idx)
