@@ -35,6 +35,7 @@ private:
 	LRESULT on_wm_repaint(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setfi(WPARAM const& wparam, LPARAM const& lparam);
 	void on_getdispinfow(NMHDR& nmhdr);
+	void refresh();
 	void repaint();
 	int get_column_type_max_width();
 private:
