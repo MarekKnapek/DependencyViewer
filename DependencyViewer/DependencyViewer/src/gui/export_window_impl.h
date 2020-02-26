@@ -6,6 +6,7 @@
 #include "../nogui/string_converter.h"
 
 #include <cstdint>
+#include <vector>
 
 #include "../nogui/windows_my.h"
 
@@ -41,6 +42,7 @@ private:
 	LRESULT on_wm_setfi(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setundecorate(WPARAM const& wparam, LPARAM const& lparam);
 	void on_getdispinfow(NMHDR& nmhdr);
+	void on_columnclick(NMHDR& nmhdr);
 	wchar_t const* get_col_type(pe_export_table_info const& eti, std::uint16_t const exp_idx);
 	wchar_t const* get_col_ordinal(pe_export_table_info const& eti, std::uint16_t const exp_idx);
 	wchar_t const* get_col_hint(pe_export_table_info const& eti, std::uint16_t const exp_idx);
@@ -58,5 +60,7 @@ private:
 	HWND m_list_view;
 	file_info const* m_fi;
 	bool m_undecorate;
+	std::uint8_t m_sort_col;
+	std::vector<std::uint16_t> m_sort;
 	string_converter m_string_converter;
 };
