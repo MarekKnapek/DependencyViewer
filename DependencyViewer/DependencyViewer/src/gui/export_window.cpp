@@ -79,6 +79,17 @@ void export_window::setundecorate(bool const& undecorate)
 	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
 }
 
+void export_window::setcmdmatching(cmd_matching_fn_t const& cmd_matching_fn, cmd_matching_ctx_t const& cmd_matching_ctx)
+{
+	static_assert(sizeof(cmd_matching_fn) == sizeof(WPARAM), "");
+	static_assert(sizeof(cmd_matching_ctx) == sizeof(LPARAM), "");
+	UINT const msg = static_cast<std::uint32_t>(wm::wm_setcmdmatching);
+	WPARAM const wparam = reinterpret_cast<WPARAM>(cmd_matching_fn);
+	LPARAM const lparam = reinterpret_cast<LPARAM>(cmd_matching_ctx);
+	assert(m_hwnd != nullptr);
+	LRESULT const res = SendMessageW(m_hwnd, msg, wparam, lparam);
+}
+
 HWND const& export_window::get_hwnd() const
 {
 	return m_hwnd;

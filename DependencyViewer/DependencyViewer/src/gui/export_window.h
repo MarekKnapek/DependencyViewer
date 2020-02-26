@@ -17,6 +17,7 @@ public:
 		wm_repaint = WM_USER + 1,
 		wm_setfi,
 		wm_setundecorate,
+		wm_setcmdmatching,
 	};
 	using cmd_matching_ctx_t = void*;
 	using cmd_matching_fn_t = void(*)(cmd_matching_ctx_t const, std::uint16_t const);
@@ -36,6 +37,7 @@ public:
 	void repaint();
 	void setfi(file_info const* const& fi);
 	void setundecorate(bool const& undecorate);
+	void setcmdmatching(cmd_matching_fn_t const& cmd_matching_fn, cmd_matching_ctx_t const& cmd_matching_ctx);
 public:
 	HWND const& get_hwnd() const;
 private:
