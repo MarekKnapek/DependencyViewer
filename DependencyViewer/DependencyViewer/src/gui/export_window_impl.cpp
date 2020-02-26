@@ -199,6 +199,12 @@ LRESULT export_window_impl::on_message(UINT const& msg, WPARAM const& wparam, LP
 			return ret;
 		}
 		break;
+		case static_cast<std::uint32_t>(export_window::wm::wm_repaint):
+		{
+			LRESULT const ret = on_wm_repaint(wparam, lparam);
+			return ret;
+		}
+		break;
 		default:
 		{
 			LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
@@ -237,6 +243,15 @@ LRESULT export_window_impl::on_wm_notify(WPARAM const& wparam, LPARAM const& lpa
 	}
 
 	LRESULT const ret = DefWindowProcW(m_self, WM_NOTIFY, wparam, lparam);
+	return ret;
+}
+
+LRESULT export_window_impl::on_wm_repaint(WPARAM const& wparam, LPARAM const& lparam)
+{
+	repaint();
+
+	UINT const msg = static_cast<std::uint32_t>(export_window::wm::wm_repaint);
+	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
 	return ret;
 }
 
@@ -292,4 +307,10 @@ void export_window_impl::on_getdispinfow(NMHDR& nmhdr)
 	{
 		nm.item.iImage = 0;
 	}
+}
+
+void export_window_impl::repaint()
+{
+	BOOL const redrawn = RedrawWindow(m_list_view, nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_FRAME);
+	assert(redrawn != 0);
 }
