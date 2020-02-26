@@ -90,6 +90,15 @@ void export_window::setundecorate(bool const& undecorate)
 	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
 }
 
+void export_window::selectitem(std::uint16_t const& item_idx)
+{
+	UINT const msg = static_cast<std::uint32_t>(wm::wm_selectitem);
+	WPARAM const wparam = item_idx;
+	LPARAM const lparam = 0;
+	assert(m_hwnd != nullptr);
+	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
+}
+
 void export_window::setcmdmatching(cmd_matching_fn_t const& cmd_matching_fn, cmd_matching_ctx_t const& cmd_matching_ctx)
 {
 	static_assert(sizeof(cmd_matching_fn) == sizeof(WPARAM), "");

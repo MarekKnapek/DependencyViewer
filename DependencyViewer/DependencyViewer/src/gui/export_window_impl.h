@@ -47,6 +47,7 @@ private:
 	LRESULT on_wm_translateaccelerator(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setfi(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setundecorate(WPARAM const& wparam, LPARAM const& lparam);
+	LRESULT on_wm_selectitem(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setcmdmatching(WPARAM const& wparam, LPARAM const& lparam);
 	void on_getdispinfow(NMHDR& nmhdr);
 	void on_columnclick(NMHDR& nmhdr);
@@ -61,6 +62,7 @@ private:
 	wchar_t const* get_col_address(pe_export_table_info const& eti, std::uint16_t const exp_idx);
 	std::uint8_t get_col_icon(pe_export_table_info const& eti, file_info const* const fi, std::uint16_t const exp_idx);
 	smart_menu create_context_menu();
+	void select_item(std::uint16_t const& item_idx);
 	bool command_matching_available(std::uint16_t const& item_idx, std::uint16_t* const out_item_idx);
 	void command_matching();
 	void refresh();
