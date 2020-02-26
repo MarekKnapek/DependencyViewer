@@ -70,6 +70,15 @@ void export_window::setfi(file_info const* const& fi)
 	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
 }
 
+void export_window::setundecorate(bool const& undecorate)
+{
+	UINT const msg = static_cast<std::uint32_t>(wm::wm_setundecorate);
+	WPARAM const wparam = undecorate ? 1 : 0;
+	LPARAM const lparam = 0;
+	assert(m_hwnd != nullptr);
+	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
+}
+
 HWND const& export_window::get_hwnd() const
 {
 	return m_hwnd;

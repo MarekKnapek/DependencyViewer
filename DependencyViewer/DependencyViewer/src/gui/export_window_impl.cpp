@@ -47,7 +47,8 @@ int export_window_impl::g_column_type_max_width;
 export_window_impl::export_window_impl(HWND const& self) :
 	m_self(self),
 	m_list_view(),
-	m_fi()
+	m_fi(),
+	m_undecorate()
 {
 	assert(self != nullptr);
 
@@ -220,6 +221,12 @@ LRESULT export_window_impl::on_message(UINT const& msg, WPARAM const& wparam, LP
 			return ret;
 		}
 		break;
+		case static_cast<std::uint32_t>(export_window::wm::wm_setundecorate):
+		{
+			LRESULT const ret = on_wm_setundecorate(wparam, lparam);
+			return ret;
+		}
+		break;
 		default:
 		{
 			LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
@@ -277,6 +284,18 @@ LRESULT export_window_impl::on_wm_setfi(WPARAM const& wparam, LPARAM const& lpar
 	refresh();
 
 	UINT const msg = static_cast<std::uint32_t>(export_window::wm::wm_setfi);
+	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
+	return ret;
+}
+
+LRESULT export_window_impl::on_wm_setundecorate(WPARAM const& wparam, LPARAM const& lparam)
+{
+	assert(wparam == 0 || wparam == 1);
+	bool const undecorate = wparam != 0;
+	m_undecorate = undecorate;
+	repaint();
+
+	UINT const msg = static_cast<std::uint32_t>(export_window::wm::wm_setundecorate);
 	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
 	return ret;
 }

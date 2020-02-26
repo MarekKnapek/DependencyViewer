@@ -34,6 +34,7 @@ private:
 	LRESULT on_wm_notify(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_repaint(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setfi(WPARAM const& wparam, LPARAM const& lparam);
+	LRESULT on_wm_setundecorate(WPARAM const& wparam, LPARAM const& lparam);
 	void on_getdispinfow(NMHDR& nmhdr);
 	void refresh();
 	void repaint();
@@ -45,4 +46,5 @@ private:
 	HWND const m_self;
 	HWND m_list_view;
 	file_info const* m_fi;
+	bool m_undecorate;
 };
