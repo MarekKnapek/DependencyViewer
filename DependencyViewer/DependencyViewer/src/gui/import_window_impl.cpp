@@ -863,9 +863,9 @@ void import_window_impl::sort_view()
 		{
 			auto const fn_compare_icon = [&](std::uint16_t const a, std::uint16_t const b) -> bool
 			{
-				std::uint8_t const icon_idx_a = pe_get_import_icon_id(iti, dll_idx, a);
-				std::uint8_t const icon_idx_b = pe_get_import_icon_id(iti, dll_idx, b);
-				bool const ret = icon_idx_a < icon_idx_b;
+				std::uint8_t const a2 = pe_get_import_icon_id(iti, dll_idx, a);
+				std::uint8_t const b2 = pe_get_import_icon_id(iti, dll_idx, b);
+				bool const ret = a2 < b2;
 				return ret;
 			};
 			if(asc)
@@ -882,9 +882,9 @@ void import_window_impl::sort_view()
 		{
 			auto const fn_compare_type = [&](std::uint16_t const a, std::uint16_t const b) -> bool
 			{
-				bool const is_ordinal_a = pe_get_import_is_ordinal(iti, dll_idx, a);
-				bool const is_ordinal_b = pe_get_import_is_ordinal(iti, dll_idx, b);
-				bool const ret = is_ordinal_a < is_ordinal_b;
+				bool const a2 = pe_get_import_is_ordinal(iti, dll_idx, a);
+				bool const b2 = pe_get_import_is_ordinal(iti, dll_idx, b);
+				bool const ret = a2 < b2;
 				return ret;
 			};
 			if(asc)
