@@ -345,6 +345,10 @@ LRESULT export_window_impl::on_wm_contextmenu(WPARAM const& wparam, LPARAM const
 
 LRESULT export_window_impl::on_wm_command(WPARAM const& wparam, LPARAM const& lparam)
 {
+	if(HIWORD(wparam) == 0 && lparam == 0)
+	{
+		on_menu(wparam);
+	}
 	LRESULT const ret = DefWindowProcW(m_self, WM_COMMAND, wparam, lparam);
 	return ret;
 }
@@ -469,6 +473,22 @@ void export_window_impl::on_columnclick(NMHDR& nmhdr)
 	sort_view();
 	list_view_base::refresh_headers(&m_list_view, static_cast<int>(std::size(s_export_headers___2)), m_sort_col);
 	repaint();
+}
+
+void export_window_impl::on_menu(WPARAM const& wparam)
+{
+	std::uint16_t const menu_id_ = static_cast<std::uint16_t>(LOWORD(wparam));
+	assert(menu_id_ >= static_cast<std::uint16_t>(e_export_menu_id___2::e_matching));
+	assert(menu_id_ <= static_cast<std::uint16_t>(e_export_menu_id___2::e_matching));
+	e_export_menu_id___2 const menu_id = static_cast<e_export_menu_id___2>(menu_id_);
+	switch(menu_id)
+	{
+		default:
+		{
+			assert(false);
+		}
+		break;
+	}
 }
 
 wchar_t const* export_window_impl::get_col_type(pe_export_table_info const& eti, std::uint16_t const exp_idx)
