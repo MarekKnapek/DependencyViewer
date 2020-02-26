@@ -58,6 +58,7 @@ void import_window::repaint()
 	UINT const msg = static_cast<std::uint32_t>(wm::wm_repaint);
 	WPARAM const wparam = 0;
 	LPARAM const lparam = 0;
+	assert(m_hwnd != nullptr);
 	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
 }
 
@@ -67,45 +68,46 @@ bool import_window::translateaccelerator(MSG& message)
 	UINT const msg = static_cast<std::uint32_t>(wm::wm_translateaccelerator);
 	WPARAM const wparam = reinterpret_cast<WPARAM>(&translated);
 	LPARAM const lparam = reinterpret_cast<LPARAM>(&message);
+	assert(m_hwnd != nullptr);
 	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
 	return translated;
 }
 
 void import_window::setfi(file_info const* const& fi)
 {
-	assert(m_hwnd != nullptr);
 	UINT const msg = static_cast<std::uint32_t>(wm::wm_setfi);
 	WPARAM const wparam = 0;
 	LPARAM const lparam = reinterpret_cast<LPARAM>(fi);
+	assert(m_hwnd != nullptr);
 	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
 }
 
 void import_window::setundecorate(bool const& undecorate)
 {
-	assert(m_hwnd != nullptr);
 	UINT const msg = static_cast<std::uint32_t>(wm::wm_setundecorate);
 	WPARAM const wparam = undecorate ? 1 : 0;
 	LPARAM const lparam = 0;
+	assert(m_hwnd != nullptr);
 	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
 }
 
 void import_window::selectitem(std::uint16_t const& item_idx)
 {
-	assert(m_hwnd != nullptr);
 	UINT const msg = static_cast<std::uint32_t>(wm::wm_selectitem);
 	WPARAM const wparam = item_idx;
 	LPARAM const lparam = 0;
+	assert(m_hwnd != nullptr);
 	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
 }
 
 void import_window::setcmdmatching(cmd_matching_fn_t const& cmd_matching_fn, cmd_matching_ctx_t const& cmd_matching_ctx)
 {
-	assert(m_hwnd != nullptr);
 	static_assert(sizeof(cmd_matching_fn) == sizeof(WPARAM), "");
 	static_assert(sizeof(cmd_matching_ctx) == sizeof(LPARAM), "");
 	UINT const msg = static_cast<std::uint32_t>(wm::wm_setcmdmatching);
 	WPARAM const wparam = reinterpret_cast<WPARAM>(cmd_matching_fn);
 	LPARAM const lparam = reinterpret_cast<LPARAM>(cmd_matching_ctx);
+	assert(m_hwnd != nullptr);
 	LRESULT const res = SendMessageW(m_hwnd, msg, wparam, lparam);
 }
 
