@@ -555,6 +555,11 @@ void export_window_impl::on_accelerator(WPARAM const& wparam)
 	e_export_accel_id___2 const accel_id = static_cast<e_export_accel_id___2>(accel_id_);
 	switch(accel_id)
 	{
+		case e_export_accel_id___2::e_matching:
+		{
+			on_accel_matching();
+		}
+		break;
 		default:
 		{
 			assert(false);
@@ -564,6 +569,11 @@ void export_window_impl::on_accelerator(WPARAM const& wparam)
 }
 
 void export_window_impl::on_menu_matching()
+{
+	command_matching();
+}
+
+void export_window_impl::on_accel_matching()
 {
 	command_matching();
 }
