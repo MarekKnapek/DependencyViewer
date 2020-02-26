@@ -499,6 +499,26 @@ std::uint8_t export_window_impl::get_col_icon(pe_export_table_info const& eti, f
 	return img_idx;
 }
 
+bool export_window_impl::command_matching_available(std::uint16_t const& item_idx, std::uint16_t* const out_item_idx)
+{
+	file_info const* const tmp_fi = m_fi;
+	if(!tmp_fi)
+	{
+		return false;
+	}
+	if(tmp_fi->m_matched_imports == nullptr)
+	{
+		return false;
+	}
+	std::uint16_t const& matched = tmp_fi->m_matched_imports[item_idx];
+	bool const available = matched != 0xFFFF;
+	if(available && out_item_idx)
+	{
+		*out_item_idx = matched;
+	}
+	return available;
+}
+
 void export_window_impl::refresh()
 {
 	LRESULT const redr_off = SendMessageW(m_list_view, WM_SETREDRAW, FALSE, 0);

@@ -49,6 +49,7 @@ private:
 	wchar_t const* get_col_name(pe_export_table_info const& eti, std::uint16_t const exp_idx);
 	wchar_t const* get_col_address(pe_export_table_info const& eti, std::uint16_t const exp_idx);
 	std::uint8_t get_col_icon(pe_export_table_info const& eti, file_info const* const fi, std::uint16_t const exp_idx);
+	bool command_matching_available(std::uint16_t const& item_idx, std::uint16_t* const out_item_idx);
 	void refresh();
 	void repaint();
 	int get_column_type_max_width();
