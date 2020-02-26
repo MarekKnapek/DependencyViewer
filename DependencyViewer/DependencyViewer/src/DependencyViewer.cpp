@@ -1,6 +1,8 @@
 #include "gui/com_dlg.cpp"
 #include "gui/common_controls.cpp"
 #include "gui/export_view.cpp"
+#include "gui/export_window.cpp"
+#include "gui/export_window_impl.cpp"
 #include "gui/file_info_getters.cpp"
 #include "gui/import_export_matcher.cpp"
 #include "gui/import_window.cpp"
