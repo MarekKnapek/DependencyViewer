@@ -23,6 +23,12 @@
 #include <commctrl.h>
 
 
+enum class e_export_menu_id___2 : std::uint16_t
+{
+	e_matching,
+};
+static constexpr wchar_t const s_export_menu_orig_str___2[] = L"&Highlight Matching Import Function\tCtrl+M";
+
 enum class e_export_column___2 : std::uint16_t
 {
 	e_e,
@@ -60,7 +66,8 @@ export_window_impl::export_window_impl(HWND const& self) :
 	m_undecorate(),
 	m_sort_col(0xFF),
 	m_sort(),
-	m_string_converter()
+	m_string_converter(),
+	m_context_menu()
 {
 	assert(self != nullptr);
 
@@ -497,6 +504,22 @@ std::uint8_t export_window_impl::get_col_icon(pe_export_table_info const& eti, f
 	std::uint16_t const& exp_idx_sorted = m_sort.empty() ? exp_idx : m_sort[exp_idx];
 	std::uint8_t const img_idx = pe_get_export_icon_id(eti, fi->m_matched_imports, exp_idx_sorted);
 	return img_idx;
+}
+
+smart_menu export_window_impl::create_context_menu()
+{
+	HMENU const menu = CreatePopupMenu();
+	assert(menu);
+	smart_menu menu_sp{menu};
+	MENUITEMINFOW mi{};
+	mi.cbSize = sizeof(mi);
+	mi.fMask = MIIM_ID | MIIM_STRING | MIIM_FTYPE;
+	mi.fType = MFT_STRING;
+	mi.wID = static_cast<std::uint16_t>(e_export_menu_id___2::e_matching);
+	mi.dwTypeData = const_cast<wchar_t*>(s_export_menu_orig_str___2);
+	BOOL const inserted = InsertMenuItemW(menu, 0, TRUE, &mi);
+	assert(inserted != 0);
+	return menu_sp;
 }
 
 bool export_window_impl::command_matching_available(std::uint16_t const& item_idx, std::uint16_t* const out_item_idx)
