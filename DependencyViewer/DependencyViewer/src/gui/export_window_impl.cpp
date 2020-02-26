@@ -1,6 +1,7 @@
 #include "export_window_impl.h"
 
 #include "common_controls.h"
+#include "list_view_base.h"
 #include "main.h"
 
 #include "../nogui/cassert_my.h"
@@ -33,9 +34,12 @@ static constexpr wchar_t const* const s_export_headers___2[] =
 	L"name",
 	L"entry point",
 };
+static constexpr wchar_t const s_export_type_true___2[] = L"address";
+static constexpr wchar_t const s_export_type_false___2[] = L"forwarder";
 
 
 ATOM export_window_impl::g_class;
+int export_window_impl::g_column_type_max_width;
 
 
 export_window_impl::export_window_impl(HWND const& self) :
@@ -330,4 +334,19 @@ void export_window_impl::repaint()
 {
 	BOOL const redrawn = RedrawWindow(m_list_view, nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_FRAME);
 	assert(redrawn != 0);
+}
+
+int export_window_impl::get_column_type_max_width()
+{
+	if(g_column_type_max_width != 0)
+	{
+		return g_column_type_max_width;
+	}
+	static constexpr std::pair<wchar_t const* const, int const> const s_strings[] =
+	{
+		{s_export_type_true___2, static_cast<int>(std::size(s_export_type_true___2)) - 1},
+		{s_export_type_false___2, static_cast<int>(std::size(s_export_type_false___2)) - 1},
+	};
+	g_column_type_max_width = list_view_base::get_column_max_width(&m_list_view, &s_strings, static_cast<int>(std::size(s_strings)));
+	return g_column_type_max_width;
 }
