@@ -6,6 +6,8 @@
 #include "processor.h"
 
 #include "../nogui/cassert_my.h"
+#include "../nogui/int_to_string.h"
+#include "../nogui/pe_getters_export.h"
 #include "../nogui/scope_exit.h"
 
 #include "../res/resources.h"
@@ -38,6 +40,10 @@ static constexpr wchar_t const* const s_export_headers___2[] =
 };
 static constexpr wchar_t const s_export_type_true___2[] = L"address";
 static constexpr wchar_t const s_export_type_false___2[] = L"forwarder";
+static constexpr wchar_t const s_export_hint_na___2[] = L"N/A";
+static constexpr wchar_t const s_export_name_processing___2[] = L"Processing...";
+static constexpr wchar_t const s_export_name_na___2[] = L"N/A";
+static constexpr wchar_t const s_export_name_undecorating___2[] = L"Undecorating...";
 
 
 ATOM export_window_impl::g_class;
@@ -48,7 +54,8 @@ export_window_impl::export_window_impl(HWND const& self) :
 	m_self(self),
 	m_list_view(),
 	m_fi(),
-	m_undecorate()
+	m_undecorate(),
+	m_string_converter()
 {
 	assert(self != nullptr);
 
@@ -303,6 +310,17 @@ LRESULT export_window_impl::on_wm_setundecorate(WPARAM const& wparam, LPARAM con
 void export_window_impl::on_getdispinfow(NMHDR& nmhdr)
 {
 	NMLVDISPINFOW& nm = reinterpret_cast<NMLVDISPINFOW&>(nmhdr);
+	file_info const* const tmp_fi = m_fi;
+	if(!tmp_fi)
+	{
+		return;
+	}
+	file_info const* const fi = tmp_fi->m_orig_instance ? tmp_fi->m_orig_instance : tmp_fi;
+	assert(fi);
+	pe_export_table_info const& eti = fi->m_export_table;
+	int const row = nm.item.iItem;
+	assert(row >= 0 && row <= 0xFFFF);
+	std::uint16_t const exp_idx = static_cast<std::uint16_t>(row);
 	if((nm.item.mask & LVIF_TEXT) != 0)
 	{
 		int const col_ = nm.item.iSubItem;
@@ -318,27 +336,27 @@ void export_window_impl::on_getdispinfow(NMHDR& nmhdr)
 			break;
 			case e_export_column___2::e_type:
 			{
-				nm.item.pszText = const_cast<wchar_t*>(L"");
+				nm.item.pszText = const_cast<wchar_t*>(get_col_type(eti, exp_idx));
 			}
 			break;
 			case e_export_column___2::e_ordinal:
 			{
-				nm.item.pszText = const_cast<wchar_t*>(L"");
+				nm.item.pszText = const_cast<wchar_t*>(get_col_ordinal(eti, exp_idx));
 			}
 			break;
 			case e_export_column___2::e_hint:
 			{
-				nm.item.pszText = const_cast<wchar_t*>(L"");
+				nm.item.pszText = const_cast<wchar_t*>(get_col_hint(eti, exp_idx));
 			}
 			break;
 			case e_export_column___2::e_name:
 			{
-				nm.item.pszText = const_cast<wchar_t*>(L"");
+				nm.item.pszText = const_cast<wchar_t*>(get_col_name(eti, exp_idx));
 			}
 			break;
 			case e_export_column___2::e_entry_point:
 			{
-				nm.item.pszText = const_cast<wchar_t*>(L"");
+				nm.item.pszText = const_cast<wchar_t*>(get_col_address(eti, exp_idx));
 			}
 			break;
 			default:
@@ -350,8 +368,108 @@ void export_window_impl::on_getdispinfow(NMHDR& nmhdr)
 	}
 	if((nm.item.mask & LVIF_IMAGE) != 0)
 	{
-		nm.item.iImage = 0;
+		nm.item.iImage = get_col_icon(eti, tmp_fi, exp_idx);
 	}
+}
+
+wchar_t const* export_window_impl::get_col_type(pe_export_table_info const& eti, std::uint16_t const exp_idx)
+{
+	bool const is_rva = pe_get_export_type(eti, exp_idx);
+	if(is_rva)
+	{
+		return s_export_type_true___2;
+	}
+	else
+	{
+		return s_export_type_false___2;
+	}
+}
+
+wchar_t const* export_window_impl::get_col_ordinal(pe_export_table_info const& eti, std::uint16_t const exp_idx)
+{
+	std::uint16_t const ordinal = pe_get_export_ordinal(eti, exp_idx);
+	wchar_t const* const ret = ordinal_to_string(ordinal, m_string_converter);
+	return ret;
+}
+
+wchar_t const* export_window_impl::get_col_hint(pe_export_table_info const& eti, std::uint16_t const exp_idx)
+{
+	auto const hint_opt = pe_get_export_hint(eti, exp_idx);
+	if(hint_opt.m_is_valid)
+	{
+		std::uint16_t const& hint = hint_opt.m_value;
+		wchar_t const* const ret = ordinal_to_string(hint, m_string_converter);
+		return ret;
+	}
+	else
+	{
+		return s_export_hint_na___2;
+	}
+}
+
+wchar_t const* export_window_impl::get_col_name(pe_export_table_info const& eti, std::uint16_t const exp_idx)
+{
+	bool const undecorate = m_undecorate;
+	if(undecorate)
+	{
+		string_handle const name = pe_get_export_name_undecorated(eti, exp_idx);
+		if(!name.m_string)
+		{
+			return s_export_name_na___2;
+		}
+		else if(name.m_string == get_export_name_processing().m_string)
+		{
+			return s_export_name_processing___2;
+		}
+		else if(name.m_string == get_name_undecorating().m_string)
+		{
+			return s_export_name_undecorating___2;
+		}
+		else
+		{
+			wchar_t const* const ret = m_string_converter.convert(name);
+			return ret;
+		}
+	}
+	else
+	{
+		string_handle const name = pe_get_export_name(eti, exp_idx);
+		if(!name.m_string)
+		{
+			return s_export_name_na___2;
+		}
+		else if(name.m_string == get_export_name_processing().m_string)
+		{
+			return s_export_name_processing___2;
+		}
+		else
+		{
+			wchar_t const* const ret = m_string_converter.convert(name);
+			return ret;
+		}
+	}
+}
+
+wchar_t const* export_window_impl::get_col_address(pe_export_table_info const& eti, std::uint16_t const exp_idx)
+{
+	pe_rva_or_forwarder const entry_point = pe_get_export_entry_point(eti, exp_idx);
+	bool const is_rva = pe_get_export_type(eti, exp_idx);
+	if(is_rva)
+	{
+		wchar_t const* const ret = rva_to_string(entry_point.m_rva, m_string_converter);
+		return ret;
+	}
+	else
+	{
+		wchar_t const* const ret = m_string_converter.convert(entry_point.m_forwarder);
+		return ret;
+	}
+}
+
+std::uint8_t export_window_impl::get_col_icon(pe_export_table_info const& eti, file_info const* const fi, std::uint16_t const exp_idx)
+{
+	std::uint8_t const img_idx = pe_get_export_icon_id(eti, fi->m_matched_imports, exp_idx);
+	return img_idx;
 }
 
 void export_window_impl::refresh()
