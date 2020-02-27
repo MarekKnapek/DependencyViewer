@@ -1,6 +1,7 @@
 #include "modules_window_impl.h"
 
 #include "common_controls.h"
+#include "file_info_getters.h"
 #include "main.h"
 #include "processor.h"
 
@@ -33,7 +34,8 @@ ATOM modules_window_impl::g_class;
 modules_window_impl::modules_window_impl(HWND const& self) :
 	m_self(self),
 	m_list_view(),
-	m_modlist()
+	m_modlist(),
+	m_string_converter()
 {
 	assert(self != nullptr);
 
@@ -267,8 +269,16 @@ LRESULT modules_window_impl::on_wm_setmodlist(WPARAM const& wparam, LPARAM const
 void modules_window_impl::on_getdispinfow(NMHDR& nmhdr)
 {
 	NMLVDISPINFOW& nm = reinterpret_cast<NMLVDISPINFOW&>(nmhdr);
+	modules_list_t const* const modlist = m_modlist;
+	if(!modlist)
+	{
+		return;
+	}
 	if((nm.item.mask & LVIF_TEXT) != 0)
 	{
+		int const row = nm.item.iItem;
+		assert(row >= 0 && row <= 0xFFFF);
+		std::uint16_t const idx = static_cast<std::uint16_t>(row);
 		int const col_ = nm.item.iSubItem;
 		assert(col_ >= static_cast<std::uint16_t>(e_modules_column___2::e_name));
 		assert(col_ <= static_cast<std::uint16_t>(e_modules_column___2::e_path));
@@ -277,12 +287,12 @@ void modules_window_impl::on_getdispinfow(NMHDR& nmhdr)
 		{
 			case e_modules_column___2::e_name:
 			{
-				nm.item.pszText = const_cast<wchar_t*>(L"");
+				nm.item.pszText = const_cast<wchar_t*>(get_col_name(idx));
 			}
 			break;
 			case e_modules_column___2::e_path:
 			{
-				nm.item.pszText = const_cast<wchar_t*>(L"");
+				nm.item.pszText = const_cast<wchar_t*>(get_col_path(idx));
 			}
 			break;
 			default:
@@ -292,6 +302,20 @@ void modules_window_impl::on_getdispinfow(NMHDR& nmhdr)
 			break;
 		}
 	}
+}
+
+wchar_t const* modules_window_impl::get_col_name(std::uint16_t const& idx)
+{
+	assert(m_modlist);
+	wstring const ret = get_modules_list_col_name(*m_modlist, idx, m_string_converter);
+	return ret.m_str;
+}
+
+wchar_t const* modules_window_impl::get_col_path(std::uint16_t const& idx)
+{
+	assert(m_modlist);
+	wstring const ret = get_modules_list_col_path(*m_modlist, idx);
+	return ret.m_str;
 }
 
 void modules_window_impl::refresh()
