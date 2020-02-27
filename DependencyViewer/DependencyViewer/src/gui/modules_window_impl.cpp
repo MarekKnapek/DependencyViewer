@@ -414,12 +414,22 @@ void modules_window_impl::on_menu(WPARAM const& wparam)
 	e_modules_menu_id___2 const menu_id = static_cast<e_modules_menu_id___2>(menu_id_);
 	switch(menu_id)
 	{
+		case e_modules_menu_id___2::e_matching:
+		{
+			on_menu_matching();
+		}
+		break;
 		default:
 		{
 			assert(false);
 		}
 		break;
 	}
+}
+
+void modules_window_impl::on_menu_matching()
+{
+	command_matching();
 }
 
 wchar_t const* modules_window_impl::get_col_name(std::uint16_t const& idx)
