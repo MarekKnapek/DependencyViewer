@@ -16,6 +16,7 @@ public:
 	enum class wm : std::uint32_t
 	{
 		wm_repaint = WM_USER + 1,
+		wm_translateaccelerator,
 		wm_setmodlist,
 		wm_setcmdmatching,
 	};
@@ -35,6 +36,7 @@ public:
 	static void deinit();
 public:
 	void repaint();
+	bool translateaccelerator(MSG& message);
 	void setmodlist(modules_list_t const& ml);
 	void setcmdmatching(cmd_matching_fn_t const& cmd_matching_fn, cmd_matching_ctx_t const& cmd_matching_ctx);
 public:

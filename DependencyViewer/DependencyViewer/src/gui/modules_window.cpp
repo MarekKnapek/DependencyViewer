@@ -62,6 +62,17 @@ void modules_window::repaint()
 	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
 }
 
+bool modules_window::translateaccelerator(MSG& message)
+{
+	bool translated;
+	UINT const msg = static_cast<std::uint32_t>(wm::wm_translateaccelerator);
+	WPARAM const wparam = reinterpret_cast<WPARAM>(&translated);
+	LPARAM const lparam = reinterpret_cast<LPARAM>(&message);
+	assert(m_hwnd != nullptr);
+	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
+	return translated;
+}
+
 void modules_window::setmodlist(modules_list_t const& ml)
 {
 	UINT const msg = static_cast<std::uint32_t>(wm::wm_setmodlist);

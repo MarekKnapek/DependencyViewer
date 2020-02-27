@@ -251,6 +251,12 @@ LRESULT modules_window_impl::on_message(UINT const& msg, WPARAM const& wparam, L
 			return ret;
 		}
 		break;
+		case static_cast<std::uint32_t>(modules_window::wm::wm_translateaccelerator):
+		{
+			LRESULT const ret = on_wm_translateaccelerator(wparam, lparam);
+			return ret;
+		}
+		break;
 		case static_cast<std::uint32_t>(modules_window::wm::wm_setmodlist):
 		{
 			LRESULT const ret = on_wm_setmodlist(wparam, lparam);
@@ -355,6 +361,20 @@ LRESULT modules_window_impl::on_wm_repaint(WPARAM const& wparam, LPARAM const& l
 	repaint();
 
 	UINT const msg = static_cast<std::uint32_t>(modules_window::wm::wm_repaint);
+	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
+	return ret;
+}
+
+LRESULT modules_window_impl::on_wm_translateaccelerator(WPARAM const& wparam, LPARAM const& lparam)
+{
+	bool& translated = *reinterpret_cast<bool*>(wparam);
+	MSG* const message = reinterpret_cast<MSG*>(lparam);
+
+	assert(g_accel != nullptr);
+	int const trnsltd = TranslateAcceleratorW(m_self, g_accel, message);
+	translated = trnsltd != 0;
+
+	UINT const msg = static_cast<std::uint32_t>(modules_window::wm::wm_translateaccelerator);
 	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
 	return ret;
 }

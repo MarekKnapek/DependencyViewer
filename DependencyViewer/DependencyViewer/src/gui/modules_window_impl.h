@@ -44,6 +44,7 @@ private:
 	LRESULT on_wm_contextmenu(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_command(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_repaint(WPARAM const& wparam, LPARAM const& lparam);
+	LRESULT on_wm_translateaccelerator(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setmodlist(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setcmdmatching(WPARAM const& wparam, LPARAM const& lparam);
 	void on_getdispinfow(NMHDR& nmhdr);
