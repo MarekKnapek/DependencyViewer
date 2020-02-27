@@ -277,6 +277,12 @@ LRESULT modules_window_impl::on_message(UINT const& msg, WPARAM const& wparam, L
 			return ret;
 		}
 		break;
+		case static_cast<std::uint32_t>(modules_window::wm::wm_iscmdpropertiesavail):
+		{
+			LRESULT const ret = on_wm_iscmdpropertiesavail(wparam, lparam);
+			return ret;
+		}
+		break;
 		case static_cast<std::uint32_t>(modules_window::wm::wm_setonitemchanged):
 		{
 			LRESULT const ret = on_wm_setonitemchanged(wparam, lparam);
@@ -432,6 +438,35 @@ LRESULT modules_window_impl::on_wm_selectitem(WPARAM const& wparam, LPARAM const
 	select_item(fi);
 
 	UINT const msg = static_cast<std::uint32_t>(modules_window::wm::wm_selectitem);
+	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
+	return ret;
+}
+
+LRESULT modules_window_impl::on_wm_iscmdpropertiesavail(WPARAM const& wparam, LPARAM const& lparam)
+{
+	auto const fn_is_avail = [&]() -> bool
+	{
+		int const sel = list_view_base::get_selection(&m_list_view);
+		if(sel == -1)
+		{
+			return false;
+		}
+		assert(sel >= 0 && sel <= 0xFFFF);
+		std::uint16_t const line_idx = static_cast<std::uint16_t>(sel);
+		std::uint16_t const item_idx = m_sort.empty() ? line_idx : m_sort[line_idx];
+		modules_list_t const* const modlist = m_modlist;
+		if(!modlist)
+		{
+			return false;
+		}
+		bool const ret = command_properties_available(item_idx, nullptr);
+		return ret;
+	};
+
+	bool& avail = *reinterpret_cast<bool*>(lparam);
+	avail = fn_is_avail();
+
+	UINT const msg = static_cast<std::uint32_t>(modules_window::wm::wm_iscmdpropertiesavail);
 	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
 	return ret;
 }

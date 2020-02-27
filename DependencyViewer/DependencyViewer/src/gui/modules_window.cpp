@@ -92,6 +92,17 @@ void modules_window::selectitem(file_info const* const& fi)
 	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
 }
 
+bool modules_window::iscmdpropertiesavail()
+{
+	bool avail;
+	UINT const msg = static_cast<std::uint32_t>(wm::wm_iscmdpropertiesavail);
+	WPARAM const wparam = 0;
+	LPARAM const lparam = reinterpret_cast<LPARAM>(&avail);
+	assert(m_hwnd != nullptr);
+	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
+	return avail;
+}
+
 void modules_window::setonitemchanged(onitemchanged_fn_t const& onitemchanged_fn, onitemchanged_ctx_t const& onitemchanged_ctx)
 {
 	static_assert(sizeof(onitemchanged_fn) == sizeof(WPARAM), "");

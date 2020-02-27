@@ -47,6 +47,7 @@ private:
 	LRESULT on_wm_translateaccelerator(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setmodlist(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_selectitem(WPARAM const& wparam, LPARAM const& lparam);
+	LRESULT on_wm_iscmdpropertiesavail(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setonitemchanged(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setcmdmatching(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setcmdproperties(WPARAM const& wparam, LPARAM const& lparam);
