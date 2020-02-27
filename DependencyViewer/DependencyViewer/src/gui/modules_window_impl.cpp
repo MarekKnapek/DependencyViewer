@@ -334,6 +334,11 @@ LRESULT modules_window_impl::on_wm_notify(WPARAM const& wparam, LPARAM const& lp
 				on_columnclick(nmhdr);
 			}
 			break;
+			case LVN_ITEMCHANGED:
+			{
+				on_itemchanged(nmhdr);
+			}
+			break;
 		}
 	}
 
@@ -520,6 +525,37 @@ void modules_window_impl::on_columnclick(NMHDR& nmhdr)
 	sort_view();
 	list_view_base::refresh_headers(&m_list_view, static_cast<int>(std::size(s_modules_headers___2)), m_sort_col);
 	repaint();
+}
+
+void modules_window_impl::on_itemchanged([[maybe_unused]] NMHDR& nmhdr)
+{
+	auto const fn_get_fi = [&]() -> file_info const*
+	{
+		int const sel = list_view_base::get_selection(&m_list_view);
+		if(sel == -1)
+		{
+			return nullptr;
+		}
+		assert(sel >= 0 && sel <= 0xFFFF);
+		std::uint16_t const line_idx = static_cast<std::uint16_t>(sel);
+		std::uint16_t const item_idx = m_sort.empty() ? line_idx : m_sort[line_idx];
+		modules_list_t const* const modlist = m_modlist;
+		if(!modlist)
+		{
+			return nullptr;
+		}
+		assert(item_idx < modlist->m_count);
+		file_info const* const fi = modlist->m_list[item_idx];
+		assert(fi);
+		assert(!fi->m_orig_instance);
+		return fi;
+	};
+
+	file_info const* const fi = fn_get_fi();
+	if(m_onitemchanged_fn)
+	{
+		m_onitemchanged_fn(m_onitemchanged_ctx, fi);
+	}
 }
 
 void modules_window_impl::on_menu(WPARAM const& wparam)

@@ -52,6 +52,7 @@ private:
 	LRESULT on_wm_setcmdproperties(WPARAM const& wparam, LPARAM const& lparam);
 	void on_getdispinfow(NMHDR& nmhdr);
 	void on_columnclick(NMHDR& nmhdr);
+	void on_itemchanged(NMHDR& nmhdr);
 	void on_menu(WPARAM const& wparam);
 	void on_accelerator(WPARAM const& wparam);
 	void on_menu_matching();
