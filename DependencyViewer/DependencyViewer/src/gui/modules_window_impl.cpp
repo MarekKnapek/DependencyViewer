@@ -371,9 +371,12 @@ LRESULT modules_window_impl::on_wm_contextmenu(WPARAM const& wparam, LPARAM cons
 			m_context_menu = create_context_menu();
 		}
 		HMENU const menu = reinterpret_cast<HMENU>(m_context_menu.get());
-		auto const matching_available = command_matching_available(item_idx, nullptr);
-		BOOL const prev = EnableMenuItem(menu, static_cast<std::uint16_t>(e_modules_menu_id___2::e_matching), MF_BYCOMMAND | (matching_available ? MF_ENABLED : (MF_GRAYED | MF_DISABLED)));
-		assert(prev != -1 && (prev == MF_ENABLED || prev == (MF_GRAYED | MF_DISABLED)));
+		bool const matching_available = command_matching_available(item_idx, nullptr);
+		BOOL const matching_prev = EnableMenuItem(menu, static_cast<std::uint16_t>(e_modules_menu_id___2::e_matching), MF_BYCOMMAND | (matching_available ? MF_ENABLED : (MF_GRAYED | MF_DISABLED)));
+		assert(matching_prev != -1 && (matching_prev == MF_ENABLED || matching_prev == (MF_GRAYED | MF_DISABLED)));
+		bool const properties_available = command_properties_available(item_idx, nullptr);
+		BOOL const properties_prev = EnableMenuItem(menu, static_cast<std::uint16_t>(e_modules_menu_id___2::e_properties), MF_BYCOMMAND | (properties_available ? MF_ENABLED : (MF_GRAYED | MF_DISABLED)));
+		assert(properties_prev != -1 && (properties_prev == MF_ENABLED || properties_prev == (MF_GRAYED | MF_DISABLED)));
 		BOOL const tracked = TrackPopupMenu(menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON | TPM_NOANIMATION, screen_pos.x, screen_pos.y, 0, m_self, nullptr);
 		assert(tracked != 0);
 	};
@@ -683,17 +686,32 @@ wchar_t const* modules_window_impl::get_col_path(std::uint16_t const& idx)
 
 smart_menu modules_window_impl::create_context_menu()
 {
+	static constexpr wchar_t const* const s_strings[] =
+	{
+		s_modules_menu_str_matching___2,
+		s_modules_menu_str_properties___2,
+	};
+	static constexpr e_modules_menu_id___2 const s_ids[] =
+	{
+		e_modules_menu_id___2::e_matching,
+		e_modules_menu_id___2::e_properties,
+	};
+	static_assert(std::size(s_strings) == std::size(s_ids), "");
+
 	HMENU const menu = CreatePopupMenu();
 	assert(menu);
 	smart_menu menu_sp{menu};
-	MENUITEMINFOW mi{};
-	mi.cbSize = sizeof(mi);
-	mi.fMask = MIIM_ID | MIIM_STRING | MIIM_FTYPE;
-	mi.fType = MFT_STRING;
-	mi.wID = static_cast<std::uint16_t>(e_modules_menu_id___2::e_matching);
-	mi.dwTypeData = const_cast<wchar_t*>(s_modules_menu_str_matching___2);
-	BOOL const inserted = InsertMenuItemW(menu, 0, TRUE, &mi);
-	assert(inserted != 0);
+	for(int i = 0; i != static_cast<int>(std::size(s_strings)); ++i)
+	{
+		MENUITEMINFOW mi{};
+		mi.cbSize = sizeof(mi);
+		mi.fMask = MIIM_ID | MIIM_STRING | MIIM_FTYPE;
+		mi.fType = MFT_STRING;
+		mi.wID = static_cast<std::uint16_t>(s_ids[i]);
+		mi.dwTypeData = const_cast<wchar_t*>(s_strings[i]);
+		BOOL const inserted = InsertMenuItemW(menu, i, TRUE, &mi);
+		assert(inserted != 0);
+	}
 	return menu_sp;
 }
 
