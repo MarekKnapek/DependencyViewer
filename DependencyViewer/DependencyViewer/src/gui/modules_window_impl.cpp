@@ -2,8 +2,10 @@
 
 #include "common_controls.h"
 #include "main.h"
+#include "processor.h"
 
 #include "../nogui/cassert_my.h"
+#include "../nogui/scope_exit.h"
 
 #include <cstdint>
 #include <iterator>
@@ -69,6 +71,8 @@ modules_window_impl::modules_window_impl(HWND const& self) :
 		assert(inserted != -1);
 		assert(inserted == i);
 	}
+
+	refresh();
 }
 
 modules_window_impl::~modules_window_impl()
@@ -253,6 +257,7 @@ LRESULT modules_window_impl::on_wm_setmodlist(WPARAM const& wparam, LPARAM const
 {
 	modules_list_t const* const modlist = reinterpret_cast<modules_list_t const*>(lparam);
 	m_modlist = modlist;
+	refresh();
 
 	UINT const msg = static_cast<std::uint32_t>(modules_window::wm::wm_setmodlist);
 	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
@@ -287,6 +292,29 @@ void modules_window_impl::on_getdispinfow(NMHDR& nmhdr)
 			break;
 		}
 	}
+}
+
+void modules_window_impl::refresh()
+{
+	LRESULT const redr_off = SendMessageW(m_list_view, WM_SETREDRAW, FALSE, 0);
+	assert(redr_off == 0);
+	auto const fn_redraw = mk::make_scope_exit([&]()
+	{
+		LRESULT const redr_on = SendMessageW(m_list_view, WM_SETREDRAW, TRUE, 0);
+		assert(redr_on == 0);
+		repaint();
+	});
+
+	LRESULT const deleted = SendMessageW(m_list_view, LVM_DELETEALLITEMS, 0, 0);
+	assert(deleted == TRUE);
+	modules_list_t const* const modlist = m_modlist;
+	if(!modlist)
+	{
+		return;
+	}
+	std::uint16_t const& count = modlist->m_count;
+	LRESULT const set_size = SendMessageW(m_list_view, LVM_SETITEMCOUNT, count, 0);
+	assert(set_size != 0);
 }
 
 void modules_window_impl::repaint()
