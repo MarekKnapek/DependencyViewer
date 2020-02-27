@@ -50,6 +50,7 @@ private:
 	void on_getdispinfow(NMHDR& nmhdr);
 	void on_columnclick(NMHDR& nmhdr);
 	void on_menu(WPARAM const& wparam);
+	void on_accelerator(WPARAM const& wparam);
 	void on_menu_matching();
 	wchar_t const* get_col_name(std::uint16_t const& idx);
 	wchar_t const* get_col_path(std::uint16_t const& idx);
