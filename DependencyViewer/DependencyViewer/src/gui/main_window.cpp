@@ -266,8 +266,6 @@ main_window::main_window() :
 
 	m_settings.m_full_paths = false;
 	m_settings.m_undecorate = false;
-	m_settings.m_import_sort = 0xFF;
-	m_settings.m_export_sort = 0xFF;
 	commands_availability_refresh();
 }
 
