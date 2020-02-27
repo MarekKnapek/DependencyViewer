@@ -340,6 +340,25 @@ wchar_t const* modules_window_impl::get_col_path(std::uint16_t const& idx)
 	return ret.m_str;
 }
 
+bool modules_window_impl::command_matching_available(std::uint16_t const& item_idx, file_info const** const out_fi)
+{
+	modules_list_t const* const modlist = m_modlist;
+	if(!modlist)
+	{
+		return false;
+	}
+	assert(item_idx < modlist->m_count);
+	file_info const* const fi = modlist->m_list[item_idx];
+	assert(fi);
+	assert(!fi->m_orig_instance);
+	bool const available = true;
+	if(available && out_fi)
+	{
+		*out_fi = fi;
+	}
+	return available;
+}
+
 void modules_window_impl::refresh()
 {
 	LRESULT const redr_off = SendMessageW(m_list_view, WM_SETREDRAW, FALSE, 0);

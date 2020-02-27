@@ -11,6 +11,7 @@
 #include "../nogui/windows_my.h"
 
 
+struct file_info;
 struct modules_list_t;
 
 
@@ -43,6 +44,7 @@ private:
 	void on_columnclick(NMHDR& nmhdr);
 	wchar_t const* get_col_name(std::uint16_t const& idx);
 	wchar_t const* get_col_path(std::uint16_t const& idx);
+	bool command_matching_available(std::uint16_t const& item_idx, file_info const** const out_fi);
 	void refresh();
 	void repaint();
 	void sort_view();
