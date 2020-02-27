@@ -6,12 +6,16 @@
 #include "../nogui/windows_my.h"
 
 
+struct modules_list_t;
+
+
 class modules_window
 {
 public:
 	enum class wm : std::uint32_t
 	{
 		wm_repaint = WM_USER + 1,
+		wm_setmodlist,
 	};
 public:
 	modules_window() noexcept;
@@ -27,6 +31,7 @@ public:
 	static void deinit();
 public:
 	void repaint();
+	void setmodlist(modules_list_t const& ml);
 public:
 	HWND const& get_hwnd() const;
 private:

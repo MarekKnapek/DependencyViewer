@@ -30,7 +30,8 @@ ATOM modules_window_impl::g_class;
 
 modules_window_impl::modules_window_impl(HWND const& self) :
 	m_self(self),
-	m_list_view()
+	m_list_view(),
+	m_modlist()
 {
 	assert(self != nullptr);
 
@@ -192,6 +193,12 @@ LRESULT modules_window_impl::on_message(UINT const& msg, WPARAM const& wparam, L
 			return ret;
 		}
 		break;
+		case static_cast<std::uint32_t>(modules_window::wm::wm_setmodlist):
+		{
+			LRESULT const ret = on_wm_setmodlist(wparam, lparam);
+			return ret;
+		}
+		break;
 		default:
 		{
 			LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
@@ -238,6 +245,16 @@ LRESULT modules_window_impl::on_wm_repaint(WPARAM const& wparam, LPARAM const& l
 	repaint();
 
 	UINT const msg = static_cast<std::uint32_t>(modules_window::wm::wm_repaint);
+	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
+	return ret;
+}
+
+LRESULT modules_window_impl::on_wm_setmodlist(WPARAM const& wparam, LPARAM const& lparam)
+{
+	modules_list_t const* const modlist = reinterpret_cast<modules_list_t const*>(lparam);
+	m_modlist = modlist;
+
+	UINT const msg = static_cast<std::uint32_t>(modules_window::wm::wm_setmodlist);
 	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
 	return ret;
 }

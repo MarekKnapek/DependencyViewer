@@ -62,6 +62,15 @@ void modules_window::repaint()
 	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
 }
 
+void modules_window::setmodlist(modules_list_t const& ml)
+{
+	UINT const msg = static_cast<std::uint32_t>(wm::wm_setmodlist);
+	WPARAM const wparam = 0;
+	LPARAM const lparam = reinterpret_cast<LPARAM>(&ml);
+	assert(m_hwnd != nullptr);
+	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
+}
+
 HWND const& modules_window::get_hwnd() const
 {
 	return m_hwnd;
