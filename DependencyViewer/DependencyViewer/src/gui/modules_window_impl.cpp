@@ -24,6 +24,15 @@ enum class e_modules_menu_id___2 : std::uint16_t
 };
 static constexpr wchar_t const s_modules_menu_str_matching___2[] = L"&Highlight Matching Module In Tree\tCtrl+M";
 
+enum class e_modules_accel_id___2 : std::uint16_t
+{
+	e_matching,
+};
+static constexpr ACCEL const s_modules_accel_table___2[] =
+{
+	{FVIRTKEY | FCONTROL, 'M', static_cast<std::uint16_t>(e_modules_accel_id___2::e_matching)},
+};
+
 enum class e_modules_column___2
 {
 	e_name,
@@ -37,6 +46,7 @@ static constexpr wchar_t const* const s_modules_headers___2[] =
 
 
 ATOM modules_window_impl::g_class;
+HACCEL modules_window_impl::g_accel;
 
 
 modules_window_impl::modules_window_impl(HWND const& self) :
@@ -97,10 +107,12 @@ modules_window_impl::~modules_window_impl()
 void modules_window_impl::init()
 {
 	register_class();
+	create_accel_table();
 }
 
 void modules_window_impl::deinit()
 {
+	destroy_accel_table();
 	unregister_class();
 }
 
@@ -137,6 +149,21 @@ void modules_window_impl::unregister_class()
 	BOOL const unregistered = UnregisterClassW(reinterpret_cast<wchar_t const*>(g_class), get_instance());
 	assert(unregistered != 0);
 	g_class = 0;
+}
+
+void modules_window_impl::create_accel_table()
+{
+	assert(g_accel == nullptr);
+	g_accel = CreateAcceleratorTableW(const_cast<ACCEL*>(s_modules_accel_table___2), static_cast<int>(std::size(s_modules_accel_table___2)));
+	assert(g_accel != nullptr);
+}
+
+void modules_window_impl::destroy_accel_table()
+{
+	assert(g_accel != nullptr);
+	BOOL const destroyed = DestroyAcceleratorTable(g_accel);
+	assert(destroyed != 0);
+	g_accel = nullptr;
 }
 
 LRESULT CALLBACK modules_window_impl::class_proc(HWND const hwnd, UINT const msg, WPARAM const wparam, LPARAM const lparam)
