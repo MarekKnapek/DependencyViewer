@@ -659,6 +659,31 @@ bool modules_window_impl::command_properties_available(std::uint16_t const& item
 	return available;
 }
 
+void modules_window_impl::command_properties()
+{
+	int const sel = list_view_base::get_selection(&m_list_view);
+	if(sel == -1)
+	{
+		return;
+	}
+	assert(sel >= 0 && sel <= 0xFFFF);
+	std::uint16_t const line_idx = static_cast<std::uint16_t>(sel);
+	std::uint16_t const item_idx = m_sort.empty() ? line_idx : m_sort[line_idx];
+
+	wstring_handle str;
+	bool const available = command_properties_available(item_idx, &str);
+	if(!available)
+	{
+		return;
+	}
+
+	if(!m_cmd_properties_fn)
+	{
+		return;
+	}
+	m_cmd_properties_fn(m_cmd_properties_ctx, str);
+}
+
 void modules_window_impl::refresh()
 {
 	LRESULT const redr_off = SendMessageW(m_list_view, WM_SETREDRAW, FALSE, 0);
