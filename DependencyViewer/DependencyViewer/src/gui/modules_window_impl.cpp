@@ -263,6 +263,12 @@ LRESULT modules_window_impl::on_message(UINT const& msg, WPARAM const& wparam, L
 			return ret;
 		}
 		break;
+		case static_cast<std::uint32_t>(modules_window::wm::wm_selectitem):
+		{
+			LRESULT const ret = on_wm_selectitem(wparam, lparam);
+			return ret;
+		}
+		break;
 		case static_cast<std::uint32_t>(modules_window::wm::wm_setcmdmatching):
 		{
 			LRESULT const ret = on_wm_setcmdmatching(wparam, lparam);
@@ -390,6 +396,17 @@ LRESULT modules_window_impl::on_wm_setmodlist(WPARAM const& wparam, LPARAM const
 	refresh();
 
 	UINT const msg = static_cast<std::uint32_t>(modules_window::wm::wm_setmodlist);
+	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
+	return ret;
+}
+
+LRESULT modules_window_impl::on_wm_selectitem(WPARAM const& wparam, LPARAM const& lparam)
+{
+	static_assert(sizeof(lparam) == sizeof(file_info const*), "");
+	file_info const* const fi = reinterpret_cast<file_info const*>(lparam);
+	select_item(fi);
+
+	UINT const msg = static_cast<std::uint32_t>(modules_window::wm::wm_selectitem);
 	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
 	return ret;
 }
@@ -539,6 +556,21 @@ smart_menu modules_window_impl::create_context_menu()
 	BOOL const inserted = InsertMenuItemW(menu, 0, TRUE, &mi);
 	assert(inserted != 0);
 	return menu_sp;
+}
+
+void modules_window_impl::select_item(file_info const* const& fi)
+{
+	assert(fi);
+	assert(m_modlist);
+	modules_list_t const* const modlist = m_modlist;
+	auto const b = modlist->m_list;
+	auto const e = b + modlist->m_count;
+	auto const it = std::find(b, e, fi);
+	assert(it != e);
+	auto const idx_ = it - b;
+	assert(idx_ >= 0 && idx_ <= 0xFFFF);
+	std::uint16_t const idx = static_cast<std::uint16_t>(idx_);
+	list_view_base::select_item(&m_list_view, &m_sort, idx);
 }
 
 bool modules_window_impl::command_matching_available(std::uint16_t const& item_idx, file_info const** const out_fi)

@@ -18,6 +18,7 @@ public:
 		wm_repaint = WM_USER + 1,
 		wm_translateaccelerator,
 		wm_setmodlist,
+		wm_selectitem,
 		wm_setcmdmatching,
 	};
 	using cmd_matching_ctx_t = void*;
@@ -38,6 +39,7 @@ public:
 	void repaint();
 	bool translateaccelerator(MSG& message);
 	void setmodlist(modules_list_t const& ml);
+	void selectitem(file_info const* const& fi);
 	void setcmdmatching(cmd_matching_fn_t const& cmd_matching_fn, cmd_matching_ctx_t const& cmd_matching_ctx);
 public:
 	HWND const& get_hwnd() const;

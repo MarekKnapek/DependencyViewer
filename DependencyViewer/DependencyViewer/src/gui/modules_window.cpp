@@ -82,6 +82,16 @@ void modules_window::setmodlist(modules_list_t const& ml)
 	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
 }
 
+void modules_window::selectitem(file_info const* const& fi)
+{
+	static_assert(sizeof(fi) == sizeof(LPARAM), "");
+	UINT const msg = static_cast<std::uint32_t>(wm::wm_selectitem);
+	WPARAM const wparam = 0;
+	LPARAM const lparam = reinterpret_cast<LPARAM>(fi);
+	assert(m_hwnd != nullptr);
+	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
+}
+
 void modules_window::setcmdmatching(cmd_matching_fn_t const& cmd_matching_fn, cmd_matching_ctx_t const& cmd_matching_ctx)
 {
 	static_assert(sizeof(cmd_matching_fn) == sizeof(WPARAM), "");
