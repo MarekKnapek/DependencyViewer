@@ -9,7 +9,9 @@
 #include "../nogui/cassert_my.h"
 #include "../nogui/scope_exit.h"
 
+#include <algorithm>
 #include <iterator>
+#include <numeric>
 
 #include "../nogui/windows_my.h"
 
@@ -317,20 +319,24 @@ void modules_window_impl::on_columnclick(NMHDR& nmhdr)
 	int const new_sort = list_view_base::on_columnclick(&nmlv, static_cast<int>(std::size(s_modules_headers___2)), m_sort_col);
 	assert(new_sort >= 0 && new_sort <= 0xFF);
 	m_sort_col = static_cast<std::uint8_t>(new_sort);
+	sort_view();
 	list_view_base::refresh_headers(&m_list_view, static_cast<int>(std::size(s_modules_headers___2)), m_sort_col);
+	repaint();
 }
 
 wchar_t const* modules_window_impl::get_col_name(std::uint16_t const& idx)
 {
+	std::uint16_t const& idx_sorted = m_sort.empty() ? idx : m_sort[idx];
 	assert(m_modlist);
-	wstring const ret = get_modules_list_col_name(*m_modlist, idx, m_string_converter);
+	wstring const ret = get_modules_list_col_name(*m_modlist, idx_sorted, m_string_converter);
 	return ret.m_str;
 }
 
 wchar_t const* modules_window_impl::get_col_path(std::uint16_t const& idx)
 {
+	std::uint16_t const& idx_sorted = m_sort.empty() ? idx : m_sort[idx];
 	assert(m_modlist);
-	wstring const ret = get_modules_list_col_path(*m_modlist, idx);
+	wstring const ret = get_modules_list_col_path(*m_modlist, idx_sorted);
 	return ret.m_str;
 }
 
@@ -340,6 +346,8 @@ void modules_window_impl::refresh()
 	assert(redr_off == 0);
 	auto const fn_redraw = mk::make_scope_exit([&]()
 	{
+		sort_view();
+
 		LRESULT const redr_on = SendMessageW(m_list_view, WM_SETREDRAW, TRUE, 0);
 		assert(redr_on == 0);
 		repaint();
@@ -361,4 +369,79 @@ void modules_window_impl::repaint()
 {
 	BOOL const redrawn = RedrawWindow(m_list_view, nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_FRAME);
 	assert(redrawn != 0);
+}
+
+void modules_window_impl::sort_view()
+{
+	m_sort.clear();
+	std::uint8_t const cur_sort_raw = m_sort_col;
+	if(cur_sort_raw == 0xFF)
+	{
+		return;
+	}
+	bool const asc = (cur_sort_raw & (1u << 7u)) == 0u;
+	std::uint8_t const col_ = cur_sort_raw &~ (1u << 7u);
+	modules_list_t const* const modlist = m_modlist;
+	if(!modlist)
+	{
+		return;
+	}
+	std::uint16_t const n_items = modlist->m_count;
+	assert(n_items <= 0xFFFF / 2);
+	m_sort.resize(n_items * 2);
+	std::iota(m_sort.begin(), m_sort.begin() + n_items, std::uint16_t{0});
+	std::uint16_t* const sort = m_sort.data();
+	assert(col_ >= static_cast<std::uint16_t>(e_modules_column___2::e_name));
+	assert(col_ <= static_cast<std::uint16_t>(e_modules_column___2::e_path));
+	e_modules_column___2 const col = static_cast<e_modules_column___2>(col_);
+	switch(col)
+	{
+		case e_modules_column___2::e_name:
+		{
+			auto const fn_compare_name = [&](std::uint16_t const a, std::uint16_t const b) -> bool
+			{
+				wstring const a2 = get_modules_list_col_name(*modlist, a, m_string_converter);
+				wstring const b2 = get_modules_list_col_name(*modlist, b, m_string_converter);
+				bool const ret = wstring_case_insensitive_less{}(a2, b2);
+				return ret;
+			};
+			if(asc)
+			{
+				std::sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_name(a, b); });
+			}
+			else
+			{
+				std::sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_name(b, a); });
+			}
+		}
+		break;
+		case e_modules_column___2::e_path:
+		{
+			auto const fn_compare_path = [&](std::uint16_t const a, std::uint16_t const b) -> bool
+			{
+				wstring const a2 = get_modules_list_col_path(*modlist, a);
+				wstring const b2 = get_modules_list_col_path(*modlist, b);
+				bool const ret = wstring_case_insensitive_less{}(a2, b2);
+				return ret;
+			};
+			if(asc)
+			{
+				std::sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_path(a, b); });
+			}
+			else
+			{
+				std::sort(sort, sort + n_items, [&](auto const& a, auto const& b){ return fn_compare_path(b, a); });
+			}
+		}
+		break;
+		default:
+		{
+			assert(false);
+		}
+		break;
+	}
+	for(std::uint16_t i = 0; i != n_items; ++i)
+	{
+		m_sort[n_items + m_sort[i]] = i;
+	}
 }

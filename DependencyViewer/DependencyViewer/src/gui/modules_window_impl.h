@@ -45,6 +45,7 @@ private:
 	wchar_t const* get_col_path(std::uint16_t const& idx);
 	void refresh();
 	void repaint();
+	void sort_view();
 private:
 	static ATOM g_class;
 private:
