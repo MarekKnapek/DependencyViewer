@@ -54,7 +54,9 @@ private:
 	void on_menu(WPARAM const& wparam);
 	void on_accelerator(WPARAM const& wparam);
 	void on_menu_matching();
+	void on_menu_properties();
 	void on_accel_matching();
+	void on_accel_properties();
 	wchar_t const* get_col_name(std::uint16_t const& idx);
 	wchar_t const* get_col_path(std::uint16_t const& idx);
 	smart_menu create_context_menu();

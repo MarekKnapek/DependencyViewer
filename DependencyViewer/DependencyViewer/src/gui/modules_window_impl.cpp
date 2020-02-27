@@ -21,16 +21,20 @@
 enum class e_modules_menu_id___2 : std::uint16_t
 {
 	e_matching,
+	e_properties,
 };
 static constexpr wchar_t const s_modules_menu_str_matching___2[] = L"&Highlight Matching Module In Tree\tCtrl+M";
+static constexpr wchar_t const s_modules_menu_str_properties___2[] = L"&Properties...\tAlt+Enter";
 
 enum class e_modules_accel_id___2 : std::uint16_t
 {
 	e_matching,
+	e_properties,
 };
 static constexpr ACCEL const s_modules_accel_table___2[] =
 {
 	{FVIRTKEY | FCONTROL, 'M', static_cast<std::uint16_t>(e_modules_accel_id___2::e_matching)},
+	{FVIRTKEY | FALT, VK_RETURN, static_cast<std::uint16_t>(e_modules_accel_id___2::e_properties)},
 };
 
 enum class e_modules_column___2
@@ -500,13 +504,18 @@ void modules_window_impl::on_menu(WPARAM const& wparam)
 {
 	std::uint16_t const menu_id_ = static_cast<std::uint16_t>(LOWORD(wparam));
 	assert(menu_id_ >= static_cast<std::uint16_t>(e_modules_menu_id___2::e_matching));
-	assert(menu_id_ <= static_cast<std::uint16_t>(e_modules_menu_id___2::e_matching));
+	assert(menu_id_ <= static_cast<std::uint16_t>(e_modules_menu_id___2::e_properties));
 	e_modules_menu_id___2 const menu_id = static_cast<e_modules_menu_id___2>(menu_id_);
 	switch(menu_id)
 	{
 		case e_modules_menu_id___2::e_matching:
 		{
 			on_menu_matching();
+		}
+		break;
+		case e_modules_menu_id___2::e_properties:
+		{
+			on_menu_properties();
 		}
 		break;
 		default:
@@ -521,13 +530,18 @@ void modules_window_impl::on_accelerator(WPARAM const& wparam)
 {
 	std::uint16_t const accel_id_ = static_cast<std::uint16_t>(LOWORD(wparam));
 	assert(accel_id_ >= static_cast<std::uint16_t>(e_modules_accel_id___2::e_matching));
-	assert(accel_id_ <= static_cast<std::uint16_t>(e_modules_accel_id___2::e_matching));
+	assert(accel_id_ <= static_cast<std::uint16_t>(e_modules_accel_id___2::e_properties));
 	e_modules_accel_id___2 const accel_id = static_cast<e_modules_accel_id___2>(accel_id_);
 	switch(accel_id)
 	{
 		case e_modules_accel_id___2::e_matching:
 		{
 			on_accel_matching();
+		}
+		break;
+		case e_modules_accel_id___2::e_properties:
+		{
+			on_accel_properties();
 		}
 		break;
 		default:
@@ -543,9 +557,19 @@ void modules_window_impl::on_menu_matching()
 	command_matching();
 }
 
+void modules_window_impl::on_menu_properties()
+{
+	command_properties();
+}
+
 void modules_window_impl::on_accel_matching()
 {
 	command_matching();
+}
+
+void modules_window_impl::on_accel_properties()
+{
+	command_properties();
 }
 
 wchar_t const* modules_window_impl::get_col_name(std::uint16_t const& idx)
