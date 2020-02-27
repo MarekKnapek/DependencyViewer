@@ -218,6 +218,12 @@ LRESULT modules_window_impl::on_message(UINT const& msg, WPARAM const& wparam, L
 			return ret;
 		}
 		break;
+		case static_cast<std::uint32_t>(modules_window::wm::wm_setcmdmatching):
+		{
+			LRESULT const ret = on_wm_setcmdmatching(wparam, lparam);
+			return ret;
+		}
+		break;
 		default:
 		{
 			LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
@@ -280,6 +286,20 @@ LRESULT modules_window_impl::on_wm_setmodlist(WPARAM const& wparam, LPARAM const
 	refresh();
 
 	UINT const msg = static_cast<std::uint32_t>(modules_window::wm::wm_setmodlist);
+	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
+	return ret;
+}
+
+LRESULT modules_window_impl::on_wm_setcmdmatching(WPARAM const& wparam, LPARAM const& lparam)
+{
+	static_assert(sizeof(wparam) == sizeof(modules_window::cmd_matching_fn_t), "");
+	static_assert(sizeof(lparam) == sizeof(modules_window::cmd_matching_ctx_t), "");
+	auto const cmd_matching_fn = reinterpret_cast<modules_window::cmd_matching_fn_t>(wparam);
+	auto const cmd_matching_ctx = reinterpret_cast<modules_window::cmd_matching_ctx_t>(lparam);
+	m_cmd_matching_fn = cmd_matching_fn;
+	m_cmd_matching_ctx = cmd_matching_ctx;
+
+	UINT const msg = static_cast<std::uint32_t>(modules_window::wm::wm_setcmdmatching);
 	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
 	return ret;
 }

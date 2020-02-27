@@ -17,6 +17,7 @@ public:
 	{
 		wm_repaint = WM_USER + 1,
 		wm_setmodlist,
+		wm_setcmdmatching,
 	};
 	using cmd_matching_ctx_t = void*;
 	using cmd_matching_fn_t = void(*)(cmd_matching_ctx_t const, file_info const* const);
@@ -35,6 +36,7 @@ public:
 public:
 	void repaint();
 	void setmodlist(modules_list_t const& ml);
+	void setcmdmatching(cmd_matching_fn_t const& cmd_matching_fn, cmd_matching_ctx_t const& cmd_matching_ctx);
 public:
 	HWND const& get_hwnd() const;
 private:
