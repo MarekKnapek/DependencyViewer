@@ -2,6 +2,7 @@
 
 
 #include "modules_window.h"
+#include "smart_menu.h"
 
 #include "../nogui/string_converter.h"
 
@@ -44,6 +45,7 @@ private:
 	void on_columnclick(NMHDR& nmhdr);
 	wchar_t const* get_col_name(std::uint16_t const& idx);
 	wchar_t const* get_col_path(std::uint16_t const& idx);
+	smart_menu create_context_menu();
 	bool command_matching_available(std::uint16_t const& item_idx, file_info const** const out_fi);
 	void refresh();
 	void repaint();
@@ -57,4 +59,5 @@ private:
 	std::uint8_t m_sort_col;
 	std::vector<std::uint16_t> m_sort;
 	string_converter m_string_converter;
+	smart_menu m_context_menu;
 };

@@ -18,6 +18,12 @@
 #include <commctrl.h>
 
 
+enum class e_modules_menu_id___2 : std::uint16_t
+{
+	e_matching,
+};
+static constexpr wchar_t const s_modules_menu_str_matching___2[] = L"&Highlight Matching Module In Tree\tCtrl+M";
+
 enum class e_modules_column___2
 {
 	e_name,
@@ -39,7 +45,8 @@ modules_window_impl::modules_window_impl(HWND const& self) :
 	m_modlist(),
 	m_sort_col(0xFF),
 	m_sort(),
-	m_string_converter()
+	m_string_converter(),
+	m_context_menu()
 {
 	assert(self != nullptr);
 
@@ -338,6 +345,22 @@ wchar_t const* modules_window_impl::get_col_path(std::uint16_t const& idx)
 	assert(m_modlist);
 	wstring const ret = get_modules_list_col_path(*m_modlist, idx_sorted);
 	return ret.m_str;
+}
+
+smart_menu modules_window_impl::create_context_menu()
+{
+	HMENU const menu = CreatePopupMenu();
+	assert(menu);
+	smart_menu menu_sp{menu};
+	MENUITEMINFOW mi{};
+	mi.cbSize = sizeof(mi);
+	mi.fMask = MIIM_ID | MIIM_STRING | MIIM_FTYPE;
+	mi.fType = MFT_STRING;
+	mi.wID = static_cast<std::uint16_t>(e_modules_menu_id___2::e_matching);
+	mi.dwTypeData = const_cast<wchar_t*>(s_modules_menu_str_matching___2);
+	BOOL const inserted = InsertMenuItemW(menu, 0, TRUE, &mi);
+	assert(inserted != 0);
+	return menu_sp;
 }
 
 bool modules_window_impl::command_matching_available(std::uint16_t const& item_idx, file_info const** const out_fi)
