@@ -1,11 +1,18 @@
 #pragma once
 
 
+#include <cstdint>
+
 #include "../nogui/windows_my.h"
 
 
 class modules_window
 {
+public:
+	enum class wm : std::uint32_t
+	{
+		wm_repaint = WM_USER + 1,
+	};
 public:
 	modules_window() noexcept;
 	modules_window(HWND const& parent);
@@ -18,6 +25,8 @@ public:
 public:
 	static void init();
 	static void deinit();
+public:
+	void repaint();
 public:
 	HWND const& get_hwnd() const;
 private:
