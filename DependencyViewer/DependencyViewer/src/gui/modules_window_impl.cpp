@@ -486,6 +486,11 @@ void modules_window_impl::on_accelerator(WPARAM const& wparam)
 	e_modules_accel_id___2 const accel_id = static_cast<e_modules_accel_id___2>(accel_id_);
 	switch(accel_id)
 	{
+		case e_modules_accel_id___2::e_matching:
+		{
+			on_accel_matching();
+		}
+		break;
 		default:
 		{
 			assert(false);
@@ -495,6 +500,11 @@ void modules_window_impl::on_accelerator(WPARAM const& wparam)
 }
 
 void modules_window_impl::on_menu_matching()
+{
+	command_matching();
+}
+
+void modules_window_impl::on_accel_matching()
 {
 	command_matching();
 }
