@@ -46,6 +46,7 @@ private:
 	LRESULT on_wm_setcmdmatching(WPARAM const& wparam, LPARAM const& lparam);
 	void on_getdispinfow(NMHDR& nmhdr);
 	void on_columnclick(NMHDR& nmhdr);
+	void on_menu(WPARAM const& wparam);
 	wchar_t const* get_col_name(std::uint16_t const& idx);
 	wchar_t const* get_col_path(std::uint16_t const& idx);
 	smart_menu create_context_menu();
