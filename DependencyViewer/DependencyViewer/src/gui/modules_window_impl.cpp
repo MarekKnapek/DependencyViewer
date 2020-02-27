@@ -206,6 +206,12 @@ LRESULT modules_window_impl::on_message(UINT const& msg, WPARAM const& wparam, L
 			return ret;
 		}
 		break;
+		case WM_CONTEXTMENU:
+		{
+			LRESULT const ret = on_wm_contextmenu(wparam, lparam);
+			return ret;
+		}
+		break;
 		case static_cast<std::uint32_t>(modules_window::wm::wm_repaint):
 		{
 			LRESULT const ret = on_wm_repaint(wparam, lparam);
@@ -267,6 +273,37 @@ LRESULT modules_window_impl::on_wm_notify(WPARAM const& wparam, LPARAM const& lp
 	}
 
 	LRESULT const ret = DefWindowProcW(m_self, WM_NOTIFY, wparam, lparam);
+	return ret;
+}
+
+LRESULT modules_window_impl::on_wm_contextmenu(WPARAM const& wparam, LPARAM const& lparam)
+{
+	auto const fn_on_wm_contextmenu = [&]()
+	{
+		int item_idx_;
+		POINT screen_pos;
+		bool const context_found = list_view_base::get_context_menu(&m_list_view, &lparam, &m_sort, &item_idx_, &screen_pos);
+		if(!context_found)
+		{
+			return;
+		}
+		assert(item_idx_ >= 0 && item_idx_ <= 0xFFFF);
+		std::uint16_t const item_idx = static_cast<std::uint16_t>(item_idx_);
+
+		if(!m_context_menu)
+		{
+			m_context_menu = create_context_menu();
+		}
+		HMENU const menu = reinterpret_cast<HMENU>(m_context_menu.get());
+		auto const matching_available = command_matching_available(item_idx, nullptr);
+		BOOL const prev = EnableMenuItem(menu, static_cast<std::uint16_t>(e_modules_menu_id___2::e_matching), MF_BYCOMMAND | (matching_available ? MF_ENABLED : (MF_GRAYED | MF_DISABLED)));
+		assert(prev != -1 && (prev == MF_ENABLED || prev == (MF_GRAYED | MF_DISABLED)));
+		BOOL const tracked = TrackPopupMenu(menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON | TPM_NOANIMATION, screen_pos.x, screen_pos.y, 0, m_self, nullptr);
+		assert(tracked != 0);
+	};
+	fn_on_wm_contextmenu();
+
+	LRESULT const ret = DefWindowProcW(m_self, WM_CONTEXTMENU, wparam, lparam);
 	return ret;
 }
 
