@@ -48,6 +48,7 @@ private:
 	LRESULT on_wm_setmodlist(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_selectitem(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setcmdmatching(WPARAM const& wparam, LPARAM const& lparam);
+	LRESULT on_wm_setcmdproperties(WPARAM const& wparam, LPARAM const& lparam);
 	void on_getdispinfow(NMHDR& nmhdr);
 	void on_columnclick(NMHDR& nmhdr);
 	void on_menu(WPARAM const& wparam);
@@ -76,4 +77,6 @@ private:
 	smart_menu m_context_menu;
 	modules_window::cmd_matching_fn_t m_cmd_matching_fn;
 	modules_window::cmd_matching_ctx_t m_cmd_matching_ctx;
+	modules_window::cmd_properties_fn_t m_cmd_properties_fn;
+	modules_window::cmd_properties_ctx_t m_cmd_properties_ctx;
 };

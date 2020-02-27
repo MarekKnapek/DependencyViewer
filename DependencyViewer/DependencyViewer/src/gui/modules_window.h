@@ -1,6 +1,8 @@
 #pragma once
 
 
+#include "../nogui/my_string_handle.h"
+
 #include <cstdint>
 
 #include "../nogui/windows_my.h"
@@ -20,9 +22,12 @@ public:
 		wm_setmodlist,
 		wm_selectitem,
 		wm_setcmdmatching,
+		wm_setcmdproperties,
 	};
 	using cmd_matching_ctx_t = void*;
 	using cmd_matching_fn_t = void(*)(cmd_matching_ctx_t const, file_info const* const);
+	using cmd_properties_ctx_t = void*;
+	using cmd_properties_fn_t = void(*)(cmd_properties_ctx_t const, wstring_handle const&);
 public:
 	modules_window() noexcept;
 	modules_window(HWND const& parent);
@@ -41,6 +46,7 @@ public:
 	void setmodlist(modules_list_t const& ml);
 	void selectitem(file_info const* const& fi);
 	void setcmdmatching(cmd_matching_fn_t const& cmd_matching_fn, cmd_matching_ctx_t const& cmd_matching_ctx);
+	void setcmdproperties(cmd_properties_fn_t const& cmd_properties_fn, cmd_properties_ctx_t const& cmd_properties_ctx);
 public:
 	HWND const& get_hwnd() const;
 private:
