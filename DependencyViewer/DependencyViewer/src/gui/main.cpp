@@ -5,6 +5,7 @@
 #include "export_window.h"
 #include "import_window.h"
 #include "main_window.h"
+#include "modules_window.h"
 #include "splitter_window.h"
 #include "test.h"
 
@@ -61,6 +62,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, [[maybe_unused]] _In_opt_ HINSTANC
 	auto const fn_destroy_main_accel_table = mk::make_scope_exit([](){ main_window::destroy_accel_table(); });
 	import_window::init(); auto const fn_import_window_deinit = mk::make_scope_exit([](){ import_window::deinit(); });
 	export_window::init(); auto const fn_export_window_deinit = mk::make_scope_exit([](){ export_window::deinit(); });
+	modules_window::init(); auto const fn_modules_window_deinit = mk::make_scope_exit([](){ modules_window::deinit(); });
 	main_window mw;
 	BOOL const shown = ShowWindow(mw.get_hwnd(), nCmdShow);
 	BOOL const updated = UpdateWindow(mw.get_hwnd());

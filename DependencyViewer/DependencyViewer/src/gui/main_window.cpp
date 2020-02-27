@@ -215,7 +215,7 @@ main_window::main_window() :
 	m_toolbar(create_toolbar(m_hwnd)),
 	m_main_panel(m_hwnd),
 	m_upper_panel(m_main_panel.get_hwnd()),
-	m_modules_view(m_main_panel.get_hwnd(), *this),
+	m_modules_window(m_main_panel.get_hwnd()),
 	m_tree_view(m_upper_panel.get_hwnd(), *this),
 	m_right_panel(m_upper_panel.get_hwnd()),
 	m_import_window(m_right_panel.get_hwnd()),
@@ -231,7 +231,7 @@ main_window::main_window() :
 	LONG_PTR const set = SetWindowLongPtrW(m_hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
 	DragAcceptFiles(m_hwnd, TRUE);
 
-	m_main_panel.set_elements(m_upper_panel.get_hwnd(), m_modules_view.get_hwnd());
+	m_main_panel.set_elements(m_upper_panel.get_hwnd(), m_modules_window.get_hwnd());
 	m_upper_panel.set_elements(m_tree_view.get_hwnd(), m_right_panel.get_hwnd());
 	m_right_panel.set_elements(m_import_window.get_hwnd(), m_export_window.get_hwnd());
 
@@ -260,6 +260,42 @@ main_window::main_window() :
 	export_window::cmd_matching_fn_t const exp_cmd_matching_fn = exp_cmd_matching_fn_;
 	export_window::cmd_matching_ctx_t const exp_cmd_matching_ctx = this;
 	m_export_window.setcmdmatching(exp_cmd_matching_fn, exp_cmd_matching_ctx);
+
+	static constexpr auto const mdls_onitemchanged_fn_ = [](modules_window::onitemchanged_ctx_t const ctx, [[maybe_unused]] file_info const* const& fi)
+	{
+		assert(ctx);
+		main_window* const self = static_cast<main_window*>(ctx);
+		self->commands_availability_refresh();
+	};
+	modules_window::onitemchanged_fn_t const mdls_onitemchanged_fn = mdls_onitemchanged_fn_;
+	modules_window::onitemchanged_ctx_t const mdls_onitemchanged_ctx = this;
+	m_modules_window.setonitemchanged(mdls_onitemchanged_fn, mdls_onitemchanged_ctx);
+
+	static constexpr auto const mdls_cmd_matching_fn_ = [](modules_window::cmd_matching_ctx_t const ctx, file_info const* const fi) -> void
+	{
+		assert(ctx);
+		main_window* const self = static_cast<main_window*>(ctx);
+		assert(fi);
+		HTREEITEM const item = reinterpret_cast<HTREEITEM>(fi->m_tree_item);
+		HWND const tree = self->m_tree_view.get_hwnd();
+		LRESULT const visibled = SendMessageW(tree, TVM_ENSUREVISIBLE, 0, reinterpret_cast<LPARAM>(item));
+		LRESULT const selected = SendMessageW(tree, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(item));
+		assert(selected != FALSE);
+		SetFocus(tree);
+	};
+	modules_window::cmd_matching_fn_t const mdls_cmd_matching_fn = mdls_cmd_matching_fn_;
+	modules_window::cmd_matching_ctx_t const mdls_cmd_matching_ctx = this;
+	m_modules_window.setcmdmatching(mdls_cmd_matching_fn, mdls_cmd_matching_ctx);
+
+	static constexpr auto const mdls_cmd_properties_fn_ = [](modules_window::cmd_properties_ctx_t const ctx, wstring_handle const& str)
+	{
+		assert(ctx);
+		main_window* const self = static_cast<main_window*>(ctx);
+		self->properties(str);
+	};
+	modules_window::cmd_properties_fn_t const mdls_cmd_properties_fn = mdls_cmd_properties_fn_;
+	modules_window::cmd_properties_ctx_t const mdls_cmd_properties_ctx = this;
+	m_modules_window.setcmdproperties(mdls_cmd_properties_fn, mdls_cmd_properties_ctx);
 
 	static constexpr auto const process_cmd_line_task = [](main_window& self, idle_task_param_t const /*param*/) -> void { self.process_command_line(); };
 	add_idle_task(process_cmd_line_task, nullptr);
@@ -290,6 +326,10 @@ bool main_window::translate_accelerator(MSG& message)
 	else if(IsChild(m_export_window.get_hwnd(), message.hwnd) != 0 || m_export_window.get_hwnd() == message.hwnd)
 	{
 		translated = m_export_window.translateaccelerator(message);
+	}
+	else if(IsChild(m_modules_window.get_hwnd(), message.hwnd) != 0 || m_modules_window.get_hwnd() == message.hwnd)
+	{
+		translated = m_modules_window.translateaccelerator(message);
 	}
 	else
 	{
@@ -521,10 +561,6 @@ LRESULT main_window::on_wm_notify(WPARAM wparam, LPARAM lparam)
 	{
 		m_tree_view.on_notify(nmhdr);
 	}
-	else if(nmhdr.hwndFrom == m_modules_view.get_hwnd())
-	{
-		m_modules_view.on_notify(nmhdr);
-	}
 	else if(nmhdr.hwndFrom == m_toolbar)
 	{
 		on_toolbar_notify(nmhdr);
@@ -538,10 +574,6 @@ LRESULT main_window::on_wm_contextmenu(WPARAM wparam, LPARAM lparam)
 	if(hwnd == m_tree_view.get_hwnd())
 	{
 		m_tree_view.on_context_menu(lparam);
-	}
-	else if(hwnd == m_modules_view.get_hwnd())
-	{
-		m_modules_view.on_context_menu(lparam);
 	}
 	return DefWindowProcW(m_hwnd, WM_CONTEXTMENU, wparam, lparam);
 }
@@ -618,10 +650,6 @@ void main_window::on_menu(WPARAM const wparam)
 	if(menu_id >= s_main_view_menu_min && menu_id < s_main_view_menu_max)
 	{
 		on_menu(menu_id);
-	}
-	else if(menu_id >= s_modules_view_menu_min && menu_id < s_modules_view_menu_max)
-	{
-		m_modules_view.on_menu(menu_id);
 	}
 	else if(menu_id >= s_tree_view_menu_min && menu_id < s_tree_view_menu_max)
 	{
@@ -874,10 +902,6 @@ void main_window::on_accel_properties()
 	{
 		m_tree_view.on_accel_properties();
 	}
-	else if(focus == m_modules_view.get_hwnd())
-	{
-		m_modules_view.on_accel_properties();
-	}
 	else
 	{
 		properties();
@@ -899,10 +923,6 @@ void main_window::on_accel_matching()
 	if(focus == m_tree_view.get_hwnd())
 	{
 		m_tree_view.on_accel_match();
-	}
-	else if(focus == m_modules_view.get_hwnd())
-	{
-		m_modules_view.on_accel_matching();
 	}
 }
 
@@ -955,7 +975,8 @@ void main_window::commands_availability_refresh()
 	};
 
 	wstring_handle data = get_properties_data();
-	bool const enable = !!data;
+	bool const modules_properties_avail = m_modules_window.iscmdpropertiesavail();
+	bool const enable = !!data || modules_properties_avail;
 	fn_enable_properties_toolbar(m_toolbar, enable);
 	fn_enable_properties_menu(m_hwnd, enable);
 }
@@ -1055,7 +1076,7 @@ void main_window::refresh(main_type&& mo)
 	request_mo_deletion(std::move(tmp));
 
 	m_tree_view.refresh();
-	m_modules_view.refresh();
+	m_modules_window.setmodlist(m_mo.m_modules_list);
 	SetFocus(m_tree_view.get_hwnd());
 }
 
@@ -1190,25 +1211,9 @@ wstring_handle main_window::get_properties_data(file_info const* const curr_fi /
 		return tree_fp;
 	}
 
-	wstring_handle modules_fp{};
-	file_info const* const modules_fi = m_modules_view.get_selection();
-	if(modules_fi)
-	{
-		assert(!modules_fi->m_orig_instance);
-		modules_fp = modules_fi->m_file_path;
-	}
-	if(focus == m_modules_view.get_hwnd() && modules_fp)
-	{
-		return modules_fp;
-	}
-
 	if(tree_fp)
 	{
 		return tree_fp;
-	}
-	if(modules_fp)
-	{
-		return modules_fp;
 	}
 	return {};
 }

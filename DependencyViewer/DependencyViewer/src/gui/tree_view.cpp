@@ -553,7 +553,7 @@ void tree_view::select_match(htreeitem const data /* = nullptr */)
 	file_info const& tmp_fi_ = htreeitem_2_file_info(dta);
 	file_info const* const tmp_fi = &tmp_fi_;
 	file_info const* const fi = tmp_fi->m_orig_instance ? tmp_fi->m_orig_instance : tmp_fi;
-	m_main_window.m_modules_view.select_item(fi);
+	m_main_window.m_modules_window.selectitem(fi);
 }
 
 void tree_view::select_orig_instance(htreeitem const data /* = nullptr */)

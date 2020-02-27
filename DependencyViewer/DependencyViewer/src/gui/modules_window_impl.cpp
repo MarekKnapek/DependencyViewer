@@ -18,31 +18,31 @@
 #include <commctrl.h>
 
 
-enum class e_modules_menu_id___2 : std::uint16_t
+enum class e_modules_menu_id : std::uint16_t
 {
 	e_matching,
 	e_properties,
 };
-static constexpr wchar_t const s_modules_menu_str_matching___2[] = L"&Highlight Matching Module In Tree\tCtrl+M";
-static constexpr wchar_t const s_modules_menu_str_properties___2[] = L"&Properties...\tAlt+Enter";
+static constexpr wchar_t const s_modules_menu_str_matching[] = L"&Highlight Matching Module In Tree\tCtrl+M";
+static constexpr wchar_t const s_modules_menu_str_properties[] = L"&Properties...\tAlt+Enter";
 
-enum class e_modules_accel_id___2 : std::uint16_t
+enum class e_modules_accel_id : std::uint16_t
 {
 	e_matching,
 	e_properties,
 };
-static constexpr ACCEL const s_modules_accel_table___2[] =
+static constexpr ACCEL const s_modules_accel_table[] =
 {
-	{FVIRTKEY | FCONTROL, 'M', static_cast<std::uint16_t>(e_modules_accel_id___2::e_matching)},
-	{FVIRTKEY | FALT, VK_RETURN, static_cast<std::uint16_t>(e_modules_accel_id___2::e_properties)},
+	{FVIRTKEY | FCONTROL, 'M', static_cast<std::uint16_t>(e_modules_accel_id::e_matching)},
+	{FVIRTKEY | FALT, VK_RETURN, static_cast<std::uint16_t>(e_modules_accel_id::e_properties)},
 };
 
-enum class e_modules_column___2
+enum class e_modules_column
 {
 	e_name,
 	e_path,
 };
-static constexpr wchar_t const* const s_modules_headers___2[] =
+static constexpr wchar_t const* const s_modules_headers[] =
 {
 	L"name",
 	L"path",
@@ -86,13 +86,13 @@ modules_window_impl::modules_window_impl(HWND const& self) :
 	assert(m_list_view != nullptr);
 	unsigned const extended_lv_styles = LVS_EX_FULLROWSELECT | LVS_EX_LABELTIP | LVS_EX_DOUBLEBUFFER;
 	LRESULT const prev_style = SendMessageW(m_list_view, LVM_SETEXTENDEDLISTVIEWSTYLE, extended_lv_styles, extended_lv_styles);
-	for(int i = 0; i != static_cast<int>(std::size(s_modules_headers___2)); ++i)
+	for(int i = 0; i != static_cast<int>(std::size(s_modules_headers)); ++i)
 	{
 		LVCOLUMNW cl;
 		cl.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
 		cl.fmt = LVCFMT_LEFT;
 		cl.cx = 200;
-		cl.pszText = const_cast<LPWSTR>(s_modules_headers___2[i]);
+		cl.pszText = const_cast<LPWSTR>(s_modules_headers[i]);
 		cl.cchTextMax = 0;
 		cl.iSubItem = i;
 		cl.iImage = 0;
@@ -162,7 +162,7 @@ void modules_window_impl::unregister_class()
 void modules_window_impl::create_accel_table()
 {
 	assert(g_accel == nullptr);
-	g_accel = CreateAcceleratorTableW(const_cast<ACCEL*>(s_modules_accel_table___2), static_cast<int>(std::size(s_modules_accel_table___2)));
+	g_accel = CreateAcceleratorTableW(const_cast<ACCEL*>(s_modules_accel_table), static_cast<int>(std::size(s_modules_accel_table)));
 	assert(g_accel != nullptr);
 }
 
@@ -372,10 +372,10 @@ LRESULT modules_window_impl::on_wm_contextmenu(WPARAM const& wparam, LPARAM cons
 		}
 		HMENU const menu = reinterpret_cast<HMENU>(m_context_menu.get());
 		bool const matching_available = command_matching_available(item_idx, nullptr);
-		BOOL const matching_prev = EnableMenuItem(menu, static_cast<std::uint16_t>(e_modules_menu_id___2::e_matching), MF_BYCOMMAND | (matching_available ? MF_ENABLED : (MF_GRAYED | MF_DISABLED)));
+		BOOL const matching_prev = EnableMenuItem(menu, static_cast<std::uint16_t>(e_modules_menu_id::e_matching), MF_BYCOMMAND | (matching_available ? MF_ENABLED : (MF_GRAYED | MF_DISABLED)));
 		assert(matching_prev != -1 && (matching_prev == MF_ENABLED || matching_prev == (MF_GRAYED | MF_DISABLED)));
 		bool const properties_available = command_properties_available(item_idx, nullptr);
-		BOOL const properties_prev = EnableMenuItem(menu, static_cast<std::uint16_t>(e_modules_menu_id___2::e_properties), MF_BYCOMMAND | (properties_available ? MF_ENABLED : (MF_GRAYED | MF_DISABLED)));
+		BOOL const properties_prev = EnableMenuItem(menu, static_cast<std::uint16_t>(e_modules_menu_id::e_properties), MF_BYCOMMAND | (properties_available ? MF_ENABLED : (MF_GRAYED | MF_DISABLED)));
 		assert(properties_prev != -1 && (properties_prev == MF_ENABLED || properties_prev == (MF_GRAYED | MF_DISABLED)));
 		BOOL const tracked = TrackPopupMenu(menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON | TPM_NOANIMATION, screen_pos.x, screen_pos.y, 0, m_self, nullptr);
 		assert(tracked != 0);
@@ -530,17 +530,17 @@ void modules_window_impl::on_getdispinfow(NMHDR& nmhdr)
 		assert(row >= 0 && row <= 0xFFFF);
 		std::uint16_t const idx = static_cast<std::uint16_t>(row);
 		int const col_ = nm.item.iSubItem;
-		assert(col_ >= static_cast<std::uint16_t>(e_modules_column___2::e_name));
-		assert(col_ <= static_cast<std::uint16_t>(e_modules_column___2::e_path));
-		e_modules_column___2 const col = static_cast<e_modules_column___2>(col_);
+		assert(col_ >= static_cast<std::uint16_t>(e_modules_column::e_name));
+		assert(col_ <= static_cast<std::uint16_t>(e_modules_column::e_path));
+		e_modules_column const col = static_cast<e_modules_column>(col_);
 		switch(col)
 		{
-			case e_modules_column___2::e_name:
+			case e_modules_column::e_name:
 			{
 				nm.item.pszText = const_cast<wchar_t*>(get_col_name(idx));
 			}
 			break;
-			case e_modules_column___2::e_path:
+			case e_modules_column::e_path:
 			{
 				nm.item.pszText = const_cast<wchar_t*>(get_col_path(idx));
 			}
@@ -557,11 +557,11 @@ void modules_window_impl::on_getdispinfow(NMHDR& nmhdr)
 void modules_window_impl::on_columnclick(NMHDR& nmhdr)
 {
 	NMLISTVIEW const& nmlv = reinterpret_cast<NMLISTVIEW&>(nmhdr);
-	int const new_sort = list_view_base::on_columnclick(&nmlv, static_cast<int>(std::size(s_modules_headers___2)), m_sort_col);
+	int const new_sort = list_view_base::on_columnclick(&nmlv, static_cast<int>(std::size(s_modules_headers)), m_sort_col);
 	assert(new_sort >= 0 && new_sort <= 0xFF);
 	m_sort_col = static_cast<std::uint8_t>(new_sort);
 	sort_view();
-	list_view_base::refresh_headers(&m_list_view, static_cast<int>(std::size(s_modules_headers___2)), m_sort_col);
+	list_view_base::refresh_headers(&m_list_view, static_cast<int>(std::size(s_modules_headers)), m_sort_col);
 	repaint();
 }
 
@@ -599,17 +599,17 @@ void modules_window_impl::on_itemchanged([[maybe_unused]] NMHDR& nmhdr)
 void modules_window_impl::on_menu(WPARAM const& wparam)
 {
 	std::uint16_t const menu_id_ = static_cast<std::uint16_t>(LOWORD(wparam));
-	assert(menu_id_ >= static_cast<std::uint16_t>(e_modules_menu_id___2::e_matching));
-	assert(menu_id_ <= static_cast<std::uint16_t>(e_modules_menu_id___2::e_properties));
-	e_modules_menu_id___2 const menu_id = static_cast<e_modules_menu_id___2>(menu_id_);
+	assert(menu_id_ >= static_cast<std::uint16_t>(e_modules_menu_id::e_matching));
+	assert(menu_id_ <= static_cast<std::uint16_t>(e_modules_menu_id::e_properties));
+	e_modules_menu_id const menu_id = static_cast<e_modules_menu_id>(menu_id_);
 	switch(menu_id)
 	{
-		case e_modules_menu_id___2::e_matching:
+		case e_modules_menu_id::e_matching:
 		{
 			on_menu_matching();
 		}
 		break;
-		case e_modules_menu_id___2::e_properties:
+		case e_modules_menu_id::e_properties:
 		{
 			on_menu_properties();
 		}
@@ -625,17 +625,17 @@ void modules_window_impl::on_menu(WPARAM const& wparam)
 void modules_window_impl::on_accelerator(WPARAM const& wparam)
 {
 	std::uint16_t const accel_id_ = static_cast<std::uint16_t>(LOWORD(wparam));
-	assert(accel_id_ >= static_cast<std::uint16_t>(e_modules_accel_id___2::e_matching));
-	assert(accel_id_ <= static_cast<std::uint16_t>(e_modules_accel_id___2::e_properties));
-	e_modules_accel_id___2 const accel_id = static_cast<e_modules_accel_id___2>(accel_id_);
+	assert(accel_id_ >= static_cast<std::uint16_t>(e_modules_accel_id::e_matching));
+	assert(accel_id_ <= static_cast<std::uint16_t>(e_modules_accel_id::e_properties));
+	e_modules_accel_id const accel_id = static_cast<e_modules_accel_id>(accel_id_);
 	switch(accel_id)
 	{
-		case e_modules_accel_id___2::e_matching:
+		case e_modules_accel_id::e_matching:
 		{
 			on_accel_matching();
 		}
 		break;
-		case e_modules_accel_id___2::e_properties:
+		case e_modules_accel_id::e_properties:
 		{
 			on_accel_properties();
 		}
@@ -688,13 +688,13 @@ smart_menu modules_window_impl::create_context_menu()
 {
 	static constexpr wchar_t const* const s_strings[] =
 	{
-		s_modules_menu_str_matching___2,
-		s_modules_menu_str_properties___2,
+		s_modules_menu_str_matching,
+		s_modules_menu_str_properties,
 	};
-	static constexpr e_modules_menu_id___2 const s_ids[] =
+	static constexpr e_modules_menu_id const s_ids[] =
 	{
-		e_modules_menu_id___2::e_matching,
-		e_modules_menu_id___2::e_properties,
+		e_modules_menu_id::e_matching,
+		e_modules_menu_id::e_properties,
 	};
 	static_assert(std::size(s_strings) == std::size(s_ids), "");
 
@@ -870,12 +870,12 @@ void modules_window_impl::sort_view()
 	m_sort.resize(n_items * 2);
 	std::iota(m_sort.begin(), m_sort.begin() + n_items, std::uint16_t{0});
 	std::uint16_t* const sort = m_sort.data();
-	assert(col_ >= static_cast<std::uint16_t>(e_modules_column___2::e_name));
-	assert(col_ <= static_cast<std::uint16_t>(e_modules_column___2::e_path));
-	e_modules_column___2 const col = static_cast<e_modules_column___2>(col_);
+	assert(col_ >= static_cast<std::uint16_t>(e_modules_column::e_name));
+	assert(col_ <= static_cast<std::uint16_t>(e_modules_column::e_path));
+	e_modules_column const col = static_cast<e_modules_column>(col_);
 	switch(col)
 	{
-		case e_modules_column___2::e_name:
+		case e_modules_column::e_name:
 		{
 			auto const fn_compare_name = [&](std::uint16_t const a, std::uint16_t const b) -> bool
 			{
@@ -894,7 +894,7 @@ void modules_window_impl::sort_view()
 			}
 		}
 		break;
-		case e_modules_column___2::e_path:
+		case e_modules_column::e_path:
 		{
 			auto const fn_compare_path = [&](std::uint16_t const a, std::uint16_t const b) -> bool
 			{
