@@ -211,6 +211,8 @@
 		<ClInclude Include="src\gui\main.h" />
 		<ClInclude Include="src\gui\main_window.h" />
 		<ClInclude Include="src\gui\modules_view.h" />
+		<ClInclude Include="src\gui\modules_window.h" />
+		<ClInclude Include="src\gui\modules_window_impl.h" />
 		<ClInclude Include="src\gui\processor.h" />
 		<ClInclude Include="src\gui\processor_impl.h" />
 		<ClInclude Include="src\gui\settings.h" />
@@ -287,6 +289,8 @@
 		<ClCompile Include="src\gui\main.cpp">                       	<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild><ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild></ClCompile>
 		<ClCompile Include="src\gui\main_window.cpp">                	<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild><ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild></ClCompile>
 		<ClCompile Include="src\gui\modules_view.cpp">               	<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild><ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild></ClCompile>
+		<ClCompile Include="src\gui\modules_window.cpp">             	<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild><ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild></ClCompile>
+		<ClCompile Include="src\gui\modules_window_impl.cpp">        	<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild><ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild></ClCompile>
 		<ClCompile Include="src\gui\processor.cpp">                  	<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild><ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild></ClCompile>
 		<ClCompile Include="src\gui\processor_impl.cpp">             	<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild><ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild></ClCompile>
 		<ClCompile Include="src\gui\settings.cpp">                   	<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild><ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild></ClCompile>
