@@ -61,6 +61,7 @@ private:
 	void select_item(file_info const* const& fi);
 	bool command_matching_available(std::uint16_t const& item_idx, file_info const** const out_fi);
 	void command_matching();
+	bool command_properties_available(std::uint16_t const& item_idx, wstring_handle* const out_str);
 	void refresh();
 	void repaint();
 	void sort_view();

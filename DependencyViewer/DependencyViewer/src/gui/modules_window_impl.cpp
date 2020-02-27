@@ -639,6 +639,26 @@ void modules_window_impl::command_matching()
 	m_cmd_matching_fn(m_cmd_matching_ctx, fi);
 }
 
+bool modules_window_impl::command_properties_available(std::uint16_t const& item_idx, wstring_handle* const out_str)
+{
+	modules_list_t const* const modlist = m_modlist;
+	if(!modlist)
+	{
+		return false;
+	}
+	assert(item_idx < modlist->m_count);
+	file_info const* const fi = modlist->m_list[item_idx];
+	assert(fi);
+	assert(!fi->m_orig_instance);
+	wstring_handle const& str = fi->m_file_path;
+	bool const available = !!str;
+	if(available && out_str)
+	{
+		*out_str = str;
+	}
+	return available;
+}
+
 void modules_window_impl::refresh()
 {
 	LRESULT const redr_off = SendMessageW(m_list_view, WM_SETREDRAW, FALSE, 0);
