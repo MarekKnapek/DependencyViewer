@@ -92,6 +92,17 @@ void modules_window::selectitem(file_info const* const& fi)
 	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
 }
 
+void modules_window::setonitemchanged(onitemchanged_fn_t const& onitemchanged_fn, onitemchanged_ctx_t const& onitemchanged_ctx)
+{
+	static_assert(sizeof(onitemchanged_fn) == sizeof(WPARAM), "");
+	static_assert(sizeof(onitemchanged_ctx) == sizeof(LPARAM), "");
+	UINT const msg = static_cast<std::uint32_t>(wm::wm_setonitemchanged);
+	WPARAM const wparam = reinterpret_cast<WPARAM>(onitemchanged_fn);
+	LPARAM const lparam = reinterpret_cast<LPARAM>(onitemchanged_ctx);
+	assert(m_hwnd != nullptr);
+	LRESULT const res = SendMessageW(m_hwnd, msg, wparam, lparam);
+}
+
 void modules_window::setcmdmatching(cmd_matching_fn_t const& cmd_matching_fn, cmd_matching_ctx_t const& cmd_matching_ctx)
 {
 	static_assert(sizeof(cmd_matching_fn) == sizeof(WPARAM), "");

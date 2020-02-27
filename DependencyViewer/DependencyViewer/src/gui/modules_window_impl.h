@@ -47,6 +47,7 @@ private:
 	LRESULT on_wm_translateaccelerator(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setmodlist(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_selectitem(WPARAM const& wparam, LPARAM const& lparam);
+	LRESULT on_wm_setonitemchanged(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setcmdmatching(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setcmdproperties(WPARAM const& wparam, LPARAM const& lparam);
 	void on_getdispinfow(NMHDR& nmhdr);
@@ -79,6 +80,8 @@ private:
 	std::vector<std::uint16_t> m_sort;
 	string_converter m_string_converter;
 	smart_menu m_context_menu;
+	modules_window::onitemchanged_fn_t m_onitemchanged_fn;
+	modules_window::onitemchanged_ctx_t m_onitemchanged_ctx;
 	modules_window::cmd_matching_fn_t m_cmd_matching_fn;
 	modules_window::cmd_matching_ctx_t m_cmd_matching_ctx;
 	modules_window::cmd_properties_fn_t m_cmd_properties_fn;

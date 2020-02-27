@@ -61,6 +61,8 @@ modules_window_impl::modules_window_impl(HWND const& self) :
 	m_sort(),
 	m_string_converter(),
 	m_context_menu(),
+	m_onitemchanged_fn(),
+	m_onitemchanged_ctx(),
 	m_cmd_matching_fn(),
 	m_cmd_matching_ctx(),
 	m_cmd_properties_fn(),
@@ -275,6 +277,12 @@ LRESULT modules_window_impl::on_message(UINT const& msg, WPARAM const& wparam, L
 			return ret;
 		}
 		break;
+		case static_cast<std::uint32_t>(modules_window::wm::wm_setonitemchanged):
+		{
+			LRESULT const ret = on_wm_setonitemchanged(wparam, lparam);
+			return ret;
+		}
+		break;
 		case static_cast<std::uint32_t>(modules_window::wm::wm_setcmdmatching):
 		{
 			LRESULT const ret = on_wm_setcmdmatching(wparam, lparam);
@@ -419,6 +427,20 @@ LRESULT modules_window_impl::on_wm_selectitem(WPARAM const& wparam, LPARAM const
 	select_item(fi);
 
 	UINT const msg = static_cast<std::uint32_t>(modules_window::wm::wm_selectitem);
+	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
+	return ret;
+}
+
+LRESULT modules_window_impl::on_wm_setonitemchanged(WPARAM const& wparam, LPARAM const& lparam)
+{
+	static_assert(sizeof(wparam) == sizeof(modules_window::onitemchanged_fn_t), "");
+	static_assert(sizeof(lparam) == sizeof(modules_window::onitemchanged_ctx_t), "");
+	auto const onitemchanged_fn = reinterpret_cast<modules_window::onitemchanged_fn_t>(wparam);
+	auto const onitemchanged_ctx = reinterpret_cast<modules_window::onitemchanged_ctx_t>(lparam);
+	m_onitemchanged_fn = onitemchanged_fn;
+	m_onitemchanged_ctx = onitemchanged_ctx;
+
+	UINT const msg = static_cast<std::uint32_t>(modules_window::wm::wm_setonitemchanged);
 	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
 	return ret;
 }

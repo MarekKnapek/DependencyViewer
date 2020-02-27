@@ -21,9 +21,12 @@ public:
 		wm_translateaccelerator,
 		wm_setmodlist,
 		wm_selectitem,
+		wm_setonitemchanged,
 		wm_setcmdmatching,
 		wm_setcmdproperties,
 	};
+	using onitemchanged_ctx_t = void*;
+	using onitemchanged_fn_t = void(*)(onitemchanged_ctx_t const, file_info const* const&);
 	using cmd_matching_ctx_t = void*;
 	using cmd_matching_fn_t = void(*)(cmd_matching_ctx_t const, file_info const* const);
 	using cmd_properties_ctx_t = void*;
@@ -45,6 +48,7 @@ public:
 	bool translateaccelerator(MSG& message);
 	void setmodlist(modules_list_t const& ml);
 	void selectitem(file_info const* const& fi);
+	void setonitemchanged(onitemchanged_fn_t const& onitemchanged_fn, onitemchanged_ctx_t const& onitemchanged_ctx);
 	void setcmdmatching(cmd_matching_fn_t const& cmd_matching_fn, cmd_matching_ctx_t const& cmd_matching_ctx);
 	void setcmdproperties(cmd_properties_fn_t const& cmd_properties_fn, cmd_properties_ctx_t const& cmd_properties_ctx);
 public:
