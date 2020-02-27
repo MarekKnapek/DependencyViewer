@@ -5,6 +5,9 @@
 
 #include "../nogui/string_converter.h"
 
+#include <cstdint>
+#include <vector>
+
 #include "../nogui/windows_my.h"
 
 
@@ -37,6 +40,7 @@ private:
 	LRESULT on_wm_repaint(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setmodlist(WPARAM const& wparam, LPARAM const& lparam);
 	void on_getdispinfow(NMHDR& nmhdr);
+	void on_columnclick(NMHDR& nmhdr);
 	wchar_t const* get_col_name(std::uint16_t const& idx);
 	wchar_t const* get_col_path(std::uint16_t const& idx);
 	void refresh();
@@ -47,5 +51,7 @@ private:
 	HWND const m_self;
 	HWND m_list_view;
 	modules_list_t const* m_modlist;
+	std::uint8_t m_sort_col;
+	std::vector<std::uint16_t> m_sort;
 	string_converter m_string_converter;
 };

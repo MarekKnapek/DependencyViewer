@@ -2,13 +2,13 @@
 
 #include "common_controls.h"
 #include "file_info_getters.h"
+#include "list_view_base.h"
 #include "main.h"
 #include "processor.h"
 
 #include "../nogui/cassert_my.h"
 #include "../nogui/scope_exit.h"
 
-#include <cstdint>
 #include <iterator>
 
 #include "../nogui/windows_my.h"
@@ -35,6 +35,8 @@ modules_window_impl::modules_window_impl(HWND const& self) :
 	m_self(self),
 	m_list_view(),
 	m_modlist(),
+	m_sort_col(0xFF),
+	m_sort(),
 	m_string_converter()
 {
 	assert(self != nullptr);
@@ -239,6 +241,11 @@ LRESULT modules_window_impl::on_wm_notify(WPARAM const& wparam, LPARAM const& lp
 				on_getdispinfow(nmhdr);
 			}
 			break;
+			case LVN_COLUMNCLICK:
+			{
+				on_columnclick(nmhdr);
+			}
+			break;
 		}
 	}
 
@@ -302,6 +309,15 @@ void modules_window_impl::on_getdispinfow(NMHDR& nmhdr)
 			break;
 		}
 	}
+}
+
+void modules_window_impl::on_columnclick(NMHDR& nmhdr)
+{
+	NMLISTVIEW const& nmlv = reinterpret_cast<NMLISTVIEW&>(nmhdr);
+	int const new_sort = list_view_base::on_columnclick(&nmlv, static_cast<int>(std::size(s_modules_headers___2)), m_sort_col);
+	assert(new_sort >= 0 && new_sort <= 0xFF);
+	m_sort_col = static_cast<std::uint8_t>(new_sort);
+	list_view_base::refresh_headers(&m_list_view, static_cast<int>(std::size(s_modules_headers___2)), m_sort_col);
 }
 
 wchar_t const* modules_window_impl::get_col_name(std::uint16_t const& idx)
