@@ -46,7 +46,9 @@ modules_window_impl::modules_window_impl(HWND const& self) :
 	m_sort_col(0xFF),
 	m_sort(),
 	m_string_converter(),
-	m_context_menu()
+	m_context_menu(),
+	m_cmd_matching_fn(),
+	m_cmd_matching_ctx()
 {
 	assert(self != nullptr);
 
@@ -380,6 +382,31 @@ bool modules_window_impl::command_matching_available(std::uint16_t const& item_i
 		*out_fi = fi;
 	}
 	return available;
+}
+
+void modules_window_impl::command_matching()
+{
+	int const sel = list_view_base::get_selection(&m_list_view);
+	if(sel == -1)
+	{
+		return;
+	}
+	assert(sel >= 0 && sel <= 0xFFFF);
+	std::uint16_t const line_idx = static_cast<std::uint16_t>(sel);
+	std::uint16_t const item_idx = m_sort.empty() ? line_idx : m_sort[line_idx];
+
+	file_info const* fi;
+	bool const available = command_matching_available(item_idx, &fi);
+	if(!available)
+	{
+		return;
+	}
+
+	if(!m_cmd_matching_fn)
+	{
+		return;
+	}
+	m_cmd_matching_fn(m_cmd_matching_ctx, fi);
 }
 
 void modules_window_impl::refresh()

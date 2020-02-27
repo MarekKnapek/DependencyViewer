@@ -47,6 +47,7 @@ private:
 	wchar_t const* get_col_path(std::uint16_t const& idx);
 	smart_menu create_context_menu();
 	bool command_matching_available(std::uint16_t const& item_idx, file_info const** const out_fi);
+	void command_matching();
 	void refresh();
 	void repaint();
 	void sort_view();
@@ -60,4 +61,6 @@ private:
 	std::vector<std::uint16_t> m_sort;
 	string_converter m_string_converter;
 	smart_menu m_context_menu;
+	modules_window::cmd_matching_fn_t m_cmd_matching_fn;
+	modules_window::cmd_matching_ctx_t m_cmd_matching_ctx;
 };

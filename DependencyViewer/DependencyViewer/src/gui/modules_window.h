@@ -6,6 +6,7 @@
 #include "../nogui/windows_my.h"
 
 
+struct file_info;
 struct modules_list_t;
 
 
@@ -17,6 +18,8 @@ public:
 		wm_repaint = WM_USER + 1,
 		wm_setmodlist,
 	};
+	using cmd_matching_ctx_t = void*;
+	using cmd_matching_fn_t = void(*)(cmd_matching_ctx_t const, file_info const* const);
 public:
 	modules_window() noexcept;
 	modules_window(HWND const& parent);
