@@ -212,6 +212,12 @@ LRESULT modules_window_impl::on_message(UINT const& msg, WPARAM const& wparam, L
 			return ret;
 		}
 		break;
+		case WM_COMMAND:
+		{
+			LRESULT const ret = on_wm_command(wparam, lparam);
+			return ret;
+		}
+		break;
 		case static_cast<std::uint32_t>(modules_window::wm::wm_repaint):
 		{
 			LRESULT const ret = on_wm_repaint(wparam, lparam);
@@ -304,6 +310,12 @@ LRESULT modules_window_impl::on_wm_contextmenu(WPARAM const& wparam, LPARAM cons
 	fn_on_wm_contextmenu();
 
 	LRESULT const ret = DefWindowProcW(m_self, WM_CONTEXTMENU, wparam, lparam);
+	return ret;
+}
+
+LRESULT modules_window_impl::on_wm_command(WPARAM const& wparam, LPARAM const& lparam)
+{
+	LRESULT const ret = DefWindowProcW(m_self, WM_COMMAND, wparam, lparam);
 	return ret;
 }
 
