@@ -208,6 +208,19 @@ LRESULT tree_window_impl::on_wm_size(WPARAM const& wparam, LPARAM const& lparam)
 
 LRESULT tree_window_impl::on_wm_notify(WPARAM const& wparam, LPARAM const& lparam)
 {
+	NMHDR& nmhdr = *reinterpret_cast<NMHDR*>(lparam);
+	if(nmhdr.hwndFrom == m_tree_view)
+	{
+		switch(nmhdr.code)
+		{
+			case TVN_GETDISPINFOW:
+			{
+				on_getdispinfow(nmhdr);
+			}
+			break;
+		}
+	}
+
 	LRESULT const ret = DefWindowProcW(m_self, WM_NOTIFY, wparam, lparam);
 	return ret;
 }
@@ -242,6 +255,20 @@ LRESULT tree_window_impl::on_wm_setfullpaths(WPARAM const& wparam, LPARAM const&
 	UINT const msg = static_cast<std::uint32_t>(tree_window::wm::wm_setfullpaths);
 	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
 	return ret;
+}
+
+void tree_window_impl::on_getdispinfow(NMHDR& nmhdr)
+{
+	NMTVDISPINFOW& di = reinterpret_cast<NMTVDISPINFOW&>(nmhdr);
+	if((di.item.mask & TVIF_TEXT) != 0)
+	{
+		di.item.pszText = const_cast<wchar_t*>(L"");
+	}
+	if((di.item.mask & (TVIF_IMAGE | TVIF_SELECTEDIMAGE)) != 0)
+	{
+		di.item.iImage = 0;
+		di.item.iSelectedImage = di.item.iImage;
+	}
 }
 
 void tree_window_impl::refresh(file_info* const& fi)
