@@ -7,8 +7,8 @@
 #include <cstdint>
 
 
-struct htreeitem_s;
-typedef htreeitem_s* htreeitem;
+struct htreeitem_t;
+typedef htreeitem_t* htreeitem;
 
 
 struct file_info

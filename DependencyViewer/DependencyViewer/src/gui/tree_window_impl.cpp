@@ -2,8 +2,10 @@
 
 #include "common_controls.h"
 #include "main.h"
+#include "processor.h"
 
 #include "../nogui/cassert_my.h"
+#include "../nogui/scope_exit.h"
 
 #include "../res/resources.h"
 
@@ -204,10 +206,88 @@ LRESULT tree_window_impl::on_wm_setfi(WPARAM const& wparam, LPARAM const& lparam
 {
 	file_info* const fi = reinterpret_cast<file_info*>(lparam);
 	m_fi = fi;
+	refresh(fi);
 
 	UINT const msg = static_cast<std::uint32_t>(tree_window::wm::wm_setfi);
 	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
 	return ret;
+}
+
+void tree_window_impl::refresh(file_info* const& fi)
+{
+	LRESULT const redr_off = SendMessageW(m_tree_view, WM_SETREDRAW, FALSE, 0);
+	assert(redr_off == 0);
+	auto const fn_redraw = mk::make_scope_exit([&]()
+	{
+		LRESULT const redr_on = SendMessageW(m_tree_view, WM_SETREDRAW, TRUE, 0);
+		assert(redr_on == 0);
+		repaint();
+	});
+	LRESULT const deselected = SendMessageW(m_tree_view, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(nullptr));
+	assert(deselected == TRUE);
+	LRESULT const deleted = SendMessageW(m_tree_view, TVM_DELETEITEM, 0, reinterpret_cast<LPARAM>(TVI_ROOT));
+	assert(deleted == TRUE);
+
+	if(!fi)
+	{
+		return;
+	}
+	htreeitem const parent = reinterpret_cast<htreeitem>(TVI_ROOT);
+	refresh_r(fi, parent);
+	std::uint16_t const n = fi->m_import_table.m_normal_dll_count + fi->m_import_table.m_delay_dll_count;
+	for(std::uint16_t i = 0; i != n; ++i)
+	{
+		file_info* const& sub_fi = fi->m_fis + i;
+		assert(sub_fi->m_tree_item != nullptr);
+		LRESULT const expanded = SendMessageW(m_tree_view, TVM_EXPAND, TVE_EXPAND, reinterpret_cast<LPARAM>(sub_fi->m_tree_item));
+	}
+	HTREEITEM const first = reinterpret_cast<HTREEITEM>(fi->m_fis[0].m_tree_item);
+	LRESULT const visibled = SendMessageW(m_tree_view, TVM_ENSUREVISIBLE, 0, reinterpret_cast<LPARAM>(first));
+	LRESULT const selected = SendMessageW(m_tree_view, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(first));
+	assert(deselected == TRUE);
+}
+
+void tree_window_impl::refresh_r(file_info* const& fi, htreeitem const& parent_ti)
+{
+	if(!fi)
+	{
+		return;
+	}
+	std::uint16_t const n = fi->m_import_table.m_normal_dll_count + fi->m_import_table.m_delay_dll_count;
+	for(std::uint16_t i = 0; i != n; ++i)
+	{
+		file_info* const& sub_fi = fi->m_fis + i;
+		refresh_e(sub_fi, parent_ti);
+	}
+}
+
+void tree_window_impl::refresh_e(file_info* const& fi, htreeitem const& parent_ti)
+{
+	TVINSERTSTRUCTW tvi;
+	tvi.hParent = reinterpret_cast<HTREEITEM>(parent_ti);
+	tvi.hInsertAfter = TVI_LAST;
+	tvi.itemex.mask = TVIF_TEXT | TVIF_IMAGE | TVIF_PARAM | TVIF_SELECTEDIMAGE;
+	tvi.itemex.hItem = nullptr;
+	tvi.itemex.state = 0;
+	tvi.itemex.stateMask = 0;
+	tvi.itemex.pszText = LPSTR_TEXTCALLBACKW;
+	tvi.itemex.cchTextMax = 0;
+	tvi.itemex.iImage = I_IMAGECALLBACK;
+	tvi.itemex.iSelectedImage = I_IMAGECALLBACK;
+	tvi.itemex.cChildren = 0;
+	tvi.itemex.lParam = reinterpret_cast<LPARAM>(fi);
+	tvi.itemex.iIntegral = 0;
+	tvi.itemex.uStateEx = 0;
+	tvi.itemex.hwnd = nullptr;
+	tvi.itemex.iExpandedImage = 0;
+	tvi.itemex.iReserved = 0;
+	LRESULT const ti_ = SendMessageW(m_tree_view, TVM_INSERTITEMW, 0, reinterpret_cast<LPARAM>(&tvi));
+	HTREEITEM const ti = reinterpret_cast<HTREEITEM>(ti_);
+	assert(ti != nullptr);
+	assert(fi->m_tree_item == nullptr);
+	fi->m_tree_item = reinterpret_cast<htreeitem>(ti);
+	htreeitem const parent = reinterpret_cast<htreeitem>(ti);
+	refresh_r(fi, parent);
 }
 
 void tree_window_impl::repaint()

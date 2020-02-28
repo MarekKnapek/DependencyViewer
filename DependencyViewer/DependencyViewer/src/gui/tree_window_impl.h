@@ -7,6 +7,8 @@
 
 
 struct file_info;
+struct htreeitem_t;
+typedef htreeitem_t* htreeitem;
 
 
 class tree_window_impl
@@ -33,6 +35,9 @@ private:
 	LRESULT on_wm_size(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_repaint(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setfi(WPARAM const& wparam, LPARAM const& lparam);
+	void refresh(file_info* const& fi);
+	void refresh_r(file_info* const& fi, htreeitem const& parent_ti);
+	void refresh_e(file_info* const& fi, htreeitem const& parent_ti);
 	void repaint();
 private:
 	static ATOM g_class;
