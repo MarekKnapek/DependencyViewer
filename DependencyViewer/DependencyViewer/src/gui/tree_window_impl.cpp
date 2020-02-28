@@ -273,6 +273,12 @@ LRESULT tree_window_impl::on_message(UINT const& msg, WPARAM const& wparam, LPAR
 			return ret;
 		}
 		break;
+		case static_cast<std::uint32_t>(tree_window::wm::wm_iscmdpropertiesavail):
+		{
+			LRESULT const ret = on_wm_iscmdpropertiesavail(wparam, lparam);
+			return ret;
+		}
+		break;
 		case static_cast<std::uint32_t>(tree_window::wm::wm_setfullpaths):
 		{
 			LRESULT const ret = on_wm_setfullpaths(wparam, lparam);
@@ -445,6 +451,27 @@ LRESULT tree_window_impl::on_wm_selectitem(WPARAM const& wparam, LPARAM const& l
 	select_item(fi);
 
 	UINT const msg = static_cast<std::uint32_t>(tree_window::wm::wm_selectitem);
+	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
+	return ret;
+}
+
+LRESULT tree_window_impl::on_wm_iscmdpropertiesavail(WPARAM const& wparam, LPARAM const& lparam)
+{
+	auto const fn_is_avail = [&]() -> bool
+	{
+		file_info const* const selection_fi = get_selection();
+		if(!selection_fi)
+		{
+			return false;
+		}
+		bool const avail = cmd_properties_avail(selection_fi, nullptr);
+		return avail;
+	};
+
+	bool& avail = *reinterpret_cast<bool*>(lparam);
+	avail = fn_is_avail();
+
+	UINT const msg = static_cast<std::uint32_t>(tree_window::wm::wm_iscmdpropertiesavail);
 	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
 	return ret;
 }

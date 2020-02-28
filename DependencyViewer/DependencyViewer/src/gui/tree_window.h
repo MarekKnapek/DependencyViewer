@@ -19,6 +19,7 @@ public:
 		wm_setfi,
 		wm_getselection,
 		wm_selectitem,
+		wm_iscmdpropertiesavail,
 		wm_setfullpaths,
 		wm_setonitemchanged,
 		wm_setcmdmatching,
@@ -45,6 +46,7 @@ public:
 	void setfi(file_info* const& fi);
 	file_info const* getselection();
 	void selectitem(file_info const* const& fi);
+	bool iscmdpropertiesavail();
 	void setfullpaths(bool const& fullpaths);
 	void setonitemchanged(onitemchanged_fn_t const& onitemchanged_fn, onitemchanged_ctx_t const& onitemchanged_ctx);
 	void setcmdmatching(cmd_matching_fn_t const& cmd_matching_fn, cmd_matching_ctx_t const& cmd_matching_ctx);

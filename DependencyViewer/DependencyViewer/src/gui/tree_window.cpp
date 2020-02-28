@@ -102,6 +102,17 @@ void tree_window::selectitem(file_info const* const& fi)
 	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
 }
 
+bool tree_window::iscmdpropertiesavail()
+{
+	bool avail;
+	UINT const msg = static_cast<std::uint32_t>(wm::wm_iscmdpropertiesavail);
+	WPARAM const wparam = 0;
+	LPARAM const lparam = reinterpret_cast<LPARAM>(&avail);
+	assert(m_hwnd != nullptr);
+	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
+	return avail;
+}
+
 void tree_window::setfullpaths(bool const& fullpaths)
 {
 	UINT const msg = static_cast<std::uint32_t>(wm::wm_setfullpaths);
