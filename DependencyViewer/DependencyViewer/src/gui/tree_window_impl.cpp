@@ -390,3 +390,16 @@ void tree_window_impl::repaint()
 	BOOL const redrawn = RedrawWindow(m_tree_view, nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_FRAME);
 	assert(redrawn != 0);
 }
+
+file_info const* tree_window_impl::htreeitem_2_file_info(htreeitem const& hti)
+{
+	assert(hti);
+	TVITEMW ti;
+	ti.hItem = reinterpret_cast<HTREEITEM>(hti);
+	ti.mask = TVIF_PARAM;
+	LRESULT const got_item = SendMessageW(m_tree_view, TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
+	assert(got_item == TRUE);
+	assert(ti.lParam != 0);
+	file_info const* const ret = reinterpret_cast<file_info const*>(ti.lParam);
+	return ret;
+}

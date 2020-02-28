@@ -45,6 +45,7 @@ private:
 	void refresh_r(file_info* const& fi, htreeitem const& parent_ti);
 	void refresh_e(file_info* const& fi, htreeitem const& parent_ti);
 	void repaint();
+	file_info const* htreeitem_2_file_info(htreeitem const& hti);
 private:
 	static ATOM g_class;
 private:
