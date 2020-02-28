@@ -48,6 +48,7 @@ private:
 	file_info const* get_selection();
 	void select_item(file_info const* const& fi);
 	bool cmd_matching_avail(file_info const* const& fi, file_info const** const& out_fi);
+	void cmd_matching();
 	void refresh(file_info* const& fi);
 	void refresh_r(file_info* const& fi, htreeitem const& parent_ti);
 	void refresh_e(file_info* const& fi, htreeitem const& parent_ti);

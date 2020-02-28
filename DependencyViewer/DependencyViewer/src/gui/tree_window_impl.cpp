@@ -418,6 +418,20 @@ bool tree_window_impl::cmd_matching_avail(file_info const* const& fi, file_info 
 	return avail;
 }
 
+void tree_window_impl::cmd_matching()
+{
+	file_info const* const curr_fi = get_selection();
+	file_info const* fi;
+	bool const avail = cmd_matching_avail(curr_fi, &fi);
+	if(!avail)
+	{
+		return;
+	}
+	assert(fi);
+	assert(m_cmd_matching_fn);
+	m_cmd_matching_fn(m_cmd_matching_ctx, fi);
+}
+
 void tree_window_impl::refresh(file_info* const& fi)
 {
 	LRESULT const redr_off = SendMessageW(m_tree_view, WM_SETREDRAW, FALSE, 0);
