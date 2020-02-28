@@ -59,7 +59,7 @@ void tree_window::repaint()
 	WPARAM const wparam = 0;
 	LPARAM const lparam = 0;
 	assert(m_hwnd != nullptr);
-	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
+	LRESULT const res = SendMessageW(m_hwnd, msg, wparam, lparam);
 }
 
 bool tree_window::translateaccelerator(MSG& message)
@@ -69,7 +69,7 @@ bool tree_window::translateaccelerator(MSG& message)
 	WPARAM const wparam = reinterpret_cast<WPARAM>(&translated);
 	LPARAM const lparam = reinterpret_cast<LPARAM>(&message);
 	assert(m_hwnd != nullptr);
-	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
+	LRESULT const res = SendMessageW(m_hwnd, msg, wparam, lparam);
 	return translated;
 }
 
@@ -79,7 +79,7 @@ void tree_window::setfi(file_info* const& fi)
 	WPARAM const wparam = 0;
 	LPARAM const lparam = reinterpret_cast<LPARAM>(fi);
 	assert(m_hwnd != nullptr);
-	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
+	LRESULT const res = SendMessageW(m_hwnd, msg, wparam, lparam);
 }
 
 file_info const* tree_window::getselection()
@@ -89,7 +89,7 @@ file_info const* tree_window::getselection()
 	WPARAM const wparam = 0;
 	LPARAM const lparam = reinterpret_cast<LPARAM>(&fi);
 	assert(m_hwnd != nullptr);
-	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
+	LRESULT const res = SendMessageW(m_hwnd, msg, wparam, lparam);
 	return fi;
 }
 
@@ -99,7 +99,7 @@ void tree_window::selectitem(file_info const* const& fi)
 	WPARAM const wparam = 0;
 	LPARAM const lparam = reinterpret_cast<LPARAM>(fi);
 	assert(m_hwnd != nullptr);
-	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
+	LRESULT const res = SendMessageW(m_hwnd, msg, wparam, lparam);
 }
 
 bool tree_window::iscmdpropertiesavail()
@@ -109,7 +109,7 @@ bool tree_window::iscmdpropertiesavail()
 	WPARAM const wparam = 0;
 	LPARAM const lparam = reinterpret_cast<LPARAM>(&avail);
 	assert(m_hwnd != nullptr);
-	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
+	LRESULT const res = SendMessageW(m_hwnd, msg, wparam, lparam);
 	return avail;
 }
 
@@ -119,7 +119,7 @@ void tree_window::setfullpaths(bool const& fullpaths)
 	WPARAM const wparam = fullpaths ? 1 : 0;
 	LPARAM const lparam = 0;
 	assert(m_hwnd != nullptr);
-	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
+	LRESULT const res = SendMessageW(m_hwnd, msg, wparam, lparam);
 }
 
 void tree_window::setonitemchanged(onitemchanged_fn_t const& onitemchanged_fn, onitemchanged_ctx_t const& onitemchanged_ctx)

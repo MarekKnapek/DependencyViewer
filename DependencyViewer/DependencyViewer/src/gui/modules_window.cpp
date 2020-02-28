@@ -59,7 +59,7 @@ void modules_window::repaint()
 	WPARAM const wparam = 0;
 	LPARAM const lparam = 0;
 	assert(m_hwnd != nullptr);
-	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
+	LRESULT const res = SendMessageW(m_hwnd, msg, wparam, lparam);
 }
 
 bool modules_window::translateaccelerator(MSG& message)
@@ -69,7 +69,7 @@ bool modules_window::translateaccelerator(MSG& message)
 	WPARAM const wparam = reinterpret_cast<WPARAM>(&translated);
 	LPARAM const lparam = reinterpret_cast<LPARAM>(&message);
 	assert(m_hwnd != nullptr);
-	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
+	LRESULT const res = SendMessageW(m_hwnd, msg, wparam, lparam);
 	return translated;
 }
 
@@ -79,7 +79,7 @@ void modules_window::setmodlist(modules_list_t const& ml)
 	WPARAM const wparam = 0;
 	LPARAM const lparam = reinterpret_cast<LPARAM>(&ml);
 	assert(m_hwnd != nullptr);
-	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
+	LRESULT const res = SendMessageW(m_hwnd, msg, wparam, lparam);
 }
 
 void modules_window::selectitem(file_info const* const& fi)
@@ -89,7 +89,7 @@ void modules_window::selectitem(file_info const* const& fi)
 	WPARAM const wparam = 0;
 	LPARAM const lparam = reinterpret_cast<LPARAM>(fi);
 	assert(m_hwnd != nullptr);
-	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
+	LRESULT const res = SendMessageW(m_hwnd, msg, wparam, lparam);
 }
 
 bool modules_window::iscmdpropertiesavail()
@@ -99,7 +99,7 @@ bool modules_window::iscmdpropertiesavail()
 	WPARAM const wparam = 0;
 	LPARAM const lparam = reinterpret_cast<LPARAM>(&avail);
 	assert(m_hwnd != nullptr);
-	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
+	LRESULT const res = SendMessageW(m_hwnd, msg, wparam, lparam);
 	return avail;
 }
 

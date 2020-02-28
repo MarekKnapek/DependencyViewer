@@ -59,7 +59,7 @@ void import_window::repaint()
 	WPARAM const wparam = 0;
 	LPARAM const lparam = 0;
 	assert(m_hwnd != nullptr);
-	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
+	LRESULT const res = SendMessageW(m_hwnd, msg, wparam, lparam);
 }
 
 bool import_window::translateaccelerator(MSG& message)
@@ -69,7 +69,7 @@ bool import_window::translateaccelerator(MSG& message)
 	WPARAM const wparam = reinterpret_cast<WPARAM>(&translated);
 	LPARAM const lparam = reinterpret_cast<LPARAM>(&message);
 	assert(m_hwnd != nullptr);
-	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
+	LRESULT const res = SendMessageW(m_hwnd, msg, wparam, lparam);
 	return translated;
 }
 
@@ -79,7 +79,7 @@ void import_window::setfi(file_info const* const& fi)
 	WPARAM const wparam = 0;
 	LPARAM const lparam = reinterpret_cast<LPARAM>(fi);
 	assert(m_hwnd != nullptr);
-	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
+	LRESULT const res = SendMessageW(m_hwnd, msg, wparam, lparam);
 }
 
 void import_window::setundecorate(bool const& undecorate)
@@ -88,7 +88,7 @@ void import_window::setundecorate(bool const& undecorate)
 	WPARAM const wparam = undecorate ? 1 : 0;
 	LPARAM const lparam = 0;
 	assert(m_hwnd != nullptr);
-	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
+	LRESULT const res = SendMessageW(m_hwnd, msg, wparam, lparam);
 }
 
 void import_window::selectitem(std::uint16_t const& item_idx)
@@ -97,7 +97,7 @@ void import_window::selectitem(std::uint16_t const& item_idx)
 	WPARAM const wparam = item_idx;
 	LPARAM const lparam = 0;
 	assert(m_hwnd != nullptr);
-	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
+	LRESULT const res = SendMessageW(m_hwnd, msg, wparam, lparam);
 }
 
 void import_window::setcmdmatching(cmd_matching_fn_t const& cmd_matching_fn, cmd_matching_ctx_t const& cmd_matching_ctx)
