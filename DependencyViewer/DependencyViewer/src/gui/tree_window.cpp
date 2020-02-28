@@ -71,6 +71,17 @@ void tree_window::setfi(file_info* const& fi)
 	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
 }
 
+file_info const* tree_window::getselection()
+{
+	file_info const* fi;
+	UINT const msg = static_cast<std::uint32_t>(wm::wm_getselection);
+	WPARAM const wparam = 0;
+	LPARAM const lparam = reinterpret_cast<LPARAM>(&fi);
+	assert(m_hwnd != nullptr);
+	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
+	return fi;
+}
+
 void tree_window::selectitem(file_info const* const& fi)
 {
 	UINT const msg = static_cast<std::uint32_t>(wm::wm_selectitem);

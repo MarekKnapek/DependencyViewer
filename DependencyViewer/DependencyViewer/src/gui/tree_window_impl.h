@@ -38,6 +38,7 @@ private:
 	LRESULT on_wm_notify(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_repaint(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setfi(WPARAM const& wparam, LPARAM const& lparam);
+	LRESULT on_wm_getselection(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_selectitem(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setfullpaths(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setonitemchanged(WPARAM const& wparam, LPARAM const& lparam);
