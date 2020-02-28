@@ -438,12 +438,22 @@ void tree_window_impl::on_menu(WPARAM const& wparam)
 	e_tree_menu_id___2 const menu_id = static_cast<e_tree_menu_id___2>(menu_id_);
 	switch(menu_id)
 	{
+		case e_tree_menu_id___2::e_matching:
+		{
+			on_menu_matching();
+		}
+		break;
 		default:
 		{
 			assert(false);
 		}
 		break;
 	}
+}
+
+void tree_window_impl::on_menu_matching()
+{
+	cmd_matching();
 }
 
 void tree_window_impl::on_selchangedw([[maybe_unused]] NMHDR& nmhdr)
