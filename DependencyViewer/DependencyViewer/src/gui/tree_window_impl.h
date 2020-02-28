@@ -51,6 +51,7 @@ private:
 	LRESULT on_wm_setcmdmatching(WPARAM const& wparam, LPARAM const& lparam);
 	void on_getdispinfow(NMHDR& nmhdr);
 	void on_menu(WPARAM const& wparam);
+	void on_accelerator(WPARAM const& wparam);
 	void on_menu_matching();
 	void on_selchangedw(NMHDR& nmhdr);
 	file_info const* get_selection();
