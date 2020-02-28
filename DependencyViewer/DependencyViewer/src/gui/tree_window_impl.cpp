@@ -331,24 +331,24 @@ void tree_window_impl::on_getdispinfow(NMHDR& nmhdr)
 
 void tree_window_impl::on_selchangedw([[maybe_unused]] NMHDR& nmhdr)
 {
-	auto const fn_get_fi = [&]() -> file_info const*
-	{
-		LRESULT const selected_ = SendMessageW(m_tree_view, TVM_GETNEXTITEM, TVGN_CARET, 0);
-		if(selected_ == 0)
-		{
-			return nullptr;
-		}
-		HTREEITEM const selected = reinterpret_cast<HTREEITEM>(selected_);
-		file_info const* const fi = htreeitem_2_file_info(reinterpret_cast<htreeitem>(selected));
-		assert(fi);
-		return fi;
-	};
-
-	file_info const* const fi = fn_get_fi();
+	file_info const* const fi = get_selection();
 	if(m_onitemchanged_fn)
 	{
 		m_onitemchanged_fn(m_onitemchanged_ctx, fi);
 	}
+}
+
+file_info const* tree_window_impl::get_selection()
+{
+	LRESULT const selected_ = SendMessageW(m_tree_view, TVM_GETNEXTITEM, TVGN_CARET, 0);
+	if(selected_ == 0)
+	{
+		return nullptr;
+	}
+	HTREEITEM const selected = reinterpret_cast<HTREEITEM>(selected_);
+	file_info const* const fi = htreeitem_2_file_info(reinterpret_cast<htreeitem>(selected));
+	assert(fi);
+	return fi;
 }
 
 void tree_window_impl::select_item(file_info const* const& fi)
