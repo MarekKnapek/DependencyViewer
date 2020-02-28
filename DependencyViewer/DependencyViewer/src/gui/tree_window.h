@@ -16,6 +16,7 @@ public:
 	{
 		wm_repaint = WM_USER + 1,
 		wm_setfi,
+		wm_setfullpaths,
 	};
 public:
 	tree_window() noexcept;
@@ -32,6 +33,7 @@ public:
 public:
 	void repaint();
 	void setfi(file_info* const& fi);
+	void setfullpaths(bool const& fullpaths);
 public:
 	HWND const& get_hwnd() const;
 private:

@@ -20,7 +20,8 @@ ATOM tree_window_impl::g_class;
 tree_window_impl::tree_window_impl(HWND const& self) :
 	m_self(self),
 	m_tree_view(),
-	m_fi()
+	m_fi(),
+	m_fullpaths(false)
 {
 	assert(self != nullptr);
 
@@ -171,6 +172,12 @@ LRESULT tree_window_impl::on_message(UINT const& msg, WPARAM const& wparam, LPAR
 			return ret;
 		}
 		break;
+		case static_cast<std::uint32_t>(tree_window::wm::wm_setfullpaths):
+		{
+			LRESULT const ret = on_wm_setfullpaths(wparam, lparam);
+			return ret;
+		}
+		break;
 		default:
 		{
 			LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
@@ -209,6 +216,18 @@ LRESULT tree_window_impl::on_wm_setfi(WPARAM const& wparam, LPARAM const& lparam
 	refresh(fi);
 
 	UINT const msg = static_cast<std::uint32_t>(tree_window::wm::wm_setfi);
+	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
+	return ret;
+}
+
+LRESULT tree_window_impl::on_wm_setfullpaths(WPARAM const& wparam, LPARAM const& lparam)
+{
+	assert(wparam == 0 || wparam == 1);
+	bool const fullpaths = wparam != 0;
+	m_fullpaths = fullpaths;
+	repaint();
+
+	UINT const msg = static_cast<std::uint32_t>(tree_window::wm::wm_setfullpaths);
 	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
 	return ret;
 }
