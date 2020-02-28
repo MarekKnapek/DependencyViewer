@@ -24,8 +24,18 @@ enum class e_tree_menu_id___2 : std::uint16_t
 };
 static constexpr wchar_t const s_tree_menu_str_matching[] = L"&Highlight Matching Module In List\tCtrl+M";
 
+enum class e_tree_accel_id : std::uint16_t
+{
+	e_matching,
+};
+static constexpr ACCEL const s_tree_accel_table[] =
+{
+	{FVIRTKEY | FCONTROL, 'M', static_cast<std::uint16_t>(e_tree_accel_id::e_matching)},
+};
+
 
 ATOM tree_window_impl::g_class;
+HACCEL tree_window_impl::g_accel;
 
 
 tree_window_impl::tree_window_impl(HWND const& self) :
@@ -74,10 +84,12 @@ tree_window_impl::~tree_window_impl()
 void tree_window_impl::init()
 {
 	register_class();
+	create_accel_table();
 }
 
 void tree_window_impl::deinit()
 {
+	destroy_accel_table();
 	unregister_class();
 }
 
@@ -114,6 +126,21 @@ void tree_window_impl::unregister_class()
 	BOOL const unregistered = UnregisterClassW(reinterpret_cast<wchar_t const*>(g_class), get_instance());
 	assert(unregistered != 0);
 	g_class = 0;
+}
+
+void tree_window_impl::create_accel_table()
+{
+	assert(g_accel == nullptr);
+	g_accel = CreateAcceleratorTableW(const_cast<ACCEL*>(s_tree_accel_table), static_cast<int>(std::size(s_tree_accel_table)));
+	assert(g_accel != nullptr);
+}
+
+void tree_window_impl::destroy_accel_table()
+{
+	assert(g_accel != nullptr);
+	BOOL const destroyed = DestroyAcceleratorTable(g_accel);
+	assert(destroyed != 0);
+	g_accel = nullptr;
 }
 
 LRESULT CALLBACK tree_window_impl::class_proc(HWND const hwnd, UINT const msg, WPARAM const wparam, LPARAM const lparam)
