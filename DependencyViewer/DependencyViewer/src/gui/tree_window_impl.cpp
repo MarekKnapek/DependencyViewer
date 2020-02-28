@@ -10,10 +10,19 @@
 
 #include "../res/resources.h"
 
+#include <iterator>
+
 #include "../nogui/windows_my.h"
 
 #include <commctrl.h>
 #include <windowsx.h>
+
+
+enum class e_tree_menu_id___2 : std::uint16_t
+{
+	e_matching,
+};
+static constexpr wchar_t const s_tree_menu_str_matching[] = L"&Highlight Matching Module In List\tCtrl+M";
 
 
 ATOM tree_window_impl::g_class;
@@ -400,6 +409,35 @@ void tree_window_impl::select_item(file_info const* const& fi)
 	assert(selected == TRUE);
 	[[maybe_unused]] HWND const prev_focus = SetFocus(m_tree_view);
 	assert(prev_focus != nullptr);
+}
+
+smart_menu tree_window_impl::create_context_menu()
+{
+	static constexpr wchar_t const* const s_strings[] =
+	{
+		s_tree_menu_str_matching,
+	};
+	static constexpr e_tree_menu_id___2 const s_ids[] =
+	{
+		e_tree_menu_id___2::e_matching,
+	};
+	static_assert(std::size(s_strings) == std::size(s_ids), "");
+
+	HMENU const menu = CreatePopupMenu();
+	assert(menu);
+	smart_menu menu_sp{menu};
+	for(int i = 0; i != static_cast<int>(std::size(s_strings)); ++i)
+	{
+		MENUITEMINFOW mi{};
+		mi.cbSize = sizeof(mi);
+		mi.fMask = MIIM_ID | MIIM_STRING | MIIM_FTYPE;
+		mi.fType = MFT_STRING;
+		mi.wID = static_cast<std::uint16_t>(s_ids[i]);
+		mi.dwTypeData = const_cast<wchar_t*>(s_strings[i]);
+		BOOL const inserted = InsertMenuItemW(menu, i, TRUE, &mi);
+		assert(inserted != 0);
+	}
+	return menu_sp;
 }
 
 bool tree_window_impl::cmd_matching_avail(file_info const* const& fi, file_info const** const& out_fi)

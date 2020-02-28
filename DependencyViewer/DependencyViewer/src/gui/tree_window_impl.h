@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include "smart_menu.h"
 #include "tree_window.h"
 
 #include "../nogui/string_converter.h"
@@ -47,6 +48,7 @@ private:
 	void on_selchangedw(NMHDR& nmhdr);
 	file_info const* get_selection();
 	void select_item(file_info const* const& fi);
+	smart_menu create_context_menu();
 	bool cmd_matching_avail(file_info const* const& fi, file_info const** const& out_fi);
 	void cmd_matching();
 	void refresh(file_info* const& fi);
