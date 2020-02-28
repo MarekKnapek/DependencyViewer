@@ -148,6 +148,32 @@ LRESULT tree_window_impl::on_wm_destroy(HWND const& hwnd, WPARAM const& wparam, 
 
 LRESULT tree_window_impl::on_message(UINT const& msg, WPARAM const& wparam, LPARAM const& lparam)
 {
-	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
+	switch(msg)
+	{
+		case WM_SIZE:
+		{
+			LRESULT const ret = on_wm_size(wparam, lparam);
+			return ret;
+		}
+		break;
+		default:
+		{
+			LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
+			return ret;
+		}
+		break;
+	}
+}
+
+LRESULT tree_window_impl::on_wm_size(WPARAM const& wparam, LPARAM const& lparam)
+{
+	RECT rect;
+	BOOL const got = GetClientRect(m_self, &rect);
+	assert(got != 0);
+	assert(rect.left == 0 && rect.top == 0);
+	BOOL const moved = MoveWindow(m_tree_view, 0, 0, rect.right, rect.bottom, TRUE);
+	assert(moved != 0);
+
+	LRESULT const ret = DefWindowProcW(m_self, WM_SIZE, wparam, lparam);
 	return ret;
 }
