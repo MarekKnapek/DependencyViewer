@@ -510,6 +510,11 @@ void tree_window_impl::on_accelerator(WPARAM const& wparam)
 	e_tree_accel_id const accel_id = static_cast<e_tree_accel_id>(accel_id_);
 	switch(accel_id)
 	{
+		case e_tree_accel_id::e_matching:
+		{
+			on_accel_matching();
+		}
+		break;
 		default:
 		{
 			assert(false);
@@ -519,6 +524,11 @@ void tree_window_impl::on_accelerator(WPARAM const& wparam)
 }
 
 void tree_window_impl::on_menu_matching()
+{
+	cmd_matching();
+}
+
+void tree_window_impl::on_accel_matching()
 {
 	cmd_matching();
 }

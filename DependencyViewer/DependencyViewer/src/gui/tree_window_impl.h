@@ -53,6 +53,7 @@ private:
 	void on_menu(WPARAM const& wparam);
 	void on_accelerator(WPARAM const& wparam);
 	void on_menu_matching();
+	void on_accel_matching();
 	void on_selchangedw(NMHDR& nmhdr);
 	file_info const* get_selection();
 	void select_item(file_info const* const& fi);
