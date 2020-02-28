@@ -230,6 +230,24 @@ main_window::main_window() :
 	BOOL const got_rect = GetClientRect(m_hwnd, &r);
 	LRESULT const moved = on_wm_size(0, ((static_cast<unsigned>(r.bottom) & 0xFFFFu) << 16) | (static_cast<unsigned>(r.right) & 0xFFFFu));
 
+	connect_signals();
+
+	static constexpr auto const process_cmd_line_task = [](main_window& self, idle_task_param_t const /*param*/) -> void { self.process_command_line(); };
+	add_idle_task(process_cmd_line_task, nullptr);
+
+	m_settings.m_full_paths = false;
+	m_settings.m_undecorate = false;
+	commands_availability_refresh();
+}
+
+main_window::~main_window()
+{
+	assert(m_idle_tasks.empty());
+	assert(m_dbg_tasks.empty());
+}
+
+void main_window::connect_signals()
+{
 	static constexpr auto const tree_onitemchanged_fn_ = [](tree_window::onitemchanged_ctx_t const ctx, file_info const* const& fi)
 	{
 		assert(ctx);
@@ -312,19 +330,6 @@ main_window::main_window() :
 	modules_window::cmd_properties_fn_t const mdls_cmd_properties_fn = mdls_cmd_properties_fn_;
 	modules_window::cmd_properties_ctx_t const mdls_cmd_properties_ctx = this;
 	m_modules_window.setcmdproperties(mdls_cmd_properties_fn, mdls_cmd_properties_ctx);
-
-	static constexpr auto const process_cmd_line_task = [](main_window& self, idle_task_param_t const /*param*/) -> void { self.process_command_line(); };
-	add_idle_task(process_cmd_line_task, nullptr);
-
-	m_settings.m_full_paths = false;
-	m_settings.m_undecorate = false;
-	commands_availability_refresh();
-}
-
-main_window::~main_window()
-{
-	assert(m_idle_tasks.empty());
-	assert(m_dbg_tasks.empty());
 }
 
 HWND main_window::get_hwnd() const

@@ -53,6 +53,8 @@ public:
 	main_window& operator=(main_window const&) = delete;
 	main_window& operator=(main_window&&) = delete;
 	~main_window();
+private:
+	void connect_signals();
 public:
 	HWND get_hwnd() const;
 	bool translate_accelerator(MSG& message);
