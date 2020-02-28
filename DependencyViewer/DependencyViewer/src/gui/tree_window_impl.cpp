@@ -4,6 +4,7 @@
 #include "file_info_getters.h"
 #include "main.h"
 #include "processor.h"
+#include "tree_algos.h"
 
 #include "../nogui/cassert_my.h"
 #include "../nogui/scope_exit.h"
@@ -24,11 +25,13 @@ enum class e_tree_menu_id___2 : std::uint16_t
 	e_orig,
 	e_prev,
 	e_next,
+	e_expand,
 };
 static constexpr wchar_t const s_tree_menu_str_matching[] = L"&Highlight Matching Module In List\tCtrl+M";
 static constexpr wchar_t const s_tree_menu_str_orig___2[] = L"Highlight &Original Instance\tCtrl+K";
 static constexpr wchar_t const s_tree_menu_str_prev___2[] = L"Highlight Previous &Instance\tCtrl+B";
 static constexpr wchar_t const s_tree_menu_str_next___2[] = L"Highlight &Next Instance\tCtrl+N";
+static constexpr wchar_t const s_tree_menu_str_expand___2[] = L"&Expand All\tCtrl+E";
 
 enum class e_tree_accel_id : std::uint16_t
 {
@@ -36,6 +39,7 @@ enum class e_tree_accel_id : std::uint16_t
 	e_orig,
 	e_prev,
 	e_next,
+	e_expand,
 };
 static constexpr ACCEL const s_tree_accel_table[] =
 {
@@ -43,6 +47,7 @@ static constexpr ACCEL const s_tree_accel_table[] =
 	{FVIRTKEY | FCONTROL, 'K', static_cast<std::uint16_t>(e_tree_accel_id::e_orig)},
 	{FVIRTKEY | FCONTROL, 'B', static_cast<std::uint16_t>(e_tree_accel_id::e_prev)},
 	{FVIRTKEY | FCONTROL, 'N', static_cast<std::uint16_t>(e_tree_accel_id::e_next)},
+	{FVIRTKEY | FCONTROL, 'E', static_cast<std::uint16_t>(e_tree_accel_id::e_expand)},
 };
 
 
@@ -511,7 +516,7 @@ void tree_window_impl::on_menu(WPARAM const& wparam)
 {
 	std::uint16_t const menu_id_ = static_cast<std::uint16_t>(LOWORD(wparam));
 	assert(menu_id_ >= static_cast<std::uint16_t>(e_tree_menu_id___2::e_matching));
-	assert(menu_id_ <= static_cast<std::uint16_t>(e_tree_menu_id___2::e_next));
+	assert(menu_id_ <= static_cast<std::uint16_t>(e_tree_menu_id___2::e_expand));
 	e_tree_menu_id___2 const menu_id = static_cast<e_tree_menu_id___2>(menu_id_);
 	switch(menu_id)
 	{
@@ -535,6 +540,11 @@ void tree_window_impl::on_menu(WPARAM const& wparam)
 			on_menu_next();
 		}
 		break;
+		case e_tree_menu_id___2::e_expand:
+		{
+			on_menu_expand();
+		}
+		break;
 		default:
 		{
 			assert(false);
@@ -547,7 +557,7 @@ void tree_window_impl::on_accelerator(WPARAM const& wparam)
 {
 	std::uint16_t const accel_id_ = static_cast<std::uint16_t>(LOWORD(wparam));
 	assert(accel_id_ >= static_cast<std::uint16_t>(e_tree_accel_id::e_matching));
-	assert(accel_id_ <= static_cast<std::uint16_t>(e_tree_accel_id::e_next));
+	assert(accel_id_ <= static_cast<std::uint16_t>(e_tree_accel_id::e_expand));
 	e_tree_accel_id const accel_id = static_cast<e_tree_accel_id>(accel_id_);
 	switch(accel_id)
 	{
@@ -569,6 +579,11 @@ void tree_window_impl::on_accelerator(WPARAM const& wparam)
 		case e_tree_accel_id::e_next:
 		{
 			on_accel_next();
+		}
+		break;
+		case e_tree_accel_id::e_expand:
+		{
+			on_accel_expand();
 		}
 		break;
 		default:
@@ -599,6 +614,11 @@ void tree_window_impl::on_menu_next()
 	cmd_next();
 }
 
+void tree_window_impl::on_menu_expand()
+{
+	cmd_expand();
+}
+
 void tree_window_impl::on_accel_matching()
 {
 	cmd_matching();
@@ -617,6 +637,11 @@ void tree_window_impl::on_accel_prev()
 void tree_window_impl::on_accel_next()
 {
 	cmd_next();
+}
+
+void tree_window_impl::on_accel_expand()
+{
+	cmd_expand();
 }
 
 void tree_window_impl::on_selchangedw([[maybe_unused]] NMHDR& nmhdr)
@@ -659,6 +684,7 @@ smart_menu tree_window_impl::create_context_menu()
 		s_tree_menu_str_orig___2,
 		s_tree_menu_str_prev___2,
 		s_tree_menu_str_next___2,
+		s_tree_menu_str_expand___2,
 	};
 	static constexpr e_tree_menu_id___2 const s_ids[] =
 	{
@@ -666,6 +692,7 @@ smart_menu tree_window_impl::create_context_menu()
 		e_tree_menu_id___2::e_orig,
 		e_tree_menu_id___2::e_prev,
 		e_tree_menu_id___2::e_next,
+		e_tree_menu_id___2::e_expand,
 	};
 	static_assert(std::size(s_strings) == std::size(s_ids), "");
 
@@ -811,6 +838,39 @@ void tree_window_impl::cmd_next()
 	}
 	assert(fi);
 	select_item(fi);
+}
+
+void tree_window_impl::cmd_expand()
+{
+	static constexpr auto const expand_fn = [](file_info const* const& fi, void* const& param)
+	{
+		assert(fi);
+		assert(param);
+		HWND const& hwnd = *static_cast<HWND const*>(param);
+		assert(IsWindow(hwnd) != 0);
+		HTREEITEM const& item = reinterpret_cast<HTREEITEM>(fi->m_tree_item);
+		[[maybe_unused]] LRESULT expanded = SendMessageW(hwnd, TVM_EXPAND, TVE_EXPAND, reinterpret_cast<LPARAM>(item));
+	};
+
+	file_info const* const fi = m_fi;
+	if(!fi)
+	{
+		return;
+	}
+	file_info const* const selectioin = get_selection();
+	LRESULT const redr_off = SendMessageW(m_tree_view, WM_SETREDRAW, FALSE, 0);
+	assert(redr_off == 0);
+	auto const fn_red_on = mk::make_scope_exit([&]()
+	{
+		LRESULT const redr_on = SendMessageW(m_tree_view, WM_SETREDRAW, TRUE, 0);
+		assert(redr_on == 0);
+		repaint();
+		if(selectioin)
+		{
+			select_item(selectioin);
+		}
+	});
+	depth_first_visit(fi, expand_fn, static_cast<void*>(&m_tree_view));
 }
 
 void tree_window_impl::refresh(file_info* const& fi)

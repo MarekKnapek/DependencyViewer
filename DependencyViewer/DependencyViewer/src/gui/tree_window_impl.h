@@ -56,10 +56,12 @@ private:
 	void on_menu_orig();
 	void on_menu_prev();
 	void on_menu_next();
+	void on_menu_expand();
 	void on_accel_matching();
 	void on_accel_orig();
 	void on_accel_prev();
 	void on_accel_next();
+	void on_accel_expand();
 	void on_selchangedw(NMHDR& nmhdr);
 	file_info const* get_selection();
 	void select_item(file_info const* const& fi);
@@ -72,6 +74,7 @@ private:
 	void cmd_prev();
 	bool cmd_next_avail(file_info const* const& fi, file_info const** const& out_fi);
 	void cmd_next();
+	void cmd_expand();
 	void refresh(file_info* const& fi);
 	void refresh_r(file_info* const& fi, htreeitem const& parent_ti);
 	void refresh_e(file_info* const& fi, htreeitem const& parent_ti);
