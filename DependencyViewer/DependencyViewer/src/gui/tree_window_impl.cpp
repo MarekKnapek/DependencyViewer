@@ -34,6 +34,7 @@ tree_window_impl::tree_window_impl(HWND const& self) :
 	m_fi(),
 	m_fullpaths(false),
 	m_string_converter(),
+	m_context_menu(),
 	m_onitemchanged_fn(),
 	m_onitemchanged_ctx(),
 	m_cmd_matching_fn(),
@@ -182,6 +183,12 @@ LRESULT tree_window_impl::on_message(UINT const& msg, WPARAM const& wparam, LPAR
 			return ret;
 		}
 		break;
+		case WM_CONTEXTMENU:
+		{
+			LRESULT const ret = on_wm_contextmenu(wparam, lparam);
+			return ret;
+		}
+		break;
 		case static_cast<std::uint32_t>(tree_window::wm::wm_repaint):
 		{
 			LRESULT const ret = on_wm_repaint(wparam, lparam);
@@ -267,6 +274,34 @@ LRESULT tree_window_impl::on_wm_notify(WPARAM const& wparam, LPARAM const& lpara
 	}
 
 	LRESULT const ret = DefWindowProcW(m_self, WM_NOTIFY, wparam, lparam);
+	return ret;
+}
+
+LRESULT tree_window_impl::on_wm_contextmenu(WPARAM const& wparam, LPARAM const& lparam)
+{
+	auto const fn_on_wm_contextmenu = [&]()
+	{
+		file_info const* fi;
+		POINT screen_pos;
+		bool const got_menu = get_fi_and_point_for_ctx_menu(lparam, &fi, &screen_pos);
+		if(!got_menu)
+		{
+			return;
+		}
+		if(!m_context_menu)
+		{
+			m_context_menu = create_context_menu();
+		}
+		HMENU const menu = reinterpret_cast<HMENU>(m_context_menu.get());
+		bool const avail_matching = cmd_matching_avail(fi, nullptr);
+		BOOL const prev_matching = EnableMenuItem(menu, static_cast<std::uint16_t>(e_tree_menu_id___2::e_matching), MF_BYCOMMAND | (avail_matching ? MF_ENABLED : (MF_GRAYED | MF_DISABLED)));
+		assert(prev_matching != -1 && (prev_matching == MF_ENABLED || prev_matching == (MF_GRAYED | MF_DISABLED)));
+		BOOL const tracked = TrackPopupMenu(menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON | TPM_NOANIMATION, screen_pos.x, screen_pos.y, 0, m_self, nullptr);
+		assert(tracked != 0);
+	};
+	fn_on_wm_contextmenu();
+
+	LRESULT const ret = DefWindowProcW(m_self, WM_CONTEXTMENU, wparam, lparam);
 	return ret;
 }
 

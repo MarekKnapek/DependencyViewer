@@ -37,6 +37,7 @@ private:
 	LRESULT on_message(UINT const& msg, WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_size(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_notify(WPARAM const& wparam, LPARAM const& lparam);
+	LRESULT on_wm_contextmenu(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_repaint(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setfi(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_getselection(WPARAM const& wparam, LPARAM const& lparam);
@@ -65,6 +66,7 @@ private:
 	file_info const* m_fi;
 	bool m_fullpaths;
 	string_converter m_string_converter;
+	smart_menu m_context_menu;
 	tree_window::onitemchanged_fn_t m_onitemchanged_fn;
 	tree_window::onitemchanged_ctx_t m_onitemchanged_ctx;
 	tree_window::cmd_matching_fn_t m_cmd_matching_fn;
