@@ -1,6 +1,7 @@
 #include "tree_window_impl.h"
 
 #include "common_controls.h"
+#include "file_info_getters.h"
 #include "main.h"
 #include "processor.h"
 
@@ -21,7 +22,8 @@ tree_window_impl::tree_window_impl(HWND const& self) :
 	m_self(self),
 	m_tree_view(),
 	m_fi(),
-	m_fullpaths(false)
+	m_fullpaths(false),
+	m_string_converter()
 {
 	assert(self != nullptr);
 
@@ -260,13 +262,26 @@ LRESULT tree_window_impl::on_wm_setfullpaths(WPARAM const& wparam, LPARAM const&
 void tree_window_impl::on_getdispinfow(NMHDR& nmhdr)
 {
 	NMTVDISPINFOW& di = reinterpret_cast<NMTVDISPINFOW&>(nmhdr);
+	assert(di.item.lParam != 0);
+	file_info const* const fi = reinterpret_cast<file_info const*>(di.item.lParam);
 	if((di.item.mask & TVIF_TEXT) != 0)
 	{
-		di.item.pszText = const_cast<wchar_t*>(L"");
+		if(m_fullpaths)
+		{
+			wstring const str = get_tree_fi_path(fi, m_string_converter);
+			assert(str);
+			di.item.pszText = const_cast<wchar_t*>(str.m_str);
+		}
+		else
+		{
+			wstring const str = get_tree_fi_name(fi, m_string_converter);
+			assert(str);
+			di.item.pszText = const_cast<wchar_t*>(str.m_str);
+		}
 	}
 	if((di.item.mask & (TVIF_IMAGE | TVIF_SELECTEDIMAGE)) != 0)
 	{
-		di.item.iImage = 0;
+		di.item.iImage = fi->m_icon;
 		di.item.iSelectedImage = di.item.iImage;
 	}
 }

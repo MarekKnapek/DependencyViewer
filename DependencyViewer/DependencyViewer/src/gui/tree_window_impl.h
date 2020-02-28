@@ -3,6 +3,8 @@
 
 #include "tree_window.h"
 
+#include "../nogui/string_converter.h"
+
 #include "../nogui/windows_my.h"
 
 
@@ -49,4 +51,5 @@ private:
 	HWND m_tree_view;
 	file_info const* m_fi;
 	bool m_fullpaths;
+	string_converter m_string_converter;
 };
