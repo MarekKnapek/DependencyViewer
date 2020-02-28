@@ -53,13 +53,17 @@ private:
 	void on_menu(WPARAM const& wparam);
 	void on_accelerator(WPARAM const& wparam);
 	void on_menu_matching();
+	void on_menu_orig();
 	void on_accel_matching();
+	void on_accel_orig();
 	void on_selchangedw(NMHDR& nmhdr);
 	file_info const* get_selection();
 	void select_item(file_info const* const& fi);
 	smart_menu create_context_menu();
 	bool cmd_matching_avail(file_info const* const& fi, file_info const** const& out_fi);
 	void cmd_matching();
+	bool cmd_orig_avail(file_info const* const& fi, file_info const** const& out_fi);
+	void cmd_orig();
 	void refresh(file_info* const& fi);
 	void refresh_r(file_info* const& fi, htreeitem const& parent_ti);
 	void refresh_e(file_info* const& fi, htreeitem const& parent_ti);

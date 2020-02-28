@@ -21,16 +21,20 @@
 enum class e_tree_menu_id___2 : std::uint16_t
 {
 	e_matching,
+	e_orig,
 };
 static constexpr wchar_t const s_tree_menu_str_matching[] = L"&Highlight Matching Module In List\tCtrl+M";
+static constexpr wchar_t const s_tree_menu_str_orig___2[] = L"Highlight &Original Instance\tCtrl+K";
 
 enum class e_tree_accel_id : std::uint16_t
 {
 	e_matching,
+	e_orig,
 };
 static constexpr ACCEL const s_tree_accel_table[] =
 {
 	{FVIRTKEY | FCONTROL, 'M', static_cast<std::uint16_t>(e_tree_accel_id::e_matching)},
+	{FVIRTKEY | FCONTROL, 'K', static_cast<std::uint16_t>(e_tree_accel_id::e_orig)},
 };
 
 
@@ -332,9 +336,15 @@ LRESULT tree_window_impl::on_wm_contextmenu(WPARAM const& wparam, LPARAM const& 
 			m_context_menu = create_context_menu();
 		}
 		HMENU const menu = reinterpret_cast<HMENU>(m_context_menu.get());
+
 		bool const avail_matching = cmd_matching_avail(fi, nullptr);
 		BOOL const prev_matching = EnableMenuItem(menu, static_cast<std::uint16_t>(e_tree_menu_id___2::e_matching), MF_BYCOMMAND | (avail_matching ? MF_ENABLED : (MF_GRAYED | MF_DISABLED)));
 		assert(prev_matching != -1 && (prev_matching == MF_ENABLED || prev_matching == (MF_GRAYED | MF_DISABLED)));
+
+		bool const avail_orig = cmd_orig_avail(fi, nullptr);
+		BOOL const prev_orig = EnableMenuItem(menu, static_cast<std::uint16_t>(e_tree_menu_id___2::e_orig), MF_BYCOMMAND | (avail_orig ? MF_ENABLED : (MF_GRAYED | MF_DISABLED)));
+		assert(prev_orig != -1 && (prev_orig == MF_ENABLED || prev_orig == (MF_GRAYED | MF_DISABLED)));
+
 		BOOL const tracked = TrackPopupMenu(menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON | TPM_NOANIMATION, screen_pos.x, screen_pos.y, 0, m_self, nullptr);
 		assert(tracked != 0);
 	};
@@ -485,13 +495,18 @@ void tree_window_impl::on_menu(WPARAM const& wparam)
 {
 	std::uint16_t const menu_id_ = static_cast<std::uint16_t>(LOWORD(wparam));
 	assert(menu_id_ >= static_cast<std::uint16_t>(e_tree_menu_id___2::e_matching));
-	assert(menu_id_ <= static_cast<std::uint16_t>(e_tree_menu_id___2::e_matching));
+	assert(menu_id_ <= static_cast<std::uint16_t>(e_tree_menu_id___2::e_orig));
 	e_tree_menu_id___2 const menu_id = static_cast<e_tree_menu_id___2>(menu_id_);
 	switch(menu_id)
 	{
 		case e_tree_menu_id___2::e_matching:
 		{
 			on_menu_matching();
+		}
+		break;
+		case e_tree_menu_id___2::e_orig:
+		{
+			on_menu_orig();
 		}
 		break;
 		default:
@@ -506,13 +521,18 @@ void tree_window_impl::on_accelerator(WPARAM const& wparam)
 {
 	std::uint16_t const accel_id_ = static_cast<std::uint16_t>(LOWORD(wparam));
 	assert(accel_id_ >= static_cast<std::uint16_t>(e_tree_accel_id::e_matching));
-	assert(accel_id_ <= static_cast<std::uint16_t>(e_tree_accel_id::e_matching));
+	assert(accel_id_ <= static_cast<std::uint16_t>(e_tree_accel_id::e_orig));
 	e_tree_accel_id const accel_id = static_cast<e_tree_accel_id>(accel_id_);
 	switch(accel_id)
 	{
 		case e_tree_accel_id::e_matching:
 		{
 			on_accel_matching();
+		}
+		break;
+		case e_tree_accel_id::e_orig:
+		{
+			on_accel_orig();
 		}
 		break;
 		default:
@@ -528,9 +548,19 @@ void tree_window_impl::on_menu_matching()
 	cmd_matching();
 }
 
+void tree_window_impl::on_menu_orig()
+{
+	cmd_orig();
+}
+
 void tree_window_impl::on_accel_matching()
 {
 	cmd_matching();
+}
+
+void tree_window_impl::on_accel_orig()
+{
+	cmd_orig();
 }
 
 void tree_window_impl::on_selchangedw([[maybe_unused]] NMHDR& nmhdr)
@@ -570,10 +600,12 @@ smart_menu tree_window_impl::create_context_menu()
 	static constexpr wchar_t const* const s_strings[] =
 	{
 		s_tree_menu_str_matching,
+		s_tree_menu_str_orig___2,
 	};
 	static constexpr e_tree_menu_id___2 const s_ids[] =
 	{
 		e_tree_menu_id___2::e_matching,
+		e_tree_menu_id___2::e_orig,
 	};
 	static_assert(std::size(s_strings) == std::size(s_ids), "");
 
@@ -622,6 +654,34 @@ void tree_window_impl::cmd_matching()
 	assert(fi);
 	assert(m_cmd_matching_fn);
 	m_cmd_matching_fn(m_cmd_matching_ctx, fi);
+}
+
+bool tree_window_impl::cmd_orig_avail(file_info const* const& fi, file_info const** const& out_fi)
+{
+	if(!fi)
+	{
+		return false;
+	}
+	file_info const* const orig = fi->m_orig_instance;
+	bool const avail = !!orig;
+	if(avail && out_fi)
+	{
+		*out_fi = orig;
+	}
+	return avail;
+}
+
+void tree_window_impl::cmd_orig()
+{
+	file_info const* const curr_fi = get_selection();
+	file_info const* fi;
+	bool const avail = cmd_orig_avail(curr_fi, &fi);
+	if(!avail)
+	{
+		return;
+	}
+	assert(fi);
+	select_item(fi);
 }
 
 void tree_window_impl::refresh(file_info* const& fi)
