@@ -537,12 +537,12 @@ void modules_window_impl::on_getdispinfow(NMHDR& nmhdr)
 		{
 			case e_modules_column::e_name:
 			{
-				nm.item.pszText = const_cast<wchar_t*>(get_col_name(idx));
+				nm.item.pszText = const_cast<wchar_t*>(get_col_name_sorted(idx).m_str);
 			}
 			break;
 			case e_modules_column::e_path:
 			{
-				nm.item.pszText = const_cast<wchar_t*>(get_col_path(idx));
+				nm.item.pszText = const_cast<wchar_t*>(get_col_path_sorted(idx).m_str);
 			}
 			break;
 			default:
@@ -668,20 +668,42 @@ void modules_window_impl::on_accel_properties()
 	command_properties();
 }
 
-wchar_t const* modules_window_impl::get_col_name(std::uint16_t const& idx)
+wstring modules_window_impl::get_col_name_unsorted(std::uint16_t const& idx)
 {
-	std::uint16_t const& idx_sorted = m_sort.empty() ? idx : m_sort[idx];
-	assert(m_modlist);
-	wstring const ret = get_modules_list_col_name(*m_modlist, idx_sorted, m_string_converter);
-	return ret.m_str;
+	modules_list_t const* const modlist = m_modlist;
+	assert(modlist != nullptr);
+	assert(idx < modlist->m_count);
+	file_info const* const fi = modlist->m_list[idx];
+	assert(fi);
+	assert(!fi->m_orig_instance);
+	wstring const ret = get_modules_fi_name(fi, m_string_converter);
+	return ret;
 }
 
-wchar_t const* modules_window_impl::get_col_path(std::uint16_t const& idx)
+wstring modules_window_impl::get_col_name_sorted(std::uint16_t const& idx)
 {
 	std::uint16_t const& idx_sorted = m_sort.empty() ? idx : m_sort[idx];
-	assert(m_modlist);
-	wstring const ret = get_modules_list_col_path(*m_modlist, idx_sorted);
-	return ret.m_str;
+	wstring const ret = get_col_name_unsorted(idx_sorted);
+	return ret;
+}
+
+wstring modules_window_impl::get_col_path_unsorted(std::uint16_t const& idx)
+{
+	modules_list_t const* const modlist = m_modlist;
+	assert(modlist != nullptr);
+	assert(idx < modlist->m_count);
+	file_info const* const fi = modlist->m_list[idx];
+	assert(fi);
+	assert(!fi->m_orig_instance);
+	wstring const ret = get_modules_fi_path(fi);
+	return ret;
+}
+
+wstring modules_window_impl::get_col_path_sorted(std::uint16_t const& idx)
+{
+	std::uint16_t const& idx_sorted = m_sort.empty() ? idx : m_sort[idx];
+	wstring const ret = get_col_path_unsorted(idx_sorted);
+	return ret;
 }
 
 smart_menu modules_window_impl::create_context_menu()
@@ -879,8 +901,8 @@ void modules_window_impl::sort_view()
 		{
 			auto const fn_compare_name = [&](std::uint16_t const a, std::uint16_t const b) -> bool
 			{
-				wstring const a2 = get_modules_list_col_name(*modlist, a, m_string_converter);
-				wstring const b2 = get_modules_list_col_name(*modlist, b, m_string_converter);
+				wstring const a2 = get_col_name_unsorted(a);
+				wstring const b2 = get_col_name_unsorted(b);
 				bool const ret = wstring_case_insensitive_less{}(a2, b2);
 				return ret;
 			};
@@ -898,8 +920,8 @@ void modules_window_impl::sort_view()
 		{
 			auto const fn_compare_path = [&](std::uint16_t const a, std::uint16_t const b) -> bool
 			{
-				wstring const a2 = get_modules_list_col_path(*modlist, a);
-				wstring const b2 = get_modules_list_col_path(*modlist, b);
+				wstring const a2 = get_col_path_unsorted(a);
+				wstring const b2 = get_col_path_unsorted(b);
 				bool const ret = wstring_case_insensitive_less{}(a2, b2);
 				return ret;
 			};

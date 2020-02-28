@@ -4,6 +4,7 @@
 #include "modules_window.h"
 #include "smart_menu.h"
 
+#include "../nogui/my_string.h"
 #include "../nogui/string_converter.h"
 
 #include <cstdint>
@@ -60,8 +61,10 @@ private:
 	void on_menu_properties();
 	void on_accel_matching();
 	void on_accel_properties();
-	wchar_t const* get_col_name(std::uint16_t const& idx);
-	wchar_t const* get_col_path(std::uint16_t const& idx);
+	wstring get_col_name_unsorted(std::uint16_t const& idx);
+	wstring get_col_name_sorted(std::uint16_t const& idx);
+	wstring get_col_path_unsorted(std::uint16_t const& idx);
+	wstring get_col_path_sorted(std::uint16_t const& idx);
 	smart_menu create_context_menu();
 	void select_item(file_info const* const& fi);
 	bool command_matching_available(std::uint16_t const& item_idx, file_info const** const out_fi);

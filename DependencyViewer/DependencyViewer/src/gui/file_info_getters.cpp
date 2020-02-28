@@ -10,19 +10,18 @@
 string_handle const& get_dll_name_no_path(file_info const* const& fi)
 {
 	assert(fi);
-	assert(!fi->m_file_path);
 	assert(fi->m_parent);
 	file_info const* const parent_fi = fi->m_parent;
 	auto const dll_idx_ = fi - parent_fi->m_fis;
 	assert(dll_idx_ >= 0 && dll_idx_ <= 0xFFFF);
-	auto const dll_idx = static_cast<std::uint16_t>(dll_idx_);
+	std::uint16_t const dll_idx = static_cast<std::uint16_t>(dll_idx_);
 	assert(dll_idx < parent_fi->m_import_table.m_normal_dll_count + parent_fi->m_import_table.m_delay_dll_count);
-	auto const& dll_name = parent_fi->m_import_table.m_dll_names[dll_idx];
+	string_handle const& dll_name = parent_fi->m_import_table.m_dll_names[dll_idx];
 	assert(dll_name);
 	return dll_name;
 }
 
-bool compare_fi_by_path_or_name(file_info const* const& a, file_info const* const& b)
+bool compare_fi_by_path_or_name_caseinsensitive(file_info const* const& a, file_info const* const& b)
 {
 	assert(a);
 	assert(b);
@@ -54,18 +53,54 @@ bool compare_fi_by_path_or_name(file_info const* const& a, file_info const* cons
 }
 
 
-wstring get_modules_list_col_name(modules_list_t const& modlist, std::uint16_t const& idx, string_converter& str_cnvrtr)
+wstring get_tree_fi_name(file_info const* const& tmp_fi, string_converter& str_cnvrtr)
 {
-	assert(idx < modlist.m_count);
-	file_info const* const fi = modlist.m_list[idx];
+	assert(tmp_fi);
+	file_info const* const parent_fi = tmp_fi->m_parent;
+	if(parent_fi)
+	{
+		string_handle const& dll_name_a = get_dll_name_no_path(tmp_fi);
+		wchar_t const* const dll_name_w = str_cnvrtr.convert(dll_name_a);
+		assert(dll_name_w);
+		wstring const ret{dll_name_w, size(dll_name_a)};
+		return ret;
+	}
+	else
+	{
+		file_info const* const fi = tmp_fi->m_orig_instance ? tmp_fi->m_orig_instance : tmp_fi;
+		assert(fi->m_file_path);
+		wstring const file_name = find_file_name(fi->m_file_path);
+		assert(file_name);
+		return file_name;
+	}
+}
+
+wstring get_tree_fi_path(file_info const* const& tmp_fi, string_converter& str_cnvrtr)
+{
+	assert(tmp_fi);
+	file_info const* const fi = tmp_fi->m_orig_instance ? tmp_fi->m_orig_instance : tmp_fi;
+	if(fi->m_file_path)
+	{
+		wstring const& ret = *fi->m_file_path.m_string;
+		return ret;
+	}
+	else
+	{
+		wstring const ret = get_tree_fi_name(tmp_fi, str_cnvrtr);
+		return ret;
+	}
+}
+
+
+wstring get_modules_fi_name(file_info const* const& fi, string_converter& str_cnvrtr)
+{
+	assert(fi);
 	assert(!fi->m_orig_instance);
 	if(fi->m_file_path)
 	{
-		wchar_t const* const name = find_file_name(begin(fi->m_file_path), size(fi->m_file_path));
-		assert(name != begin(fi->m_file_path));
-		int const len = size(fi->m_file_path) - static_cast<int>(name - begin(fi->m_file_path));
-		wstring const ret{name, len};
-		return ret;
+		wstring const file_name = find_file_name(fi->m_file_path);
+		assert(file_name);
+		return file_name;
 	}
 	else
 	{
@@ -77,10 +112,9 @@ wstring get_modules_list_col_name(modules_list_t const& modlist, std::uint16_t c
 	}
 }
 
-wstring get_modules_list_col_path(modules_list_t const& modlist, std::uint16_t const& idx)
+wstring get_modules_fi_path(file_info const* const& fi)
 {
-	assert(idx < modlist.m_count);
-	file_info const* const fi = modlist.m_list[idx];
+	assert(fi);
 	assert(!fi->m_orig_instance);
 	if(fi->m_file_path)
 	{
@@ -89,7 +123,9 @@ wstring get_modules_list_col_path(modules_list_t const& modlist, std::uint16_t c
 	}
 	else
 	{
-		wstring const ret{L"", 0};
+		static constexpr wchar_t const s_modules_path_not_found[] = L"";
+		static constexpr int const s_modules_path_not_found_len = 0;
+		wstring const ret{s_modules_path_not_found, s_modules_path_not_found_len};
 		return ret;
 	}
 }

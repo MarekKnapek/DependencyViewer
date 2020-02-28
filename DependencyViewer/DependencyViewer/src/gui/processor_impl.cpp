@@ -144,7 +144,7 @@ modules_list_t make_modules_list(tmp_type const& to)
 	file_info** const modules_list = to.m_mm->m_alc.allocate_objects<file_info*>(n);
 	std::copy(not_found_fis.begin(), not_found_fis.end(), modules_list);
 	std::transform(to.m_map.begin(), to.m_map.end(), modules_list + n1, [](auto const& e){ return e->m_instance; });
-	std::sort(modules_list, modules_list + n, compare_fi_by_path_or_name);
+	std::sort(modules_list, modules_list + n, compare_fi_by_path_or_name_caseinsensitive);
 
 	modules_list_t ret;
 	ret.m_list = modules_list;
