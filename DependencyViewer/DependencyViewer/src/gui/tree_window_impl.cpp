@@ -228,6 +228,11 @@ LRESULT tree_window_impl::on_wm_notify(WPARAM const& wparam, LPARAM const& lpara
 				on_getdispinfow(nmhdr);
 			}
 			break;
+			case TVN_SELCHANGEDW:
+			{
+				on_selchangedw(nmhdr);
+			}
+			break;
 		}
 	}
 
@@ -305,6 +310,28 @@ void tree_window_impl::on_getdispinfow(NMHDR& nmhdr)
 	{
 		di.item.iImage = fi->m_icon;
 		di.item.iSelectedImage = di.item.iImage;
+	}
+}
+
+void tree_window_impl::on_selchangedw([[maybe_unused]] NMHDR& nmhdr)
+{
+	auto const fn_get_fi = [&]() -> file_info const*
+	{
+		LRESULT const selected_ = SendMessageW(m_tree_view, TVM_GETNEXTITEM, TVGN_CARET, 0);
+		if(selected_ == 0)
+		{
+			return nullptr;
+		}
+		HTREEITEM const selected = reinterpret_cast<HTREEITEM>(selected_);
+		file_info const* const fi = htreeitem_2_file_info(reinterpret_cast<htreeitem>(selected));
+		assert(fi);
+		return fi;
+	};
+
+	file_info const* const fi = fn_get_fi();
+	if(m_onitemchanged_fn)
+	{
+		m_onitemchanged_fn(m_onitemchanged_ctx, fi);
 	}
 }
 

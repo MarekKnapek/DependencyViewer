@@ -41,6 +41,7 @@ private:
 	LRESULT on_wm_setfullpaths(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setonitemchanged(WPARAM const& wparam, LPARAM const& lparam);
 	void on_getdispinfow(NMHDR& nmhdr);
+	void on_selchangedw(NMHDR& nmhdr);
 	void refresh(file_info* const& fi);
 	void refresh_r(file_info* const& fi, htreeitem const& parent_ti);
 	void refresh_e(file_info* const& fi, htreeitem const& parent_ti);
