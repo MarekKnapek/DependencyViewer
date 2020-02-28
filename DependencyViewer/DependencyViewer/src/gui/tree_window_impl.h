@@ -78,6 +78,7 @@ private:
 	void cmd_next();
 	void cmd_expand();
 	void cmd_collapse();
+	bool cmd_properties_avail(file_info const* const& tmp_fi, wstring_handle* const& out_file_path);
 	void refresh(file_info* const& fi);
 	void refresh_r(file_info* const& fi, htreeitem const& parent_ti);
 	void refresh_e(file_info* const& fi, htreeitem const& parent_ti);

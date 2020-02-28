@@ -930,6 +930,24 @@ void tree_window_impl::cmd_collapse()
 	children_first_visit(fi, collapse_fn, static_cast<void*>(&m_tree_view));
 }
 
+bool tree_window_impl::cmd_properties_avail(file_info const* const& tmp_fi, wstring_handle* const& out_file_path)
+{
+	if(!tmp_fi)
+	{
+		return false;
+	}
+	file_info const* const fi = tmp_fi->m_orig_instance ? tmp_fi->m_orig_instance : tmp_fi;
+	wstring_handle const& file_path = fi->m_file_path;
+	if(!file_path)
+	{
+		return false;
+	}
+	if(out_file_path)
+	{
+		*out_file_path = file_path;
+	}
+	return true;
+}
 void tree_window_impl::refresh(file_info* const& fi)
 {
 	LRESULT const redr_off = SendMessageW(m_tree_view, WM_SETREDRAW, FALSE, 0);
