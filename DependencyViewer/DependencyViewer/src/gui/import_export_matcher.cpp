@@ -8,20 +8,21 @@
 #include <algorithm>
 
 
-void pair_all(file_info& fi, tmp_type& to)
+void pair_all(file_info* const& fi, tmp_type& to)
 {
-	static constexpr auto const pair_fn = [](file_info& fi, void* const data)
+	static constexpr auto const pair_fn = [](file_info const* const& fi, void* const& param)
 	{
-		assert(data);
-		tmp_type& to = *static_cast<tmp_type*>(data);
-		std::uint16_t const n = fi.m_import_table.m_normal_dll_count + fi.m_import_table.m_delay_dll_count;
+		assert(fi);
+		assert(param);
+		tmp_type& to = *static_cast<tmp_type*>(param);
+		std::uint16_t const n = fi->m_import_table.m_normal_dll_count + fi->m_import_table.m_delay_dll_count;
 		for(std::uint16_t i = 0; i != n; ++i)
 		{
-			file_info& sub_fi = fi.m_fis[i];
+			file_info& sub_fi = fi->m_fis[i];
 			if(!sub_fi.m_file_path && !sub_fi.m_orig_instance)
 			{
-				std::uint16_t const m = fi.m_import_table.m_import_counts[i];
-				std::uint16_t* const matched_exports = fi.m_import_table.m_matched_exports[i];
+				std::uint16_t const m = fi->m_import_table.m_import_counts[i];
+				std::uint16_t* const matched_exports = fi->m_import_table.m_matched_exports[i];
 				assert(std::all_of(matched_exports, matched_exports + m, [](auto const& e){ return e == static_cast<std::uint16_t>(0xFFFE); }));
 				std::fill(matched_exports, matched_exports + m, static_cast<std::uint16_t>(0xFFFF));
 				continue;
@@ -34,15 +35,16 @@ void pair_all(file_info& fi, tmp_type& to)
 			assert(it != to.m_map.end());
 			assert((*it)->m_instance->m_orig_instance == nullptr);
 			assert((*it)->m_instance->m_file_path);
-			pair_imports_with_exports(fi.m_import_table, i, sub_fi_proper->m_export_table, (*it)->m_enpt);
+			pair_imports_with_exports(fi->m_import_table, i, sub_fi_proper->m_export_table, (*it)->m_enpt);
 			pair_exports_with_imports(fi, sub_fi, to);
 		}
 	};
+	assert(fi);
 	depth_first_visit(fi, pair_fn, &to);
 }
 
 
-void pair_imports_with_exports(pe_import_table_info& parent_iti, std::uint16_t const dll_idx, pe_export_table_info const& child_eti, enptr_type const& enpt)
+void pair_imports_with_exports(pe_import_table_info const& parent_iti, std::uint16_t const dll_idx, pe_export_table_info const& child_eti, enptr_type const& enpt)
 {
 	std::uint16_t const& n = parent_iti.m_import_counts[dll_idx];
 	for(int i = 0; i != n; ++i)
@@ -102,8 +104,9 @@ void pair_imports_with_exports(pe_import_table_info& parent_iti, std::uint16_t c
 	}
 }
 
-void pair_exports_with_imports(file_info& fi, file_info& sub_fi, tmp_type& to)
+void pair_exports_with_imports(file_info const* const& fi, file_info& sub_fi, tmp_type& to)
 {
+	assert(fi);
 	file_info& sub_fi_proper = sub_fi.m_orig_instance ? *sub_fi.m_orig_instance : sub_fi;
 	if(sub_fi_proper.m_file_path.m_string == nullptr)
 	{
@@ -112,13 +115,13 @@ void pair_exports_with_imports(file_info& fi, file_info& sub_fi, tmp_type& to)
 	pe_export_table_info& exp = sub_fi_proper.m_export_table;
 	sub_fi.m_matched_imports = to.m_mm->m_alc.allocate_objects<std::uint16_t>(exp.m_count);
 	std::fill(sub_fi.m_matched_imports, sub_fi.m_matched_imports + exp.m_count, static_cast<std::uint16_t>(0xFFFF));
-	auto const dll_idx_ = &sub_fi - fi.m_fis;
+	auto const dll_idx_ = &sub_fi - fi->m_fis;
 	assert(dll_idx_ >= 0 && dll_idx_ <= 0xFFFF);
 	std::uint16_t const dll_idx = static_cast<std::uint16_t>(dll_idx_);
-	std::uint16_t const& n_imports = fi.m_import_table.m_import_counts[dll_idx];
+	std::uint16_t const& n_imports = fi->m_import_table.m_import_counts[dll_idx];
 	for(std::uint16_t i = 0; i != n_imports; ++i)
 	{
-		std::uint16_t const& matched_export = fi.m_import_table.m_matched_exports[dll_idx][i];
+		std::uint16_t const& matched_export = fi->m_import_table.m_matched_exports[dll_idx][i];
 		if(matched_export == 0xFFFF)
 		{
 			continue;

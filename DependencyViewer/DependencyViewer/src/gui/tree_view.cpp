@@ -599,10 +599,10 @@ htreeitem tree_view::get_next_data(file_info const* const curr_fi /* = nullptr *
 
 void tree_view::expand()
 {
-	static constexpr auto const expand_fn = [](file_info& fi, void* const data)
+	static constexpr auto const expand_fn = [](file_info const* const& fi, void* const& param)
 	{
-		HWND const hwnd = static_cast<HWND>(data);
-		HTREEITEM const& item = reinterpret_cast<HTREEITEM>(fi.m_tree_item);
+		HWND const hwnd = static_cast<HWND>(param);
+		HTREEITEM const& item = reinterpret_cast<HTREEITEM>(fi->m_tree_item);
 		[[maybe_unused]] LRESULT collapsed = SendMessageW(hwnd, TVM_EXPAND, TVE_EXPAND, reinterpret_cast<LPARAM>(item));
 	};
 	HTREEITEM const root_first = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_ROOT, LPARAM{0}));
@@ -612,7 +612,7 @@ void tree_view::expand()
 	}
 	HTREEITEM const selection = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_CARET, LPARAM{0}));
 	LRESULT const redr_off = SendMessageW(m_hwnd, WM_SETREDRAW, FALSE, 0);
-	depth_first_visit(*m_main_window.m_mo.m_fi, expand_fn, static_cast<void*>(m_hwnd));
+	depth_first_visit(m_main_window.m_mo.m_fi, expand_fn, static_cast<void*>(m_hwnd));
 	LRESULT const redr_on = SendMessageW(m_hwnd, WM_SETREDRAW, TRUE, 0);
 	if(selection)
 	{
@@ -623,10 +623,10 @@ void tree_view::expand()
 
 void tree_view::collapse()
 {
-	static constexpr auto const collapse_fn = [](file_info& fi, void* const data)
+	static constexpr auto const collapse_fn = [](file_info const* const& fi, void* const& param)
 	{
-		HWND const hwnd = static_cast<HWND>(data);
-		HTREEITEM const& item = reinterpret_cast<HTREEITEM>(fi.m_tree_item);
+		HWND const hwnd = static_cast<HWND>(param);
+		HTREEITEM const& item = reinterpret_cast<HTREEITEM>(fi->m_tree_item);
 		[[maybe_unused]] LRESULT collapsed = SendMessageW(hwnd, TVM_EXPAND, TVE_COLLAPSE, reinterpret_cast<LPARAM>(item));
 	};
 	HTREEITEM const root_first = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_ROOT, LPARAM{0}));
@@ -637,7 +637,7 @@ void tree_view::collapse()
 	LRESULT const selected = SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(root_first));
 	assert(selected == TRUE);
 	LRESULT const redr_off = SendMessageW(m_hwnd, WM_SETREDRAW, FALSE, 0);
-	children_first_visit(*m_main_window.m_mo.m_fi, collapse_fn, static_cast<void*>(m_hwnd));
+	children_first_visit(m_main_window.m_mo.m_fi, collapse_fn, static_cast<void*>(m_hwnd));
 	LRESULT const redr_on = SendMessageW(m_hwnd, WM_SETREDRAW, TRUE, 0);
 	LRESULT const visibled = SendMessageW(m_hwnd, TVM_ENSUREVISIBLE, 0, reinterpret_cast<LPARAM>(root_first));
 	repaint();

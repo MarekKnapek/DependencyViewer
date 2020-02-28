@@ -31,7 +31,7 @@ void init(file_info* const fi, int const count);
 
 struct modules_list_t
 {
-	file_info** m_list;
+	file_info const** m_list;
 	std::uint16_t m_count;
 };
 

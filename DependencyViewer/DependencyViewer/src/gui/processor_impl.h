@@ -56,7 +56,7 @@ struct tmp_type
 
 bool process_impl(std::vector<std::wstring> const& file_paths, main_type& mo);
 
-void make_doubly_linked_list(file_info& fi);
+void make_doubly_linked_list(file_info* const& fi);
 modules_list_t make_modules_list(tmp_type const& to);
 void compute_icons(file_info* const& fi);
 std::uint8_t compute_icon(file_info const* const& tmp_fi);

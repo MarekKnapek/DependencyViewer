@@ -66,28 +66,30 @@ bool process_impl(std::vector<std::wstring> const& file_paths, main_type& mo)
 		bool const step = step_1(to);
 		WARN_M_R(step, L"Failed to step_1.", false);
 	}
-	pair_all(*fi, to);
+	pair_all(fi, to);
 	compute_icons(fi);
-	make_doubly_linked_list(*fi);
+	make_doubly_linked_list(fi);
 	mo.m_modules_list = make_modules_list(to);
 	return true;
 }
 
 
-void make_doubly_linked_list(file_info& fi)
+void make_doubly_linked_list(file_info* const& fi)
 {
-	static constexpr auto const make_list = [](file_info& fi, [[maybe_unused]] void* const data)
+	static constexpr auto const make_list = [](file_info* const& fi, [[maybe_unused]] void* const& param)
 	{
-		file_info* const orig = fi.m_orig_instance;
+		assert(fi);
+		file_info* const orig = fi->m_orig_instance;
 		if(!orig)
 		{
 			return;
 		}
-		fi.m_next_instance = orig;
-		fi.m_prev_instance = orig->m_prev_instance ? orig->m_prev_instance : orig;
-		(orig->m_prev_instance ? orig->m_prev_instance : orig)->m_next_instance = &fi;
-		orig->m_prev_instance = &fi;
+		fi->m_next_instance = orig;
+		fi->m_prev_instance = orig->m_prev_instance ? orig->m_prev_instance : orig;
+		(orig->m_prev_instance ? orig->m_prev_instance : orig)->m_next_instance = fi;
+		orig->m_prev_instance = fi;
 	};
+	assert(fi);
 	depth_first_visit(fi, make_list, nullptr);
 }
 
@@ -120,20 +122,21 @@ modules_list_t make_modules_list(tmp_type const& to)
 				return ret;
 			}
 		};
-		typedef std::unordered_set<file_info*, case_insensitive_file_info_file_name_hash_t, case_insensitive_file_info_file_name_equals_t> not_found_fis_t;
+		typedef std::unordered_set<file_info const*, case_insensitive_file_info_file_name_hash_t, case_insensitive_file_info_file_name_equals_t> not_found_fis_t;
 
-		static constexpr auto const process_not_found_fi = [](file_info& fi, void* const data)
+		static constexpr auto const process_not_found_fi = [](file_info const* const& fi, void* const& param)
 		{
-			if(!fi.m_orig_instance && !fi.m_file_path)
+			assert(fi);
+			if(!fi->m_orig_instance && !fi->m_file_path)
 			{
-				assert(data);
-				auto& not_found_fis = *static_cast<not_found_fis_t*>(data);
-				not_found_fis.insert(&fi);
+				assert(param);
+				auto& not_found_fis = *static_cast<not_found_fis_t*>(param);
+				not_found_fis.insert(fi);
 			}
 		};
 
 		not_found_fis_t not_found_fis;
-		depth_first_visit(*to.m_mo->m_fi, process_not_found_fi, &not_found_fis);
+		depth_first_visit(to.m_mo->m_fi, process_not_found_fi, &not_found_fis);
 		return not_found_fis;
 	};
 
@@ -142,7 +145,7 @@ modules_list_t make_modules_list(tmp_type const& to)
 	int const n2 = static_cast<int>(to.m_map.size());
 	assert(n1 <= 0xFFFF && n2 <= 0xFFFF && n1 + n2 <= 0xFFFF);
 	std::uint16_t const n = static_cast<std::uint16_t>(n1 + n2);
-	file_info** const modules_list = to.m_mm->m_alc.allocate_objects<file_info*>(n);
+	file_info const** const modules_list = to.m_mm->m_alc.allocate_objects<file_info const*>(n);
 	std::copy(not_found_fis.begin(), not_found_fis.end(), modules_list);
 	std::transform(to.m_map.begin(), to.m_map.end(), modules_list + n1, [](auto const& e){ return e->m_instance; });
 	std::sort(modules_list, modules_list + n, compare_fi_by_path_or_name_caseinsensitive);
@@ -155,14 +158,15 @@ modules_list_t make_modules_list(tmp_type const& to)
 
 void compute_icons(file_info* const& fi)
 {
-	static constexpr auto const compute_icons_fn = [](file_info& fi, [[maybe_unused]] void* const data)
+	static constexpr auto const compute_icons_fn = [](file_info* const& fi, [[maybe_unused]] void* const& param)
 	{
-		assert(fi.m_icon == 0);
-		std::uint8_t const icon = compute_icon(&fi);
-		fi.m_icon = icon;
+		assert(fi);
+		assert(fi->m_icon == 0);
+		std::uint8_t const icon = compute_icon(fi);
+		fi->m_icon = icon;
 	};
 	assert(fi);
-	depth_first_visit(*fi, compute_icons_fn, nullptr);
+	depth_first_visit(fi, compute_icons_fn, nullptr);
 }
 
 std::uint8_t compute_icon(file_info const* const& tmp_fi)
