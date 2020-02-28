@@ -1,17 +1,49 @@
 #include "tree_window_impl.h"
 
+#include "common_controls.h"
 #include "main.h"
 
 #include "../nogui/cassert_my.h"
+
+#include "../res/resources.h"
+
+#include "../nogui/windows_my.h"
+
+#include <commctrl.h>
 
 
 ATOM tree_window_impl::g_class;
 
 
 tree_window_impl::tree_window_impl(HWND const& self) :
-	m_self(self)
+	m_self(self),
+	m_tree_view()
 {
 	assert(self != nullptr);
+
+	DWORD const ex_style = WS_EX_CLIENTEDGE;
+	wchar_t const* const class_name = WC_TREEVIEWW;
+	wchar_t const* const window_name = nullptr;
+	DWORD const style = (WS_VISIBLE | WS_CHILD | WS_TABSTOP) | (TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_DISABLEDRAGDROP | TVS_SHOWSELALWAYS);
+	int const x_pos = 0;
+	int const y_pos = 0;
+	int const width = 0;
+	int const height = 0;
+	HWND const parent = m_self;
+	HMENU const menu = nullptr;
+	HINSTANCE const instance = get_instance();
+	LPVOID const param = nullptr;
+	m_tree_view = CreateWindowExW(ex_style, class_name, window_name, style, x_pos, y_pos, width, height, parent, menu, instance, param);
+	assert(m_tree_view != nullptr);
+
+	unsigned const extended_tv_styles = TVS_EX_DOUBLEBUFFER;
+	LRESULT const style_set = SendMessageW(m_tree_view, TVM_SETEXTENDEDSTYLE, extended_tv_styles, extended_tv_styles);
+	assert(style_set == S_OK);
+
+	HIMAGELIST const tree_img_list = common_controls::ImageList_LoadImageW(get_instance(), MAKEINTRESOURCEW(s_res_icons_tree), 26, 0, CLR_DEFAULT, IMAGE_BITMAP, LR_DEFAULTCOLOR);
+	assert(tree_img_list);
+	LRESULT const prev_img_list = SendMessageW(m_tree_view, TVM_SETIMAGELIST, TVSIL_NORMAL, reinterpret_cast<LPARAM>(tree_img_list));
+	assert(!prev_img_list);
 }
 
 tree_window_impl::~tree_window_impl()

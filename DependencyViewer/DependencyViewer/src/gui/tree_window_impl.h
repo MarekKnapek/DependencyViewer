@@ -31,4 +31,5 @@ private:
 	static ATOM g_class;
 private:
 	HWND const m_self;
+	HWND m_tree_view;
 };
