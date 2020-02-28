@@ -182,6 +182,12 @@ LRESULT tree_window_impl::on_message(UINT const& msg, WPARAM const& wparam, LPAR
 			return ret;
 		}
 		break;
+		case static_cast<std::uint32_t>(tree_window::wm::wm_selectitem):
+		{
+			LRESULT const ret = on_wm_selectitem(wparam, lparam);
+			return ret;
+		}
+		break;
 		case static_cast<std::uint32_t>(tree_window::wm::wm_setfullpaths):
 		{
 			LRESULT const ret = on_wm_setfullpaths(wparam, lparam);
@@ -256,6 +262,16 @@ LRESULT tree_window_impl::on_wm_setfi(WPARAM const& wparam, LPARAM const& lparam
 	refresh(fi);
 
 	UINT const msg = static_cast<std::uint32_t>(tree_window::wm::wm_setfi);
+	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
+	return ret;
+}
+
+LRESULT tree_window_impl::on_wm_selectitem(WPARAM const& wparam, LPARAM const& lparam)
+{
+	file_info const* const fi = reinterpret_cast<file_info const*>(lparam);
+	select_item(fi);
+
+	UINT const msg = static_cast<std::uint32_t>(tree_window::wm::wm_selectitem);
 	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
 	return ret;
 }

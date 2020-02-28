@@ -16,6 +16,7 @@ public:
 	{
 		wm_repaint = WM_USER + 1,
 		wm_setfi,
+		wm_selectitem,
 		wm_setfullpaths,
 		wm_setonitemchanged,
 	};
@@ -36,6 +37,7 @@ public:
 public:
 	void repaint();
 	void setfi(file_info* const& fi);
+	void selectitem(file_info const* const& fi);
 	void setfullpaths(bool const& fullpaths);
 	void setonitemchanged(onitemchanged_fn_t const& onitemchanged_fn, onitemchanged_ctx_t const& onitemchanged_ctx);
 public:
