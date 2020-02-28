@@ -335,6 +335,16 @@ void tree_window_impl::on_selchangedw([[maybe_unused]] NMHDR& nmhdr)
 	}
 }
 
+void tree_window_impl::select_item(file_info const* const& fi)
+{
+	assert(fi);
+	assert(fi->m_tree_item != nullptr);
+	LRESULT const selected = SendMessageW(m_tree_view, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(fi->m_tree_item));
+	assert(selected == TRUE);
+	[[maybe_unused]] HWND const prev_focus = SetFocus(m_tree_view);
+	assert(prev_focus != nullptr);
+}
+
 void tree_window_impl::refresh(file_info* const& fi)
 {
 	LRESULT const redr_off = SendMessageW(m_tree_view, WM_SETREDRAW, FALSE, 0);
