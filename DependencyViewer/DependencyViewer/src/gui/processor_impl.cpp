@@ -67,6 +67,7 @@ bool process_impl(std::vector<std::wstring> const& file_paths, main_type& mo)
 		WARN_M_R(step, L"Failed to step_1.", false);
 	}
 	pair_all(*fi, to);
+	compute_icons(fi);
 	make_doubly_linked_list(*fi);
 	mo.m_modules_list = make_modules_list(to);
 	return true;
@@ -149,6 +150,93 @@ modules_list_t make_modules_list(tmp_type const& to)
 	modules_list_t ret;
 	ret.m_list = modules_list;
 	ret.m_count = n;
+	return ret;
+}
+
+void compute_icons(file_info* const& fi)
+{
+	static constexpr auto const compute_icons_fn = [](file_info& fi, [[maybe_unused]] void* const data)
+	{
+		assert(fi.m_icon == 0);
+		std::uint8_t const icon = compute_icon(&fi);
+		fi.m_icon = icon;
+	};
+	assert(fi);
+	depth_first_visit(*fi, compute_icons_fn, nullptr);
+}
+
+std::uint8_t compute_icon(file_info const* const& tmp_fi)
+{
+	assert(tmp_fi);
+	std::uint8_t ret = 0;
+	file_info const* const fi = tmp_fi->m_orig_instance ? tmp_fi->m_orig_instance : tmp_fi;
+	file_info const* const parent_fi = tmp_fi->m_parent;
+	bool is_delay;
+	if(parent_fi)
+	{
+		auto const dll_idx_ = tmp_fi - parent_fi->m_fis;
+		assert(dll_idx_ >= 0 && dll_idx_ <= 0xFFFF);
+		std::uint16_t const dll_idx = static_cast<std::uint16_t>(dll_idx_);
+		is_delay = dll_idx >= parent_fi->m_import_table.m_normal_dll_count;
+	}
+	else
+	{
+		is_delay = false;
+	}
+	if(is_delay)
+	{
+		ret += 20;
+	}
+	else
+	{
+		ret += 0;
+	}
+	bool const is_missing = fi->m_file_path.m_string == nullptr;
+	if(is_missing)
+	{
+		return ret + 0;
+	}
+	bool const is_32_bit = fi->m_is_32_bit;
+	if(is_32_bit)
+	{
+		ret += 2;
+	}
+	else
+	{
+		ret += 6;
+	}
+	bool const is_duplicate = tmp_fi->m_orig_instance != nullptr;
+	if(is_duplicate)
+	{
+		ret += 1;
+	}
+	else
+	{
+		ret += 0;
+	}
+	bool is_warning;
+	if(parent_fi)
+	{
+		auto const dll_idx_ = tmp_fi - parent_fi->m_fis;
+		assert(dll_idx_ >= 0 && dll_idx_ <= 0xFFFF);
+		std::uint16_t const dll_idx = static_cast<std::uint16_t>(dll_idx_);
+		std::uint16_t const* const matched_exports = parent_fi->m_import_table.m_matched_exports[dll_idx];
+		std::uint16_t const n = parent_fi->m_import_table.m_import_counts[dll_idx];
+		auto const it = std::find(matched_exports, matched_exports + n, static_cast<std::uint16_t>(0xFFFF));
+		is_warning = it != matched_exports + n;
+	}
+	else
+	{
+		is_warning = false;
+	}
+	if(is_warning)
+	{
+		ret += 2;
+	}
+	else
+	{
+		ret += 0;
+	}
 	return ret;
 }
 

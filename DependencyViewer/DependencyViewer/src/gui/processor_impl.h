@@ -58,6 +58,8 @@ bool process_impl(std::vector<std::wstring> const& file_paths, main_type& mo);
 
 void make_doubly_linked_list(file_info& fi);
 modules_list_t make_modules_list(tmp_type const& to);
+void compute_icons(file_info* const& fi);
+std::uint8_t compute_icon(file_info const* const& tmp_fi);
 
 bool step_1(tmp_type& to);
 bool step_2(file_info& fi, tmp_type& to);
