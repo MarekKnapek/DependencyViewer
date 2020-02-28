@@ -1,6 +1,8 @@
 #pragma once
 
 
+#include "../nogui/my_string_handle.h"
+
 #include <cstdint>
 
 #include "../nogui/windows_my.h"
@@ -23,11 +25,14 @@ public:
 		wm_setfullpaths,
 		wm_setonitemchanged,
 		wm_setcmdmatching,
+		wm_setcmdproperties,
 	};
 	using onitemchanged_ctx_t = void*;
 	using onitemchanged_fn_t = void(*)(onitemchanged_ctx_t const, file_info const* const&);
 	using cmd_matching_ctx_t = void*;
 	using cmd_matching_fn_t = void(*)(cmd_matching_ctx_t const, file_info const* const&);
+	using cmd_properties_ctx_t = void*;
+	using cmd_properties_fn_t = void(*)(cmd_properties_ctx_t const, wstring_handle const&);
 public:
 	tree_window() noexcept;
 	tree_window(HWND const& parent);
@@ -50,6 +55,7 @@ public:
 	void setfullpaths(bool const& fullpaths);
 	void setonitemchanged(onitemchanged_fn_t const& onitemchanged_fn, onitemchanged_ctx_t const& onitemchanged_ctx);
 	void setcmdmatching(cmd_matching_fn_t const& cmd_matching_fn, cmd_matching_ctx_t const& cmd_matching_ctx);
+	void setcmdproperties(cmd_properties_fn_t const& cmd_properties_fn, cmd_properties_ctx_t const& cmd_properties_ctx);
 public:
 	HWND const& get_hwnd() const;
 private:

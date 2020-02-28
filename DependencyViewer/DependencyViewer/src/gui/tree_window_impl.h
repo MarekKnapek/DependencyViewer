@@ -50,6 +50,7 @@ private:
 	LRESULT on_wm_setfullpaths(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setonitemchanged(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setcmdmatching(WPARAM const& wparam, LPARAM const& lparam);
+	LRESULT on_wm_setcmdproperties(WPARAM const& wparam, LPARAM const& lparam);
 	void on_getdispinfow(NMHDR& nmhdr);
 	void on_menu(WPARAM const& wparam);
 	void on_accelerator(WPARAM const& wparam);
@@ -100,4 +101,6 @@ private:
 	tree_window::onitemchanged_ctx_t m_onitemchanged_ctx;
 	tree_window::cmd_matching_fn_t m_cmd_matching_fn;
 	tree_window::cmd_matching_ctx_t m_cmd_matching_ctx;
+	tree_window::cmd_properties_fn_t m_cmd_properties_fn;
+	tree_window::cmd_properties_ctx_t m_cmd_properties_ctx;
 };

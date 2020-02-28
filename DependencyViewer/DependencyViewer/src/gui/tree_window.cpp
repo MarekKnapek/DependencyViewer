@@ -144,6 +144,17 @@ void tree_window::setcmdmatching(cmd_matching_fn_t const& cmd_matching_fn, cmd_m
 	LRESULT const res = SendMessageW(m_hwnd, msg, wparam, lparam);
 }
 
+void tree_window::setcmdproperties(cmd_properties_fn_t const& cmd_properties_fn, cmd_properties_ctx_t const& cmd_properties_ctx)
+{
+	static_assert(sizeof(cmd_properties_fn) == sizeof(WPARAM), "");
+	static_assert(sizeof(cmd_properties_ctx) == sizeof(LPARAM), "");
+	UINT const msg = static_cast<std::uint32_t>(wm::wm_setcmdproperties);
+	WPARAM const wparam = reinterpret_cast<WPARAM>(cmd_properties_fn);
+	LPARAM const lparam = reinterpret_cast<LPARAM>(cmd_properties_ctx);
+	assert(m_hwnd != nullptr);
+	LRESULT const res = SendMessageW(m_hwnd, msg, wparam, lparam);
+}
+
 HWND const& tree_window::get_hwnd() const
 {
 	return m_hwnd;

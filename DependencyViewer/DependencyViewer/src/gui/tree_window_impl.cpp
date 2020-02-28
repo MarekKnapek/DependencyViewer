@@ -69,7 +69,9 @@ tree_window_impl::tree_window_impl(HWND const& self) :
 	m_onitemchanged_fn(),
 	m_onitemchanged_ctx(),
 	m_cmd_matching_fn(),
-	m_cmd_matching_ctx()
+	m_cmd_matching_ctx(),
+	m_cmd_properties_fn(),
+	m_cmd_properties_ctx()
 {
 	assert(self != nullptr);
 
@@ -297,6 +299,12 @@ LRESULT tree_window_impl::on_message(UINT const& msg, WPARAM const& wparam, LPAR
 			return ret;
 		}
 		break;
+		case static_cast<std::uint32_t>(tree_window::wm::wm_setcmdproperties):
+		{
+			LRESULT const ret = on_wm_setcmdproperties(wparam, lparam);
+			return ret;
+		}
+		break;
 		default:
 		{
 			LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
@@ -512,6 +520,20 @@ LRESULT tree_window_impl::on_wm_setcmdmatching(WPARAM const& wparam, LPARAM cons
 	m_cmd_matching_ctx = cmd_matching_ctx;
 
 	UINT const msg = static_cast<std::uint32_t>(tree_window::wm::wm_setcmdmatching);
+	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
+	return ret;
+}
+
+LRESULT tree_window_impl::on_wm_setcmdproperties(WPARAM const& wparam, LPARAM const& lparam)
+{
+	static_assert(sizeof(wparam) == sizeof(tree_window::cmd_properties_fn_t), "");
+	static_assert(sizeof(lparam) == sizeof(tree_window::cmd_properties_ctx_t), "");
+	auto const cmd_properties_fn = reinterpret_cast<tree_window::cmd_properties_fn_t>(wparam);
+	auto const cmd_properties_ctx = reinterpret_cast<tree_window::cmd_properties_ctx_t>(lparam);
+	m_cmd_properties_fn = cmd_properties_fn;
+	m_cmd_properties_ctx = cmd_properties_ctx;
+
+	UINT const msg = static_cast<std::uint32_t>(tree_window::wm::wm_setcmdproperties);
 	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
 	return ret;
 }
