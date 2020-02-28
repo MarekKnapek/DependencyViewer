@@ -23,7 +23,9 @@ tree_window_impl::tree_window_impl(HWND const& self) :
 	m_tree_view(),
 	m_fi(),
 	m_fullpaths(false),
-	m_string_converter()
+	m_string_converter(),
+	m_onitemchanged_fn(),
+	m_onitemchanged_ctx()
 {
 	assert(self != nullptr);
 
@@ -186,6 +188,12 @@ LRESULT tree_window_impl::on_message(UINT const& msg, WPARAM const& wparam, LPAR
 			return ret;
 		}
 		break;
+		case static_cast<std::uint32_t>(tree_window::wm::wm_setonitemchanged):
+		{
+			LRESULT const ret = on_wm_setonitemchanged(wparam, lparam);
+			return ret;
+		}
+		break;
 		default:
 		{
 			LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
@@ -255,6 +263,20 @@ LRESULT tree_window_impl::on_wm_setfullpaths(WPARAM const& wparam, LPARAM const&
 	repaint();
 
 	UINT const msg = static_cast<std::uint32_t>(tree_window::wm::wm_setfullpaths);
+	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
+	return ret;
+}
+
+LRESULT tree_window_impl::on_wm_setonitemchanged(WPARAM const& wparam, LPARAM const& lparam)
+{
+	static_assert(sizeof(wparam) == sizeof(tree_window::onitemchanged_fn_t), "");
+	static_assert(sizeof(lparam) == sizeof(tree_window::onitemchanged_ctx_t), "");
+	auto const onitemchanged_fn = reinterpret_cast<tree_window::onitemchanged_fn_t>(wparam);
+	auto const onitemchanged_ctx = reinterpret_cast<tree_window::onitemchanged_ctx_t>(lparam);
+	m_onitemchanged_fn = onitemchanged_fn;
+	m_onitemchanged_ctx = onitemchanged_ctx;
+
+	UINT const msg = static_cast<std::uint32_t>(tree_window::wm::wm_setonitemchanged);
 	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
 	return ret;
 }

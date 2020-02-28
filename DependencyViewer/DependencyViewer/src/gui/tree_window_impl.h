@@ -39,6 +39,7 @@ private:
 	LRESULT on_wm_repaint(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setfi(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setfullpaths(WPARAM const& wparam, LPARAM const& lparam);
+	LRESULT on_wm_setonitemchanged(WPARAM const& wparam, LPARAM const& lparam);
 	void on_getdispinfow(NMHDR& nmhdr);
 	void refresh(file_info* const& fi);
 	void refresh_r(file_info* const& fi, htreeitem const& parent_ti);
@@ -52,4 +53,6 @@ private:
 	file_info const* m_fi;
 	bool m_fullpaths;
 	string_converter m_string_converter;
+	tree_window::onitemchanged_fn_t m_onitemchanged_fn;
+	tree_window::onitemchanged_ctx_t m_onitemchanged_ctx;
 };

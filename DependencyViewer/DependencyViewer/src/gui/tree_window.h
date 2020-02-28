@@ -17,7 +17,10 @@ public:
 		wm_repaint = WM_USER + 1,
 		wm_setfi,
 		wm_setfullpaths,
+		wm_setonitemchanged,
 	};
+	using onitemchanged_ctx_t = void*;
+	using onitemchanged_fn_t = void(*)(onitemchanged_ctx_t const, file_info const* const&);
 public:
 	tree_window() noexcept;
 	tree_window(HWND const& parent);
@@ -34,6 +37,7 @@ public:
 	void repaint();
 	void setfi(file_info* const& fi);
 	void setfullpaths(bool const& fullpaths);
+	void setonitemchanged(onitemchanged_fn_t const& onitemchanged_fn, onitemchanged_ctx_t const& onitemchanged_ctx);
 public:
 	HWND const& get_hwnd() const;
 private:
