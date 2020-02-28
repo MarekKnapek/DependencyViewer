@@ -53,6 +53,15 @@ void tree_window::deinit()
 	tree_window_impl::deinit();
 }
 
+void tree_window::repaint()
+{
+	UINT const msg = static_cast<std::uint32_t>(wm::wm_repaint);
+	WPARAM const wparam = 0;
+	LPARAM const lparam = 0;
+	assert(m_hwnd != nullptr);
+	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
+}
+
 HWND const& tree_window::get_hwnd() const
 {
 	return m_hwnd;

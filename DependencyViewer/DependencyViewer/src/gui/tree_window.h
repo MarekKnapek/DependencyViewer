@@ -1,11 +1,18 @@
 #pragma once
 
 
+#include <cstdint>
+
 #include "../nogui/windows_my.h"
 
 
 class tree_window
 {
+public:
+	enum class wm : std::uint32_t
+	{
+		wm_repaint = WM_USER + 1,
+	};
 public:
 	tree_window() noexcept;
 	tree_window(HWND const& parent);
@@ -18,6 +25,8 @@ public:
 public:
 	static void init();
 	static void deinit();
+public:
+	void repaint();
 public:
 	HWND const& get_hwnd() const;
 private:
