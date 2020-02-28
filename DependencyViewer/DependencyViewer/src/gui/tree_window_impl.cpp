@@ -27,6 +27,7 @@ enum class e_tree_menu_id___2 : std::uint16_t
 	e_next,
 	e_expand,
 	e_collapse,
+	e_properties,
 };
 static constexpr wchar_t const s_tree_menu_str_matching[] = L"&Highlight Matching Module In List\tCtrl+M";
 static constexpr wchar_t const s_tree_menu_str_orig___2[] = L"Highlight &Original Instance\tCtrl+K";
@@ -34,6 +35,7 @@ static constexpr wchar_t const s_tree_menu_str_prev___2[] = L"Highlight Previous
 static constexpr wchar_t const s_tree_menu_str_next___2[] = L"Highlight &Next Instance\tCtrl+N";
 static constexpr wchar_t const s_tree_menu_str_expand___2[] = L"&Expand All\tCtrl+E";
 static constexpr wchar_t const s_tree_menu_str_collapse___2[] = L"Co&llapse All\tCtrl+W";
+static constexpr wchar_t const s_tree_menu_str_properties___2[] = L"&Properties...\tAlt+Enter";
 
 enum class e_tree_accel_id : std::uint16_t
 {
@@ -43,6 +45,7 @@ enum class e_tree_accel_id : std::uint16_t
 	e_next,
 	e_expand,
 	e_collapse,
+	e_properties,
 };
 static constexpr ACCEL const s_tree_accel_table[] =
 {
@@ -52,6 +55,7 @@ static constexpr ACCEL const s_tree_accel_table[] =
 	{FVIRTKEY | FCONTROL, 'N', static_cast<std::uint16_t>(e_tree_accel_id::e_next)},
 	{FVIRTKEY | FCONTROL, 'E', static_cast<std::uint16_t>(e_tree_accel_id::e_expand)},
 	{FVIRTKEY | FCONTROL, 'W', static_cast<std::uint16_t>(e_tree_accel_id::e_collapse)},
+	{FVIRTKEY | FALT, VK_RETURN, static_cast<std::uint16_t>(e_tree_accel_id::e_properties)},
 };
 
 
@@ -384,6 +388,10 @@ LRESULT tree_window_impl::on_wm_contextmenu(WPARAM const& wparam, LPARAM const& 
 		BOOL const prev_next = EnableMenuItem(menu, static_cast<std::uint16_t>(e_tree_menu_id___2::e_next), MF_BYCOMMAND | (avail_next ? MF_ENABLED : (MF_GRAYED | MF_DISABLED)));
 		assert(prev_next != -1 && (prev_next == MF_ENABLED || prev_next == (MF_GRAYED | MF_DISABLED)));
 
+		bool const avail_properties = cmd_properties_avail(fi, nullptr);
+		BOOL const prev_properties = EnableMenuItem(menu, static_cast<std::uint16_t>(e_tree_menu_id___2::e_properties), MF_BYCOMMAND | (avail_properties ? MF_ENABLED : (MF_GRAYED | MF_DISABLED)));
+		assert(prev_properties != -1 && (prev_properties == MF_ENABLED || prev_properties == (MF_GRAYED | MF_DISABLED)));
+
 		BOOL const tracked = TrackPopupMenu(menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON | TPM_NOANIMATION, screen_pos.x, screen_pos.y, 0, m_self, nullptr);
 		assert(tracked != 0);
 	};
@@ -569,7 +577,7 @@ void tree_window_impl::on_menu(WPARAM const& wparam)
 {
 	std::uint16_t const menu_id_ = static_cast<std::uint16_t>(LOWORD(wparam));
 	assert(menu_id_ >= static_cast<std::uint16_t>(e_tree_menu_id___2::e_matching));
-	assert(menu_id_ <= static_cast<std::uint16_t>(e_tree_menu_id___2::e_collapse));
+	assert(menu_id_ <= static_cast<std::uint16_t>(e_tree_menu_id___2::e_properties));
 	e_tree_menu_id___2 const menu_id = static_cast<e_tree_menu_id___2>(menu_id_);
 	switch(menu_id)
 	{
@@ -603,6 +611,11 @@ void tree_window_impl::on_menu(WPARAM const& wparam)
 			on_menu_collapse();
 		}
 		break;
+		case e_tree_menu_id___2::e_properties:
+		{
+			on_menu_properties();
+		}
+		break;
 		default:
 		{
 			assert(false);
@@ -615,7 +628,7 @@ void tree_window_impl::on_accelerator(WPARAM const& wparam)
 {
 	std::uint16_t const accel_id_ = static_cast<std::uint16_t>(LOWORD(wparam));
 	assert(accel_id_ >= static_cast<std::uint16_t>(e_tree_accel_id::e_matching));
-	assert(accel_id_ <= static_cast<std::uint16_t>(e_tree_accel_id::e_collapse));
+	assert(accel_id_ <= static_cast<std::uint16_t>(e_tree_accel_id::e_properties));
 	e_tree_accel_id const accel_id = static_cast<e_tree_accel_id>(accel_id_);
 	switch(accel_id)
 	{
@@ -647,6 +660,11 @@ void tree_window_impl::on_accelerator(WPARAM const& wparam)
 		case e_tree_accel_id::e_collapse:
 		{
 			on_accel_collapse();
+		}
+		break;
+		case e_tree_accel_id::e_properties:
+		{
+			on_accel_properties();
 		}
 		break;
 		default:
@@ -687,6 +705,11 @@ void tree_window_impl::on_menu_collapse()
 	cmd_collapse();
 }
 
+void tree_window_impl::on_menu_properties()
+{
+	cmd_properties();
+}
+
 void tree_window_impl::on_accel_matching()
 {
 	cmd_matching();
@@ -715,6 +738,11 @@ void tree_window_impl::on_accel_expand()
 void tree_window_impl::on_accel_collapse()
 {
 	cmd_collapse();
+}
+
+void tree_window_impl::on_accel_properties()
+{
+	cmd_properties();
 }
 
 void tree_window_impl::on_selchangedw([[maybe_unused]] NMHDR& nmhdr)
@@ -760,6 +788,7 @@ smart_menu tree_window_impl::create_context_menu()
 		s_tree_menu_str_next___2,
 		s_tree_menu_str_expand___2,
 		s_tree_menu_str_collapse___2,
+		s_tree_menu_str_properties___2,
 	};
 	static constexpr e_tree_menu_id___2 const s_ids[] =
 	{
@@ -769,6 +798,7 @@ smart_menu tree_window_impl::create_context_menu()
 		e_tree_menu_id___2::e_next,
 		e_tree_menu_id___2::e_expand,
 		e_tree_menu_id___2::e_collapse,
+		e_tree_menu_id___2::e_properties,
 	};
 	static_assert(std::size(s_strings) == std::size(s_ids), "");
 
@@ -997,6 +1027,26 @@ bool tree_window_impl::cmd_properties_avail(file_info const* const& tmp_fi, wstr
 	}
 	return true;
 }
+
+void tree_window_impl::cmd_properties()
+{
+	file_info const* const selection_fi = get_selection();
+	if(!selection_fi)
+	{
+		return;
+	}
+	wstring_handle file_path;
+	bool const avail = cmd_properties_avail(selection_fi, &file_path);
+	if(!avail)
+	{
+		return;
+	}
+	if(m_cmd_properties_fn)
+	{
+		m_cmd_properties_fn(m_cmd_properties_ctx, file_path);
+	}
+}
+
 void tree_window_impl::refresh(file_info* const& fi)
 {
 	LRESULT const redr_off = SendMessageW(m_tree_view, WM_SETREDRAW, FALSE, 0);
