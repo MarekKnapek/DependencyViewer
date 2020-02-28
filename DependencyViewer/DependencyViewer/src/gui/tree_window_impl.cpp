@@ -379,6 +379,22 @@ void tree_window_impl::select_item(file_info const* const& fi)
 	assert(prev_focus != nullptr);
 }
 
+bool tree_window_impl::cmd_matching_avail(file_info const* const& fi, file_info const** const& out_fi)
+{
+	if(!fi)
+	{
+		return false;
+	}
+	file_info const* const proper_fi = fi->m_orig_instance ? fi->m_orig_instance : fi;
+	assert(proper_fi);
+	bool const avail = true;
+	if(avail && out_fi)
+	{
+		*out_fi = proper_fi;
+	}
+	return avail;
+}
+
 void tree_window_impl::refresh(file_info* const& fi)
 {
 	LRESULT const redr_off = SendMessageW(m_tree_view, WM_SETREDRAW, FALSE, 0);
