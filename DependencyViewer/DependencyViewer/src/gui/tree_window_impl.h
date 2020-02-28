@@ -42,6 +42,7 @@ private:
 	LRESULT on_wm_selectitem(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setfullpaths(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setonitemchanged(WPARAM const& wparam, LPARAM const& lparam);
+	LRESULT on_wm_setcmdmatching(WPARAM const& wparam, LPARAM const& lparam);
 	void on_getdispinfow(NMHDR& nmhdr);
 	void on_selchangedw(NMHDR& nmhdr);
 	file_info const* get_selection();
@@ -62,4 +63,6 @@ private:
 	string_converter m_string_converter;
 	tree_window::onitemchanged_fn_t m_onitemchanged_fn;
 	tree_window::onitemchanged_ctx_t m_onitemchanged_ctx;
+	tree_window::cmd_matching_fn_t m_cmd_matching_fn;
+	tree_window::cmd_matching_ctx_t m_cmd_matching_ctx;
 };

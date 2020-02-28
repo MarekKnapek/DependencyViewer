@@ -20,9 +20,12 @@ public:
 		wm_selectitem,
 		wm_setfullpaths,
 		wm_setonitemchanged,
+		wm_setcmdmatching,
 	};
 	using onitemchanged_ctx_t = void*;
 	using onitemchanged_fn_t = void(*)(onitemchanged_ctx_t const, file_info const* const&);
+	using cmd_matching_ctx_t = void*;
+	using cmd_matching_fn_t = void(*)(cmd_matching_ctx_t const, file_info const* const&);
 public:
 	tree_window() noexcept;
 	tree_window(HWND const& parent);
@@ -42,6 +45,7 @@ public:
 	void selectitem(file_info const* const& fi);
 	void setfullpaths(bool const& fullpaths);
 	void setonitemchanged(onitemchanged_fn_t const& onitemchanged_fn, onitemchanged_ctx_t const& onitemchanged_ctx);
+	void setcmdmatching(cmd_matching_fn_t const& cmd_matching_fn, cmd_matching_ctx_t const& cmd_matching_ctx);
 public:
 	HWND const& get_hwnd() const;
 private:
