@@ -5,6 +5,7 @@
 #include "constants.h"
 #include "main.h"
 #include "test.h"
+#include "tree_algos.h"
 
 #include "../nogui/array_bool.h"
 #include "../nogui/assert_my.h"
@@ -77,12 +78,6 @@ enum class e_accel : std::uint16_t
 	e_main_undecorate,
 	e_main_properties,
 	e_main_refresh,
-	e_main_matching,
-	e_tree_orig,
-	e_tree_prev,
-	e_tree_next,
-	e_tree_expand,
-	e_tree_collapse,
 };
 static constexpr ACCEL const s_accel_table[] =
 {
@@ -91,12 +86,6 @@ static constexpr ACCEL const s_accel_table[] =
 	{FVIRTKEY,           	VK_F10,   	static_cast<std::uint16_t>(e_accel::e_main_undecorate	)},
 	{FVIRTKEY | FALT,    	VK_RETURN,	static_cast<std::uint16_t>(e_accel::e_main_properties	)},
 	{FVIRTKEY,           	VK_F5,    	static_cast<std::uint16_t>(e_accel::e_main_refresh   	)},
-	{FVIRTKEY | FCONTROL,	'M',      	static_cast<std::uint16_t>(e_accel::e_main_matching  	)},
-	{FVIRTKEY | FCONTROL,	'K',      	static_cast<std::uint16_t>(e_accel::e_tree_orig      	)},
-	{FVIRTKEY | FCONTROL,	'B',      	static_cast<std::uint16_t>(e_accel::e_tree_prev      	)},
-	{FVIRTKEY | FCONTROL,	'N',      	static_cast<std::uint16_t>(e_accel::e_tree_next      	)},
-	{FVIRTKEY | FCONTROL,	'E',      	static_cast<std::uint16_t>(e_accel::e_tree_expand    	)},
-	{FVIRTKEY | FCONTROL,	'W',      	static_cast<std::uint16_t>(e_accel::e_tree_collapse  	)},
 };
 
 
@@ -216,7 +205,7 @@ main_window::main_window() :
 	m_main_panel(m_hwnd),
 	m_upper_panel(m_main_panel.get_hwnd()),
 	m_modules_window(m_main_panel.get_hwnd()),
-	m_tree_view(m_upper_panel.get_hwnd(), *this),
+	m_tree_window(m_upper_panel.get_hwnd()),
 	m_right_panel(m_upper_panel.get_hwnd()),
 	m_import_window(m_right_panel.get_hwnd()),
 	m_export_window(m_right_panel.get_hwnd()),
@@ -232,7 +221,7 @@ main_window::main_window() :
 	DragAcceptFiles(m_hwnd, TRUE);
 
 	m_main_panel.set_elements(m_upper_panel.get_hwnd(), m_modules_window.get_hwnd());
-	m_upper_panel.set_elements(m_tree_view.get_hwnd(), m_right_panel.get_hwnd());
+	m_upper_panel.set_elements(m_tree_window.get_hwnd(), m_right_panel.get_hwnd());
 	m_right_panel.set_elements(m_import_window.get_hwnd(), m_export_window.get_hwnd());
 
 	m_main_panel.set_position(0.8f);
@@ -240,6 +229,38 @@ main_window::main_window() :
 	RECT r;
 	BOOL const got_rect = GetClientRect(m_hwnd, &r);
 	LRESULT const moved = on_wm_size(0, ((static_cast<unsigned>(r.bottom) & 0xFFFFu) << 16) | (static_cast<unsigned>(r.right) & 0xFFFFu));
+
+	static constexpr auto const tree_onitemchanged_fn_ = [](tree_window::onitemchanged_ctx_t const ctx, file_info const* const& fi)
+	{
+		assert(ctx);
+		main_window* const self = static_cast<main_window*>(ctx);
+		self->m_import_window.setfi(fi);
+		self->m_export_window.setfi(fi);
+		self->commands_availability_refresh();
+	};
+	tree_window::onitemchanged_fn_t const tree_onitemchanged_fn = tree_onitemchanged_fn_;
+	tree_window::onitemchanged_ctx_t const tree_onitemchanged_ctx = this;
+	m_tree_window.setonitemchanged(tree_onitemchanged_fn, tree_onitemchanged_ctx);
+
+	static constexpr auto const tree_cmd_matching_fn_ = [](tree_window::cmd_matching_ctx_t const ctx, file_info const* const& fi)
+	{
+		assert(ctx);
+		main_window* const self = static_cast<main_window*>(ctx);
+		self->m_modules_window.selectitem(fi);
+	};
+	tree_window::cmd_matching_fn_t const tree_cmd_matching_fn = tree_cmd_matching_fn_;
+	tree_window::cmd_matching_ctx_t const tree_cmd_matching_ctx = this;
+	m_tree_window.setcmdmatching(tree_cmd_matching_fn, tree_cmd_matching_ctx);
+
+	static constexpr auto const tree_cmd_properties_fn_ = [](tree_window::cmd_properties_ctx_t const ctx, wstring_handle const& file_path)
+	{
+		assert(ctx);
+		main_window* const self = static_cast<main_window*>(ctx);
+		self->properties(file_path);
+	};
+	tree_window::cmd_properties_fn_t const tree_cmd_properties_fn = tree_cmd_properties_fn_;
+	tree_window::cmd_properties_ctx_t const tree_cmd_properties_ctx = this;
+	m_tree_window.setcmdproperties(tree_cmd_properties_fn, tree_cmd_properties_ctx);
 
 	static constexpr auto const imp_cmd_matching_fn_ = [](import_window::cmd_matching_ctx_t const ctx, std::uint16_t const item_idx) -> void
 	{
@@ -276,12 +297,7 @@ main_window::main_window() :
 		assert(ctx);
 		main_window* const self = static_cast<main_window*>(ctx);
 		assert(fi);
-		HTREEITEM const item = reinterpret_cast<HTREEITEM>(fi->m_tree_item);
-		HWND const tree = self->m_tree_view.get_hwnd();
-		LRESULT const visibled = SendMessageW(tree, TVM_ENSUREVISIBLE, 0, reinterpret_cast<LPARAM>(item));
-		LRESULT const selected = SendMessageW(tree, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(item));
-		assert(selected != FALSE);
-		SetFocus(tree);
+		self->m_tree_window.selectitem(fi);
 	};
 	modules_window::cmd_matching_fn_t const mdls_cmd_matching_fn = mdls_cmd_matching_fn_;
 	modules_window::cmd_matching_ctx_t const mdls_cmd_matching_ctx = this;
@@ -319,7 +335,11 @@ HWND main_window::get_hwnd() const
 bool main_window::translate_accelerator(MSG& message)
 {
 	bool translated;
-	if(IsChild(m_import_window.get_hwnd(), message.hwnd) != 0 || m_import_window.get_hwnd() == message.hwnd)
+	if(IsChild(m_tree_window.get_hwnd(), message.hwnd) != 0 || m_tree_window.get_hwnd() == message.hwnd)
+	{
+		translated = m_tree_window.translateaccelerator(message);
+	}
+	else if(IsChild(m_import_window.get_hwnd(), message.hwnd) != 0 || m_import_window.get_hwnd() == message.hwnd)
 	{
 		translated = m_import_window.translateaccelerator(message);
 	}
@@ -458,11 +478,6 @@ LRESULT main_window::on_message(UINT msg, WPARAM wparam, LPARAM lparam)
 			return on_wm_notify(wparam, lparam);
 		}
 		break;
-		case WM_CONTEXTMENU:
-		{
-			return on_wm_contextmenu(wparam, lparam);
-		}
-		break;
 		case WM_COMMAND:
 		{
 			return on_wm_command(wparam, lparam);
@@ -557,25 +572,11 @@ LRESULT main_window::on_wm_drawitem(WPARAM wparam, LPARAM lparam)
 LRESULT main_window::on_wm_notify(WPARAM wparam, LPARAM lparam)
 {
 	NMHDR& nmhdr = *reinterpret_cast<NMHDR*>(lparam);
-	if(nmhdr.hwndFrom == m_tree_view.get_hwnd())
-	{
-		m_tree_view.on_notify(nmhdr);
-	}
-	else if(nmhdr.hwndFrom == m_toolbar)
+	if(nmhdr.hwndFrom == m_toolbar)
 	{
 		on_toolbar_notify(nmhdr);
 	}
 	return DefWindowProcW(m_hwnd, WM_NOTIFY, wparam, lparam);
-}
-
-LRESULT main_window::on_wm_contextmenu(WPARAM wparam, LPARAM lparam)
-{
-	HWND const hwnd = reinterpret_cast<HWND>(wparam);
-	if(hwnd == m_tree_view.get_hwnd())
-	{
-		m_tree_view.on_context_menu(lparam);
-	}
-	return DefWindowProcW(m_hwnd, WM_CONTEXTMENU, wparam, lparam);
 }
 
 LRESULT main_window::on_wm_command(WPARAM wparam, LPARAM lparam)
@@ -651,10 +652,6 @@ void main_window::on_menu(WPARAM const wparam)
 	{
 		on_menu(menu_id);
 	}
-	else if(menu_id >= s_tree_view_menu_min && menu_id < s_tree_view_menu_max)
-	{
-		m_tree_view.on_menu(menu_id);
-	}
 }
 
 void main_window::on_menu(std::uint16_t const menu_id)
@@ -725,36 +722,6 @@ void main_window::on_accelerator(WPARAM const wparam)
 			on_accel_refresh();
 		}
 		break;
-		case e_accel::e_main_matching:
-		{
-			on_accel_matching();
-		}
-		break;
-		case e_accel::e_tree_orig:
-		{
-			m_tree_view.on_accel_orig();
-		}
-		break;
-		case e_accel::e_tree_prev:
-		{
-			m_tree_view.on_accel_prev();
-		}
-		break;
-		case e_accel::e_tree_next:
-		{
-			m_tree_view.on_accel_next();
-		}
-		break;
-		case e_accel::e_tree_expand:
-		{
-			m_tree_view.on_accel_expand();
-		}
-		break;
-		case e_accel::e_tree_collapse:
-		{
-			m_tree_view.on_accel_collapse();
-		}
-		break;
 		default:
 		{
 			assert(false);
@@ -794,14 +761,6 @@ void main_window::on_toolbar(WPARAM const wparam)
 		}
 		break;
 	}
-}
-
-void main_window::on_tree_selchangedw()
-{
-	file_info const* const fi = m_tree_view.get_selection();
-	m_import_window.setfi(fi);
-	m_export_window.setfi(fi);
-	commands_availability_refresh();
 }
 
 void main_window::on_modules_itemchanged()
@@ -897,33 +856,12 @@ void main_window::on_accel_undecorate()
 
 void main_window::on_accel_properties()
 {
-	HWND const focus = GetFocus();
-	if(focus == m_tree_view.get_hwnd())
-	{
-		m_tree_view.on_accel_properties();
-	}
-	else
-	{
-		properties();
-	}
+	properties();
 }
 
 void main_window::on_accel_refresh()
 {
 	refresh();
-}
-
-void main_window::on_accel_matching()
-{
-	HWND const focus = GetFocus();
-	if(!focus)
-	{
-		return;
-	}
-	if(focus == m_tree_view.get_hwnd())
-	{
-		m_tree_view.on_accel_match();
-	}
 }
 
 void main_window::on_toolbar_open()
@@ -975,8 +913,9 @@ void main_window::commands_availability_refresh()
 	};
 
 	wstring_handle data = get_properties_data();
+	//bool const tree_properties_avail = m_tree_window.iscmdpropertiesavail();
 	bool const modules_properties_avail = m_modules_window.iscmdpropertiesavail();
-	bool const enable = !!data || modules_properties_avail;
+	bool const enable = !!data /*|| tree_properties_avail*/ || modules_properties_avail;
 	fn_enable_properties_toolbar(m_toolbar, enable);
 	fn_enable_properties_menu(m_hwnd, enable);
 }
@@ -1075,9 +1014,19 @@ void main_window::refresh(main_type&& mo)
 	swap(m_mo, mo);
 	request_mo_deletion(std::move(tmp));
 
-	m_tree_view.refresh();
+	m_tree_window.setfi(m_mo.m_fi);
 	m_modules_window.setmodlist(m_mo.m_modules_list);
-	SetFocus(m_tree_view.get_hwnd());
+	m_tree_window.selectitem(m_mo.m_fi->m_fis + 0);
+
+	static constexpr auto const request_symbols_fn = [](file_info* const& fi, void* const& param)
+	{
+		assert(fi);
+		assert(param);
+		main_window* const self = static_cast<main_window*>(param);
+		self->request_symbols_from_addresses(*fi);
+		self->request_symbol_undecoration(*fi);
+	};
+	depth_first_visit(m_mo.m_fi, request_symbols_fn, this);
 }
 
 void main_window::full_paths()
@@ -1094,7 +1043,7 @@ void main_window::full_paths()
 	BOOL const menu_state_set = SetMenuItemInfoW(GetSubMenu(GetMenu(m_hwnd), 1), static_cast<std::uint16_t>(e_main_menu_id::e_full_paths), FALSE, &mi);
 	assert(menu_state_set != 0);
 
-	m_tree_view.repaint();
+	m_tree_window.setfullpaths(m_settings.m_full_paths);
 }
 
 void main_window::properties(wstring_handle data /* = wstring_handle{} */)
@@ -1196,25 +1145,6 @@ wstring_handle main_window::get_properties_data(file_info const* const curr_fi /
 			return curr_fp;
 		}
 	}
-
-	HWND const focus = GetFocus();
-
-	wstring_handle tree_fp{};
-	file_info const* const tree_fi = m_tree_view.get_selection();
-	if(tree_fi)
-	{
-		file_info const* const real_tree_fi = tree_fi->m_orig_instance ? tree_fi->m_orig_instance : tree_fi;
-		tree_fp = real_tree_fi->m_file_path;
-	}
-	if(focus == m_tree_view.get_hwnd() && tree_fp)
-	{
-		return tree_fp;
-	}
-
-	if(tree_fp)
-	{
-		return tree_fp;
-	}
 	return {};
 }
 
@@ -1254,32 +1184,6 @@ void main_window::refresh()
 		file_paths[i].assign(cbegin(name), cend(name));
 	}
 	open_files(file_paths);
-}
-
-std::pair<file_info const*, POINT> main_window::get_file_info_2_under_cursor()
-{
-	POINT cursor_screen;
-	BOOL const got_cursor_pos = GetCursorPos(&cursor_screen);
-	assert(got_cursor_pos != 0);
-	POINT cursor_client = cursor_screen;
-	BOOL const converted = ScreenToClient(m_tree_view.get_hwnd(), &cursor_client);
-	assert(converted != 0);
-	TVHITTESTINFO hti;
-	hti.pt = cursor_client;
-	LPARAM const hit_tested = SendMessageW(m_tree_view.get_hwnd(), TVM_HITTEST, 0, reinterpret_cast<LPARAM>(&hti));
-	assert(reinterpret_cast<HTREEITEM>(hit_tested) == hti.hItem);
-	if(!(hti.hItem && (hti.flags & (TVHT_ONITEM | TVHT_ONITEMBUTTON | TVHT_ONITEMICON | TVHT_ONITEMLABEL | TVHT_ONITEMSTATEICON)) != 0))
-	{
-		return {nullptr, {}};
-	}
-	TVITEMEXW ti;
-	ti.hItem = hti.hItem;
-	ti.mask = TVIF_PARAM;
-	LRESULT const got_item = SendMessageW(m_tree_view.get_hwnd(), TVM_GETITEMW, 0, reinterpret_cast<LPARAM>(&ti));
-	assert(got_item == TRUE);
-	assert(ti.lParam);
-	file_info const* const fi = reinterpret_cast<file_info*>(ti.lParam);
-	return {fi, cursor_screen};
 }
 
 void main_window::add_idle_task(idle_task_t const task, idle_task_param_t const param)
@@ -1486,14 +1390,11 @@ void main_window::finish_symbols_from_addresses(symbols_from_addresses_param_t c
 			dbg_name.m_string = static_cast<string const*>(nullptr) + 1;
 		}
 	}
-	file_info const* const fi = m_tree_view.get_selection();
-	if(fi)
+	file_info const* const fi = m_tree_window.getselection();
+	if(fi && (fi == param.m_data || fi->m_orig_instance == param.m_data))
 	{
-		if(fi == param.m_data || fi->m_orig_instance == param.m_data)
-		{
-			m_import_window.repaint();
-			m_export_window.repaint();
-		}
+		m_import_window.repaint();
+		m_export_window.repaint();
 	}
 	request_symbol_undecoration_e(*static_cast<file_info*>(param.m_data), param.m_indexes);
 }
@@ -1613,14 +1514,11 @@ void main_window::finish_symbol_undecoration_e(undecorated_from_decorated_e_para
 			undecorated_name.m_string = static_cast<string const*>(nullptr) + 1;
 		}
 	}
-	file_info const* const fi = m_tree_view.get_selection();
-	if(fi)
+	file_info const* const fi = m_tree_window.getselection();
+	if(fi && (fi == param.m_data || fi->m_orig_instance == param.m_data))
 	{
-		if(fi == param.m_data || fi->m_orig_instance == param.m_data)
-		{
-			m_import_window.repaint();
-			m_export_window.repaint();
-		}
+		m_import_window.repaint();
+		m_export_window.repaint();
 	}
 }
 
@@ -1705,14 +1603,11 @@ void main_window::finish_symbol_undecoration_i(undecorated_from_decorated_i_para
 			undecorated_name.m_string = static_cast<string const*>(nullptr) + 1;
 		}
 	}
-	file_info const* const fi = m_tree_view.get_selection();
-	if(fi)
+	file_info const* const fi = m_tree_window.getselection();
+	if(fi && (fi == param.m_data || fi->m_orig_instance == param.m_data))
 	{
-		if(fi == param.m_data || fi->m_orig_instance == param.m_data)
-		{
-			m_import_window.repaint();
-			m_export_window.repaint();
-		}
+		m_import_window.repaint();
+		m_export_window.repaint();
 	}
 }
 

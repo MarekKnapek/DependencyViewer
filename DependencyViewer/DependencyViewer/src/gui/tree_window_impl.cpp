@@ -19,7 +19,7 @@
 #include <windowsx.h>
 
 
-enum class e_tree_menu_id___2 : std::uint16_t
+enum class e_tree_menu_id : std::uint16_t
 {
 	e_matching,
 	e_orig,
@@ -30,12 +30,12 @@ enum class e_tree_menu_id___2 : std::uint16_t
 	e_properties,
 };
 static constexpr wchar_t const s_tree_menu_str_matching[] = L"&Highlight Matching Module In List\tCtrl+M";
-static constexpr wchar_t const s_tree_menu_str_orig___2[] = L"Highlight &Original Instance\tCtrl+K";
-static constexpr wchar_t const s_tree_menu_str_prev___2[] = L"Highlight Previous &Instance\tCtrl+B";
-static constexpr wchar_t const s_tree_menu_str_next___2[] = L"Highlight &Next Instance\tCtrl+N";
-static constexpr wchar_t const s_tree_menu_str_expand___2[] = L"&Expand All\tCtrl+E";
-static constexpr wchar_t const s_tree_menu_str_collapse___2[] = L"Co&llapse All\tCtrl+W";
-static constexpr wchar_t const s_tree_menu_str_properties___2[] = L"&Properties...\tAlt+Enter";
+static constexpr wchar_t const s_tree_menu_str_orig[] = L"Highlight &Original Instance\tCtrl+K";
+static constexpr wchar_t const s_tree_menu_str_prev[] = L"Highlight Previous &Instance\tCtrl+B";
+static constexpr wchar_t const s_tree_menu_str_next[] = L"Highlight &Next Instance\tCtrl+N";
+static constexpr wchar_t const s_tree_menu_str_expand[] = L"&Expand All\tCtrl+E";
+static constexpr wchar_t const s_tree_menu_str_collapse[] = L"Co&llapse All\tCtrl+W";
+static constexpr wchar_t const s_tree_menu_str_properties[] = L"&Properties...\tAlt+Enter";
 
 enum class e_tree_accel_id : std::uint16_t
 {
@@ -373,23 +373,23 @@ LRESULT tree_window_impl::on_wm_contextmenu(WPARAM const& wparam, LPARAM const& 
 		HMENU const menu = reinterpret_cast<HMENU>(m_context_menu.get());
 
 		bool const avail_matching = cmd_matching_avail(fi, nullptr);
-		BOOL const prev_matching = EnableMenuItem(menu, static_cast<std::uint16_t>(e_tree_menu_id___2::e_matching), MF_BYCOMMAND | (avail_matching ? MF_ENABLED : (MF_GRAYED | MF_DISABLED)));
+		BOOL const prev_matching = EnableMenuItem(menu, static_cast<std::uint16_t>(e_tree_menu_id::e_matching), MF_BYCOMMAND | (avail_matching ? MF_ENABLED : (MF_GRAYED | MF_DISABLED)));
 		assert(prev_matching != -1 && (prev_matching == MF_ENABLED || prev_matching == (MF_GRAYED | MF_DISABLED)));
 
 		bool const avail_orig = cmd_orig_avail(fi, nullptr);
-		BOOL const prev_orig = EnableMenuItem(menu, static_cast<std::uint16_t>(e_tree_menu_id___2::e_orig), MF_BYCOMMAND | (avail_orig ? MF_ENABLED : (MF_GRAYED | MF_DISABLED)));
+		BOOL const prev_orig = EnableMenuItem(menu, static_cast<std::uint16_t>(e_tree_menu_id::e_orig), MF_BYCOMMAND | (avail_orig ? MF_ENABLED : (MF_GRAYED | MF_DISABLED)));
 		assert(prev_orig != -1 && (prev_orig == MF_ENABLED || prev_orig == (MF_GRAYED | MF_DISABLED)));
 
 		bool const avail_prev = cmd_prev_avail(fi, nullptr);
-		BOOL const prev_prev = EnableMenuItem(menu, static_cast<std::uint16_t>(e_tree_menu_id___2::e_prev), MF_BYCOMMAND | (avail_prev ? MF_ENABLED : (MF_GRAYED | MF_DISABLED)));
+		BOOL const prev_prev = EnableMenuItem(menu, static_cast<std::uint16_t>(e_tree_menu_id::e_prev), MF_BYCOMMAND | (avail_prev ? MF_ENABLED : (MF_GRAYED | MF_DISABLED)));
 		assert(prev_prev != -1 && (prev_prev == MF_ENABLED || prev_prev == (MF_GRAYED | MF_DISABLED)));
 
 		bool const avail_next = cmd_next_avail(fi, nullptr);
-		BOOL const prev_next = EnableMenuItem(menu, static_cast<std::uint16_t>(e_tree_menu_id___2::e_next), MF_BYCOMMAND | (avail_next ? MF_ENABLED : (MF_GRAYED | MF_DISABLED)));
+		BOOL const prev_next = EnableMenuItem(menu, static_cast<std::uint16_t>(e_tree_menu_id::e_next), MF_BYCOMMAND | (avail_next ? MF_ENABLED : (MF_GRAYED | MF_DISABLED)));
 		assert(prev_next != -1 && (prev_next == MF_ENABLED || prev_next == (MF_GRAYED | MF_DISABLED)));
 
 		bool const avail_properties = cmd_properties_avail(fi, nullptr);
-		BOOL const prev_properties = EnableMenuItem(menu, static_cast<std::uint16_t>(e_tree_menu_id___2::e_properties), MF_BYCOMMAND | (avail_properties ? MF_ENABLED : (MF_GRAYED | MF_DISABLED)));
+		BOOL const prev_properties = EnableMenuItem(menu, static_cast<std::uint16_t>(e_tree_menu_id::e_properties), MF_BYCOMMAND | (avail_properties ? MF_ENABLED : (MF_GRAYED | MF_DISABLED)));
 		assert(prev_properties != -1 && (prev_properties == MF_ENABLED || prev_properties == (MF_GRAYED | MF_DISABLED)));
 
 		BOOL const tracked = TrackPopupMenu(menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON | TPM_NOANIMATION, screen_pos.x, screen_pos.y, 0, m_self, nullptr);
@@ -576,42 +576,42 @@ void tree_window_impl::on_getdispinfow(NMHDR& nmhdr)
 void tree_window_impl::on_menu(WPARAM const& wparam)
 {
 	std::uint16_t const menu_id_ = static_cast<std::uint16_t>(LOWORD(wparam));
-	assert(menu_id_ >= static_cast<std::uint16_t>(e_tree_menu_id___2::e_matching));
-	assert(menu_id_ <= static_cast<std::uint16_t>(e_tree_menu_id___2::e_properties));
-	e_tree_menu_id___2 const menu_id = static_cast<e_tree_menu_id___2>(menu_id_);
+	assert(menu_id_ >= static_cast<std::uint16_t>(e_tree_menu_id::e_matching));
+	assert(menu_id_ <= static_cast<std::uint16_t>(e_tree_menu_id::e_properties));
+	e_tree_menu_id const menu_id = static_cast<e_tree_menu_id>(menu_id_);
 	switch(menu_id)
 	{
-		case e_tree_menu_id___2::e_matching:
+		case e_tree_menu_id::e_matching:
 		{
 			on_menu_matching();
 		}
 		break;
-		case e_tree_menu_id___2::e_orig:
+		case e_tree_menu_id::e_orig:
 		{
 			on_menu_orig();
 		}
 		break;
-		case e_tree_menu_id___2::e_prev:
+		case e_tree_menu_id::e_prev:
 		{
 			on_menu_prev();
 		}
 		break;
-		case e_tree_menu_id___2::e_next:
+		case e_tree_menu_id::e_next:
 		{
 			on_menu_next();
 		}
 		break;
-		case e_tree_menu_id___2::e_expand:
+		case e_tree_menu_id::e_expand:
 		{
 			on_menu_expand();
 		}
 		break;
-		case e_tree_menu_id___2::e_collapse:
+		case e_tree_menu_id::e_collapse:
 		{
 			on_menu_collapse();
 		}
 		break;
-		case e_tree_menu_id___2::e_properties:
+		case e_tree_menu_id::e_properties:
 		{
 			on_menu_properties();
 		}
@@ -783,22 +783,22 @@ smart_menu tree_window_impl::create_context_menu()
 	static constexpr wchar_t const* const s_strings[] =
 	{
 		s_tree_menu_str_matching,
-		s_tree_menu_str_orig___2,
-		s_tree_menu_str_prev___2,
-		s_tree_menu_str_next___2,
-		s_tree_menu_str_expand___2,
-		s_tree_menu_str_collapse___2,
-		s_tree_menu_str_properties___2,
+		s_tree_menu_str_orig,
+		s_tree_menu_str_prev,
+		s_tree_menu_str_next,
+		s_tree_menu_str_expand,
+		s_tree_menu_str_collapse,
+		s_tree_menu_str_properties,
 	};
-	static constexpr e_tree_menu_id___2 const s_ids[] =
+	static constexpr e_tree_menu_id const s_ids[] =
 	{
-		e_tree_menu_id___2::e_matching,
-		e_tree_menu_id___2::e_orig,
-		e_tree_menu_id___2::e_prev,
-		e_tree_menu_id___2::e_next,
-		e_tree_menu_id___2::e_expand,
-		e_tree_menu_id___2::e_collapse,
-		e_tree_menu_id___2::e_properties,
+		e_tree_menu_id::e_matching,
+		e_tree_menu_id::e_orig,
+		e_tree_menu_id::e_prev,
+		e_tree_menu_id::e_next,
+		e_tree_menu_id::e_expand,
+		e_tree_menu_id::e_collapse,
+		e_tree_menu_id::e_properties,
 	};
 	static_assert(std::size(s_strings) == std::size(s_ids), "");
 

@@ -8,7 +8,7 @@
 #include "settings.h"
 #include "smart_menu.h"
 #include "splitter_window.h"
-#include "tree_view.h"
+#include "tree_window.h"
 
 #include "../nogui/pe.h"
 #include "../nogui/thread_worker.h"
@@ -67,7 +67,6 @@ private:
 	LRESULT on_wm_close(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_drawitem(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_notify(WPARAM wparam, LPARAM lparam);
-	LRESULT on_wm_contextmenu(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_command(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_dropfiles(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_main_window_add_idle_task(WPARAM wparam, LPARAM lparam);
@@ -76,7 +75,6 @@ private:
 	void on_menu(std::uint16_t const menu_id);
 	void on_accelerator(WPARAM const wparam);
 	void on_toolbar(WPARAM const wparam);
-	void on_tree_selchangedw();
 	void on_modules_itemchanged();
 	void on_toolbar_notify(NMHDR& nmhdr);
 	void on_menu_open();
@@ -90,7 +88,6 @@ private:
 	void on_accel_undecorate();
 	void on_accel_properties();
 	void on_accel_refresh();
-	void on_accel_matching();
 	void on_toolbar_open();
 	void on_toolbar_full_paths();
 	void on_toolbar_undecorate();
@@ -105,7 +102,6 @@ private:
 	wstring_handle get_properties_data(file_info const* const curr_fi = nullptr);
 	void undecorate();
 	void refresh();
-	std::pair<file_info const*, POINT> get_file_info_2_under_cursor();
 	void add_idle_task(idle_task_t const task, idle_task_param_t const param);
 	void on_idle();
 	void process_command_line();
@@ -132,7 +128,7 @@ private:
 	splitter_window_hor m_main_panel;
 	splitter_window_ver m_upper_panel;
 	modules_window m_modules_window;
-	tree_view m_tree_view;
+	tree_window m_tree_window;
 	splitter_window_hor m_right_panel;
 	import_window m_import_window;
 	export_window m_export_window;
