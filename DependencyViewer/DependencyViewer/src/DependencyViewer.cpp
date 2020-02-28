@@ -20,6 +20,8 @@
 #include "gui/test.cpp"
 #include "gui/tree_algos.cpp"
 #include "gui/tree_view.cpp"
+#include "gui/tree_window.cpp"
+#include "gui/tree_window_impl.cpp"
 
 #include "nogui/act_ctx.cpp"
 #include "nogui/allocator.cpp"

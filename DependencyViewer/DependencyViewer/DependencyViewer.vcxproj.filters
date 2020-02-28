@@ -67,6 +67,8 @@
 		<ClInclude Include="src\gui\test.h">                                  	<Filter>src\gui</Filter></ClInclude>
 		<ClInclude Include="src\gui\tree_algos.h">                            	<Filter>src\gui</Filter></ClInclude>
 		<ClInclude Include="src\gui\tree_view.h">                             	<Filter>src\gui</Filter></ClInclude>
+		<ClInclude Include="src\gui\tree_window.h">                           	<Filter>src\gui</Filter></ClInclude>
+		<ClInclude Include="src\gui\tree_window_impl.h">                      	<Filter>src\gui</Filter></ClInclude>
 		<ClInclude Include="src\nogui\act_ctx.h">                             	<Filter>src\nogui</Filter></ClInclude>
 		<ClInclude Include="src\nogui\allocator.h">                           	<Filter>src\nogui</Filter></ClInclude>
 		<ClInclude Include="src\nogui\allocator_big.h">                       	<Filter>src\nogui</Filter></ClInclude>
@@ -144,6 +146,8 @@
 		<ClCompile Include="src\gui\test.cpp">                       	<Filter>src\gui</Filter></ClCompile>
 		<ClCompile Include="src\gui\tree_algos.cpp">                 	<Filter>src\gui</Filter></ClCompile>
 		<ClCompile Include="src\gui\tree_view.cpp">                  	<Filter>src\gui</Filter></ClCompile>
+		<ClCompile Include="src\gui\tree_window.cpp">                	<Filter>src\gui</Filter></ClCompile>
+		<ClCompile Include="src\gui\tree_window_impl.cpp">           	<Filter>src\gui</Filter></ClCompile>
 		<ClCompile Include="src\nogui\act_ctx.cpp">                  	<Filter>src\nogui</Filter></ClCompile>
 		<ClCompile Include="src\nogui\allocator.cpp">                	<Filter>src\nogui</Filter></ClCompile>
 		<ClCompile Include="src\nogui\allocator_big.cpp">            	<Filter>src\nogui</Filter></ClCompile>
