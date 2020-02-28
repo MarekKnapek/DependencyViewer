@@ -13,6 +13,7 @@
 #include "../nogui/windows_my.h"
 
 #include <commctrl.h>
+#include <windowsx.h>
 
 
 ATOM tree_window_impl::g_class;
@@ -498,6 +499,63 @@ void tree_window_impl::repaint()
 {
 	BOOL const redrawn = RedrawWindow(m_tree_view, nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_FRAME);
 	assert(redrawn != 0);
+}
+
+bool tree_window_impl::get_fi_and_point_for_ctx_menu(LPARAM const& lparam, file_info const** const out_fi, POINT* const out_point)
+{
+	assert(out_fi);
+	assert(out_point);
+	if(lparam == LPARAM{-1})
+	{
+		file_info const* const selection = get_selection();
+		if(!selection)
+		{
+			return false;
+		}
+		RECT rect;
+		*reinterpret_cast<HTREEITEM*>(&rect) = reinterpret_cast<HTREEITEM>(selection->m_tree_item);
+		LRESULT const got_rect = SendMessageW(m_tree_view, TVM_GETITEMRECT, TRUE, reinterpret_cast<LPARAM>(&rect));
+		if(got_rect == FALSE)
+		{
+			return false;
+		}
+		POINT cursor_screen;
+		cursor_screen.x = rect.left + (rect.right - rect.left) / 2;
+		cursor_screen.y = rect.top + (rect.bottom - rect.top) / 2;
+		BOOL const converted = ClientToScreen(m_tree_view, &cursor_screen);
+		assert(converted != 0);
+		*out_point = cursor_screen;
+		*out_fi = selection;
+		return true;
+	}
+	else
+	{
+		POINT cursor_screen;
+		cursor_screen.x = GET_X_LPARAM(lparam);
+		cursor_screen.y = GET_Y_LPARAM(lparam);
+		POINT cursor_client = cursor_screen;
+		BOOL const converted = ScreenToClient(m_tree_view, &cursor_client);
+		assert(converted != 0);
+		TVHITTESTINFO hti;
+		hti.pt = cursor_client;
+		LRESULT const hit_tested = SendMessageW(m_tree_view, TVM_HITTEST, 0, reinterpret_cast<LPARAM>(&hti));
+		if(hit_tested != 0 && (hti.flags & (TVHT_ONITEM | TVHT_ONITEMBUTTON | TVHT_ONITEMICON | TVHT_ONITEMLABEL | TVHT_ONITEMSTATEICON)) != 0)
+		{
+			assert(reinterpret_cast<HTREEITEM>(hit_tested) == hti.hItem);
+			file_info const* const fi = htreeitem_2_file_info(reinterpret_cast<htreeitem>(hti.hItem));
+			assert(fi);
+			select_item(fi);
+			*out_fi = fi;
+			*out_point = cursor_screen;
+			return true;
+		}
+		else
+		{
+			*out_fi = nullptr;
+			*out_point = cursor_screen;
+			return true;
+		}
+	}
 }
 
 file_info const* tree_window_impl::htreeitem_2_file_info(htreeitem const& hti)

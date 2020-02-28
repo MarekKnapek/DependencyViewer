@@ -52,6 +52,7 @@ private:
 	void refresh_r(file_info* const& fi, htreeitem const& parent_ti);
 	void refresh_e(file_info* const& fi, htreeitem const& parent_ti);
 	void repaint();
+	bool get_fi_and_point_for_ctx_menu(LPARAM const& lparam, file_info const** const out_fi, POINT* const out_point);
 	file_info const* htreeitem_2_file_info(htreeitem const& hti);
 private:
 	static ATOM g_class;
