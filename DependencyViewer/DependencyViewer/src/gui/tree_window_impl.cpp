@@ -160,6 +160,12 @@ LRESULT tree_window_impl::on_message(UINT const& msg, WPARAM const& wparam, LPAR
 			return ret;
 		}
 		break;
+		case WM_NOTIFY:
+		{
+			LRESULT const ret = on_wm_notify(wparam, lparam);
+			return ret;
+		}
+		break;
 		case static_cast<std::uint32_t>(tree_window::wm::wm_repaint):
 		{
 			LRESULT const ret = on_wm_repaint(wparam, lparam);
@@ -197,6 +203,12 @@ LRESULT tree_window_impl::on_wm_size(WPARAM const& wparam, LPARAM const& lparam)
 	assert(moved != 0);
 
 	LRESULT const ret = DefWindowProcW(m_self, WM_SIZE, wparam, lparam);
+	return ret;
+}
+
+LRESULT tree_window_impl::on_wm_notify(WPARAM const& wparam, LPARAM const& lparam)
+{
+	LRESULT const ret = DefWindowProcW(m_self, WM_NOTIFY, wparam, lparam);
 	return ret;
 }
 
