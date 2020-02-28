@@ -15,6 +15,7 @@ public:
 	enum class wm : std::uint32_t
 	{
 		wm_repaint = WM_USER + 1,
+		wm_translateaccelerator,
 		wm_setfi,
 		wm_getselection,
 		wm_selectitem,
@@ -40,6 +41,7 @@ public:
 	static void deinit();
 public:
 	void repaint();
+	bool translateaccelerator(MSG& message);
 	void setfi(file_info* const& fi);
 	file_info const* getselection();
 	void selectitem(file_info const* const& fi);

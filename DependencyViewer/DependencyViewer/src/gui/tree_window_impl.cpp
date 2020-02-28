@@ -228,6 +228,12 @@ LRESULT tree_window_impl::on_message(UINT const& msg, WPARAM const& wparam, LPAR
 			return ret;
 		}
 		break;
+		case static_cast<std::uint32_t>(tree_window::wm::wm_translateaccelerator):
+		{
+			LRESULT const ret = on_wm_translateaccelerator(wparam, lparam);
+			return ret;
+		}
+		break;
 		case static_cast<std::uint32_t>(tree_window::wm::wm_setfi):
 		{
 			LRESULT const ret = on_wm_setfi(wparam, lparam);
@@ -353,6 +359,20 @@ LRESULT tree_window_impl::on_wm_repaint(WPARAM const& wparam, LPARAM const& lpar
 	repaint();
 
 	UINT const msg = static_cast<std::uint32_t>(tree_window::wm::wm_repaint);
+	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
+	return ret;
+}
+
+LRESULT tree_window_impl::on_wm_translateaccelerator(WPARAM const& wparam, LPARAM const& lparam)
+{
+	bool& translated = *reinterpret_cast<bool*>(wparam);
+	MSG* const message = reinterpret_cast<MSG*>(lparam);
+
+	assert(g_accel != nullptr);
+	int const trnsltd = TranslateAcceleratorW(m_self, g_accel, message);
+	translated = trnsltd != 0;
+
+	UINT const msg = static_cast<std::uint32_t>(tree_window::wm::wm_translateaccelerator);
 	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
 	return ret;
 }

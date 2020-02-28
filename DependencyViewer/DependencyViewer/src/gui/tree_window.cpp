@@ -62,6 +62,17 @@ void tree_window::repaint()
 	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
 }
 
+bool tree_window::translateaccelerator(MSG& message)
+{
+	bool translated;
+	UINT const msg = static_cast<std::uint32_t>(wm::wm_translateaccelerator);
+	WPARAM const wparam = reinterpret_cast<WPARAM>(&translated);
+	LPARAM const lparam = reinterpret_cast<LPARAM>(&message);
+	assert(m_hwnd != nullptr);
+	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
+	return translated;
+}
+
 void tree_window::setfi(file_info* const& fi)
 {
 	UINT const msg = static_cast<std::uint32_t>(wm::wm_setfi);
