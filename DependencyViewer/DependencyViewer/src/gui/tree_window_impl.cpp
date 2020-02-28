@@ -313,6 +313,10 @@ LRESULT tree_window_impl::on_wm_contextmenu(WPARAM const& wparam, LPARAM const& 
 
 LRESULT tree_window_impl::on_wm_command(WPARAM const& wparam, LPARAM const& lparam)
 {
+	if(HIWORD(wparam) == 0 && lparam == 0)
+	{
+		on_menu(wparam);
+	}
 	LRESULT const ret = DefWindowProcW(m_self, WM_COMMAND, wparam, lparam);
 	return ret;
 }
@@ -423,6 +427,22 @@ void tree_window_impl::on_getdispinfow(NMHDR& nmhdr)
 	{
 		di.item.iImage = fi->m_icon;
 		di.item.iSelectedImage = di.item.iImage;
+	}
+}
+
+void tree_window_impl::on_menu(WPARAM const& wparam)
+{
+	std::uint16_t const menu_id_ = static_cast<std::uint16_t>(LOWORD(wparam));
+	assert(menu_id_ >= static_cast<std::uint16_t>(e_tree_menu_id___2::e_matching));
+	assert(menu_id_ <= static_cast<std::uint16_t>(e_tree_menu_id___2::e_matching));
+	e_tree_menu_id___2 const menu_id = static_cast<e_tree_menu_id___2>(menu_id_);
+	switch(menu_id)
+	{
+		default:
+		{
+			assert(false);
+		}
+		break;
 	}
 }
 
