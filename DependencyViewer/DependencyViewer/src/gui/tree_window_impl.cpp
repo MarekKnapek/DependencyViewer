@@ -670,6 +670,7 @@ void tree_window_impl::select_item(file_info const* const& fi)
 {
 	assert(fi);
 	assert(fi->m_tree_item != nullptr);
+	LRESULT const visibled = SendMessageW(m_tree_view, TVM_ENSUREVISIBLE, 0, reinterpret_cast<LPARAM>(fi->m_tree_item));
 	LRESULT const selected = SendMessageW(m_tree_view, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(fi->m_tree_item));
 	assert(selected == TRUE);
 	[[maybe_unused]] HWND const prev_focus = SetFocus(m_tree_view);
@@ -901,10 +902,6 @@ void tree_window_impl::refresh(file_info* const& fi)
 		assert(sub_fi->m_tree_item != nullptr);
 		LRESULT const expanded = SendMessageW(m_tree_view, TVM_EXPAND, TVE_EXPAND, reinterpret_cast<LPARAM>(sub_fi->m_tree_item));
 	}
-	HTREEITEM const first = reinterpret_cast<HTREEITEM>(fi->m_fis[0].m_tree_item);
-	LRESULT const visibled = SendMessageW(m_tree_view, TVM_ENSUREVISIBLE, 0, reinterpret_cast<LPARAM>(first));
-	LRESULT const selected = SendMessageW(m_tree_view, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(first));
-	assert(deselected == TRUE);
 }
 
 void tree_window_impl::refresh_r(file_info* const& fi, htreeitem const& parent_ti)
