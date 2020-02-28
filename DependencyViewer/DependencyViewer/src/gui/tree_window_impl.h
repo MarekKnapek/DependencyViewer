@@ -6,6 +6,9 @@
 #include "../nogui/windows_my.h"
 
 
+struct file_info;
+
+
 class tree_window_impl
 {
 private:
@@ -29,10 +32,12 @@ private:
 	LRESULT on_message(UINT const& msg, WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_size(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_repaint(WPARAM const& wparam, LPARAM const& lparam);
+	LRESULT on_wm_setfi(WPARAM const& wparam, LPARAM const& lparam);
 	void repaint();
 private:
 	static ATOM g_class;
 private:
 	HWND const m_self;
 	HWND m_tree_view;
+	file_info const* m_fi;
 };

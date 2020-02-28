@@ -17,7 +17,8 @@ ATOM tree_window_impl::g_class;
 
 tree_window_impl::tree_window_impl(HWND const& self) :
 	m_self(self),
-	m_tree_view()
+	m_tree_view(),
+	m_fi()
 {
 	assert(self != nullptr);
 
@@ -162,6 +163,12 @@ LRESULT tree_window_impl::on_message(UINT const& msg, WPARAM const& wparam, LPAR
 			return ret;
 		}
 		break;
+		case static_cast<std::uint32_t>(tree_window::wm::wm_setfi):
+		{
+			LRESULT const ret = on_wm_setfi(wparam, lparam);
+			return ret;
+		}
+		break;
 		default:
 		{
 			LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
@@ -189,6 +196,16 @@ LRESULT tree_window_impl::on_wm_repaint(WPARAM const& wparam, LPARAM const& lpar
 	repaint();
 
 	UINT const msg = static_cast<std::uint32_t>(tree_window::wm::wm_repaint);
+	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
+	return ret;
+}
+
+LRESULT tree_window_impl::on_wm_setfi(WPARAM const& wparam, LPARAM const& lparam)
+{
+	file_info* const fi = reinterpret_cast<file_info*>(lparam);
+	m_fi = fi;
+
+	UINT const msg = static_cast<std::uint32_t>(tree_window::wm::wm_setfi);
 	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
 	return ret;
 }

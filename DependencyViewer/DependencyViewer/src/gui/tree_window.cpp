@@ -62,6 +62,15 @@ void tree_window::repaint()
 	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
 }
 
+void tree_window::setfi(file_info* const& fi)
+{
+	UINT const msg = static_cast<std::uint32_t>(wm::wm_setfi);
+	WPARAM const wparam = 0;
+	LPARAM const lparam = reinterpret_cast<LPARAM>(fi);
+	assert(m_hwnd != nullptr);
+	[[maybe_unused]] LRESULT res = SendMessageW(m_hwnd, msg, wparam, lparam);
+}
+
 HWND const& tree_window::get_hwnd() const
 {
 	return m_hwnd;
