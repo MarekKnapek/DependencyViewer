@@ -152,6 +152,12 @@ LRESULT splitter_window2_impl<orientation>::on_message(UINT const& msg, WPARAM c
 			return ret;
 		}
 		break;
+		case WM_LBUTTONUP:
+		{
+			LRESULT const ret = on_wm_lbuttonup(wparam, lparam);
+			return ret;
+		}
+		break;
 		case static_cast<std::uint32_t>(splitter_window2<orientation>::wm::wm_setchildren):
 		{
 			LRESULT const ret = on_wm_setchildren(wparam, lparam);
@@ -234,6 +240,17 @@ LRESULT splitter_window2_impl<orientation>::on_wm_lbuttondown(WPARAM const& wpar
 	on_wm_lbuttondown_fn();
 
 	LRESULT const ret = DefWindowProcW(m_self, WM_SIZE, wparam, lparam);
+	return ret;
+}
+
+template<splitter_window2_orientation orientation>
+LRESULT splitter_window2_impl<orientation>::on_wm_lbuttonup(WPARAM const& wparam, LPARAM const& lparam)
+{
+	m_sizing = false;
+	BOOL const released = ReleaseCapture();
+	assert(released != 0);
+
+	LRESULT const ret = DefWindowProcW(m_self, WM_LBUTTONUP, wparam, lparam);
 	return ret;
 }
 
