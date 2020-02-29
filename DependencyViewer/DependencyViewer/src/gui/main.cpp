@@ -56,11 +56,11 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, [[maybe_unused]] _In_opt_ HINSTANC
 	auto const dbg_provider_deinit = mk::make_scope_exit([](){ dbg_provider::deinit(); });
 	g_instance = hInstance;
 	common_controls::InitCommonControls();
-	splitter_window_hor::register_class();
-	splitter_window_ver::register_class();
 	main_window::register_class();
 	main_window::create_accel_table();
 	auto const fn_destroy_main_accel_table = mk::make_scope_exit([](){ main_window::destroy_accel_table(); });
+	splitter_window_hor::init(); auto const fn_splitter_window_hor_deinit = mk::make_scope_exit([](){ splitter_window_hor::deinit(); });
+	splitter_window_ver::init(); auto const fn_splitter_window_ver_deinit = mk::make_scope_exit([](){ splitter_window_ver::deinit(); });
 	tree_window::init(); auto const fn_tree_window_deinit = mk::make_scope_exit([](){ tree_window::deinit(); });
 	import_window::init(); auto const fn_import_window_deinit = mk::make_scope_exit([](){ import_window::deinit(); });
 	export_window::init(); auto const fn_export_window_deinit = mk::make_scope_exit([](){ export_window::deinit(); });

@@ -218,8 +218,7 @@
 		<ClInclude Include="src\gui\smart_dc.h" />
 		<ClInclude Include="src\gui\smart_menu.h" />
 		<ClInclude Include="src\gui\splitter_window.h" />
-		<ClInclude Include="src\gui\splitter_window2.h" />
-		<ClInclude Include="src\gui\splitter_window2_impl.h" />
+		<ClInclude Include="src\gui\splitter_window_impl.h" />
 		<ClInclude Include="src\gui\test.h" />
 		<ClInclude Include="src\gui\tree_algos.h" />
 		<ClInclude Include="src\gui\tree_window.h" />
@@ -298,8 +297,7 @@
 		<ClCompile Include="src\gui\smart_dc.cpp">                   	<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild><ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild></ClCompile>
 		<ClCompile Include="src\gui\smart_menu.cpp">                 	<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild><ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild></ClCompile>
 		<ClCompile Include="src\gui\splitter_window.cpp">            	<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild><ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild></ClCompile>
-		<ClCompile Include="src\gui\splitter_window2.cpp">           	<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild><ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild></ClCompile>
-		<ClCompile Include="src\gui\splitter_window2_impl.cpp">      	<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild><ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild></ClCompile>
+		<ClCompile Include="src\gui\splitter_window_impl.cpp">       	<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild><ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild></ClCompile>
 		<ClCompile Include="src\gui\test.cpp">                       	<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild><ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild></ClCompile>
 		<ClCompile Include="src\gui\tree_algos.cpp">                 	<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild><ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild></ClCompile>
 		<ClCompile Include="src\gui\tree_window.cpp">                	<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild><ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild></ClCompile>

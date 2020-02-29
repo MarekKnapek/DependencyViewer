@@ -6,15 +6,15 @@
 #include "../nogui/windows_my.h"
 
 
-enum class splitter_window2_orientation
+enum class splitter_window_orientation
 {
 	horizontal,
 	vertical,
 };
 
 
-template<splitter_window2_orientation orientation>
-class splitter_window2
+template<splitter_window_orientation orientation>
+class splitter_window
 {
 public:
 	enum class wm : std::uint32_t
@@ -23,14 +23,14 @@ public:
 		wm_setposition,
 	};
 public:
-	splitter_window2() noexcept;
-	splitter_window2(HWND const& parent);
-	splitter_window2(splitter_window2 const&) = delete;
-	splitter_window2(splitter_window2&& other) noexcept;
-	splitter_window2& operator=(splitter_window2 const&) = delete;
-	splitter_window2& operator=(splitter_window2&& other) noexcept;
-	~splitter_window2();
-	void swap(splitter_window2& other) noexcept;
+	splitter_window() noexcept;
+	splitter_window(HWND const& parent);
+	splitter_window(splitter_window const&) = delete;
+	splitter_window(splitter_window&& other) noexcept;
+	splitter_window& operator=(splitter_window const&) = delete;
+	splitter_window& operator=(splitter_window&& other) noexcept;
+	~splitter_window();
+	void swap(splitter_window& other) noexcept;
 public:
 	static void init();
 	static void deinit();
@@ -43,7 +43,7 @@ private:
 	HWND m_hwnd;
 };
 
-template<splitter_window2_orientation orientation> inline void swap(splitter_window2<orientation>& a, splitter_window2<orientation>& b) noexcept { a.swap(b); }
+template<splitter_window_orientation orientation> inline void swap(splitter_window<orientation>& a, splitter_window<orientation>& b) noexcept { a.swap(b); }
 
-typedef splitter_window2<splitter_window2_orientation::horizontal> splitter_window2_hor;
-typedef splitter_window2<splitter_window2_orientation::vertical> splitter_window2_ver;
+typedef splitter_window<splitter_window_orientation::horizontal> splitter_window_hor;
+typedef splitter_window<splitter_window_orientation::vertical> splitter_window_ver;

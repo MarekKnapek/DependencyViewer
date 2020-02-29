@@ -1,68 +1,68 @@
-#include "splitter_window2.h"
+#include "splitter_window.h"
 
 #include "main.h"
-#include "splitter_window2_impl.h"
+#include "splitter_window_impl.h"
 
 #include "../nogui/cassert_my.h"
 
 #include <utility>
 
 
-template<splitter_window2_orientation orientation>
-splitter_window2<orientation>::splitter_window2() noexcept :
+template<splitter_window_orientation orientation>
+splitter_window<orientation>::splitter_window() noexcept :
 	m_hwnd()
 {
 }
 
-template<splitter_window2_orientation orientation>
-splitter_window2<orientation>::splitter_window2(HWND const& parent) :
-	splitter_window2()
+template<splitter_window_orientation orientation>
+splitter_window<orientation>::splitter_window(HWND const& parent) :
+	splitter_window()
 {
 	assert(parent != nullptr);
-	m_hwnd = CreateWindowExW(0, splitter_window2_impl<orientation>::get_class_atom(), nullptr, WS_CLIPCHILDREN | WS_VISIBLE | WS_CHILD, 0, 0, 0, 0, parent, nullptr, get_instance(), nullptr);
+	m_hwnd = CreateWindowExW(0, splitter_window_impl<orientation>::get_class_atom(), nullptr, WS_CLIPCHILDREN | WS_VISIBLE | WS_CHILD, 0, 0, 0, 0, parent, nullptr, get_instance(), nullptr);
 	assert(m_hwnd != nullptr);
 }
 
-template<splitter_window2_orientation orientation>
-splitter_window2<orientation>::splitter_window2(splitter_window2&& other) noexcept :
-	splitter_window2()
+template<splitter_window_orientation orientation>
+splitter_window<orientation>::splitter_window(splitter_window&& other) noexcept :
+	splitter_window()
 {
 	swap(other);
 }
 
-template<splitter_window2_orientation orientation>
-splitter_window2<orientation>& splitter_window2<orientation>::operator=(splitter_window2&& other) noexcept
+template<splitter_window_orientation orientation>
+splitter_window<orientation>& splitter_window<orientation>::operator=(splitter_window&& other) noexcept
 {
 	swap(other);
 	return *this;
 }
 
-template<splitter_window2_orientation orientation>
-splitter_window2<orientation>::~splitter_window2()
+template<splitter_window_orientation orientation>
+splitter_window<orientation>::~splitter_window()
 {
 }
 
-template<splitter_window2_orientation orientation>
-void splitter_window2<orientation>::swap(splitter_window2& other) noexcept
+template<splitter_window_orientation orientation>
+void splitter_window<orientation>::swap(splitter_window& other) noexcept
 {
 	using std::swap;
 	swap(m_hwnd, other.m_hwnd);
 }
 
-template<splitter_window2_orientation orientation>
-void splitter_window2<orientation>::init()
+template<splitter_window_orientation orientation>
+void splitter_window<orientation>::init()
 {
-	splitter_window2_impl<orientation>::init();
+	splitter_window_impl<orientation>::init();
 }
 
-template<splitter_window2_orientation orientation>
-void splitter_window2<orientation>::deinit()
+template<splitter_window_orientation orientation>
+void splitter_window<orientation>::deinit()
 {
-	splitter_window2_impl<orientation>::deinit();
+	splitter_window_impl<orientation>::deinit();
 }
 
-template<splitter_window2_orientation orientation>
-void splitter_window2<orientation>::setchildren(HWND const& child_a, HWND const& child_b)
+template<splitter_window_orientation orientation>
+void splitter_window<orientation>::setchildren(HWND const& child_a, HWND const& child_b)
 {
 	UINT const msg = static_cast<std::uint32_t>(wm::wm_setchildren);
 	WPARAM const wparam = reinterpret_cast<WPARAM>(child_a);
@@ -71,8 +71,8 @@ void splitter_window2<orientation>::setchildren(HWND const& child_a, HWND const&
 	LRESULT const res = SendMessageW(m_hwnd, msg, wparam, lparam);
 }
 
-template<splitter_window2_orientation orientation>
-void splitter_window2<orientation>::setposition(float const& position)
+template<splitter_window_orientation orientation>
+void splitter_window<orientation>::setposition(float const& position)
 {
 	UINT const msg = static_cast<std::uint32_t>(wm::wm_setposition);
 	WPARAM const wparam = 0;
@@ -81,12 +81,12 @@ void splitter_window2<orientation>::setposition(float const& position)
 	LRESULT const res = SendMessageW(m_hwnd, msg, wparam, lparam);
 }
 
-template<splitter_window2_orientation orientation>
-HWND const& splitter_window2<orientation>::get_hwnd() const
+template<splitter_window_orientation orientation>
+HWND const& splitter_window<orientation>::get_hwnd() const
 {
 	return m_hwnd;
 }
 
 
-template class splitter_window2<splitter_window2_orientation::horizontal>;
-template class splitter_window2<splitter_window2_orientation::vertical>;
+template class splitter_window<splitter_window_orientation::horizontal>;
+template class splitter_window<splitter_window_orientation::vertical>;

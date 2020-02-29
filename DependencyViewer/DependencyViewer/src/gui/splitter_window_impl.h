@@ -1,22 +1,22 @@
 #pragma once
 
 
-#include "splitter_window2.h"
+#include "splitter_window.h"
 
 #include "../nogui/windows_my.h"
 
 
-template<splitter_window2_orientation orientation>
-class splitter_window2_impl
+template<splitter_window_orientation orientation>
+class splitter_window_impl
 {
 private:
-	splitter_window2_impl() noexcept = delete;
-	splitter_window2_impl(HWND const& self);
-	splitter_window2_impl(splitter_window2_impl const&) = delete;
-	splitter_window2_impl(splitter_window2_impl&&) noexcept = delete;
-	splitter_window2_impl& operator=(splitter_window2_impl const&) = delete;
-	splitter_window2_impl& operator=(splitter_window2_impl&&) noexcept = delete;
-	~splitter_window2_impl();
+	splitter_window_impl() noexcept = delete;
+	splitter_window_impl(HWND const& self);
+	splitter_window_impl(splitter_window_impl const&) = delete;
+	splitter_window_impl(splitter_window_impl&&) noexcept = delete;
+	splitter_window_impl& operator=(splitter_window_impl const&) = delete;
+	splitter_window_impl& operator=(splitter_window_impl&&) noexcept = delete;
+	~splitter_window_impl();
 public:
 	static void init();
 	static void deinit();

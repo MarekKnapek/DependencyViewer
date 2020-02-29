@@ -1,4 +1,4 @@
-#include "splitter_window2_impl.h"
+#include "splitter_window_impl.h"
 
 #include "main.h"
 
@@ -11,18 +11,18 @@
 #include <windowsx.h>
 
 
-template<> wchar_t const* const splitter_window2_impl<splitter_window2_orientation::horizontal>::s_class_name = L"splitter_window_hor";
-template<> wchar_t const* const splitter_window2_impl<splitter_window2_orientation::vertical>::s_class_name = L"splitter_window_ver";
-template<> wchar_t const* const splitter_window2_impl<splitter_window2_orientation::horizontal>::s_cursor_id = reinterpret_cast<wchar_t const*>(IDC_SIZENS);
-template<> wchar_t const* const splitter_window2_impl<splitter_window2_orientation::vertical>::s_cursor_id = reinterpret_cast<wchar_t const*>(IDC_SIZEWE);
+template<> wchar_t const* const splitter_window_impl<splitter_window_orientation::horizontal>::s_class_name = L"splitter_window_hor";
+template<> wchar_t const* const splitter_window_impl<splitter_window_orientation::vertical>::s_class_name = L"splitter_window_ver";
+template<> wchar_t const* const splitter_window_impl<splitter_window_orientation::horizontal>::s_cursor_id = reinterpret_cast<wchar_t const*>(IDC_SIZENS);
+template<> wchar_t const* const splitter_window_impl<splitter_window_orientation::vertical>::s_cursor_id = reinterpret_cast<wchar_t const*>(IDC_SIZEWE);
 
 
-template<> ATOM splitter_window2_impl<splitter_window2_orientation::horizontal>::g_class;
-template<> ATOM splitter_window2_impl<splitter_window2_orientation::vertical>::g_class;
+template<> ATOM splitter_window_impl<splitter_window_orientation::horizontal>::g_class;
+template<> ATOM splitter_window_impl<splitter_window_orientation::vertical>::g_class;
 
 
-template<splitter_window2_orientation orientation>
-splitter_window2_impl<orientation>::splitter_window2_impl(HWND const& self) :
+template<splitter_window_orientation orientation>
+splitter_window_impl<orientation>::splitter_window_impl(HWND const& self) :
 	m_self(self),
 	m_child_a(),
 	m_child_b(),
@@ -32,32 +32,32 @@ splitter_window2_impl<orientation>::splitter_window2_impl(HWND const& self) :
 	assert(self != nullptr);
 }
 
-template<splitter_window2_orientation orientation>
-splitter_window2_impl<orientation>::~splitter_window2_impl()
+template<splitter_window_orientation orientation>
+splitter_window_impl<orientation>::~splitter_window_impl()
 {
 }
 
-template<splitter_window2_orientation orientation>
-void splitter_window2_impl<orientation>::init()
+template<splitter_window_orientation orientation>
+void splitter_window_impl<orientation>::init()
 {
 	register_class();
 }
 
-template<splitter_window2_orientation orientation>
-void splitter_window2_impl<orientation>::deinit()
+template<splitter_window_orientation orientation>
+void splitter_window_impl<orientation>::deinit()
 {
 	unregister_class();
 }
 
-template<splitter_window2_orientation orientation>
-wchar_t const* splitter_window2_impl<orientation>::get_class_atom()
+template<splitter_window_orientation orientation>
+wchar_t const* splitter_window_impl<orientation>::get_class_atom()
 {
 	assert(g_class != 0);
 	return reinterpret_cast<wchar_t const*>(g_class);
 }
 
-template<splitter_window2_orientation orientation>
-void splitter_window2_impl<orientation>::register_class()
+template<splitter_window_orientation orientation>
+void splitter_window_impl<orientation>::register_class()
 {
 	WNDCLASSEXW wc{};
 	wc.cbSize = sizeof(wc);
@@ -78,8 +78,8 @@ void splitter_window2_impl<orientation>::register_class()
 	assert(g_class != 0);
 }
 
-template<splitter_window2_orientation orientation>
-void splitter_window2_impl<orientation>::unregister_class()
+template<splitter_window_orientation orientation>
+void splitter_window_impl<orientation>::unregister_class()
 {
 	assert(g_class != 0);
 	BOOL const unregistered = UnregisterClassW(reinterpret_cast<wchar_t const*>(g_class), get_instance());
@@ -87,8 +87,8 @@ void splitter_window2_impl<orientation>::unregister_class()
 	g_class = 0;
 }
 
-template<splitter_window2_orientation orientation>
-LRESULT CALLBACK splitter_window2_impl<orientation>::class_proc(HWND const hwnd, UINT const msg, WPARAM const wparam, LPARAM const lparam)
+template<splitter_window_orientation orientation>
+LRESULT CALLBACK splitter_window_impl<orientation>::class_proc(HWND const hwnd, UINT const msg, WPARAM const wparam, LPARAM const lparam)
 {
 	if(msg == WM_CREATE)
 	{
@@ -105,7 +105,7 @@ LRESULT CALLBACK splitter_window2_impl<orientation>::class_proc(HWND const hwnd,
 		LONG_PTR const self_ptr = GetWindowLongPtrW(hwnd, GWLP_USERDATA);
 		if(self_ptr != 0)
 		{
-			splitter_window2_impl* const self = reinterpret_cast<splitter_window2_impl*>(self_ptr);
+			splitter_window_impl* const self = reinterpret_cast<splitter_window_impl*>(self_ptr);
 			LRESULT const ret = self->on_message(msg, wparam, lparam);
 			return ret;
 		}
@@ -117,10 +117,10 @@ LRESULT CALLBACK splitter_window2_impl<orientation>::class_proc(HWND const hwnd,
 	}
 }
 
-template<splitter_window2_orientation orientation>
-LRESULT splitter_window2_impl<orientation>::on_wm_create(HWND const& hwnd, WPARAM const& wparam, LPARAM const& lparam)
+template<splitter_window_orientation orientation>
+LRESULT splitter_window_impl<orientation>::on_wm_create(HWND const& hwnd, WPARAM const& wparam, LPARAM const& lparam)
 {
-	splitter_window2_impl* const self = new splitter_window2_impl{hwnd};
+	splitter_window_impl* const self = new splitter_window_impl{hwnd};
 	assert((SetLastError(0), true));
 	LONG_PTR const prev = SetWindowLongPtrW(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(self));
 	assert(prev == 0 && GetLastError() == 0);
@@ -129,20 +129,20 @@ LRESULT splitter_window2_impl<orientation>::on_wm_create(HWND const& hwnd, WPARA
 	return ret;
 }
 
-template<splitter_window2_orientation orientation>
-LRESULT splitter_window2_impl<orientation>::on_wm_destroy(HWND const& hwnd, WPARAM const& wparam, LPARAM const& lparam)
+template<splitter_window_orientation orientation>
+LRESULT splitter_window_impl<orientation>::on_wm_destroy(HWND const& hwnd, WPARAM const& wparam, LPARAM const& lparam)
 {
 	LONG_PTR const prev = SetWindowLongPtrW(hwnd, GWLP_USERDATA, 0);
 	assert(prev != 0);
-	splitter_window2_impl* const self = reinterpret_cast<splitter_window2_impl*>(prev);
+	splitter_window_impl* const self = reinterpret_cast<splitter_window_impl*>(prev);
 	delete self;
 
 	LRESULT const ret = DefWindowProcW(hwnd, WM_DESTROY, wparam, lparam);
 	return ret;
 }
 
-template<splitter_window2_orientation orientation>
-LRESULT splitter_window2_impl<orientation>::on_message(UINT const& msg, WPARAM const& wparam, LPARAM const& lparam)
+template<splitter_window_orientation orientation>
+LRESULT splitter_window_impl<orientation>::on_message(UINT const& msg, WPARAM const& wparam, LPARAM const& lparam)
 {
 	switch(msg)
 	{
@@ -170,13 +170,13 @@ LRESULT splitter_window2_impl<orientation>::on_message(UINT const& msg, WPARAM c
 			return ret;
 		}
 		break;
-		case static_cast<std::uint32_t>(splitter_window2<orientation>::wm::wm_setchildren):
+		case static_cast<std::uint32_t>(splitter_window<orientation>::wm::wm_setchildren):
 		{
 			LRESULT const ret = on_wm_setchildren(wparam, lparam);
 			return ret;
 		}
 		break;
-		case static_cast<std::uint32_t>(splitter_window2<orientation>::wm::wm_setposition):
+		case static_cast<std::uint32_t>(splitter_window<orientation>::wm::wm_setposition):
 		{
 			LRESULT const ret = on_wm_setposition(wparam, lparam);
 			return ret;
@@ -192,7 +192,7 @@ LRESULT splitter_window2_impl<orientation>::on_message(UINT const& msg, WPARAM c
 }
 
 template<>
-LRESULT splitter_window2_impl<splitter_window2_orientation::horizontal>::on_wm_size(WPARAM const& wparam, LPARAM const& lparam)
+LRESULT splitter_window_impl<splitter_window_orientation::horizontal>::on_wm_size(WPARAM const& wparam, LPARAM const& lparam)
 {
 	int const w = LOWORD(lparam);
 	int const h = HIWORD(lparam);
@@ -218,7 +218,7 @@ LRESULT splitter_window2_impl<splitter_window2_orientation::horizontal>::on_wm_s
 }
 
 template<>
-LRESULT splitter_window2_impl<splitter_window2_orientation::vertical>::on_wm_size(WPARAM const& wparam, LPARAM const& lparam)
+LRESULT splitter_window_impl<splitter_window_orientation::vertical>::on_wm_size(WPARAM const& wparam, LPARAM const& lparam)
 {
 	int const w = LOWORD(lparam);
 	int const h = HIWORD(lparam);
@@ -244,7 +244,7 @@ LRESULT splitter_window2_impl<splitter_window2_orientation::vertical>::on_wm_siz
 }
 
 template<>
-LRESULT splitter_window2_impl<splitter_window2_orientation::horizontal>::on_wm_mousemove(WPARAM const& wparam, LPARAM const& lparam)
+LRESULT splitter_window_impl<splitter_window_orientation::horizontal>::on_wm_mousemove(WPARAM const& wparam, LPARAM const& lparam)
 {
 	auto const on_wm_mousemove_fn = [&]()
 	{
@@ -266,7 +266,7 @@ LRESULT splitter_window2_impl<splitter_window2_orientation::horizontal>::on_wm_m
 }
 
 template<>
-LRESULT splitter_window2_impl<splitter_window2_orientation::vertical>::on_wm_mousemove(WPARAM const& wparam, LPARAM const& lparam)
+LRESULT splitter_window_impl<splitter_window_orientation::vertical>::on_wm_mousemove(WPARAM const& wparam, LPARAM const& lparam)
 {
 	auto const on_wm_mousemove_fn = [&]()
 	{
@@ -287,8 +287,8 @@ LRESULT splitter_window2_impl<splitter_window2_orientation::vertical>::on_wm_mou
 	return ret;
 }
 
-template<splitter_window2_orientation orientation>
-LRESULT splitter_window2_impl<orientation>::on_wm_lbuttondown(WPARAM const& wparam, LPARAM const& lparam)
+template<splitter_window_orientation orientation>
+LRESULT splitter_window_impl<orientation>::on_wm_lbuttondown(WPARAM const& wparam, LPARAM const& lparam)
 {
 	auto const on_wm_lbuttondown_fn = [&]()
 	{
@@ -305,8 +305,8 @@ LRESULT splitter_window2_impl<orientation>::on_wm_lbuttondown(WPARAM const& wpar
 	return ret;
 }
 
-template<splitter_window2_orientation orientation>
-LRESULT splitter_window2_impl<orientation>::on_wm_lbuttonup(WPARAM const& wparam, LPARAM const& lparam)
+template<splitter_window_orientation orientation>
+LRESULT splitter_window_impl<orientation>::on_wm_lbuttonup(WPARAM const& wparam, LPARAM const& lparam)
 {
 	m_sizing = false;
 	BOOL const released = ReleaseCapture();
@@ -316,34 +316,34 @@ LRESULT splitter_window2_impl<orientation>::on_wm_lbuttonup(WPARAM const& wparam
 	return ret;
 }
 
-template<splitter_window2_orientation orientation>
-LRESULT splitter_window2_impl<orientation>::on_wm_setchildren(WPARAM const& wparam, LPARAM const& lparam)
+template<splitter_window_orientation orientation>
+LRESULT splitter_window_impl<orientation>::on_wm_setchildren(WPARAM const& wparam, LPARAM const& lparam)
 {
 	HWND const child_a = reinterpret_cast<HWND>(wparam);
 	HWND const child_b = reinterpret_cast<HWND>(lparam);
 	m_child_a = child_a;
 	m_child_b = child_b;
 
-	UINT const msg = static_cast<std::uint32_t>(splitter_window2<orientation>::wm::wm_setchildren);
+	UINT const msg = static_cast<std::uint32_t>(splitter_window<orientation>::wm::wm_setchildren);
 	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
 	return ret;
 }
 
-template<splitter_window2_orientation orientation>
-LRESULT splitter_window2_impl<orientation>::on_wm_setposition(WPARAM const& wparam, LPARAM const& lparam)
+template<splitter_window_orientation orientation>
+LRESULT splitter_window_impl<orientation>::on_wm_setposition(WPARAM const& wparam, LPARAM const& lparam)
 {
 	float const& position = *reinterpret_cast<float const*>(lparam);
 	assert(position >= 0.01f && position <= 0.99f);
 	m_position = position;
 	refresh_children();
 
-	UINT const msg = static_cast<std::uint32_t>(splitter_window2<orientation>::wm::wm_setposition);
+	UINT const msg = static_cast<std::uint32_t>(splitter_window<orientation>::wm::wm_setposition);
 	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
 	return ret;
 }
 
-template<splitter_window2_orientation orientation>
-void splitter_window2_impl<orientation>::refresh_children()
+template<splitter_window_orientation orientation>
+void splitter_window_impl<orientation>::refresh_children()
 {
 	RECT r;
 	BOOL const got_rect = GetClientRect(m_self, &r);
@@ -355,5 +355,5 @@ void splitter_window2_impl<orientation>::refresh_children()
 }
 
 
-template class splitter_window2_impl<splitter_window2_orientation::horizontal>;
-template class splitter_window2_impl<splitter_window2_orientation::vertical>;
+template class splitter_window_impl<splitter_window_orientation::horizontal>;
+template class splitter_window_impl<splitter_window_orientation::vertical>;

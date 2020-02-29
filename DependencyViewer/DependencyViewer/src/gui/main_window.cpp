@@ -220,11 +220,11 @@ main_window::main_window() :
 	LONG_PTR const set = SetWindowLongPtrW(m_hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
 	DragAcceptFiles(m_hwnd, TRUE);
 
-	m_main_panel.set_elements(m_upper_panel.get_hwnd(), m_modules_window.get_hwnd());
-	m_upper_panel.set_elements(m_tree_window.get_hwnd(), m_right_panel.get_hwnd());
-	m_right_panel.set_elements(m_import_window.get_hwnd(), m_export_window.get_hwnd());
+	m_main_panel.setchildren(m_upper_panel.get_hwnd(), m_modules_window.get_hwnd());
+	m_upper_panel.setchildren(m_tree_window.get_hwnd(), m_right_panel.get_hwnd());
+	m_right_panel.setchildren(m_import_window.get_hwnd(), m_export_window.get_hwnd());
 
-	m_main_panel.set_position(0.8f);
+	m_main_panel.setposition(0.8f);
 
 	RECT r;
 	BOOL const got_rect = GetClientRect(m_hwnd, &r);
