@@ -72,6 +72,16 @@ void splitter_window2<orientation>::setchildren(HWND const& child_a, HWND const&
 }
 
 template<splitter_window2_orientation orientation>
+void splitter_window2<orientation>::setposition(float const& position)
+{
+	UINT const msg = static_cast<std::uint32_t>(wm::wm_setposition);
+	WPARAM const wparam = 0;
+	LPARAM const lparam = reinterpret_cast<LPARAM>(&position);
+	assert(m_hwnd != nullptr);
+	LRESULT const res = SendMessageW(m_hwnd, msg, wparam, lparam);
+}
+
+template<splitter_window2_orientation orientation>
 HWND const& splitter_window2<orientation>::get_hwnd() const
 {
 	return m_hwnd;

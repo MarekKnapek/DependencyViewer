@@ -176,6 +176,12 @@ LRESULT splitter_window2_impl<orientation>::on_message(UINT const& msg, WPARAM c
 			return ret;
 		}
 		break;
+		case static_cast<std::uint32_t>(splitter_window2<orientation>::wm::wm_setposition):
+		{
+			LRESULT const ret = on_wm_setposition(wparam, lparam);
+			return ret;
+		}
+		break;
 		default:
 		{
 			LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
@@ -319,6 +325,19 @@ LRESULT splitter_window2_impl<orientation>::on_wm_setchildren(WPARAM const& wpar
 	m_child_b = child_b;
 
 	UINT const msg = static_cast<std::uint32_t>(splitter_window2<orientation>::wm::wm_setchildren);
+	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
+	return ret;
+}
+
+template<splitter_window2_orientation orientation>
+LRESULT splitter_window2_impl<orientation>::on_wm_setposition(WPARAM const& wparam, LPARAM const& lparam)
+{
+	float const& position = *reinterpret_cast<float const*>(lparam);
+	assert(position >= 0.01f && position <= 0.99f);
+	m_position = position;
+	refresh_children();
+
+	UINT const msg = static_cast<std::uint32_t>(splitter_window2<orientation>::wm::wm_setposition);
 	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
 	return ret;
 }

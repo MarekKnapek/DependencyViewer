@@ -33,6 +33,7 @@ private:
 	LRESULT on_wm_lbuttondown(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_lbuttonup(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setchildren(WPARAM const& wparam, LPARAM const& lparam);
+	LRESULT on_wm_setposition(WPARAM const& wparam, LPARAM const& lparam);
 	void refresh_children();
 private:
 	static wchar_t const* const s_class_name;

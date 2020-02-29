@@ -20,6 +20,7 @@ public:
 	enum class wm : std::uint32_t
 	{
 		wm_setchildren = WM_USER + 1,
+		wm_setposition,
 	};
 public:
 	splitter_window2() noexcept;
@@ -35,6 +36,7 @@ public:
 	static void deinit();
 public:
 	void setchildren(HWND const& child_a, HWND const& child_b);
+	void setposition(float const& position);
 public:
 	HWND const& get_hwnd() const;
 private:
