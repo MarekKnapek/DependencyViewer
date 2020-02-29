@@ -251,6 +251,7 @@ LRESULT splitter_window2_impl<splitter_window2_orientation::horizontal>::on_wm_m
 		BOOL const got_rect = GetClientRect(m_self, &r);
 		assert(got_rect != 0);
 		m_position = (std::min)((std::max)(static_cast<float>(y) / static_cast<float>(r.bottom), 0.01f), 0.99f);
+		refresh_children();
 	};
 	on_wm_mousemove_fn();
 
@@ -272,6 +273,7 @@ LRESULT splitter_window2_impl<splitter_window2_orientation::vertical>::on_wm_mou
 		BOOL const got_rect = GetClientRect(m_self, &r);
 		assert(got_rect != 0);
 		m_position = (std::min)((std::max)(static_cast<float>(x) / static_cast<float>(r.right), 0.01f), 0.99f);
+		refresh_children();
 	};
 	on_wm_mousemove_fn();
 
@@ -319,6 +321,18 @@ LRESULT splitter_window2_impl<orientation>::on_wm_setchildren(WPARAM const& wpar
 	UINT const msg = static_cast<std::uint32_t>(splitter_window2<orientation>::wm::wm_setchildren);
 	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
 	return ret;
+}
+
+template<splitter_window2_orientation orientation>
+void splitter_window2_impl<orientation>::refresh_children()
+{
+	RECT r;
+	BOOL const got_rect = GetClientRect(m_self, &r);
+	assert(got_rect != 0);
+	std::uint32_t const w = static_cast<std::uint32_t>(r.right) & 0xFFFFu;
+	std::uint32_t const h = static_cast<std::uint32_t>(r.bottom) & 0xFFFFu;
+	LPARAM const size = (h << 16) | w;
+	LRESULT const sized = on_wm_size(0, size);
 }
 
 
