@@ -4,6 +4,12 @@
 
 #include "../nogui/cassert_my.h"
 
+#include <algorithm>
+
+#include "../nogui/windows_my.h"
+
+#include <windowsx.h>
+
 
 template<> wchar_t const* const splitter_window2_impl<splitter_window2_orientation::horizontal>::s_class_name = L"splitter_window_hor";
 template<> wchar_t const* const splitter_window2_impl<splitter_window2_orientation::vertical>::s_class_name = L"splitter_window_ver";
@@ -146,6 +152,12 @@ LRESULT splitter_window2_impl<orientation>::on_message(UINT const& msg, WPARAM c
 			return ret;
 		}
 		break;
+		case WM_MOUSEMOVE:
+		{
+			LRESULT const ret = on_wm_mousemove(wparam, lparam);
+			return ret;
+		}
+		break;
 		case WM_LBUTTONDOWN:
 		{
 			LRESULT const ret = on_wm_lbuttondown(wparam, lparam);
@@ -222,6 +234,48 @@ LRESULT splitter_window2_impl<splitter_window2_orientation::vertical>::on_wm_siz
 	BOOL const moved_2 = MoveWindow(m_child_b, second_new_x, second_new_y, second_new_w, second_new_h, TRUE);
 
 	LRESULT const ret = DefWindowProcW(m_self, WM_SIZE, wparam, lparam);
+	return ret;
+}
+
+template<>
+LRESULT splitter_window2_impl<splitter_window2_orientation::horizontal>::on_wm_mousemove(WPARAM const& wparam, LPARAM const& lparam)
+{
+	auto const on_wm_mousemove_fn = [&]()
+	{
+		if(!m_sizing)
+		{
+			return;
+		}
+		int const y = GET_Y_LPARAM(lparam);
+		RECT r;
+		BOOL const got_rect = GetClientRect(m_self, &r);
+		assert(got_rect != 0);
+		m_position = (std::min)((std::max)(static_cast<float>(y) / static_cast<float>(r.bottom), 0.01f), 0.99f);
+	};
+	on_wm_mousemove_fn();
+
+	LRESULT const ret = DefWindowProcW(m_self, WM_MOUSEMOVE, wparam, lparam);
+	return ret;
+}
+
+template<>
+LRESULT splitter_window2_impl<splitter_window2_orientation::vertical>::on_wm_mousemove(WPARAM const& wparam, LPARAM const& lparam)
+{
+	auto const on_wm_mousemove_fn = [&]()
+	{
+		if(!m_sizing)
+		{
+			return;
+		}
+		int const x = GET_X_LPARAM(lparam);
+		RECT r;
+		BOOL const got_rect = GetClientRect(m_self, &r);
+		assert(got_rect != 0);
+		m_position = (std::min)((std::max)(static_cast<float>(x) / static_cast<float>(r.right), 0.01f), 0.99f);
+	};
+	on_wm_mousemove_fn();
+
+	LRESULT const ret = DefWindowProcW(m_self, WM_MOUSEMOVE, wparam, lparam);
 	return ret;
 }
 
