@@ -29,6 +29,7 @@ private:
 	static LRESULT on_wm_destroy(HWND const& hwnd, WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_message(UINT const& msg, WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_size(WPARAM const& wparam, LPARAM const& lparam);
+	LRESULT on_wm_lbuttondown(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setchildren(WPARAM const& wparam, LPARAM const& lparam);
 private:
 	static wchar_t const* const s_class_name;
@@ -40,4 +41,5 @@ private:
 	HWND m_child_a;
 	HWND m_child_b;
 	float m_position;
+	bool m_sizing;
 };

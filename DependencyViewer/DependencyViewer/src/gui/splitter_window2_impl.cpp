@@ -20,7 +20,8 @@ splitter_window2_impl<orientation>::splitter_window2_impl(HWND const& self) :
 	m_self(self),
 	m_child_a(),
 	m_child_b(),
-	m_position(0.5f)
+	m_position(0.5f),
+	m_sizing(false)
 {
 	assert(self != nullptr);
 }
@@ -145,6 +146,12 @@ LRESULT splitter_window2_impl<orientation>::on_message(UINT const& msg, WPARAM c
 			return ret;
 		}
 		break;
+		case WM_LBUTTONDOWN:
+		{
+			LRESULT const ret = on_wm_lbuttondown(wparam, lparam);
+			return ret;
+		}
+		break;
 		case static_cast<std::uint32_t>(splitter_window2<orientation>::wm::wm_setchildren):
 		{
 			LRESULT const ret = on_wm_setchildren(wparam, lparam);
@@ -207,6 +214,24 @@ LRESULT splitter_window2_impl<splitter_window2_orientation::vertical>::on_wm_siz
 
 	BOOL const moved_1 = MoveWindow(m_child_a, first_new_x, first_new_y, first_new_w, first_new_h, TRUE);
 	BOOL const moved_2 = MoveWindow(m_child_b, second_new_x, second_new_y, second_new_w, second_new_h, TRUE);
+
+	LRESULT const ret = DefWindowProcW(m_self, WM_SIZE, wparam, lparam);
+	return ret;
+}
+
+template<splitter_window2_orientation orientation>
+LRESULT splitter_window2_impl<orientation>::on_wm_lbuttondown(WPARAM const& wparam, LPARAM const& lparam)
+{
+	auto const on_wm_lbuttondown_fn = [&]()
+	{
+		if(wparam != MK_LBUTTON)
+		{
+			return;
+		}
+		[[maybe_unused]] HWND const prev = SetCapture(m_self);
+		m_sizing = true;
+	};
+	on_wm_lbuttondown_fn();
 
 	LRESULT const ret = DefWindowProcW(m_self, WM_SIZE, wparam, lparam);
 	return ret;
