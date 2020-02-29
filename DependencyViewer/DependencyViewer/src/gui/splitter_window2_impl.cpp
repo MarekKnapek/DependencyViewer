@@ -19,7 +19,8 @@ template<splitter_window2_orientation orientation>
 splitter_window2_impl<orientation>::splitter_window2_impl(HWND const& self) :
 	m_self(self),
 	m_child_a(),
-	m_child_b()
+	m_child_b(),
+	m_position(0.5f)
 {
 	assert(self != nullptr);
 }
@@ -138,6 +139,12 @@ LRESULT splitter_window2_impl<orientation>::on_message(UINT const& msg, WPARAM c
 {
 	switch(msg)
 	{
+		case WM_SIZE:
+		{
+			LRESULT const ret = on_wm_size(wparam, lparam);
+			return ret;
+		}
+		break;
 		case static_cast<std::uint32_t>(splitter_window2<orientation>::wm::wm_setchildren):
 		{
 			LRESULT const ret = on_wm_setchildren(wparam, lparam);
@@ -151,6 +158,58 @@ LRESULT splitter_window2_impl<orientation>::on_message(UINT const& msg, WPARAM c
 		}
 		break;
 	}
+}
+
+template<>
+LRESULT splitter_window2_impl<splitter_window2_orientation::horizontal>::on_wm_size(WPARAM const& wparam, LPARAM const& lparam)
+{
+	int const w = LOWORD(lparam);
+	int const h = HIWORD(lparam);
+	int const border_h = GetSystemMetrics(SM_CYEDGE);
+
+	int const splitter_pos = static_cast<int>(static_cast<float>(h) * m_position);
+
+	int const first_new_x = 0;
+	int const first_new_y = 0;
+	int const first_new_w = w;
+	int const first_new_h = splitter_pos;
+
+	int const second_new_x = 0;
+	int const second_new_y = splitter_pos + border_h;
+	int const second_new_w = w;
+	int const second_new_h = h - splitter_pos - border_h;
+
+	BOOL const moved_1 = MoveWindow(m_child_a, first_new_x, first_new_y, first_new_w, first_new_h, TRUE);
+	BOOL const moved_2 = MoveWindow(m_child_b, second_new_x, second_new_y, second_new_w, second_new_h, TRUE);
+
+	LRESULT const ret = DefWindowProcW(m_self, WM_SIZE, wparam, lparam);
+	return ret;
+}
+
+template<>
+LRESULT splitter_window2_impl<splitter_window2_orientation::vertical>::on_wm_size(WPARAM const& wparam, LPARAM const& lparam)
+{
+	int const w = LOWORD(lparam);
+	int const h = HIWORD(lparam);
+	int const border_w = GetSystemMetrics(SM_CXEDGE);
+
+	int const splitter_pos = static_cast<int>(static_cast<float>(w) * m_position);
+
+	int const first_new_x = 0;
+	int const first_new_y = 0;
+	int const first_new_w = splitter_pos;
+	int const first_new_h = h;
+
+	int const second_new_x = splitter_pos + border_w;
+	int const second_new_y = 0;
+	int const second_new_w = w - splitter_pos - border_w;
+	int const second_new_h = h;
+
+	BOOL const moved_1 = MoveWindow(m_child_a, first_new_x, first_new_y, first_new_w, first_new_h, TRUE);
+	BOOL const moved_2 = MoveWindow(m_child_b, second_new_x, second_new_y, second_new_w, second_new_h, TRUE);
+
+	LRESULT const ret = DefWindowProcW(m_self, WM_SIZE, wparam, lparam);
+	return ret;
 }
 
 template<splitter_window2_orientation orientation>
