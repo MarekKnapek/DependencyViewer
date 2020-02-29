@@ -17,6 +17,8 @@
 #include "gui/smart_dc.cpp"
 #include "gui/smart_menu.cpp"
 #include "gui/splitter_window.cpp"
+#include "gui/splitter_window2.cpp"
+#include "gui/splitter_window2_impl.cpp"
 #include "gui/test.cpp"
 #include "gui/tree_algos.cpp"
 #include "gui/tree_window.cpp"

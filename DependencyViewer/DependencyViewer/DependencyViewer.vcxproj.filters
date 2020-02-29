@@ -64,6 +64,8 @@
 		<ClInclude Include="src\gui\smart_dc.h">                              	<Filter>src\gui</Filter></ClInclude>
 		<ClInclude Include="src\gui\smart_menu.h">                            	<Filter>src\gui</Filter></ClInclude>
 		<ClInclude Include="src\gui\splitter_window.h">                       	<Filter>src\gui</Filter></ClInclude>
+		<ClInclude Include="src\gui\splitter_window2.h">                      	<Filter>src\gui</Filter></ClInclude>
+		<ClInclude Include="src\gui\splitter_window2_impl.h">                 	<Filter>src\gui</Filter></ClInclude>
 		<ClInclude Include="src\gui\test.h">                                  	<Filter>src\gui</Filter></ClInclude>
 		<ClInclude Include="src\gui\tree_algos.h">                            	<Filter>src\gui</Filter></ClInclude>
 		<ClInclude Include="src\gui\tree_window.h">                           	<Filter>src\gui</Filter></ClInclude>
@@ -142,6 +144,8 @@
 		<ClCompile Include="src\gui\smart_dc.cpp">                   	<Filter>src\gui</Filter></ClCompile>
 		<ClCompile Include="src\gui\smart_menu.cpp">                 	<Filter>src\gui</Filter></ClCompile>
 		<ClCompile Include="src\gui\splitter_window.cpp">            	<Filter>src\gui</Filter></ClCompile>
+		<ClCompile Include="src\gui\splitter_window2.cpp">           	<Filter>src\gui</Filter></ClCompile>
+		<ClCompile Include="src\gui\splitter_window2_impl.cpp">      	<Filter>src\gui</Filter></ClCompile>
 		<ClCompile Include="src\gui\test.cpp">                       	<Filter>src\gui</Filter></ClCompile>
 		<ClCompile Include="src\gui\tree_algos.cpp">                 	<Filter>src\gui</Filter></ClCompile>
 		<ClCompile Include="src\gui\tree_window.cpp">                	<Filter>src\gui</Filter></ClCompile>
