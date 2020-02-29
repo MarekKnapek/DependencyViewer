@@ -1,6 +1,8 @@
 #pragma once
 
 
+#include <cstdint>
+
 #include "../nogui/windows_my.h"
 
 
@@ -15,6 +17,11 @@ template<splitter_window2_orientation orientation>
 class splitter_window2
 {
 public:
+	enum class wm : std::uint32_t
+	{
+		wm_setchildren = WM_USER + 1,
+	};
+public:
 	splitter_window2() noexcept;
 	splitter_window2(HWND const& parent);
 	splitter_window2(splitter_window2 const&) = delete;
@@ -26,6 +33,8 @@ public:
 public:
 	static void init();
 	static void deinit();
+public:
+	void setchildren(HWND const& child_a, HWND const& child_b);
 public:
 	HWND const& get_hwnd() const;
 private:

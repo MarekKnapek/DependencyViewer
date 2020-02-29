@@ -17,7 +17,9 @@ template<> ATOM splitter_window2_impl<splitter_window2_orientation::vertical>::g
 
 template<splitter_window2_orientation orientation>
 splitter_window2_impl<orientation>::splitter_window2_impl(HWND const& self) :
-	m_self(self)
+	m_self(self),
+	m_child_a(),
+	m_child_b()
 {
 	assert(self != nullptr);
 }
@@ -134,6 +136,32 @@ LRESULT splitter_window2_impl<orientation>::on_wm_destroy(HWND const& hwnd, WPAR
 template<splitter_window2_orientation orientation>
 LRESULT splitter_window2_impl<orientation>::on_message(UINT const& msg, WPARAM const& wparam, LPARAM const& lparam)
 {
+	switch(msg)
+	{
+		case static_cast<std::uint32_t>(splitter_window2<orientation>::wm::wm_setchildren):
+		{
+			LRESULT const ret = on_wm_setchildren(wparam, lparam);
+			return ret;
+		}
+		break;
+		default:
+		{
+			LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
+			return ret;
+		}
+		break;
+	}
+}
+
+template<splitter_window2_orientation orientation>
+LRESULT splitter_window2_impl<orientation>::on_wm_setchildren(WPARAM const& wparam, LPARAM const& lparam)
+{
+	HWND const child_a = reinterpret_cast<HWND>(wparam);
+	HWND const child_b = reinterpret_cast<HWND>(lparam);
+	m_child_a = child_a;
+	m_child_b = child_b;
+
+	UINT const msg = static_cast<std::uint32_t>(splitter_window2<orientation>::wm::wm_setchildren);
 	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
 	return ret;
 }
