@@ -19,6 +19,8 @@
 #include "gui/splitter_window.cpp"
 #include "gui/splitter_window_impl.cpp"
 #include "gui/test.cpp"
+#include "gui/toolbar_window.cpp"
+#include "gui/toolbar_window_impl.cpp"
 #include "gui/tree_algos.cpp"
 #include "gui/tree_window.cpp"
 #include "gui/tree_window_impl.cpp"
