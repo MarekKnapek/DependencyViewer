@@ -254,6 +254,10 @@ LRESULT toolbar_window_impl::on_wm_notify(WPARAM const& wparam, LPARAM const& lp
 
 LRESULT toolbar_window_impl::on_wm_command(WPARAM const& wparam, LPARAM const& lparam)
 {
+	if(reinterpret_cast<HWND>(lparam) == m_toolbar)
+	{
+		on_toolbar_cmd(wparam);
+	}
 	LRESULT const ret = DefWindowProcW(m_self, WM_NOTIFY, wparam, lparam);
 	return ret;
 }
@@ -293,4 +297,56 @@ void toolbar_window_impl::on_getinfotipw(NMHDR& nmhdr)
 		}
 		break;
 	}
+}
+
+void toolbar_window_impl::on_toolbar_cmd(WPARAM const& wparam)
+{
+	auto const toolbar_id_ = LOWORD(wparam);
+	assert(toolbar_id_ >= static_cast<std::uint16_t>(e_toolbar::e_open));
+	assert(toolbar_id_ <= static_cast<std::uint16_t>(e_toolbar::e_properties));
+	e_toolbar const toolbar_id = static_cast<e_toolbar>(toolbar_id_);
+	switch(toolbar_id)
+	{
+		case e_toolbar::e_open:
+		{
+			cmd_open();
+		}
+		break;
+		case e_toolbar::e_full_paths:
+		{
+			cmd_full_paths();
+		}
+		break;
+		case e_toolbar::e_undecorate:
+		{
+			cmd_undecorate();
+		}
+		break;
+		case e_toolbar::e_properties:
+		{
+			cmd_properties();
+		}
+		break;
+		default:
+		{
+			assert(false);
+		}
+		break;
+	}
+}
+
+void toolbar_window_impl::cmd_open()
+{
+}
+
+void toolbar_window_impl::cmd_full_paths()
+{
+}
+
+void toolbar_window_impl::cmd_undecorate()
+{
+}
+
+void toolbar_window_impl::cmd_properties()
+{
 }
