@@ -30,6 +30,7 @@ private:
 	LRESULT on_wm_notify(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_command(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setfullpathspressed(WPARAM const& wparam, LPARAM const& lparam);
+	LRESULT on_wm_setundecoratepressed(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setpropertiesavail(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setcmdopen(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setcmdfullpaths(WPARAM const& wparam, LPARAM const& lparam);
@@ -38,6 +39,7 @@ private:
 	void on_getinfotipw(NMHDR& nmhdr);
 	void on_toolbar_cmd(WPARAM const& wparam);
 	void setfullpathspressed(bool const& pressed);
+	void setundecoratepressed(bool const& pressed);
 	void setpropertiesavail(bool const& available);
 	void cmd_open();
 	void cmd_full_paths();

@@ -12,6 +12,7 @@ public:
 	enum class wm : std::uint32_t
 	{
 		wm_setfullpathspressed = WM_USER + 1,
+		wm_setundecoratepressed,
 		wm_setpropertiesavail,
 		wm_setcmdopen,
 		wm_setcmdfullpaths,
@@ -40,6 +41,7 @@ public:
 	static void deinit();
 public:
 	void setfullpathspressed(bool const& pressed);
+	void setundecoratepressed(bool const& pressed);
 	void setpropertiesavail(bool const& available);
 	void setcmdopen(cmd_open_fn_t const& cmd_open_fn, cmd_open_ctx_t const& cmd_open_ctx);
 	void setcmdfullpaths(cmd_fullpaths_fn_t const& cmd_fullpaths_fn, cmd_fullpaths_ctx_t const& cmd_fullpaths_ctx);

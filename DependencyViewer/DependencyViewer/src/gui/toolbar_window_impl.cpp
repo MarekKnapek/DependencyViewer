@@ -238,6 +238,12 @@ LRESULT toolbar_window_impl::on_message(UINT const& msg, WPARAM const& wparam, L
 			return ret;
 		}
 		break;
+		case static_cast<std::uint32_t>(toolbar_window::wm::wm_setundecoratepressed):
+		{
+			LRESULT const ret = on_wm_setundecoratepressed(wparam, lparam);
+			return ret;
+		}
+		break;
 		case static_cast<std::uint32_t>(toolbar_window::wm::wm_setpropertiesavail):
 		{
 			LRESULT const ret = on_wm_setpropertiesavail(wparam, lparam);
@@ -313,6 +319,17 @@ LRESULT toolbar_window_impl::on_wm_setfullpathspressed(WPARAM const& wparam, LPA
 	setfullpathspressed(pressed);
 
 	UINT const msg = static_cast<std::uint32_t>(toolbar_window::wm::wm_setfullpathspressed);
+	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
+	return ret;
+}
+
+LRESULT toolbar_window_impl::on_wm_setundecoratepressed(WPARAM const& wparam, LPARAM const& lparam)
+{
+	assert(wparam == 0 || wparam == 1);
+	bool const pressed = wparam != 0;
+	setundecoratepressed(pressed);
+
+	UINT const msg = static_cast<std::uint32_t>(toolbar_window::wm::wm_setundecoratepressed);
 	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
 	return ret;
 }
@@ -460,6 +477,12 @@ void toolbar_window_impl::on_toolbar_cmd(WPARAM const& wparam)
 void toolbar_window_impl::setfullpathspressed(bool const& pressed)
 {
 	LRESULT const state_set = SendMessageW(m_toolbar, TB_SETSTATE, static_cast<std::uint16_t>(e_toolbar::e_full_paths), (pressed ? TBSTATE_PRESSED : 0) | TBSTATE_ENABLED);
+	assert(state_set == TRUE);
+}
+
+void toolbar_window_impl::setundecoratepressed(bool const& pressed)
+{
+	LRESULT const state_set = SendMessageW(m_toolbar, TB_SETSTATE, static_cast<std::uint16_t>(e_toolbar::e_undecorate), (pressed ? TBSTATE_PRESSED : 0) | TBSTATE_ENABLED);
 	assert(state_set == TRUE);
 }
 
