@@ -206,6 +206,37 @@ LRESULT toolbar_window_impl::on_wm_destroy(HWND const& hwnd, WPARAM const& wpara
 
 LRESULT toolbar_window_impl::on_message(UINT const& msg, WPARAM const& wparam, LPARAM const& lparam)
 {
-	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
+	switch(msg)
+	{
+		case WM_NOTIFY:
+		{
+			LRESULT const ret = on_wm_notify(wparam, lparam);
+			return ret;
+		}
+		break;
+		default:
+		{
+			LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
+			return ret;
+		}
+		break;
+	}
+}
+
+LRESULT toolbar_window_impl::on_wm_notify(WPARAM const& wparam, LPARAM const& lparam)
+{
+	NMHDR& nmhdr = *reinterpret_cast<NMHDR*>(lparam);
+	if(nmhdr.hwndFrom == m_toolbar)
+	{
+		switch(nmhdr.code)
+		{
+			case TBN_GETINFOTIPW:
+			{
+			}
+			break;
+		}
+	}
+
+	LRESULT const ret = DefWindowProcW(m_self, WM_NOTIFY, wparam, lparam);
 	return ret;
 }
