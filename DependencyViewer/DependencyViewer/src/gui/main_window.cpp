@@ -225,6 +225,7 @@ main_window::main_window() :
 	m_right_panel.setchildren(m_import_window.get_hwnd(), m_export_window.get_hwnd());
 
 	m_main_panel.setposition(0.8f);
+	m_upper_panel.setposition(0.333f);
 
 	RECT r;
 	BOOL const got_rect = GetClientRect(m_hwnd, &r);
