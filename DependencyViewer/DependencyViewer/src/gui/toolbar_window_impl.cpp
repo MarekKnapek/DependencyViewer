@@ -218,6 +218,12 @@ LRESULT toolbar_window_impl::on_message(UINT const& msg, WPARAM const& wparam, L
 			return ret;
 		}
 		break;
+		case WM_COMMAND:
+		{
+			LRESULT const ret = on_wm_command(wparam, lparam);
+			return ret;
+		}
+		break;
 		default:
 		{
 			LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
@@ -242,6 +248,12 @@ LRESULT toolbar_window_impl::on_wm_notify(WPARAM const& wparam, LPARAM const& lp
 		}
 	}
 
+	LRESULT const ret = DefWindowProcW(m_self, WM_NOTIFY, wparam, lparam);
+	return ret;
+}
+
+LRESULT toolbar_window_impl::on_wm_command(WPARAM const& wparam, LPARAM const& lparam)
+{
 	LRESULT const ret = DefWindowProcW(m_self, WM_NOTIFY, wparam, lparam);
 	return ret;
 }
