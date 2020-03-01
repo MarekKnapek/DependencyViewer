@@ -31,7 +31,15 @@ ATOM toolbar_window_impl::g_class;
 
 toolbar_window_impl::toolbar_window_impl(HWND const& self) :
 	m_self(self),
-	m_toolbar()
+	m_toolbar(),
+	m_cmd_open_fn(),
+	m_cmd_open_ctx(),
+	m_cmd_fullpaths_fn(),
+	m_cmd_fullpaths_ctx(),
+	m_cmd_undecorate_fn(),
+	m_cmd_undecorate_ctx(),
+	m_cmd_properties_fn(),
+	m_cmd_properties_ctx()
 {
 	assert(self != nullptr);
 
@@ -224,6 +232,30 @@ LRESULT toolbar_window_impl::on_message(UINT const& msg, WPARAM const& wparam, L
 			return ret;
 		}
 		break;
+		case static_cast<std::uint32_t>(toolbar_window::wm::wm_setcmdopen):
+		{
+			LRESULT const ret = on_wm_setcmdopen(wparam, lparam);
+			return ret;
+		}
+		break;
+		case static_cast<std::uint32_t>(toolbar_window::wm::wm_setcmdfullpaths):
+		{
+			LRESULT const ret = on_wm_setcmdfullpaths(wparam, lparam);
+			return ret;
+		}
+		break;
+		case static_cast<std::uint32_t>(toolbar_window::wm::wm_setcmdundecorate):
+		{
+			LRESULT const ret = on_wm_setcmdundecorate(wparam, lparam);
+			return ret;
+		}
+		break;
+		case static_cast<std::uint32_t>(toolbar_window::wm::wm_setcmdproperties):
+		{
+			LRESULT const ret = on_wm_setcmdproperties(wparam, lparam);
+			return ret;
+		}
+		break;
 		default:
 		{
 			LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
@@ -259,6 +291,62 @@ LRESULT toolbar_window_impl::on_wm_command(WPARAM const& wparam, LPARAM const& l
 		on_toolbar_cmd(wparam);
 	}
 	LRESULT const ret = DefWindowProcW(m_self, WM_NOTIFY, wparam, lparam);
+	return ret;
+}
+
+LRESULT toolbar_window_impl::on_wm_setcmdopen(WPARAM const& wparam, LPARAM const& lparam)
+{
+	static_assert(sizeof(wparam) == sizeof(toolbar_window::cmd_open_fn_t), "");
+	static_assert(sizeof(lparam) == sizeof(toolbar_window::cmd_open_ctx_t), "");
+	auto const cmd_open_fn = reinterpret_cast<toolbar_window::cmd_open_fn_t>(wparam);
+	auto const cmd_open_ctx = reinterpret_cast<toolbar_window::cmd_open_ctx_t>(lparam);
+	m_cmd_open_fn = cmd_open_fn;
+	m_cmd_open_ctx = cmd_open_ctx;
+
+	UINT const msg = static_cast<std::uint32_t>(toolbar_window::wm::wm_setcmdopen);
+	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
+	return ret;
+}
+
+LRESULT toolbar_window_impl::on_wm_setcmdfullpaths(WPARAM const& wparam, LPARAM const& lparam)
+{
+	static_assert(sizeof(wparam) == sizeof(toolbar_window::cmd_fullpaths_fn_t), "");
+	static_assert(sizeof(lparam) == sizeof(toolbar_window::cmd_fullpaths_ctx_t), "");
+	auto const cmd_fullpaths_fn = reinterpret_cast<toolbar_window::cmd_fullpaths_fn_t>(wparam);
+	auto const cmd_fullpaths_ctx = reinterpret_cast<toolbar_window::cmd_fullpaths_ctx_t>(lparam);
+	m_cmd_fullpaths_fn = cmd_fullpaths_fn;
+	m_cmd_fullpaths_ctx = cmd_fullpaths_ctx;
+
+	UINT const msg = static_cast<std::uint32_t>(toolbar_window::wm::wm_setcmdfullpaths);
+	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
+	return ret;
+}
+
+LRESULT toolbar_window_impl::on_wm_setcmdundecorate(WPARAM const& wparam, LPARAM const& lparam)
+{
+	static_assert(sizeof(wparam) == sizeof(toolbar_window::cmd_undecorate_fn_t), "");
+	static_assert(sizeof(lparam) == sizeof(toolbar_window::cmd_undecorate_ctx_t), "");
+	auto const cmd_undecorate_fn = reinterpret_cast<toolbar_window::cmd_undecorate_fn_t>(wparam);
+	auto const cmd_undecorate_ctx = reinterpret_cast<toolbar_window::cmd_undecorate_ctx_t>(lparam);
+	m_cmd_undecorate_fn = cmd_undecorate_fn;
+	m_cmd_undecorate_ctx = cmd_undecorate_ctx;
+
+	UINT const msg = static_cast<std::uint32_t>(toolbar_window::wm::wm_setcmdundecorate);
+	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
+	return ret;
+}
+
+LRESULT toolbar_window_impl::on_wm_setcmdproperties(WPARAM const& wparam, LPARAM const& lparam)
+{
+	static_assert(sizeof(wparam) == sizeof(toolbar_window::cmd_properties_fn_t), "");
+	static_assert(sizeof(lparam) == sizeof(toolbar_window::cmd_properties_ctx_t), "");
+	auto const cmd_properties_fn = reinterpret_cast<toolbar_window::cmd_properties_fn_t>(wparam);
+	auto const cmd_properties_ctx = reinterpret_cast<toolbar_window::cmd_properties_ctx_t>(lparam);
+	m_cmd_properties_fn = cmd_properties_fn;
+	m_cmd_properties_ctx = cmd_properties_ctx;
+
+	UINT const msg = static_cast<std::uint32_t>(toolbar_window::wm::wm_setcmdproperties);
+	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
 	return ret;
 }
 
@@ -337,16 +425,24 @@ void toolbar_window_impl::on_toolbar_cmd(WPARAM const& wparam)
 
 void toolbar_window_impl::cmd_open()
 {
+	assert(m_cmd_open_fn);
+	m_cmd_open_fn(m_cmd_open_ctx);
 }
 
 void toolbar_window_impl::cmd_full_paths()
 {
+	assert(m_cmd_fullpaths_fn);
+	m_cmd_fullpaths_fn(m_cmd_fullpaths_ctx);
 }
 
 void toolbar_window_impl::cmd_undecorate()
 {
+	assert(m_cmd_undecorate_fn);
+	m_cmd_undecorate_fn(m_cmd_undecorate_ctx);
 }
 
 void toolbar_window_impl::cmd_properties()
 {
+	assert(m_cmd_properties_fn);
+	m_cmd_properties_fn(m_cmd_properties_ctx);
 }

@@ -53,6 +53,50 @@ void toolbar_window::deinit()
 	toolbar_window_impl::deinit();
 }
 
+void toolbar_window::setcmdopen(cmd_open_fn_t const& cmd_open_fn, cmd_open_ctx_t const& cmd_open_ctx)
+{
+	static_assert(sizeof(cmd_open_fn) == sizeof(WPARAM), "");
+	static_assert(sizeof(cmd_open_ctx) == sizeof(LPARAM), "");
+	UINT const msg = static_cast<std::uint32_t>(wm::wm_setcmdopen);
+	WPARAM const wparam = reinterpret_cast<WPARAM>(cmd_open_fn);
+	LPARAM const lparam = reinterpret_cast<LPARAM>(cmd_open_ctx);
+	assert(m_hwnd != nullptr);
+	LRESULT const res = SendMessageW(m_hwnd, msg, wparam, lparam);
+}
+
+void toolbar_window::setcmdfullpaths(cmd_fullpaths_fn_t const& cmd_fullpaths_fn, cmd_fullpaths_ctx_t const& cmd_fullpaths_ctx)
+{
+	static_assert(sizeof(cmd_fullpaths_fn) == sizeof(WPARAM), "");
+	static_assert(sizeof(cmd_fullpaths_ctx) == sizeof(LPARAM), "");
+	UINT const msg = static_cast<std::uint32_t>(wm::wm_setcmdfullpaths);
+	WPARAM const wparam = reinterpret_cast<WPARAM>(cmd_fullpaths_fn);
+	LPARAM const lparam = reinterpret_cast<LPARAM>(cmd_fullpaths_ctx);
+	assert(m_hwnd != nullptr);
+	LRESULT const res = SendMessageW(m_hwnd, msg, wparam, lparam);
+}
+
+void toolbar_window::setcmdundecorate(cmd_undecorate_fn_t const& cmd_undecorate_fn, cmd_undecorate_ctx_t const& cmd_undecorate_ctx)
+{
+	static_assert(sizeof(cmd_undecorate_fn) == sizeof(WPARAM), "");
+	static_assert(sizeof(cmd_undecorate_ctx) == sizeof(LPARAM), "");
+	UINT const msg = static_cast<std::uint32_t>(wm::wm_setcmdundecorate);
+	WPARAM const wparam = reinterpret_cast<WPARAM>(cmd_undecorate_fn);
+	LPARAM const lparam = reinterpret_cast<LPARAM>(cmd_undecorate_ctx);
+	assert(m_hwnd != nullptr);
+	LRESULT const res = SendMessageW(m_hwnd, msg, wparam, lparam);
+}
+
+void toolbar_window::setcmdproperties(cmd_properties_fn_t const& cmd_properties_fn, cmd_properties_ctx_t const& cmd_properties_ctx)
+{
+	static_assert(sizeof(cmd_properties_fn) == sizeof(WPARAM), "");
+	static_assert(sizeof(cmd_properties_ctx) == sizeof(LPARAM), "");
+	UINT const msg = static_cast<std::uint32_t>(wm::wm_setcmdproperties);
+	WPARAM const wparam = reinterpret_cast<WPARAM>(cmd_properties_fn);
+	LPARAM const lparam = reinterpret_cast<LPARAM>(cmd_properties_ctx);
+	assert(m_hwnd != nullptr);
+	LRESULT const res = SendMessageW(m_hwnd, msg, wparam, lparam);
+}
+
 HWND const& toolbar_window::get_hwnd() const
 {
 	return m_hwnd;

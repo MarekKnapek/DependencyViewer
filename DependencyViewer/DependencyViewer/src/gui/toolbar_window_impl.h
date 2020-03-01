@@ -29,6 +29,10 @@ private:
 	LRESULT on_message(UINT const& msg, WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_notify(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_command(WPARAM const& wparam, LPARAM const& lparam);
+	LRESULT on_wm_setcmdopen(WPARAM const& wparam, LPARAM const& lparam);
+	LRESULT on_wm_setcmdfullpaths(WPARAM const& wparam, LPARAM const& lparam);
+	LRESULT on_wm_setcmdundecorate(WPARAM const& wparam, LPARAM const& lparam);
+	LRESULT on_wm_setcmdproperties(WPARAM const& wparam, LPARAM const& lparam);
 	void on_getinfotipw(NMHDR& nmhdr);
 	void on_toolbar_cmd(WPARAM const& wparam);
 	void cmd_open();
@@ -40,4 +44,12 @@ private:
 private:
 	HWND const m_self;
 	HWND m_toolbar;
+	toolbar_window::cmd_open_fn_t m_cmd_open_fn;
+	toolbar_window::cmd_open_ctx_t m_cmd_open_ctx;
+	toolbar_window::cmd_fullpaths_fn_t m_cmd_fullpaths_fn;
+	toolbar_window::cmd_fullpaths_ctx_t m_cmd_fullpaths_ctx;
+	toolbar_window::cmd_undecorate_fn_t m_cmd_undecorate_fn;
+	toolbar_window::cmd_undecorate_ctx_t m_cmd_undecorate_ctx;
+	toolbar_window::cmd_properties_fn_t m_cmd_properties_fn;
+	toolbar_window::cmd_properties_ctx_t m_cmd_properties_ctx;
 };
