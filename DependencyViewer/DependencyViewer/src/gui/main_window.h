@@ -56,6 +56,11 @@ public:
 	~main_window();
 private:
 	void connect_signals();
+	void connect_toolbar();
+	void connect_tree();
+	void connect_imports();
+	void connect_exports();
+	void connect_modules();
 public:
 	HWND get_hwnd() const;
 	bool translate_accelerator(MSG& message);

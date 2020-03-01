@@ -238,6 +238,15 @@ main_window::~main_window()
 
 void main_window::connect_signals()
 {
+	connect_toolbar();
+	connect_tree();
+	connect_imports();
+	connect_exports();
+	connect_modules();
+}
+
+void main_window::connect_toolbar()
+{
 	static constexpr auto const toolbar_cmd_open_fn_ = [](toolbar_window::cmd_open_ctx_t const& ctx)
 	{
 		assert(ctx);
@@ -277,7 +286,10 @@ void main_window::connect_signals()
 	toolbar_window::cmd_properties_fn_t const toolbar_cmd_properties_fn = toolbar_cmd_properties_fn_;
 	toolbar_window::cmd_properties_ctx_t const toolbar_cmd_properties_ctx = this;
 	m_toolbar_window.setcmdproperties(toolbar_cmd_properties_fn, toolbar_cmd_properties_ctx);
+}
 
+void main_window::connect_tree()
+{
 	static constexpr auto const tree_onitemchanged_fn_ = [](tree_window::onitemchanged_ctx_t const ctx, file_info const* const& fi)
 	{
 		assert(ctx);
@@ -309,7 +321,10 @@ void main_window::connect_signals()
 	tree_window::cmd_properties_fn_t const tree_cmd_properties_fn = tree_cmd_properties_fn_;
 	tree_window::cmd_properties_ctx_t const tree_cmd_properties_ctx = this;
 	m_tree_window.setcmdproperties(tree_cmd_properties_fn, tree_cmd_properties_ctx);
+}
 
+void main_window::connect_imports()
+{
 	static constexpr auto const imp_cmd_matching_fn_ = [](import_window::cmd_matching_ctx_t const ctx, std::uint16_t const item_idx) -> void
 	{
 		assert(ctx);
@@ -319,7 +334,10 @@ void main_window::connect_signals()
 	import_window::cmd_matching_fn_t const imp_cmd_matching_fn = imp_cmd_matching_fn_;
 	import_window::cmd_matching_ctx_t const imp_cmd_matching_ctx = this;
 	m_import_window.setcmdmatching(imp_cmd_matching_fn, imp_cmd_matching_ctx);
+}
 
+void main_window::connect_exports()
+{
 	static constexpr auto const exp_cmd_matching_fn_ = [](export_window::cmd_matching_ctx_t const ctx, std::uint16_t const item_idx) -> void
 	{
 		assert(ctx);
@@ -329,7 +347,10 @@ void main_window::connect_signals()
 	export_window::cmd_matching_fn_t const exp_cmd_matching_fn = exp_cmd_matching_fn_;
 	export_window::cmd_matching_ctx_t const exp_cmd_matching_ctx = this;
 	m_export_window.setcmdmatching(exp_cmd_matching_fn, exp_cmd_matching_ctx);
+}
 
+void main_window::connect_modules()
+{
 	static constexpr auto const mdls_onitemchanged_fn_ = [](modules_window::onitemchanged_ctx_t const ctx, [[maybe_unused]] file_info const* const& fi)
 	{
 		assert(ctx);
