@@ -8,6 +8,7 @@
 #include "modules_window.h"
 #include "splitter_window.h"
 #include "test.h"
+#include "toolbar_window.h"
 #include "tree_window.h"
 
 #include "../nogui/cassert_my.h"
@@ -59,6 +60,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, [[maybe_unused]] _In_opt_ HINSTANC
 	main_window::register_class();
 	main_window::create_accel_table();
 	auto const fn_destroy_main_accel_table = mk::make_scope_exit([](){ main_window::destroy_accel_table(); });
+	toolbar_window::init(); auto const fn_toolbar_window_deinit = mk::make_scope_exit([](){ toolbar_window::deinit(); });
 	splitter_window_hor::init(); auto const fn_splitter_window_hor_deinit = mk::make_scope_exit([](){ splitter_window_hor::deinit(); });
 	splitter_window_ver::init(); auto const fn_splitter_window_ver_deinit = mk::make_scope_exit([](){ splitter_window_ver::deinit(); });
 	tree_window::init(); auto const fn_tree_window_deinit = mk::make_scope_exit([](){ tree_window::deinit(); });

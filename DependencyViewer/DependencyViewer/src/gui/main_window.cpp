@@ -51,10 +51,6 @@ static constexpr wchar_t const s_menu_view_refresh[] = L"&Refresh\tF5";
 static constexpr wchar_t const s_menu_view_properties[] = L"&Properties...\tAlt+Enter";
 static constexpr wchar_t const s_open_file_dialog_file_name_filter[] = L"Executable files and libraries (*.exe;*.dll;*.ocx)\0*.exe;*.dll;*.ocx\0All files\0*.*\0";
 static constexpr wchar_t const s_msg_error[] = L"DependencyViewer error.";
-static constexpr wchar_t const s_toolbar_tooltip_open[] = L"Open... (Ctrl+O)";
-static constexpr wchar_t const s_toolbar_tooltip_full_paths[] = L"View Full Paths (F9)";
-static constexpr wchar_t const s_toolbar_tooltip_undecorate[] = L"Undecorate C++ Functions (F10)";
-static constexpr wchar_t const s_toolbar_tooltip_properties[] = L"Properties... (Alt+Enter)";
 enum class e_main_menu_id : std::uint16_t
 {
 	e_open = s_main_view_menu_min,
@@ -62,13 +58,6 @@ enum class e_main_menu_id : std::uint16_t
 	e_full_paths,
 	e_undecorate,
 	e_refresh,
-	e_properties,
-};
-enum class e_toolbar : std::uint16_t
-{
-	e_open,
-	e_full_paths,
-	e_undecorate,
 	e_properties,
 };
 enum class e_accel : std::uint16_t
@@ -201,7 +190,7 @@ void main_window::destroy_accel_table()
 
 main_window::main_window() :
 	m_hwnd(CreateWindowExW(0, reinterpret_cast<wchar_t const*>(g_class), s_window_title, WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, nullptr, create_menu(), get_instance(), nullptr)),
-	m_toolbar(create_toolbar(m_hwnd)),
+	m_toolbar_window(m_hwnd),
 	m_main_panel(m_hwnd),
 	m_upper_panel(m_main_panel.get_hwnd()),
 	m_modules_window(m_main_panel.get_hwnd()),
@@ -249,6 +238,46 @@ main_window::~main_window()
 
 void main_window::connect_signals()
 {
+	static constexpr auto const toolbar_cmd_open_fn_ = [](toolbar_window::cmd_open_ctx_t const& ctx)
+	{
+		assert(ctx);
+		main_window* const self = static_cast<main_window*>(ctx);
+		self->open();
+	};
+	toolbar_window::cmd_open_fn_t const toolbar_cmd_open_fn = toolbar_cmd_open_fn_;
+	toolbar_window::cmd_open_ctx_t const toolbar_cmd_open_ctx = this;
+	m_toolbar_window.setcmdopen(toolbar_cmd_open_fn, toolbar_cmd_open_ctx);
+
+	static constexpr auto const toolbar_cmd_fullpaths_fn_ = [](toolbar_window::cmd_fullpaths_ctx_t const& ctx)
+	{
+		assert(ctx);
+		main_window* const self = static_cast<main_window*>(ctx);
+		self->full_paths();
+	};
+	toolbar_window::cmd_fullpaths_fn_t const toolbar_cmd_fullpaths_fn = toolbar_cmd_fullpaths_fn_;
+	toolbar_window::cmd_fullpaths_ctx_t const toolbar_cmd_fullpaths_ctx = this;
+	m_toolbar_window.setcmdfullpaths(toolbar_cmd_fullpaths_fn, toolbar_cmd_fullpaths_ctx);
+
+	static constexpr auto const toolbar_cmd_undecorate_fn_ = [](toolbar_window::cmd_undecorate_ctx_t const& ctx)
+	{
+		assert(ctx);
+		main_window* const self = static_cast<main_window*>(ctx);
+		self->undecorate();
+	};
+	toolbar_window::cmd_undecorate_fn_t const toolbar_cmd_undecorate_fn = toolbar_cmd_undecorate_fn_;
+	toolbar_window::cmd_undecorate_ctx_t const toolbar_cmd_undecorate_ctx = this;
+	m_toolbar_window.setcmdundecorate(toolbar_cmd_undecorate_fn, toolbar_cmd_undecorate_ctx);
+
+	static constexpr auto const toolbar_cmd_properties_fn_ = [](toolbar_window::cmd_properties_ctx_t const& ctx)
+	{
+		assert(ctx);
+		main_window* const self = static_cast<main_window*>(ctx);
+		self->properties();
+	};
+	toolbar_window::cmd_properties_fn_t const toolbar_cmd_properties_fn = toolbar_cmd_properties_fn_;
+	toolbar_window::cmd_properties_ctx_t const toolbar_cmd_properties_ctx = this;
+	m_toolbar_window.setcmdproperties(toolbar_cmd_properties_fn, toolbar_cmd_properties_ctx);
+
 	static constexpr auto const tree_onitemchanged_fn_ = [](tree_window::onitemchanged_ctx_t const ctx, file_info const* const& fi)
 	{
 		assert(ctx);
@@ -401,48 +430,6 @@ HMENU main_window::create_menu()
 	return menu_bar;
 }
 
-HWND main_window::create_toolbar(HWND const& parent)
-{
-	HWND const toolbar = CreateWindowExW(0, TOOLBARCLASSNAMEW, nullptr, WS_CHILD | TBSTYLE_WRAPABLE | TBSTYLE_TOOLTIPS, 0, 0, 0, 0, parent, nullptr, get_instance(), nullptr);
-	LRESULT const size_sent = SendMessageW(toolbar, TB_BUTTONSTRUCTSIZE, sizeof(TBBUTTON), 0);
-	TBADDBITMAP button_bitmap;
-	button_bitmap.hInst = get_instance();
-	button_bitmap.nID = s_res_icons_toolbar;
-	static constexpr int const s_number_of_buttons = 4;
-	LRESULT const bitmap_added = SendMessageW(toolbar, TB_ADDBITMAP, s_number_of_buttons, reinterpret_cast<LPARAM>(&button_bitmap));
-	assert(bitmap_added != -1);
-	TBBUTTON buttons[s_number_of_buttons]{};
-	buttons[0].iBitmap = s_res_icon_open;
-	buttons[0].idCommand = static_cast<std::uint16_t>(e_toolbar::e_open);
-	buttons[0].fsState = TBSTATE_ENABLED;
-	buttons[0].fsStyle = BTNS_BUTTON;
-	buttons[0].dwData = 0;
-	buttons[0].iString = 0;
-	buttons[1].iBitmap = s_res_icon_full_paths;
-	buttons[1].idCommand = static_cast<std::uint16_t>(e_toolbar::e_full_paths);
-	buttons[1].fsState = TBSTATE_ENABLED;
-	buttons[1].fsStyle = BTNS_BUTTON;
-	buttons[1].dwData = 0;
-	buttons[1].iString = 0;
-	buttons[2].iBitmap = s_res_icon_undecorate;
-	buttons[2].idCommand = static_cast<std::uint16_t>(e_toolbar::e_undecorate);
-	buttons[2].fsState = TBSTATE_ENABLED;
-	buttons[2].fsStyle = BTNS_BUTTON;
-	buttons[2].dwData = 0;
-	buttons[2].iString = 0;
-	buttons[3].iBitmap = s_res_icon_properties;
-	buttons[3].idCommand = static_cast<std::uint16_t>(e_toolbar::e_properties);
-	buttons[3].fsState = TBSTATE_ENABLED;
-	buttons[3].fsStyle = BTNS_BUTTON;
-	buttons[3].dwData = 0;
-	buttons[3].iString = 0;
-	LRESULT const buttons_added = SendMessageW(toolbar, TB_ADDBUTTONSW, s_number_of_buttons, reinterpret_cast<LPARAM>(&buttons));
-	assert(buttons_added == TRUE);
-	SendMessageW(toolbar, TB_AUTOSIZE, 0, 0);
-	BOOL const shown = ShowWindow(toolbar, TRUE);
-	return toolbar;
-}
-
 LRESULT CALLBACK main_window::class_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	if(LONG_PTR const ptr = GetWindowLongPtrW(hwnd, GWLP_USERDATA))
@@ -477,11 +464,6 @@ LRESULT main_window::on_message(UINT msg, WPARAM wparam, LPARAM lparam)
 		case WM_DRAWITEM:
 		{
 			return on_wm_drawitem(wparam, lparam);
-		}
-		break;
-		case WM_NOTIFY:
-		{
-			return on_wm_notify(wparam, lparam);
 		}
 		break;
 		case WM_COMMAND:
@@ -529,10 +511,8 @@ LRESULT main_window::on_wm_size(WPARAM wparam, LPARAM lparam)
 	int const w = LOWORD(lparam);
 	int const h = HIWORD(lparam);
 
-	LRESULT const sent_tb = SendMessageW(m_toolbar, TB_AUTOSIZE, 0, 0);
-
 	RECT tb_rect;
-	BOOL const got_tb_rect = GetWindowRect(m_toolbar, &tb_rect);
+	BOOL const got_tb_rect = GetWindowRect(m_toolbar_window.get_hwnd(), &tb_rect);
 	assert(got_tb_rect != 0);
 	LONG const tb_height = tb_rect.bottom - tb_rect.top;
 
@@ -575,16 +555,6 @@ LRESULT main_window::on_wm_drawitem(WPARAM wparam, LPARAM lparam)
 	return DefWindowProcW(m_hwnd, WM_DRAWITEM, wparam, lparam);
 }
 
-LRESULT main_window::on_wm_notify(WPARAM wparam, LPARAM lparam)
-{
-	NMHDR& nmhdr = *reinterpret_cast<NMHDR*>(lparam);
-	if(nmhdr.hwndFrom == m_toolbar)
-	{
-		on_toolbar_notify(nmhdr);
-	}
-	return DefWindowProcW(m_hwnd, WM_NOTIFY, wparam, lparam);
-}
-
 LRESULT main_window::on_wm_command(WPARAM wparam, LPARAM lparam)
 {
 	if(HIWORD(wparam) == 0 && lparam == 0)
@@ -594,10 +564,6 @@ LRESULT main_window::on_wm_command(WPARAM wparam, LPARAM lparam)
 	else if(HIWORD(wparam) == 1 && lparam == 0)
 	{
 		on_accelerator(wparam);
-	}
-	else if(reinterpret_cast<HWND>(lparam) == m_toolbar)
-	{
-		on_toolbar(wparam);
 	}
 	return DefWindowProcW(m_hwnd, WM_COMMAND, wparam, lparam);
 }
@@ -736,83 +702,9 @@ void main_window::on_accelerator(WPARAM const wparam)
 	}
 }
 
-void main_window::on_toolbar(WPARAM const wparam)
-{
-	e_toolbar const toolbar_id = static_cast<e_toolbar>(static_cast<std::uint16_t>(LOWORD(wparam)));
-	switch(toolbar_id)
-	{
-		case e_toolbar::e_open:
-		{
-			on_toolbar_open();
-		}
-		break;
-		case e_toolbar::e_full_paths:
-		{
-			on_toolbar_full_paths();
-		}
-		break;
-		case e_toolbar::e_undecorate:
-		{
-			on_toolbar_undecorate();
-		}
-		break;
-		case e_toolbar::e_properties:
-		{
-			on_toolbar_properties();
-		}
-		break;
-		default:
-		{
-			assert(false);
-		}
-		break;
-	}
-}
-
 void main_window::on_modules_itemchanged()
 {
 	commands_availability_refresh();
-}
-
-void main_window::on_toolbar_notify(NMHDR& nmhdr)
-{
-	switch(nmhdr.code)
-	{
-		case TBN_GETINFOTIPW:
-		{
-			NMTBGETINFOTIPW& tbgit = reinterpret_cast<NMTBGETINFOTIPW&>(nmhdr);
-			e_toolbar const toolbar_id = static_cast<e_toolbar>(static_cast<std::uint16_t>(tbgit.iItem));
-			switch(toolbar_id)
-			{
-				case e_toolbar::e_open:
-				{
-					tbgit.pszText = const_cast<wchar_t*>(s_toolbar_tooltip_open);
-				}
-				break;
-				case e_toolbar::e_full_paths:
-				{
-					tbgit.pszText = const_cast<wchar_t*>(s_toolbar_tooltip_full_paths);
-				}
-				break;
-				case e_toolbar::e_undecorate:
-				{
-					tbgit.pszText = const_cast<wchar_t*>(s_toolbar_tooltip_undecorate);
-				}
-				break;
-				case e_toolbar::e_properties:
-				{
-					tbgit.pszText = const_cast<wchar_t*>(s_toolbar_tooltip_properties);
-				}
-				break;
-				default:
-				{
-					assert(false);
-				}
-				break;
-			}
-		}
-		break;
-	}
 }
 
 void main_window::on_menu_open()
@@ -870,45 +762,8 @@ void main_window::on_accel_refresh()
 	refresh();
 }
 
-void main_window::on_toolbar_open()
-{
-	open();
-}
-
-void main_window::on_toolbar_full_paths()
-{
-	full_paths();
-}
-
-void main_window::on_toolbar_undecorate()
-{
-	undecorate();
-}
-
-void main_window::on_toolbar_properties()
-{
-	properties();
-}
-
 void main_window::commands_availability_refresh()
 {
-	static constexpr auto const fn_enable_properties_toolbar = [](HWND const toolbar, bool const enable)
-	{
-		WPARAM const properties_command_id = static_cast<std::uint16_t>(e_toolbar::e_properties);
-		LRESULT const got = SendMessageW(toolbar, TB_GETSTATE, properties_command_id, 0);
-		assert(got != -1);
-		LPARAM new_state = static_cast<LPARAM>(got);
-		if(enable)
-		{
-			new_state |= TBSTATE_ENABLED;
-		}
-		else
-		{
-			new_state &=~ TBSTATE_ENABLED;
-		}
-		LRESULT const set = SendMessageW(toolbar, TB_SETSTATE, properties_command_id, new_state);
-		assert(set != FALSE);
-	};
 	static constexpr auto const fn_enable_properties_menu = [](HWND const window, bool const enable)
 	{
 		HMENU const menu_bar = GetMenu(window);
@@ -922,7 +777,7 @@ void main_window::commands_availability_refresh()
 	//bool const tree_properties_avail = m_tree_window.iscmdpropertiesavail();
 	bool const modules_properties_avail = m_modules_window.iscmdpropertiesavail();
 	bool const enable = !!data /*|| tree_properties_avail*/ || modules_properties_avail;
-	fn_enable_properties_toolbar(m_toolbar, enable);
+	m_toolbar_window.setpropertiesavail(enable);
 	fn_enable_properties_menu(m_hwnd, enable);
 }
 
@@ -1039,8 +894,7 @@ void main_window::full_paths()
 {
 	m_settings.m_full_paths = !m_settings.m_full_paths;
 
-	LRESULT const state_set = SendMessageW(m_toolbar, TB_SETSTATE, static_cast<std::uint16_t>(e_toolbar::e_full_paths), (m_settings.m_full_paths ? TBSTATE_PRESSED : 0) | TBSTATE_ENABLED);
-	assert(state_set == TRUE);
+	m_toolbar_window.setfullpathspressed(m_settings.m_full_paths);
 
 	MENUITEMINFOW mi{};
 	mi.cbSize = sizeof(mi);
@@ -1158,8 +1012,7 @@ void main_window::undecorate()
 {
 	m_settings.m_undecorate = !m_settings.m_undecorate;
 
-	LRESULT const state_set = SendMessageW(m_toolbar, TB_SETSTATE, static_cast<std::uint16_t>(e_toolbar::e_undecorate), (m_settings.m_undecorate ? TBSTATE_PRESSED : 0) | TBSTATE_ENABLED);
-	assert(state_set == TRUE);
+	m_toolbar_window.setundecoratepressed(m_settings.m_undecorate);
 
 	MENUITEMINFOW mi{};
 	mi.cbSize = sizeof(mi);

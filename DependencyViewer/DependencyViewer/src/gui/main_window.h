@@ -8,6 +8,7 @@
 #include "settings.h"
 #include "smart_menu.h"
 #include "splitter_window.h"
+#include "toolbar_window.h"
 #include "tree_window.h"
 
 #include "../nogui/pe.h"
@@ -60,7 +61,6 @@ public:
 	bool translate_accelerator(MSG& message);
 private:
 	static HMENU create_menu();
-	static HWND create_toolbar(HWND const& parent);
 	static LRESULT CALLBACK class_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 private:
 	LRESULT on_message(UINT msg, WPARAM wparam, LPARAM lparam);
@@ -68,7 +68,6 @@ private:
 	LRESULT on_wm_size(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_close(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_drawitem(WPARAM wparam, LPARAM lparam);
-	LRESULT on_wm_notify(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_command(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_dropfiles(WPARAM wparam, LPARAM lparam);
 	LRESULT on_wm_main_window_add_idle_task(WPARAM wparam, LPARAM lparam);
@@ -76,9 +75,7 @@ private:
 	void on_menu(WPARAM const wparam);
 	void on_menu(std::uint16_t const menu_id);
 	void on_accelerator(WPARAM const wparam);
-	void on_toolbar(WPARAM const wparam);
 	void on_modules_itemchanged();
-	void on_toolbar_notify(NMHDR& nmhdr);
 	void on_menu_open();
 	void on_menu_exit();
 	void on_menu_paths();
@@ -90,10 +87,6 @@ private:
 	void on_accel_undecorate();
 	void on_accel_properties();
 	void on_accel_refresh();
-	void on_toolbar_open();
-	void on_toolbar_full_paths();
-	void on_toolbar_undecorate();
-	void on_toolbar_properties();
 	void commands_availability_refresh();
 	void open();
 	void open_files(std::vector<std::wstring> const& file_paths);
@@ -126,7 +119,7 @@ private:
 	static HACCEL g_accel;
 private:
 	HWND m_hwnd;
-	HWND m_toolbar;
+	toolbar_window m_toolbar_window;
 	splitter_window_hor m_main_panel;
 	splitter_window_ver m_upper_panel;
 	modules_window m_modules_window;
