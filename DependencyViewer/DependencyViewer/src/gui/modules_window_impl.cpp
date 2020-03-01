@@ -447,7 +447,7 @@ LRESULT modules_window_impl::on_wm_selectitem(WPARAM const& wparam, LPARAM const
 
 LRESULT modules_window_impl::on_wm_iscmdpropertiesavail(WPARAM const& wparam, LPARAM const& lparam)
 {
-	auto const fn_is_avail = [&]() -> bool
+	auto const fn_is_avail = [&](wstring_handle* const& out_file_path) -> bool
 	{
 		int const sel = list_view_base::get_selection(&m_list_view);
 		if(sel == -1)
@@ -462,12 +462,13 @@ LRESULT modules_window_impl::on_wm_iscmdpropertiesavail(WPARAM const& wparam, LP
 		{
 			return false;
 		}
-		bool const ret = command_properties_available(item_idx, nullptr);
+		bool const ret = command_properties_available(item_idx, out_file_path);
 		return ret;
 	};
 
-	bool& avail = *reinterpret_cast<bool*>(lparam);
-	avail = fn_is_avail();
+	bool& avail = *reinterpret_cast<bool*>(wparam);
+	wstring_handle* const out_file_path = reinterpret_cast<wstring_handle*>(lparam);
+	avail = fn_is_avail(out_file_path);
 
 	UINT const msg = static_cast<std::uint32_t>(modules_window::wm::wm_iscmdpropertiesavail);
 	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
@@ -818,27 +819,32 @@ bool modules_window_impl::command_properties_available(std::uint16_t const& item
 
 void modules_window_impl::command_properties()
 {
-	int const sel = list_view_base::get_selection(&m_list_view);
-	if(sel == -1)
+	auto const command_properties_fn = [&]() -> wstring_handle
 	{
-		return;
-	}
-	assert(sel >= 0 && sel <= 0xFFFF);
-	std::uint16_t const line_idx = static_cast<std::uint16_t>(sel);
-	std::uint16_t const item_idx = m_sort.empty() ? line_idx : m_sort[line_idx];
+		int const sel = list_view_base::get_selection(&m_list_view);
+		if(sel == -1)
+		{
+			return {};
+		}
+		assert(sel >= 0 && sel <= 0xFFFF);
+		std::uint16_t const line_idx = static_cast<std::uint16_t>(sel);
+		std::uint16_t const item_idx = m_sort.empty() ? line_idx : m_sort[line_idx];
 
-	wstring_handle str;
-	bool const available = command_properties_available(item_idx, &str);
-	if(!available)
-	{
-		return;
-	}
+		wstring_handle file_path;
+		bool const available = command_properties_available(item_idx, &file_path);
+		if(!available)
+		{
+			return {};
+		}
+		return file_path;
+	};
 
+	wstring_handle const file_path = command_properties_fn();
 	if(!m_cmd_properties_fn)
 	{
 		return;
 	}
-	m_cmd_properties_fn(m_cmd_properties_ctx, str);
+	m_cmd_properties_fn(m_cmd_properties_ctx, file_path);
 }
 
 void modules_window_impl::refresh()

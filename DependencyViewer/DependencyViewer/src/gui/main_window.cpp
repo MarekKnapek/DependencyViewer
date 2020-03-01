@@ -794,10 +794,9 @@ void main_window::commands_availability_refresh()
 		assert(enabled != 1);
 	};
 
-	wstring_handle data = get_properties_data();
-	//bool const tree_properties_avail = m_tree_window.iscmdpropertiesavail();
-	bool const modules_properties_avail = m_modules_window.iscmdpropertiesavail();
-	bool const enable = !!data /*|| tree_properties_avail*/ || modules_properties_avail;
+	bool const tree_properties_avail = m_tree_window.iscmdpropertiesavail(nullptr);
+	bool const modules_properties_avail = m_modules_window.iscmdpropertiesavail(nullptr);
+	bool const enable = tree_properties_avail || modules_properties_avail;
 	m_toolbar_window.setpropertiesavail(enable);
 	fn_enable_properties_menu(m_hwnd, enable);
 }
@@ -1015,16 +1014,43 @@ void main_window::properties(wstring_handle data /* = wstring_handle{} */)
 	}
 }
 
-wstring_handle main_window::get_properties_data(file_info const* const curr_fi /* = nullptr */)
+wstring_handle main_window::get_properties_data()
 {
-	if(curr_fi)
+	HWND const focus = GetFocus();
+	assert(focus != nullptr);
+	assert(IsWindow(focus) != 0);
+	if(IsChild(m_tree_window.get_hwnd(), focus) != 0 || focus == m_tree_window.get_hwnd())
 	{
-		file_info const* const real_curr_fi = curr_fi->m_orig_instance ? curr_fi->m_orig_instance : curr_fi;
-		wstring_handle const& curr_fp = real_curr_fi->m_file_path;
-		if(curr_fp)
+		wstring_handle file_path;
+		bool const avail = m_tree_window.iscmdpropertiesavail(&file_path);
+		if(avail)
 		{
-			return curr_fp;
+			assert(file_path);
+			return file_path;
 		}
+	}
+	else if(IsChild(m_modules_window.get_hwnd(), focus) != 0 || focus == m_modules_window.get_hwnd())
+	{
+		wstring_handle file_path;
+		bool const avail = m_modules_window.iscmdpropertiesavail(&file_path);
+		if(avail)
+		{
+			assert(file_path);
+			return file_path;
+		}
+	}
+	wstring_handle file_path;
+	bool const avail_tree = m_tree_window.iscmdpropertiesavail(&file_path);
+	if(avail_tree)
+	{
+		assert(file_path);
+		return file_path;
+	}
+	bool const avail_modules = m_modules_window.iscmdpropertiesavail(&file_path);
+	if(avail_modules)
+	{
+		assert(file_path);
+		return file_path;
 	}
 	return {};
 }

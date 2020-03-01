@@ -99,7 +99,7 @@ private:
 	void refresh(main_type&& mo);
 	void full_paths();
 	void properties(wstring_handle data = wstring_handle{});
-	wstring_handle get_properties_data(file_info const* const curr_fi = nullptr);
+	wstring_handle get_properties_data();
 	void undecorate();
 	void refresh();
 	void add_idle_task(idle_task_t const task, idle_task_param_t const param);

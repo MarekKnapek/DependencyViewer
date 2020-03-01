@@ -473,19 +473,20 @@ LRESULT tree_window_impl::on_wm_selectitem(WPARAM const& wparam, LPARAM const& l
 
 LRESULT tree_window_impl::on_wm_iscmdpropertiesavail(WPARAM const& wparam, LPARAM const& lparam)
 {
-	auto const fn_is_avail = [&]() -> bool
+	auto const fn_is_avail = [&](wstring_handle* const& out_file_path) -> bool
 	{
 		file_info const* const selection_fi = get_selection();
 		if(!selection_fi)
 		{
 			return false;
 		}
-		bool const avail = cmd_properties_avail(selection_fi, nullptr);
+		bool const avail = cmd_properties_avail(selection_fi, out_file_path);
 		return avail;
 	};
 
-	bool& avail = *reinterpret_cast<bool*>(lparam);
-	avail = fn_is_avail();
+	bool& avail = *reinterpret_cast<bool*>(wparam);
+	wstring_handle* const out_file_path = reinterpret_cast<wstring_handle*>(lparam);
+	avail = fn_is_avail(out_file_path);
 
 	UINT const msg = static_cast<std::uint32_t>(tree_window::wm::wm_iscmdpropertiesavail);
 	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
@@ -1030,17 +1031,23 @@ bool tree_window_impl::cmd_properties_avail(file_info const* const& tmp_fi, wstr
 
 void tree_window_impl::cmd_properties()
 {
-	file_info const* const selection_fi = get_selection();
-	if(!selection_fi)
+	auto const cmd_properties_fn = [&]() -> wstring_handle
 	{
-		return;
-	}
-	wstring_handle file_path;
-	bool const avail = cmd_properties_avail(selection_fi, &file_path);
-	if(!avail)
-	{
-		return;
-	}
+		file_info const* const selection_fi = get_selection();
+		if(!selection_fi)
+		{
+			return {};
+		}
+		wstring_handle file_path;
+		bool const avail = cmd_properties_avail(selection_fi, &file_path);
+		if(!avail)
+		{
+			return {};
+		}
+		return file_path;
+	};
+
+	wstring_handle const file_path = cmd_properties_fn();
 	if(m_cmd_properties_fn)
 	{
 		m_cmd_properties_fn(m_cmd_properties_ctx, file_path);

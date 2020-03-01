@@ -49,7 +49,7 @@ public:
 	bool translateaccelerator(MSG& message);
 	void setmodlist(modules_list_t const& ml);
 	void selectitem(file_info const* const& fi);
-	bool iscmdpropertiesavail();
+	bool iscmdpropertiesavail(wstring_handle* const& out_file_path);
 	void setonitemchanged(onitemchanged_fn_t const& onitemchanged_fn, onitemchanged_ctx_t const& onitemchanged_ctx);
 	void setcmdmatching(cmd_matching_fn_t const& cmd_matching_fn, cmd_matching_ctx_t const& cmd_matching_ctx);
 	void setcmdproperties(cmd_properties_fn_t const& cmd_properties_fn, cmd_properties_ctx_t const& cmd_properties_ctx);
