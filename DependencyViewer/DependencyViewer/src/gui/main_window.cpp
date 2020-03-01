@@ -247,50 +247,50 @@ void main_window::connect_signals()
 
 void main_window::connect_toolbar()
 {
-	static constexpr auto const toolbar_cmd_open_fn_ = [](toolbar_window::cmd_open_ctx_t const& ctx)
+	static constexpr auto const cmd_open_fn_ = [](toolbar_window::cmd_open_ctx_t const& ctx)
 	{
 		assert(ctx);
 		main_window* const self = static_cast<main_window*>(ctx);
 		self->open();
 	};
-	toolbar_window::cmd_open_fn_t const toolbar_cmd_open_fn = toolbar_cmd_open_fn_;
-	toolbar_window::cmd_open_ctx_t const toolbar_cmd_open_ctx = this;
-	m_toolbar_window.setcmdopen(toolbar_cmd_open_fn, toolbar_cmd_open_ctx);
+	toolbar_window::cmd_open_fn_t const cmd_open_fn = cmd_open_fn_;
+	toolbar_window::cmd_open_ctx_t const cmd_open_ctx = this;
+	m_toolbar_window.setcmdopen(cmd_open_fn, cmd_open_ctx);
 
-	static constexpr auto const toolbar_cmd_fullpaths_fn_ = [](toolbar_window::cmd_fullpaths_ctx_t const& ctx)
+	static constexpr auto const cmd_fullpaths_fn_ = [](toolbar_window::cmd_fullpaths_ctx_t const& ctx)
 	{
 		assert(ctx);
 		main_window* const self = static_cast<main_window*>(ctx);
 		self->full_paths();
 	};
-	toolbar_window::cmd_fullpaths_fn_t const toolbar_cmd_fullpaths_fn = toolbar_cmd_fullpaths_fn_;
-	toolbar_window::cmd_fullpaths_ctx_t const toolbar_cmd_fullpaths_ctx = this;
-	m_toolbar_window.setcmdfullpaths(toolbar_cmd_fullpaths_fn, toolbar_cmd_fullpaths_ctx);
+	toolbar_window::cmd_fullpaths_fn_t const cmd_fullpaths_fn = cmd_fullpaths_fn_;
+	toolbar_window::cmd_fullpaths_ctx_t const cmd_fullpaths_ctx = this;
+	m_toolbar_window.setcmdfullpaths(cmd_fullpaths_fn, cmd_fullpaths_ctx);
 
-	static constexpr auto const toolbar_cmd_undecorate_fn_ = [](toolbar_window::cmd_undecorate_ctx_t const& ctx)
+	static constexpr auto const cmd_undecorate_fn_ = [](toolbar_window::cmd_undecorate_ctx_t const& ctx)
 	{
 		assert(ctx);
 		main_window* const self = static_cast<main_window*>(ctx);
 		self->undecorate();
 	};
-	toolbar_window::cmd_undecorate_fn_t const toolbar_cmd_undecorate_fn = toolbar_cmd_undecorate_fn_;
-	toolbar_window::cmd_undecorate_ctx_t const toolbar_cmd_undecorate_ctx = this;
-	m_toolbar_window.setcmdundecorate(toolbar_cmd_undecorate_fn, toolbar_cmd_undecorate_ctx);
+	toolbar_window::cmd_undecorate_fn_t const cmd_undecorate_fn = cmd_undecorate_fn_;
+	toolbar_window::cmd_undecorate_ctx_t const cmd_undecorate_ctx = this;
+	m_toolbar_window.setcmdundecorate(cmd_undecorate_fn, cmd_undecorate_ctx);
 
-	static constexpr auto const toolbar_cmd_properties_fn_ = [](toolbar_window::cmd_properties_ctx_t const& ctx)
+	static constexpr auto const cmd_properties_fn_ = [](toolbar_window::cmd_properties_ctx_t const& ctx)
 	{
 		assert(ctx);
 		main_window* const self = static_cast<main_window*>(ctx);
 		self->properties();
 	};
-	toolbar_window::cmd_properties_fn_t const toolbar_cmd_properties_fn = toolbar_cmd_properties_fn_;
-	toolbar_window::cmd_properties_ctx_t const toolbar_cmd_properties_ctx = this;
-	m_toolbar_window.setcmdproperties(toolbar_cmd_properties_fn, toolbar_cmd_properties_ctx);
+	toolbar_window::cmd_properties_fn_t const cmd_properties_fn = cmd_properties_fn_;
+	toolbar_window::cmd_properties_ctx_t const cmd_properties_ctx = this;
+	m_toolbar_window.setcmdproperties(cmd_properties_fn, cmd_properties_ctx);
 }
 
 void main_window::connect_tree()
 {
-	static constexpr auto const tree_onitemchanged_fn_ = [](tree_window::onitemchanged_ctx_t const ctx, file_info const* const& fi)
+	static constexpr auto const onitemchanged_fn_ = [](tree_window::onitemchanged_ctx_t const ctx, file_info const* const& fi)
 	{
 		assert(ctx);
 		main_window* const self = static_cast<main_window*>(ctx);
@@ -298,89 +298,89 @@ void main_window::connect_tree()
 		self->m_export_window.setfi(fi);
 		self->commands_availability_refresh();
 	};
-	tree_window::onitemchanged_fn_t const tree_onitemchanged_fn = tree_onitemchanged_fn_;
-	tree_window::onitemchanged_ctx_t const tree_onitemchanged_ctx = this;
-	m_tree_window.setonitemchanged(tree_onitemchanged_fn, tree_onitemchanged_ctx);
+	tree_window::onitemchanged_fn_t const onitemchanged_fn = onitemchanged_fn_;
+	tree_window::onitemchanged_ctx_t const onitemchanged_ctx = this;
+	m_tree_window.setonitemchanged(onitemchanged_fn, onitemchanged_ctx);
 
-	static constexpr auto const tree_cmd_matching_fn_ = [](tree_window::cmd_matching_ctx_t const ctx, file_info const* const& fi)
+	static constexpr auto const cmd_matching_fn_ = [](tree_window::cmd_matching_ctx_t const ctx, file_info const* const& fi)
 	{
 		assert(ctx);
 		main_window* const self = static_cast<main_window*>(ctx);
 		self->m_modules_window.selectitem(fi);
 	};
-	tree_window::cmd_matching_fn_t const tree_cmd_matching_fn = tree_cmd_matching_fn_;
-	tree_window::cmd_matching_ctx_t const tree_cmd_matching_ctx = this;
-	m_tree_window.setcmdmatching(tree_cmd_matching_fn, tree_cmd_matching_ctx);
+	tree_window::cmd_matching_fn_t const cmd_matching_fn = cmd_matching_fn_;
+	tree_window::cmd_matching_ctx_t const cmd_matching_ctx = this;
+	m_tree_window.setcmdmatching(cmd_matching_fn, cmd_matching_ctx);
 
-	static constexpr auto const tree_cmd_properties_fn_ = [](tree_window::cmd_properties_ctx_t const ctx, wstring_handle const& file_path)
+	static constexpr auto const cmd_properties_fn_ = [](tree_window::cmd_properties_ctx_t const ctx, wstring_handle const& file_path)
 	{
 		assert(ctx);
 		main_window* const self = static_cast<main_window*>(ctx);
 		self->properties(file_path);
 	};
-	tree_window::cmd_properties_fn_t const tree_cmd_properties_fn = tree_cmd_properties_fn_;
-	tree_window::cmd_properties_ctx_t const tree_cmd_properties_ctx = this;
-	m_tree_window.setcmdproperties(tree_cmd_properties_fn, tree_cmd_properties_ctx);
+	tree_window::cmd_properties_fn_t const cmd_properties_fn = cmd_properties_fn_;
+	tree_window::cmd_properties_ctx_t const cmd_properties_ctx = this;
+	m_tree_window.setcmdproperties(cmd_properties_fn, cmd_properties_ctx);
 }
 
 void main_window::connect_imports()
 {
-	static constexpr auto const imp_cmd_matching_fn_ = [](import_window::cmd_matching_ctx_t const ctx, std::uint16_t const item_idx) -> void
+	static constexpr auto const cmd_matching_fn_ = [](import_window::cmd_matching_ctx_t const ctx, std::uint16_t const item_idx) -> void
 	{
 		assert(ctx);
 		main_window* const self = static_cast<main_window*>(ctx);
 		self->m_export_window.selectitem(item_idx);
 	};
-	import_window::cmd_matching_fn_t const imp_cmd_matching_fn = imp_cmd_matching_fn_;
-	import_window::cmd_matching_ctx_t const imp_cmd_matching_ctx = this;
-	m_import_window.setcmdmatching(imp_cmd_matching_fn, imp_cmd_matching_ctx);
+	import_window::cmd_matching_fn_t const cmd_matching_fn = cmd_matching_fn_;
+	import_window::cmd_matching_ctx_t const cmd_matching_ctx = this;
+	m_import_window.setcmdmatching(cmd_matching_fn, cmd_matching_ctx);
 }
 
 void main_window::connect_exports()
 {
-	static constexpr auto const exp_cmd_matching_fn_ = [](export_window::cmd_matching_ctx_t const ctx, std::uint16_t const item_idx) -> void
+	static constexpr auto const cmd_matching_fn_ = [](export_window::cmd_matching_ctx_t const ctx, std::uint16_t const item_idx) -> void
 	{
 		assert(ctx);
 		main_window* const self = static_cast<main_window*>(ctx);
 		self->m_import_window.selectitem(item_idx);
 	};
-	export_window::cmd_matching_fn_t const exp_cmd_matching_fn = exp_cmd_matching_fn_;
-	export_window::cmd_matching_ctx_t const exp_cmd_matching_ctx = this;
-	m_export_window.setcmdmatching(exp_cmd_matching_fn, exp_cmd_matching_ctx);
+	export_window::cmd_matching_fn_t const cmd_matching_fn = cmd_matching_fn_;
+	export_window::cmd_matching_ctx_t const cmd_matching_ctx = this;
+	m_export_window.setcmdmatching(cmd_matching_fn, cmd_matching_ctx);
 }
 
 void main_window::connect_modules()
 {
-	static constexpr auto const mdls_onitemchanged_fn_ = [](modules_window::onitemchanged_ctx_t const ctx, [[maybe_unused]] file_info const* const& fi)
+	static constexpr auto const onitemchanged_fn_ = [](modules_window::onitemchanged_ctx_t const ctx, [[maybe_unused]] file_info const* const& fi)
 	{
 		assert(ctx);
 		main_window* const self = static_cast<main_window*>(ctx);
 		self->commands_availability_refresh();
 	};
-	modules_window::onitemchanged_fn_t const mdls_onitemchanged_fn = mdls_onitemchanged_fn_;
-	modules_window::onitemchanged_ctx_t const mdls_onitemchanged_ctx = this;
-	m_modules_window.setonitemchanged(mdls_onitemchanged_fn, mdls_onitemchanged_ctx);
+	modules_window::onitemchanged_fn_t const onitemchanged_fn = onitemchanged_fn_;
+	modules_window::onitemchanged_ctx_t const onitemchanged_ctx = this;
+	m_modules_window.setonitemchanged(onitemchanged_fn, onitemchanged_ctx);
 
-	static constexpr auto const mdls_cmd_matching_fn_ = [](modules_window::cmd_matching_ctx_t const ctx, file_info const* const fi) -> void
+	static constexpr auto const cmd_matching_fn_ = [](modules_window::cmd_matching_ctx_t const ctx, file_info const* const fi) -> void
 	{
 		assert(ctx);
 		main_window* const self = static_cast<main_window*>(ctx);
 		assert(fi);
 		self->m_tree_window.selectitem(fi);
 	};
-	modules_window::cmd_matching_fn_t const mdls_cmd_matching_fn = mdls_cmd_matching_fn_;
-	modules_window::cmd_matching_ctx_t const mdls_cmd_matching_ctx = this;
-	m_modules_window.setcmdmatching(mdls_cmd_matching_fn, mdls_cmd_matching_ctx);
+	modules_window::cmd_matching_fn_t const cmd_matching_fn = cmd_matching_fn_;
+	modules_window::cmd_matching_ctx_t const cmd_matching_ctx = this;
+	m_modules_window.setcmdmatching(cmd_matching_fn, cmd_matching_ctx);
 
-	static constexpr auto const mdls_cmd_properties_fn_ = [](modules_window::cmd_properties_ctx_t const ctx, wstring_handle const& str)
+	static constexpr auto const cmd_properties_fn_ = [](modules_window::cmd_properties_ctx_t const ctx, wstring_handle const& str)
 	{
 		assert(ctx);
 		main_window* const self = static_cast<main_window*>(ctx);
 		self->properties(str);
 	};
-	modules_window::cmd_properties_fn_t const mdls_cmd_properties_fn = mdls_cmd_properties_fn_;
-	modules_window::cmd_properties_ctx_t const mdls_cmd_properties_ctx = this;
-	m_modules_window.setcmdproperties(mdls_cmd_properties_fn, mdls_cmd_properties_ctx);
+	modules_window::cmd_properties_fn_t const cmd_properties_fn = cmd_properties_fn_;
+	modules_window::cmd_properties_ctx_t const cmd_properties_ctx = this;
+	m_modules_window.setcmdproperties(cmd_properties_fn, cmd_properties_ctx);
 }
 
 HWND main_window::get_hwnd() const
