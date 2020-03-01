@@ -29,12 +29,14 @@ private:
 	LRESULT on_message(UINT const& msg, WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_notify(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_command(WPARAM const& wparam, LPARAM const& lparam);
+	LRESULT on_wm_setpropertiesavail(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setcmdopen(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setcmdfullpaths(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setcmdundecorate(WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_setcmdproperties(WPARAM const& wparam, LPARAM const& lparam);
 	void on_getinfotipw(NMHDR& nmhdr);
 	void on_toolbar_cmd(WPARAM const& wparam);
+	void setpropertiesavail(bool const& available);
 	void cmd_open();
 	void cmd_full_paths();
 	void cmd_undecorate();

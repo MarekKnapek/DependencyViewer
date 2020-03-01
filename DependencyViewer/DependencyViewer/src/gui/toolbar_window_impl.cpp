@@ -232,6 +232,12 @@ LRESULT toolbar_window_impl::on_message(UINT const& msg, WPARAM const& wparam, L
 			return ret;
 		}
 		break;
+		case static_cast<std::uint32_t>(toolbar_window::wm::wm_setpropertiesavail):
+		{
+			LRESULT const ret = on_wm_setpropertiesavail(wparam, lparam);
+			return ret;
+		}
+		break;
 		case static_cast<std::uint32_t>(toolbar_window::wm::wm_setcmdopen):
 		{
 			LRESULT const ret = on_wm_setcmdopen(wparam, lparam);
@@ -291,6 +297,17 @@ LRESULT toolbar_window_impl::on_wm_command(WPARAM const& wparam, LPARAM const& l
 		on_toolbar_cmd(wparam);
 	}
 	LRESULT const ret = DefWindowProcW(m_self, WM_NOTIFY, wparam, lparam);
+	return ret;
+}
+
+LRESULT toolbar_window_impl::on_wm_setpropertiesavail(WPARAM const& wparam, LPARAM const& lparam)
+{
+	assert(wparam == 0 || wparam == 1);
+	bool const available = wparam != 0;
+	setpropertiesavail(available);
+
+	UINT const msg = static_cast<std::uint32_t>(toolbar_window::wm::wm_setpropertiesavail);
+	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
 	return ret;
 }
 
@@ -421,6 +438,24 @@ void toolbar_window_impl::on_toolbar_cmd(WPARAM const& wparam)
 		}
 		break;
 	}
+}
+
+void toolbar_window_impl::setpropertiesavail(bool const& available)
+{
+	WPARAM const properties_command_id = static_cast<std::uint16_t>(e_toolbar::e_properties);
+	LRESULT const curr_state = SendMessageW(m_toolbar, TB_GETSTATE, properties_command_id, 0);
+	assert(curr_state != -1);
+	LPARAM new_state = static_cast<LPARAM>(curr_state);
+	if(available)
+	{
+		new_state |= TBSTATE_ENABLED;
+	}
+	else
+	{
+		new_state &=~ TBSTATE_ENABLED;
+	}
+	LRESULT const set = SendMessageW(m_toolbar, TB_SETSTATE, properties_command_id, new_state);
+	assert(set == TRUE);
 }
 
 void toolbar_window_impl::cmd_open()
