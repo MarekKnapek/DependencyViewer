@@ -4,14 +4,35 @@
 
 #include "../nogui/cassert_my.h"
 
+#include "../nogui/windows_my.h"
+
+#include <commctrl.h>
+
 
 ATOM toolbar_window_impl::g_class;
 
 
 toolbar_window_impl::toolbar_window_impl(HWND const& self) :
-	m_self(self)
+	m_self(self),
+	m_toolbar()
 {
 	assert(self != nullptr);
+
+	DWORD const ex_style = 0;
+	wchar_t const* const class_name = TOOLBARCLASSNAMEW;
+	wchar_t const* const window_name = nullptr;
+	DWORD const style = (WS_VISIBLE | WS_CHILD) | (TBSTYLE_TOOLTIPS);
+	int const x_pos = 0;
+	int const y_pos = 0;
+	int const width = 0;
+	int const height = 0;
+	HWND const parent = m_self;
+	HMENU const menu = nullptr;
+	HINSTANCE const instance = get_instance();
+	LPVOID const param = nullptr;
+	m_toolbar = CreateWindowExW(ex_style, class_name, window_name, style, x_pos, y_pos, width, height, parent, menu, instance, param);
+	assert(m_toolbar != nullptr);
+	LRESULT const size_sent = SendMessageW(m_toolbar, TB_BUTTONSTRUCTSIZE, sizeof(TBBUTTON), 0);
 }
 
 toolbar_window_impl::~toolbar_window_impl()
