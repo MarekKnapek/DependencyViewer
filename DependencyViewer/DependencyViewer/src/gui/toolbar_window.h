@@ -11,7 +11,8 @@ class toolbar_window
 public:
 	enum class wm : std::uint32_t
 	{
-		wm_setpropertiesavail = WM_USER + 1,
+		wm_setfullpathspressed = WM_USER + 1,
+		wm_setpropertiesavail,
 		wm_setcmdopen,
 		wm_setcmdfullpaths,
 		wm_setcmdundecorate,
@@ -38,6 +39,7 @@ public:
 	static void init();
 	static void deinit();
 public:
+	void setfullpathspressed(bool const& pressed);
 	void setpropertiesavail(bool const& available);
 	void setcmdopen(cmd_open_fn_t const& cmd_open_fn, cmd_open_ctx_t const& cmd_open_ctx);
 	void setcmdfullpaths(cmd_fullpaths_fn_t const& cmd_fullpaths_fn, cmd_fullpaths_ctx_t const& cmd_fullpaths_ctx);

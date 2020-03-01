@@ -53,6 +53,15 @@ void toolbar_window::deinit()
 	toolbar_window_impl::deinit();
 }
 
+void toolbar_window::setfullpathspressed(bool const& pressed)
+{
+	UINT const msg = static_cast<std::uint32_t>(wm::wm_setfullpathspressed);
+	WPARAM const wparam = pressed ? 1 : 0;
+	LPARAM const lparam = 0;
+	assert(m_hwnd != nullptr);
+	LRESULT const res = SendMessageW(m_hwnd, msg, wparam, lparam);
+}
+
 void toolbar_window::setpropertiesavail(bool const& available)
 {
 	UINT const msg = static_cast<std::uint32_t>(wm::wm_setpropertiesavail);
