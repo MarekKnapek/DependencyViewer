@@ -20,6 +20,10 @@ enum class e_toolbar : std::uint16_t
 	e_undecorate,
 	e_properties,
 };
+static constexpr wchar_t const s_toolbar_tooltip_open[] = L"Open... (Ctrl+O)";
+static constexpr wchar_t const s_toolbar_tooltip_full_paths[] = L"View Full Paths (F9)";
+static constexpr wchar_t const s_toolbar_tooltip_undecorate[] = L"Undecorate C++ Functions (F10)";
+static constexpr wchar_t const s_toolbar_tooltip_properties[] = L"Properties... (Alt+Enter)";
 
 
 ATOM toolbar_window_impl::g_class;
@@ -232,6 +236,7 @@ LRESULT toolbar_window_impl::on_wm_notify(WPARAM const& wparam, LPARAM const& lp
 		{
 			case TBN_GETINFOTIPW:
 			{
+				on_getinfotipw(nmhdr);
 			}
 			break;
 		}
@@ -239,4 +244,41 @@ LRESULT toolbar_window_impl::on_wm_notify(WPARAM const& wparam, LPARAM const& lp
 
 	LRESULT const ret = DefWindowProcW(m_self, WM_NOTIFY, wparam, lparam);
 	return ret;
+}
+
+void toolbar_window_impl::on_getinfotipw(NMHDR& nmhdr)
+{
+	NMTBGETINFOTIPW& tbgit = reinterpret_cast<NMTBGETINFOTIPW&>(nmhdr);
+	int const toolbar_id_ = tbgit.iItem;
+	assert(toolbar_id_ >= static_cast<std::uint16_t>(e_toolbar::e_open));
+	assert(toolbar_id_ <= static_cast<std::uint16_t>(e_toolbar::e_properties));
+	e_toolbar const toolbar_id = static_cast<e_toolbar>(toolbar_id_);
+	switch(toolbar_id)
+	{
+		case e_toolbar::e_open:
+		{
+			tbgit.pszText = const_cast<wchar_t*>(s_toolbar_tooltip_open);
+		}
+		break;
+		case e_toolbar::e_full_paths:
+		{
+			tbgit.pszText = const_cast<wchar_t*>(s_toolbar_tooltip_full_paths);
+		}
+		break;
+		case e_toolbar::e_undecorate:
+		{
+			tbgit.pszText = const_cast<wchar_t*>(s_toolbar_tooltip_undecorate);
+		}
+		break;
+		case e_toolbar::e_properties:
+		{
+			tbgit.pszText = const_cast<wchar_t*>(s_toolbar_tooltip_properties);
+		}
+		break;
+		default:
+		{
+			assert(false);
+		}
+		break;
+	}
 }

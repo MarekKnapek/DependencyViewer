@@ -28,6 +28,7 @@ private:
 	static LRESULT on_wm_destroy(HWND const& hwnd, WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_message(UINT const& msg, WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_notify(WPARAM const& wparam, LPARAM const& lparam);
+	void on_getinfotipw(NMHDR& nmhdr);
 private:
 	static ATOM g_class;
 private:
