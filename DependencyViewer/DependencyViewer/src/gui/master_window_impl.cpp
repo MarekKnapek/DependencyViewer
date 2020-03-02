@@ -4,8 +4,6 @@
 #include "main.h"
 
 #include <algorithm>
-#include <string>
-#include <vector>
 
 #include "../nogui/cassert_my.h"
 #include "../nogui/scope_exit.h"
@@ -16,6 +14,8 @@
 
 
 static constexpr wchar_t const s_master_window_open_filter[] = L"Executable files and libraries (*.exe;*.dll;*.ocx)\0*.exe;*.dll;*.ocx\0All files\0*.*\0";
+static constexpr wchar_t const s_master_window_error_title[] = L"DependencyViewer error.";
+static constexpr wchar_t const s_master_window_error_msg[] = L"Failed to process all files.";
 
 
 ATOM master_window_impl::g_class;
@@ -31,7 +31,8 @@ master_window_impl::master_window_impl(HWND const& self) :
 	m_right_panel(m_upper_panel.get_hwnd()),
 	m_import_window(m_right_panel.get_hwnd()),
 	m_export_window(m_right_panel.get_hwnd()),
-	m_modules_window(m_main_panel.get_hwnd())
+	m_modules_window(m_main_panel.get_hwnd()),
+	m_mo()
 {
 	assert(self != nullptr);
 
@@ -350,4 +351,20 @@ void master_window_impl::cmd_open()
 			++paths_it;
 		}while(prev[1] != L'\0');
 	}
+	open_files(file_paths);
+}
+
+void master_window_impl::open_files(std::vector<std::wstring> const& file_paths)
+{
+	main_type mo;
+	bool const processed = process(file_paths, &mo);
+	if(!processed)
+	{
+		int const msgbox = MessageBoxW(m_self, s_master_window_error_msg, s_master_window_error_title, MB_OK | MB_ICONERROR);
+		return;
+	}
+	m_mo.swap(mo);
+	m_tree_window.setfi(m_mo.m_fi);
+	m_modules_window.setmodlist(m_mo.m_modules_list);
+	m_tree_window.selectitem(m_mo.m_fi->m_fis + 0);
 }

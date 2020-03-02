@@ -8,6 +8,10 @@
 #include "splitter_window.h"
 #include "toolbar_window.h"
 #include "tree_window.h"
+#include "processor.h"
+
+#include <string>
+#include <vector>
 
 #include "../nogui/windows_my.h"
 
@@ -48,6 +52,7 @@ private:
 	void on_modules_matching(file_info const* const& fi);
 	void on_modules_properties(wstring_handle const& file_path);
 	void cmd_open();
+	void open_files(std::vector<std::wstring> const& file_paths);
 private:
 	static ATOM g_class;
 	static int g_debug_instances;
@@ -61,4 +66,5 @@ private:
 	import_window m_import_window;
 	export_window m_export_window;
 	modules_window m_modules_window;
+	main_type m_mo;
 };
