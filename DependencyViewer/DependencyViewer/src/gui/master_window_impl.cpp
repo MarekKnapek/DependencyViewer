@@ -10,11 +10,26 @@ int master_window_impl::g_debug_instances;
 
 
 master_window_impl::master_window_impl(HWND const& self) :
-	m_self(self)
+	m_self(self),
+	m_toolbar_window(self),
+	m_main_panel(self),
+	m_upper_panel(m_main_panel.get_hwnd()),
+	m_tree_window(m_upper_panel.get_hwnd()),
+	m_right_panel(m_upper_panel.get_hwnd()),
+	m_import_window(m_right_panel.get_hwnd()),
+	m_export_window(m_right_panel.get_hwnd()),
+	m_modules_window(m_main_panel.get_hwnd())
 {
 	assert(self != nullptr);
 
 	++g_debug_instances;
+
+	m_main_panel.setchildren(m_upper_panel.get_hwnd(), m_modules_window.get_hwnd());
+	m_upper_panel.setchildren(m_tree_window.get_hwnd(), m_right_panel.get_hwnd());
+	m_right_panel.setchildren(m_import_window.get_hwnd(), m_export_window.get_hwnd());
+
+	m_main_panel.setposition(0.8f);
+	m_upper_panel.setposition(0.333f);
 }
 
 master_window_impl::~master_window_impl()

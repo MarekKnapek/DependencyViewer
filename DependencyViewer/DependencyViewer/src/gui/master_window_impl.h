@@ -1,7 +1,13 @@
 #pragma once
 
 
+#include "export_window.h"
+#include "import_window.h"
 #include "master_window.h"
+#include "modules_window.h"
+#include "splitter_window.h"
+#include "toolbar_window.h"
+#include "tree_window.h"
 
 #include "../nogui/windows_my.h"
 
@@ -32,4 +38,12 @@ private:
 	static int g_debug_instances;
 private:
 	HWND const m_self;
+	toolbar_window m_toolbar_window;
+	splitter_window_hor m_main_panel;
+	splitter_window_ver m_upper_panel;
+	tree_window m_tree_window;
+	splitter_window_hor m_right_panel;
+	import_window m_import_window;
+	export_window m_export_window;
+	modules_window m_modules_window;
 };
