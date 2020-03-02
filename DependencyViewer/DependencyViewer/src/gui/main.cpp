@@ -5,6 +5,7 @@
 #include "export_window.h"
 #include "import_window.h"
 #include "main_window.h"
+#include "master_window.h"
 #include "modules_window.h"
 #include "splitter_window.h"
 #include "test.h"
@@ -60,6 +61,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, [[maybe_unused]] _In_opt_ HINSTANC
 	main_window::register_class();
 	main_window::create_accel_table();
 	auto const fn_destroy_main_accel_table = mk::make_scope_exit([](){ main_window::destroy_accel_table(); });
+	master_window::init(); auto const fn_master_window_deinit = mk::make_scope_exit([](){ master_window::deinit(); });
 	toolbar_window::init(); auto const fn_toolbar_window_deinit = mk::make_scope_exit([](){ toolbar_window::deinit(); });
 	splitter_window_hor::init(); auto const fn_splitter_window_hor_deinit = mk::make_scope_exit([](){ splitter_window_hor::deinit(); });
 	splitter_window_ver::init(); auto const fn_splitter_window_ver_deinit = mk::make_scope_exit([](){ splitter_window_ver::deinit(); });
@@ -70,6 +72,9 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, [[maybe_unused]] _In_opt_ HINSTANC
 	main_window mw;
 	BOOL const shown = ShowWindow(mw.get_hwnd(), nCmdShow);
 	BOOL const updated = UpdateWindow(mw.get_hwnd());
+	master_window master(nullptr);
+	BOOL const master_shown = ShowWindow(master.get_hwnd(), SW_SHOW);
+	BOOL const master_updated = UpdateWindow(master.get_hwnd()); assert(master_updated != 0);
 	int const exit_code = message_loop(mw);
 	return exit_code;
 }
