@@ -56,6 +56,8 @@
 		<ClInclude Include="src\gui\list_view_base.h">                        	<Filter>src\gui</Filter></ClInclude>
 		<ClInclude Include="src\gui\main.h">                                  	<Filter>src\gui</Filter></ClInclude>
 		<ClInclude Include="src\gui\main_window.h">                           	<Filter>src\gui</Filter></ClInclude>
+		<ClInclude Include="src\gui\master_window.h">                         	<Filter>src\gui</Filter></ClInclude>
+		<ClInclude Include="src\gui\master_window_impl.h">                    	<Filter>src\gui</Filter></ClInclude>
 		<ClInclude Include="src\gui\modules_window.h">                        	<Filter>src\gui</Filter></ClInclude>
 		<ClInclude Include="src\gui\modules_window_impl.h">                   	<Filter>src\gui</Filter></ClInclude>
 		<ClInclude Include="src\gui\processor.h">                             	<Filter>src\gui</Filter></ClInclude>
@@ -137,6 +139,8 @@
 		<ClCompile Include="src\gui\list_view_base.cpp">             	<Filter>src\gui</Filter></ClCompile>
 		<ClCompile Include="src\gui\main.cpp">                       	<Filter>src\gui</Filter></ClCompile>
 		<ClCompile Include="src\gui\main_window.cpp">                	<Filter>src\gui</Filter></ClCompile>
+		<ClCompile Include="src\gui\master_window.cpp">              	<Filter>src\gui</Filter></ClCompile>
+		<ClCompile Include="src\gui\master_window_impl.cpp">         	<Filter>src\gui</Filter></ClCompile>
 		<ClCompile Include="src\gui\modules_window.cpp">             	<Filter>src\gui</Filter></ClCompile>
 		<ClCompile Include="src\gui\modules_window_impl.cpp">        	<Filter>src\gui</Filter></ClCompile>
 		<ClCompile Include="src\gui\processor.cpp">                  	<Filter>src\gui</Filter></ClCompile>

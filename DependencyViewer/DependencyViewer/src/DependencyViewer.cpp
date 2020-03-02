@@ -9,6 +9,8 @@
 #include "gui/list_view_base.cpp"
 #include "gui/main.cpp"
 #include "gui/main_window.cpp"
+#include "gui/master_window.cpp"
+#include "gui/master_window_impl.cpp"
 #include "gui/modules_window.cpp"
 #include "gui/modules_window_impl.cpp"
 #include "gui/processor.cpp"
