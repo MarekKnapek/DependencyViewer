@@ -137,6 +137,46 @@ LRESULT master_window_impl::on_wm_destroy(HWND const& hwnd, WPARAM const& wparam
 
 LRESULT master_window_impl::on_message(UINT const& msg, WPARAM const& wparam, LPARAM const& lparam)
 {
-	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
+	switch(msg)
+	{
+		case WM_SIZE:
+		{
+			LRESULT const ret = on_wm_size(wparam, lparam);
+			return ret;
+		}
+		break;
+		default:
+		{
+			LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
+			return ret;
+		}
+		break;
+	}
+}
+
+LRESULT master_window_impl::on_wm_size(WPARAM const& wparam, LPARAM const& lparam)
+{
+	on_size();
+
+	LRESULT const ret = DefWindowProcW(m_self, WM_SIZE, wparam, lparam);
 	return ret;
+}
+
+void master_window_impl::on_size()
+{
+	RECT my_rect;
+	BOOL const got_my_rect = GetClientRect(m_self, &my_rect);
+	assert(got_my_rect != 0);
+	assert(my_rect.left == 0 && my_rect.top == 0);
+
+	RECT tb_rect;
+	BOOL const got_tb_rect = GetClientRect(m_toolbar_window.get_hwnd(), &tb_rect);
+	assert(got_tb_rect != 0);
+	assert(tb_rect.left == 0 && tb_rect.top == 0);
+
+	if(!(my_rect.bottom > tb_rect.bottom)){ return; }
+	LONG const avail_height = my_rect.bottom - tb_rect.bottom;
+
+	BOOL const invalidated_tb = RedrawWindow(m_toolbar_window.get_hwnd(), nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_FRAME); assert(invalidated_tb);
+	BOOL const moved_mp = MoveWindow(m_main_panel.get_hwnd(), 0, tb_rect.bottom, my_rect.right, avail_height, TRUE); assert(moved_mp != 0);
 }
