@@ -52,6 +52,7 @@ private:
 	void on_modules_matching(file_info const* const& fi);
 	void on_modules_properties(wstring_handle const& file_path);
 	void cmd_open();
+	void cmd_properties_avail();
 	void open_files(std::vector<std::wstring> const& file_paths);
 private:
 	static ATOM g_class;

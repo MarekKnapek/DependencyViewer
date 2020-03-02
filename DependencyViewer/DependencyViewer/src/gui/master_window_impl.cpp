@@ -61,6 +61,8 @@ master_window_impl::master_window_impl(HWND const& self) :
 	m_modules_window.setonitemchanged([](modules_window::onitemchanged_ctx_t const& param, file_info const* const& fi){ assert(param); master_window_impl* const self = static_cast<master_window_impl*>(param); self->on_modules_changed(fi); }, this);
 	m_modules_window.setcmdmatching([](modules_window::cmd_matching_ctx_t const& param, file_info const* const& fi){ assert(param); master_window_impl* const self = static_cast<master_window_impl*>(param); self->on_modules_matching(fi); }, this);
 	m_modules_window.setcmdproperties([](modules_window::cmd_properties_ctx_t const& param, wstring_handle const& file_path){ assert(param); master_window_impl* const self = static_cast<master_window_impl*>(param); self->on_modules_properties(file_path); }, this);
+
+	cmd_properties_avail();
 }
 
 master_window_impl::~master_window_impl()
@@ -233,6 +235,7 @@ void master_window_impl::on_tree_changed(file_info const* const& fi)
 {
 	m_import_window.setfi(fi);
 	m_export_window.setfi(fi);
+	cmd_properties_avail();
 }
 
 void master_window_impl::on_tree_matching(file_info const* const& fi)
@@ -254,8 +257,9 @@ void master_window_impl::on_exports_matching(std::uint16_t const& item_idx)
 	m_import_window.selectitem(item_idx);
 }
 
-void master_window_impl::on_modules_changed(file_info const* const& fi)
+void master_window_impl::on_modules_changed([[maybe_unused]] file_info const* const& fi)
 {
+	cmd_properties_avail();
 }
 
 void master_window_impl::on_modules_matching(file_info const* const& fi)
@@ -352,6 +356,14 @@ void master_window_impl::cmd_open()
 		}while(prev[1] != L'\0');
 	}
 	open_files(file_paths);
+}
+
+void master_window_impl::cmd_properties_avail()
+{
+	bool const tree_avail = m_tree_window.iscmdpropertiesavail(nullptr);
+	bool const modules_avail = m_modules_window.iscmdpropertiesavail(nullptr);
+	bool const avail = tree_avail || modules_avail;
+	m_toolbar_window.setpropertiesavail(avail);
 }
 
 void master_window_impl::open_files(std::vector<std::wstring> const& file_paths)
