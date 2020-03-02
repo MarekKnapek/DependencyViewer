@@ -61,6 +61,7 @@ static constexpr ACCEL const s_tree_accel_table[] =
 
 ATOM tree_window_impl::g_class;
 HACCEL tree_window_impl::g_accel;
+int tree_window_impl::g_debug_instances;
 
 
 tree_window_impl::tree_window_impl(HWND const& self) :
@@ -78,6 +79,8 @@ tree_window_impl::tree_window_impl(HWND const& self) :
 	m_cmd_properties_ctx()
 {
 	assert(self != nullptr);
+
+	++g_debug_instances;
 
 	DWORD const ex_style = WS_EX_CLIENTEDGE;
 	wchar_t const* const class_name = WC_TREEVIEWW;
@@ -106,6 +109,7 @@ tree_window_impl::tree_window_impl(HWND const& self) :
 
 tree_window_impl::~tree_window_impl()
 {
+	--g_debug_instances;
 }
 
 void tree_window_impl::init()
@@ -149,6 +153,8 @@ void tree_window_impl::register_class()
 
 void tree_window_impl::unregister_class()
 {
+	assert(g_debug_instances == 0);
+
 	assert(g_class != 0);
 	BOOL const unregistered = UnregisterClassW(reinterpret_cast<wchar_t const*>(g_class), get_instance());
 	assert(unregistered != 0);

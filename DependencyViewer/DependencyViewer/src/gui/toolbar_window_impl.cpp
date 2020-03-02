@@ -27,6 +27,7 @@ static constexpr wchar_t const s_toolbar_tooltip_properties[] = L"Properties... 
 
 
 ATOM toolbar_window_impl::g_class;
+int toolbar_window_impl::g_debug_instances;
 
 
 toolbar_window_impl::toolbar_window_impl(HWND const& self) :
@@ -42,6 +43,8 @@ toolbar_window_impl::toolbar_window_impl(HWND const& self) :
 	m_cmd_properties_ctx()
 {
 	assert(self != nullptr);
+
+	++g_debug_instances;
 
 	LONG_PTR const got_parent = GetWindowLongPtrW(m_self, GWLP_HWNDPARENT);
 	assert(got_parent != 0);
@@ -118,6 +121,7 @@ toolbar_window_impl::toolbar_window_impl(HWND const& self) :
 
 toolbar_window_impl::~toolbar_window_impl()
 {
+	--g_debug_instances;
 }
 
 void toolbar_window_impl::init()
@@ -159,6 +163,8 @@ void toolbar_window_impl::register_class()
 
 void toolbar_window_impl::unregister_class()
 {
+	assert(g_debug_instances == 0);
+
 	assert(g_class != 0);
 	BOOL const unregistered = UnregisterClassW(reinterpret_cast<wchar_t const*>(g_class), get_instance());
 	assert(unregistered != 0);

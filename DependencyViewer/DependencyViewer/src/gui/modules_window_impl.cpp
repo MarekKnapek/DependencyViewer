@@ -51,6 +51,7 @@ static constexpr wchar_t const* const s_modules_headers[] =
 
 ATOM modules_window_impl::g_class;
 HACCEL modules_window_impl::g_accel;
+int modules_window_impl::g_debug_instances;
 
 
 modules_window_impl::modules_window_impl(HWND const& self) :
@@ -69,6 +70,8 @@ modules_window_impl::modules_window_impl(HWND const& self) :
 	m_cmd_properties_ctx()
 {
 	assert(self != nullptr);
+
+	++g_debug_instances;
 
 	DWORD const ex_style = WS_EX_CLIENTEDGE;
 	wchar_t const* const class_name = WC_LISTVIEWW;
@@ -110,6 +113,7 @@ modules_window_impl::modules_window_impl(HWND const& self) :
 
 modules_window_impl::~modules_window_impl()
 {
+	--g_debug_instances;
 }
 
 void modules_window_impl::init()
@@ -153,6 +157,8 @@ void modules_window_impl::register_class()
 
 void modules_window_impl::unregister_class()
 {
+	assert(g_debug_instances == 0);
+
 	assert(g_class != 0);
 	BOOL const unregistered = UnregisterClassW(reinterpret_cast<wchar_t const*>(g_class), get_instance());
 	assert(unregistered != 0);

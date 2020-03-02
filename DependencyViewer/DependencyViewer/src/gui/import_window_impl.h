@@ -73,6 +73,7 @@ private:
 	static ATOM g_class;
 	static HACCEL g_accel;
 	static int g_column_type_max_width;
+	static int g_debug_instances;
 private:
 	HWND const m_self;
 	HWND m_list_view;

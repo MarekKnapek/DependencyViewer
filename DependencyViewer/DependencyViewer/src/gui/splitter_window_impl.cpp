@@ -19,6 +19,8 @@ template<> wchar_t const* const splitter_window_impl<splitter_window_orientation
 
 template<> ATOM splitter_window_impl<splitter_window_orientation::horizontal>::g_class;
 template<> ATOM splitter_window_impl<splitter_window_orientation::vertical>::g_class;
+template<> int splitter_window_impl<splitter_window_orientation::horizontal>::g_debug_instances;
+template<> int splitter_window_impl<splitter_window_orientation::vertical>::g_debug_instances;
 
 
 template<splitter_window_orientation orientation>
@@ -30,11 +32,14 @@ splitter_window_impl<orientation>::splitter_window_impl(HWND const& self) :
 	m_sizing(false)
 {
 	assert(self != nullptr);
+
+	++g_debug_instances;
 }
 
 template<splitter_window_orientation orientation>
 splitter_window_impl<orientation>::~splitter_window_impl()
 {
+	--g_debug_instances;
 }
 
 template<splitter_window_orientation orientation>
@@ -81,6 +86,8 @@ void splitter_window_impl<orientation>::register_class()
 template<splitter_window_orientation orientation>
 void splitter_window_impl<orientation>::unregister_class()
 {
+	assert(g_debug_instances == 0);
+
 	assert(g_class != 0);
 	BOOL const unregistered = UnregisterClassW(reinterpret_cast<wchar_t const*>(g_class), get_instance());
 	assert(unregistered != 0);

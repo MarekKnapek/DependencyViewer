@@ -38,6 +38,7 @@ private:
 private:
 	static wchar_t const* const s_class_name;
 	static wchar_t const* const s_cursor_id;
+	static int g_debug_instances;
 private:
 	static ATOM g_class;
 private:

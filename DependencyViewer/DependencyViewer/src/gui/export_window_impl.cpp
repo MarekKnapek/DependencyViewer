@@ -67,6 +67,7 @@ static constexpr wchar_t const s_export_name_undecorating[] = L"Undecorating..."
 ATOM export_window_impl::g_class;
 HACCEL export_window_impl::g_accel;
 int export_window_impl::g_column_type_max_width;
+int export_window_impl::g_debug_instances;
 
 
 export_window_impl::export_window_impl(HWND const& self) :
@@ -82,6 +83,8 @@ export_window_impl::export_window_impl(HWND const& self) :
 	m_cmd_matching_ctx()
 {
 	assert(self != nullptr);
+
+	++g_debug_instances;
 
 	DWORD const ex_style = WS_EX_CLIENTEDGE;
 	wchar_t const* const class_name = WC_LISTVIEWW;
@@ -126,6 +129,7 @@ export_window_impl::export_window_impl(HWND const& self) :
 
 export_window_impl::~export_window_impl()
 {
+	--g_debug_instances;
 }
 
 void export_window_impl::init()
@@ -169,6 +173,8 @@ void export_window_impl::register_class()
 
 void export_window_impl::unregister_class()
 {
+	assert(g_debug_instances == 0);
+
 	assert(g_class != 0);
 	BOOL const unregistered = UnregisterClassW(reinterpret_cast<wchar_t const*>(g_class), get_instance());
 	assert(unregistered != 0);

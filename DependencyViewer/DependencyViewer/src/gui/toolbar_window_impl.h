@@ -47,6 +47,7 @@ private:
 	void cmd_properties();
 private:
 	static ATOM g_class;
+	static int g_debug_instances;
 private:
 	HWND const m_self;
 	HWND m_toolbar;
