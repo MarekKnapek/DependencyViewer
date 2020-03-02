@@ -226,6 +226,12 @@ LRESULT toolbar_window_impl::on_message(UINT const& msg, WPARAM const& wparam, L
 {
 	switch(msg)
 	{
+		case WM_SIZE:
+		{
+			LRESULT const ret = on_wm_size(wparam, lparam);
+			return ret;
+		}
+		break;
 		case WM_NOTIFY:
 		{
 			LRESULT const ret = on_wm_notify(wparam, lparam);
@@ -287,6 +293,14 @@ LRESULT toolbar_window_impl::on_message(UINT const& msg, WPARAM const& wparam, L
 		}
 		break;
 	}
+}
+
+LRESULT toolbar_window_impl::on_wm_size(WPARAM const& wparam, LPARAM const& lparam)
+{
+	on_size();
+
+	LRESULT const ret = DefWindowProcW(m_self, WM_NOTIFY, wparam, lparam);
+	return ret;
 }
 
 LRESULT toolbar_window_impl::on_wm_notify(WPARAM const& wparam, LPARAM const& lparam)
@@ -405,6 +419,15 @@ LRESULT toolbar_window_impl::on_wm_setcmdproperties(WPARAM const& wparam, LPARAM
 	UINT const msg = static_cast<std::uint32_t>(toolbar_window::wm::wm_setcmdproperties);
 	LRESULT const ret = DefWindowProcW(m_self, msg, wparam, lparam);
 	return ret;
+}
+
+void toolbar_window_impl::on_size()
+{
+	RECT rect;
+	BOOL const got_rect = GetClientRect(m_self, &rect);
+	assert(got_rect != 0);
+	assert(rect.left == 0 && rect.top == 0);
+	BOOL const moved = MoveWindow(m_toolbar, 0, 0, rect.right, rect.bottom, TRUE); assert(moved != 0);
 }
 
 void toolbar_window_impl::on_getinfotipw(NMHDR& nmhdr)
