@@ -229,6 +229,8 @@ void master_window_impl::on_tb_undecorate()
 
 void master_window_impl::on_tb_properties()
 {
+	wstring_handle const file_path{};
+	cmd_properties(file_path);
 }
 
 void master_window_impl::on_tree_changed(file_info const* const& fi)
@@ -245,6 +247,7 @@ void master_window_impl::on_tree_matching(file_info const* const& fi)
 
 void master_window_impl::on_tree_properties(wstring_handle const& file_path)
 {
+	cmd_properties(file_path);
 }
 
 void master_window_impl::on_imports_matching(std::uint16_t const& item_idx)
@@ -269,6 +272,7 @@ void master_window_impl::on_modules_matching(file_info const* const& fi)
 
 void master_window_impl::on_modules_properties(wstring_handle const& file_path)
 {
+	cmd_properties(file_path);
 }
 
 void master_window_impl::cmd_open()
@@ -366,6 +370,50 @@ void master_window_impl::cmd_properties_avail()
 	m_toolbar_window.setpropertiesavail(avail);
 }
 
+void master_window_impl::cmd_properties(wstring_handle const& file_path)
+{
+	wstring_handle const path = [&]() -> wstring_handle
+	{
+		if(file_path)
+		{
+			return file_path;
+		}
+		HWND const focus = GetFocus();
+		wstring_handle tree_file_path; bool const tree_avail = m_tree_window.iscmdpropertiesavail(&tree_file_path);
+		if((IsChild(m_tree_window.get_hwnd(), focus) != 0 || focus == m_tree_window.get_hwnd()) && tree_avail)
+		{
+			assert(tree_file_path);
+			return tree_file_path;
+		}
+		wstring_handle modules_file_path; bool const modules_avail = m_modules_window.iscmdpropertiesavail(&modules_file_path);
+		if((IsChild(m_modules_window.get_hwnd(), focus) != 0 || focus == m_modules_window.get_hwnd()) && tree_avail)
+		{
+			assert(modules_file_path);
+			return modules_file_path;
+		}
+		if(tree_avail)
+		{
+			assert(tree_file_path);
+			return tree_file_path;
+		}
+		if(modules_avail)
+		{
+			assert(modules_file_path);
+			return modules_file_path;
+		}
+		return {};
+	}();
+	if(!path)
+	{
+		return;
+	}
+	bool const new_style_succeeded = properties_new_style(path);
+	if(!new_style_succeeded)
+	{
+		properties_old_style(path);
+	}
+}
+
 void master_window_impl::open_files(std::vector<std::wstring> const& file_paths)
 {
 	main_type mo;
@@ -379,4 +427,13 @@ void master_window_impl::open_files(std::vector<std::wstring> const& file_paths)
 	m_tree_window.setfi(m_mo.m_fi);
 	m_modules_window.setmodlist(m_mo.m_modules_list);
 	m_tree_window.selectitem(m_mo.m_fi->m_fis + 0);
+}
+
+bool master_window_impl::properties_new_style(wstring_handle const& file_path)
+{
+	return true;
+}
+
+void master_window_impl::properties_old_style(wstring_handle const& file_path)
+{
 }

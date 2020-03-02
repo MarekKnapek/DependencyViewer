@@ -10,6 +10,8 @@
 #include "tree_window.h"
 #include "processor.h"
 
+#include "../nogui/my_string_handle.h"
+
 #include <string>
 #include <vector>
 
@@ -53,7 +55,10 @@ private:
 	void on_modules_properties(wstring_handle const& file_path);
 	void cmd_open();
 	void cmd_properties_avail();
+	void cmd_properties(wstring_handle const& file_path);
 	void open_files(std::vector<std::wstring> const& file_paths);
+	bool properties_new_style(wstring_handle const& file_path);
+	void properties_old_style(wstring_handle const& file_path);
 private:
 	static ATOM g_class;
 	static int g_debug_instances;
