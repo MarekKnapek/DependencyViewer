@@ -1,8 +1,21 @@
 #include "master_window_impl.h"
 
+#include "com_dlg.h"
 #include "main.h"
 
+#include <algorithm>
+#include <string>
+#include <vector>
+
 #include "../nogui/cassert_my.h"
+#include "../nogui/scope_exit.h"
+
+#include "../nogui/windows_my.h"
+
+#include <commdlg.h>
+
+
+static constexpr wchar_t const s_master_window_open_filter[] = L"Executable files and libraries (*.exe;*.dll;*.ocx)\0*.exe;*.dll;*.ocx\0All files\0*.*\0";
 
 
 ATOM master_window_impl::g_class;
@@ -200,6 +213,7 @@ void master_window_impl::on_size()
 
 void master_window_impl::on_tb_open()
 {
+	cmd_open();
 }
 
 void master_window_impl::on_tb_fullpaths()
@@ -250,4 +264,90 @@ void master_window_impl::on_modules_matching(file_info const* const& fi)
 
 void master_window_impl::on_modules_properties(wstring_handle const& file_path)
 {
+}
+
+void master_window_impl::cmd_open()
+{
+	int const buff_len = 1 * 1024 * 1024;
+	wchar_t* const buff = new wchar_t[buff_len];
+	auto const fn_free_buff = mk::make_scope_exit([&](){ delete[] buff; });
+	wchar_t* const buff_end = buff + buff_len;
+	buff[0] = L'\0';
+
+	OPENFILENAMEW ofn{};
+	ofn.lStructSize = sizeof(ofn);
+	ofn.hwndOwner = m_self;
+	ofn.hInstance = nullptr;
+	ofn.lpstrFilter = s_master_window_open_filter;
+	ofn.lpstrCustomFilter = nullptr;
+	ofn.nMaxCustFilter = 0;
+	ofn.nFilterIndex = 1;
+	ofn.lpstrFile = buff;
+	ofn.nMaxFile = buff_len;
+	ofn.lpstrFileTitle = nullptr;
+	ofn.nMaxFileTitle = 0;
+	ofn.lpstrInitialDir = nullptr;
+	ofn.lpstrTitle = nullptr;
+	ofn.Flags = OFN_HIDEREADONLY | OFN_ALLOWMULTISELECT | OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_EXPLORER | OFN_ENABLESIZING;
+	ofn.nFileOffset = 0;
+	ofn.nFileExtension = 0;
+	ofn.lpstrDefExt = nullptr;
+	ofn.lCustData = 0;
+	ofn.lpfnHook = nullptr;
+	ofn.lpTemplateName = nullptr;
+	ofn.pvReserved = nullptr;
+	ofn.dwReserved = 0;
+	ofn.FlagsEx = 0;
+
+	BOOL const opened = com_dlg::GetOpenFileNameW(&ofn);
+	if(opened == 0)
+	{
+		return;
+	}
+
+	std::vector<std::wstring> file_paths;
+	auto it = std::find(buff, buff_end, L'\0');
+	assert(it != buff_end);
+	if(it[1] == L'\0')
+	{
+		auto const b = buff;
+		auto const e = it;
+		int const count = 1;
+		int const len = static_cast<int>(e - b);
+		file_paths.resize(count);
+		auto& path = file_paths.back();
+		path.resize(len);
+		std::copy(b, e, path.begin());
+	}
+	else
+	{
+		auto const folder_b = buff;
+		auto const folder_e = it;
+		int const folder_len = static_cast<int>(it - buff);
+		int count = 0;
+		do
+		{
+			it = std::find(it + 1, buff_end, L'\0');
+			assert(it != buff_end);
+			++count;
+		}while(it[1] != L'\0');
+		file_paths.resize(count);
+		auto paths_it = file_paths.begin();
+		auto prev = folder_e;
+		do
+		{
+			auto const b = prev + 1;
+			auto const e = std::find(b, buff_end, L'\0');
+			assert(e != buff_end);
+			int const name_len = static_cast<int>(e - b);
+			int const path_len = folder_len + 1 + name_len;
+			auto& path = *paths_it;
+			path.resize(path_len);
+			std::copy(folder_b, folder_e, path.begin());
+			path[folder_len] = L'\\';
+			std::copy(b, e, path.begin() + folder_len + 1);
+			prev = e;
+			++paths_it;
+		}while(prev[1] != L'\0');
+	}
 }

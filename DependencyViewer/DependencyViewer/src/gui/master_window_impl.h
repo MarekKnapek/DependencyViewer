@@ -47,6 +47,7 @@ private:
 	void on_modules_changed(file_info const* const& fi);
 	void on_modules_matching(file_info const* const& fi);
 	void on_modules_properties(wstring_handle const& file_path);
+	void cmd_open();
 private:
 	static ATOM g_class;
 	static int g_debug_instances;
