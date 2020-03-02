@@ -22,7 +22,7 @@ public:
 		wm_setcmdmatching,
 	};
 	using cmd_matching_ctx_t = void*;
-	using cmd_matching_fn_t = void(*)(cmd_matching_ctx_t const, std::uint16_t const);
+	using cmd_matching_fn_t = void(*)(cmd_matching_ctx_t const&, std::uint16_t const&);
 public:
 	export_window() noexcept;
 	export_window(HWND const& parent);

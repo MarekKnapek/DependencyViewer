@@ -27,11 +27,11 @@ public:
 		wm_setcmdproperties,
 	};
 	using onitemchanged_ctx_t = void*;
-	using onitemchanged_fn_t = void(*)(onitemchanged_ctx_t const, file_info const* const&);
+	using onitemchanged_fn_t = void(*)(onitemchanged_ctx_t const&, file_info const* const&);
 	using cmd_matching_ctx_t = void*;
-	using cmd_matching_fn_t = void(*)(cmd_matching_ctx_t const, file_info const* const);
+	using cmd_matching_fn_t = void(*)(cmd_matching_ctx_t const&, file_info const* const&);
 	using cmd_properties_ctx_t = void*;
-	using cmd_properties_fn_t = void(*)(cmd_properties_ctx_t const, wstring_handle const&);
+	using cmd_properties_fn_t = void(*)(cmd_properties_ctx_t const&, wstring_handle const&);
 public:
 	modules_window() noexcept;
 	modules_window(HWND const& parent);

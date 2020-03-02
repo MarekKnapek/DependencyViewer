@@ -290,7 +290,7 @@ void main_window::connect_toolbar()
 
 void main_window::connect_tree()
 {
-	static constexpr auto const onitemchanged_fn_ = [](tree_window::onitemchanged_ctx_t const ctx, file_info const* const& fi)
+	static constexpr auto const onitemchanged_fn_ = [](tree_window::onitemchanged_ctx_t const& ctx, file_info const* const& fi)
 	{
 		assert(ctx);
 		main_window* const self = static_cast<main_window*>(ctx);
@@ -302,7 +302,7 @@ void main_window::connect_tree()
 	tree_window::onitemchanged_ctx_t const onitemchanged_ctx = this;
 	m_tree_window.setonitemchanged(onitemchanged_fn, onitemchanged_ctx);
 
-	static constexpr auto const cmd_matching_fn_ = [](tree_window::cmd_matching_ctx_t const ctx, file_info const* const& fi)
+	static constexpr auto const cmd_matching_fn_ = [](tree_window::cmd_matching_ctx_t const& ctx, file_info const* const& fi)
 	{
 		assert(ctx);
 		main_window* const self = static_cast<main_window*>(ctx);
@@ -312,7 +312,7 @@ void main_window::connect_tree()
 	tree_window::cmd_matching_ctx_t const cmd_matching_ctx = this;
 	m_tree_window.setcmdmatching(cmd_matching_fn, cmd_matching_ctx);
 
-	static constexpr auto const cmd_properties_fn_ = [](tree_window::cmd_properties_ctx_t const ctx, wstring_handle const& file_path)
+	static constexpr auto const cmd_properties_fn_ = [](tree_window::cmd_properties_ctx_t const& ctx, wstring_handle const& file_path)
 	{
 		assert(ctx);
 		main_window* const self = static_cast<main_window*>(ctx);
@@ -325,7 +325,7 @@ void main_window::connect_tree()
 
 void main_window::connect_imports()
 {
-	static constexpr auto const cmd_matching_fn_ = [](import_window::cmd_matching_ctx_t const ctx, std::uint16_t const item_idx) -> void
+	static constexpr auto const cmd_matching_fn_ = [](import_window::cmd_matching_ctx_t const& ctx, std::uint16_t const& item_idx) -> void
 	{
 		assert(ctx);
 		main_window* const self = static_cast<main_window*>(ctx);
@@ -338,7 +338,7 @@ void main_window::connect_imports()
 
 void main_window::connect_exports()
 {
-	static constexpr auto const cmd_matching_fn_ = [](export_window::cmd_matching_ctx_t const ctx, std::uint16_t const item_idx) -> void
+	static constexpr auto const cmd_matching_fn_ = [](export_window::cmd_matching_ctx_t const& ctx, std::uint16_t const& item_idx) -> void
 	{
 		assert(ctx);
 		main_window* const self = static_cast<main_window*>(ctx);
@@ -351,7 +351,7 @@ void main_window::connect_exports()
 
 void main_window::connect_modules()
 {
-	static constexpr auto const onitemchanged_fn_ = [](modules_window::onitemchanged_ctx_t const ctx, [[maybe_unused]] file_info const* const& fi)
+	static constexpr auto const onitemchanged_fn_ = [](modules_window::onitemchanged_ctx_t const& ctx, [[maybe_unused]] file_info const* const& fi)
 	{
 		assert(ctx);
 		main_window* const self = static_cast<main_window*>(ctx);
@@ -361,7 +361,7 @@ void main_window::connect_modules()
 	modules_window::onitemchanged_ctx_t const onitemchanged_ctx = this;
 	m_modules_window.setonitemchanged(onitemchanged_fn, onitemchanged_ctx);
 
-	static constexpr auto const cmd_matching_fn_ = [](modules_window::cmd_matching_ctx_t const ctx, file_info const* const fi) -> void
+	static constexpr auto const cmd_matching_fn_ = [](modules_window::cmd_matching_ctx_t const& ctx, file_info const* const& fi) -> void
 	{
 		assert(ctx);
 		main_window* const self = static_cast<main_window*>(ctx);
@@ -372,7 +372,7 @@ void main_window::connect_modules()
 	modules_window::cmd_matching_ctx_t const cmd_matching_ctx = this;
 	m_modules_window.setcmdmatching(cmd_matching_fn, cmd_matching_ctx);
 
-	static constexpr auto const cmd_properties_fn_ = [](modules_window::cmd_properties_ctx_t const ctx, wstring_handle const& str)
+	static constexpr auto const cmd_properties_fn_ = [](modules_window::cmd_properties_ctx_t const& ctx, wstring_handle const& str)
 	{
 		assert(ctx);
 		main_window* const self = static_cast<main_window*>(ctx);
