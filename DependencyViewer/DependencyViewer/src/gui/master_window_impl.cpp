@@ -30,6 +30,23 @@ master_window_impl::master_window_impl(HWND const& self) :
 
 	m_main_panel.setposition(0.8f);
 	m_upper_panel.setposition(0.333f);
+
+	m_toolbar_window.setcmdopen([](toolbar_window::cmd_open_ctx_t const& param){ assert(param); master_window_impl* const self = static_cast<master_window_impl*>(param); self->on_tb_open(); }, this);
+	m_toolbar_window.setcmdfullpaths([](toolbar_window::cmd_fullpaths_ctx_t const& param){ assert(param); master_window_impl* const self = static_cast<master_window_impl*>(param); self->on_tb_fullpaths(); }, this);
+	m_toolbar_window.setcmdundecorate([](toolbar_window::cmd_fullpaths_ctx_t const& param){ assert(param); master_window_impl* const self = static_cast<master_window_impl*>(param); self->on_tb_undecorate(); }, this);
+	m_toolbar_window.setcmdproperties([](toolbar_window::cmd_fullpaths_ctx_t const& param){ assert(param); master_window_impl* const self = static_cast<master_window_impl*>(param); self->on_tb_properties(); }, this);
+
+	m_tree_window.setonitemchanged([](tree_window::onitemchanged_ctx_t const& param, file_info const* const& fi){ assert(param); master_window_impl* const self = static_cast<master_window_impl*>(param); self->on_tree_changed(fi); }, this);
+	m_tree_window.setcmdmatching([](tree_window::cmd_matching_ctx_t const& param, file_info const* const& fi){ assert(param); master_window_impl* const self = static_cast<master_window_impl*>(param); self->on_tree_matching(fi); }, this);
+	m_tree_window.setcmdproperties([](tree_window::cmd_properties_ctx_t const& param, wstring_handle const& file_path){ assert(param); master_window_impl* const self = static_cast<master_window_impl*>(param); self->on_tree_properties(file_path); }, this);
+
+	m_import_window.setcmdmatching([](import_window::cmd_matching_ctx_t const& param, std::uint16_t const& item_idx){ assert(param); master_window_impl* const self = static_cast<master_window_impl*>(param); self->on_imports_matching(item_idx); }, this);
+
+	m_export_window.setcmdmatching([](export_window::cmd_matching_ctx_t const& param, std::uint16_t const& item_idx){ assert(param); master_window_impl* const self = static_cast<master_window_impl*>(param); self->on_exports_matching(item_idx); }, this);
+
+	m_modules_window.setonitemchanged([](modules_window::onitemchanged_ctx_t const& param, file_info const* const& fi){ assert(param); master_window_impl* const self = static_cast<master_window_impl*>(param); self->on_modules_changed(fi); }, this);
+	m_modules_window.setcmdmatching([](modules_window::cmd_matching_ctx_t const& param, file_info const* const& fi){ assert(param); master_window_impl* const self = static_cast<master_window_impl*>(param); self->on_modules_matching(fi); }, this);
+	m_modules_window.setcmdproperties([](modules_window::cmd_properties_ctx_t const& param, wstring_handle const& file_path){ assert(param); master_window_impl* const self = static_cast<master_window_impl*>(param); self->on_modules_properties(file_path); }, this);
 }
 
 master_window_impl::~master_window_impl()
@@ -179,4 +196,58 @@ void master_window_impl::on_size()
 
 	BOOL const invalidated_tb = RedrawWindow(m_toolbar_window.get_hwnd(), nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_FRAME); assert(invalidated_tb);
 	BOOL const moved_mp = MoveWindow(m_main_panel.get_hwnd(), 0, tb_rect.bottom, my_rect.right, avail_height, TRUE); assert(moved_mp != 0);
+}
+
+void master_window_impl::on_tb_open()
+{
+}
+
+void master_window_impl::on_tb_fullpaths()
+{
+}
+
+void master_window_impl::on_tb_undecorate()
+{
+}
+
+void master_window_impl::on_tb_properties()
+{
+}
+
+void master_window_impl::on_tree_changed(file_info const* const& fi)
+{
+	m_import_window.setfi(fi);
+	m_export_window.setfi(fi);
+}
+
+void master_window_impl::on_tree_matching(file_info const* const& fi)
+{
+	m_modules_window.selectitem(fi);
+}
+
+void master_window_impl::on_tree_properties(wstring_handle const& file_path)
+{
+}
+
+void master_window_impl::on_imports_matching(std::uint16_t const& item_idx)
+{
+	m_export_window.selectitem(item_idx);
+}
+
+void master_window_impl::on_exports_matching(std::uint16_t const& item_idx)
+{
+	m_import_window.selectitem(item_idx);
+}
+
+void master_window_impl::on_modules_changed(file_info const* const& fi)
+{
+}
+
+void master_window_impl::on_modules_matching(file_info const* const& fi)
+{
+	m_tree_window.selectitem(fi);
+}
+
+void master_window_impl::on_modules_properties(wstring_handle const& file_path)
+{
 }

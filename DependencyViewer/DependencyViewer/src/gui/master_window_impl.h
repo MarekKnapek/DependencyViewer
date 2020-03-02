@@ -35,6 +35,18 @@ private:
 	LRESULT on_message(UINT const& msg, WPARAM const& wparam, LPARAM const& lparam);
 	LRESULT on_wm_size(WPARAM const& wparam, LPARAM const& lparam);
 	void on_size();
+	void on_tb_open();
+	void on_tb_fullpaths();
+	void on_tb_undecorate();
+	void on_tb_properties();
+	void on_tree_changed(file_info const* const& fi);
+	void on_tree_matching(file_info const* const& fi);
+	void on_tree_properties(wstring_handle const& file_path);
+	void on_imports_matching(std::uint16_t const& item_idx);
+	void on_exports_matching(std::uint16_t const& item_idx);
+	void on_modules_changed(file_info const* const& fi);
+	void on_modules_matching(file_info const* const& fi);
+	void on_modules_properties(wstring_handle const& file_path);
 private:
 	static ATOM g_class;
 	static int g_debug_instances;
