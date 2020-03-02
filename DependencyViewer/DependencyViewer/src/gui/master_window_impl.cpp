@@ -3,14 +3,21 @@
 #include "com_dlg.h"
 #include "main.h"
 
-#include <algorithm>
-
+#include "../nogui/assert_my.h"
 #include "../nogui/cassert_my.h"
+#include "../nogui/com_ptr.h"
 #include "../nogui/scope_exit.h"
+#include "../nogui/utils.h"
+
+#include <algorithm>
 
 #include "../nogui/windows_my.h"
 
 #include <commdlg.h>
+#include <shlobj.h> // SHGetDesktopFolder
+#include <shobjidl.h> // SFGAO_FILESYSTEM CMINVOKECOMMANDINFO
+#include <shobjidl_core.h> // IShellFolder IContextMenu
+#include <shtypes.h> // ITEMIDLIST ITEMIDLIST_RELATIVE
 
 
 static constexpr wchar_t const s_master_window_open_filter[] = L"Executable files and libraries (*.exe;*.dll;*.ocx)\0*.exe;*.dll;*.ocx\0All files\0*.*\0";
@@ -431,6 +438,60 @@ void master_window_impl::open_files(std::vector<std::wstring> const& file_paths)
 
 bool master_window_impl::properties_new_style(wstring_handle const& file_path)
 {
+	assert(file_path);
+
+	IShellFolder* desktop_folder;
+	HRESULT const got_desktop = SHGetDesktopFolder(&desktop_folder);
+	WARN_M_R(got_desktop == S_OK, L"Failed to SHGetDesktopFolder.", false);
+	com_ptr<IShellFolder> const desktop_sp(desktop_folder);
+
+	wchar_t const* const file_path_b = begin(file_path);
+	wchar_t const* const file_name = find_file_name(file_path_b, size(file_path));
+	assert(file_name != file_path_b);
+	int const file_folder_len = static_cast<int>(file_name - file_path_b);
+	wchar_t* const file_folder = new wchar_t[file_folder_len + 1];
+	auto const fn_free_file_folder = mk::make_scope_exit([&](){ delete[] file_folder; });
+	std::copy(file_path_b, file_path_b + file_folder_len, file_folder);
+	file_folder[file_folder_len] = L'\0';
+
+	ITEMIDLIST_RELATIVE* sub_folder_rel;
+	ULONG attributes_1 = SFGAO_FILESYSTEM;
+	HRESULT const parsed_display_name_1 = desktop_folder->lpVtbl->ParseDisplayName(desktop_folder, nullptr, nullptr, file_folder, nullptr, &sub_folder_rel, &attributes_1);
+	WARN_M_R(parsed_display_name_1 == S_OK, L"Failed to IShellFolder::ParseDisplayName.", false);
+	WARN_M_R((attributes_1 & SFGAO_FILESYSTEM) != 0, L"Shell item has not SFGAO_FILESYSTEM attribute.", false);
+	auto const free_sub_folder_rel = mk::make_scope_exit([&](){ CoTaskMemFree(sub_folder_rel); });
+
+	IShellFolder* sub_folder;
+	HRESULT const bound = desktop_folder->lpVtbl->BindToObject(desktop_folder, sub_folder_rel, nullptr, IID_IShellFolder, reinterpret_cast<void**>(&sub_folder));
+	WARN_M_R(bound == S_OK, L"Failed to IShellFolder::BindToObject.", false);
+	com_ptr<IShellFolder> const sub_folder_sp(sub_folder);
+
+	ITEMIDLIST_RELATIVE* sub_file_rel;
+	ULONG attributes_2 = SFGAO_FILESYSTEM;
+	HRESULT const parsed_display_name_2 = sub_folder->lpVtbl->ParseDisplayName(sub_folder, nullptr, nullptr, const_cast<wchar_t*>(file_name), nullptr, &sub_file_rel, &attributes_2);
+	WARN_M_R(parsed_display_name_2 == S_OK, L"Failed to IShellFolder::ParseDisplayName.", false);
+	WARN_M_R((attributes_2 & SFGAO_FILESYSTEM) != 0, L"Shell item has not SFGAO_FILESYSTEM attribute.", false);
+	auto const free_sub_file_rel = mk::make_scope_exit([&](){ CoTaskMemFree(sub_file_rel); });
+
+	ITEMIDLIST const* chidren[1];
+	chidren[0] = sub_file_rel;
+	IContextMenu* context_menu;
+	HRESULT const got_ui_object = sub_folder->lpVtbl->GetUIObjectOf(sub_folder, nullptr, 1, chidren, IID_IContextMenu, nullptr, reinterpret_cast<void**>(&context_menu));
+	WARN_M_R(got_ui_object == S_OK, L"Failed to IShellFolder::GetUIObjectOf.", false);
+	com_ptr<IContextMenu> const context_menu_sp(context_menu);
+
+	HMENU const menu = CreatePopupMenu();
+	assert(menu);
+	auto const destroy_menu = mk::make_scope_exit([&](){ BOOL const destroyed = DestroyMenu(menu); assert(destroyed != 0); });
+	HRESULT const menu_queried = context_menu->lpVtbl->QueryContextMenu(context_menu, menu, 0, 1, 0x7FF, CMF_NORMAL);
+	WARN_M_R(SUCCEEDED(menu_queried), L"Failed to IContextMenu::QueryContextMenu.", false);
+
+	CMINVOKECOMMANDINFO info{};
+	info.cbSize = sizeof(info);
+	info.lpVerb = "properties";
+	HRESULT const command_invoked = context_menu->lpVtbl->InvokeCommand(context_menu, &info);
+	WARN_M_R(command_invoked == S_OK, L"Failed to IContextMenu::InvokeCommand.", false);
+
 	return true;
 }
 
