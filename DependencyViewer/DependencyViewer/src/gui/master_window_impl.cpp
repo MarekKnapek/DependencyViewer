@@ -218,7 +218,7 @@ void master_window_impl::on_size()
 	if(!(my_rect.bottom > tb_rect.bottom)){ return; }
 	LONG const avail_height = my_rect.bottom - tb_rect.bottom;
 
-	BOOL const invalidated_tb = RedrawWindow(m_toolbar_window.get_hwnd(), nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_FRAME); assert(invalidated_tb);
+	BOOL const moved_tb = MoveWindow(m_toolbar_window.get_hwnd(), 0, 0, my_rect.right, tb_rect.bottom, TRUE); assert(moved_tb != 0);
 	BOOL const moved_mp = MoveWindow(m_main_panel.get_hwnd(), 0, tb_rect.bottom, my_rect.right, avail_height, TRUE); assert(moved_mp != 0);
 }
 
