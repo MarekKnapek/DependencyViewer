@@ -14,6 +14,7 @@
 #include "../nogui/windows_my.h"
 
 #include <commdlg.h>
+#include <shellapi.h> // SHELLEXECUTEINFOW ShellExecuteExW
 #include <shlobj.h> // SHGetDesktopFolder
 #include <shobjidl.h> // SFGAO_FILESYSTEM CMINVOKECOMMANDINFO
 #include <shobjidl_core.h> // IShellFolder IContextMenu
@@ -497,4 +498,14 @@ bool master_window_impl::properties_new_style(wstring_handle const& file_path)
 
 void master_window_impl::properties_old_style(wstring_handle const& file_path)
 {
+	assert(file_path);
+	SHELLEXECUTEINFOW info{};
+	info.cbSize = sizeof(info);
+	info.fMask = SEE_MASK_INVOKEIDLIST;
+	info.lpVerb = L"properties";
+	info.lpFile = file_path.m_string->m_str;
+	info.nShow = SW_SHOWNORMAL;
+	BOOL const executed = ShellExecuteExW(&info);
+	assert(executed != FALSE);
+	assert(static_cast<int>(reinterpret_cast<std::uintptr_t>(info.hInstApp)) > 32);
 }
