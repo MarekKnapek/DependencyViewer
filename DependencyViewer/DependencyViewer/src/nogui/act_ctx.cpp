@@ -71,6 +71,16 @@ bool create_actctx2(wstring_handle const exe, wstring_handle const dll, std::uin
 	actctx_request.lpApplicationName = exe.m_string->m_str;
 	actctx_request.hModule = nullptr;
 	HANDLE const actctx_handle = CreateActCtxW(&actctx_request);
+	if(actctx_handle == INVALID_HANDLE_VALUE)
+	{
+		DWORD const gle = GetLastError();
+		if(gle == ERROR_SXS_CANT_GEN_ACTCTX)
+		{
+			actctx_state_out->m_actctx_handle = nullptr;
+			actctx_state_out->m_cookie = 0;
+			return true;
+		}
+	}
 	WARN_M_R(actctx_handle != INVALID_HANDLE_VALUE, L"Failed to CreateActCtxW.", false);
 	ULONG_PTR cookie;
 	BOOL const activated = ActivateActCtx(actctx_handle, &cookie);
