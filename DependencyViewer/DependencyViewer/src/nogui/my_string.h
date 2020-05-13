@@ -27,9 +27,9 @@ template<typename char_t> inline char_t const* cend  (basic_string<char_t> const
 
 template<typename char_t> inline int size(basic_string<char_t> const& obj) { return obj.size(); }
 
-template<typename char_t> inline bool operator==(basic_string<char_t> const& a, basic_string<char_t> const& b) { return basic_string_equal<char_t>{}(a, b); }
-template<typename char_t> inline bool operator!=(basic_string<char_t> const& a, basic_string<char_t> const& b) { return !(a == b); }
-template<typename char_t> inline bool operator<(basic_string<char_t> const& a, basic_string<char_t> const& b) { return basic_string_less<char_t>{}(a, b); }
+template<typename char_t> bool operator==(basic_string<char_t> const& a, basic_string<char_t> const& b);
+template<typename char_t> bool operator!=(basic_string<char_t> const& a, basic_string<char_t> const& b);
+template<typename char_t> bool operator<(basic_string<char_t> const& a, basic_string<char_t> const& b);
 
 typedef basic_string<char> string;
 typedef basic_string<wchar_t> wstring;

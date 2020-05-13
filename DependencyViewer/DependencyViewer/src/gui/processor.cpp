@@ -15,7 +15,7 @@ inline constexpr bool is_simple_type_v =
 	std::is_trivial_v                        	<T> &&
 	std::is_trivially_copyable_v             	<T> &&
 	std::is_standard_layout_v                	<T> &&
-	std::is_pod_v                            	<T> &&
+	/*std::is_pod_v                            	<T> &&*/
 	std::is_aggregate_v                      	<T> &&
 	std::is_constructible_v                  	<T> &&
 	std::is_trivially_constructible_v        	<T> &&

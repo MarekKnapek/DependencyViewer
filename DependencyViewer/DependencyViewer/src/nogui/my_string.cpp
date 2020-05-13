@@ -9,6 +9,15 @@
 #include <cwchar>
 
 
+template<typename char_t> bool operator==(basic_string<char_t> const& a, basic_string<char_t> const& b) { return basic_string_equal<char_t>{}(a, b); }
+template<typename char_t> bool operator!=(basic_string<char_t> const& a, basic_string<char_t> const& b) { return !(a == b); }
+template<typename char_t> bool operator<(basic_string<char_t> const& a, basic_string<char_t> const& b) { return basic_string_less<char_t>{}(a, b); }
+
+template bool operator==<char>(basic_string<char> const& a, basic_string<char> const& b);
+template bool operator!=<char>(basic_string<char> const& a, basic_string<char> const& b);
+template bool operator< <char>(basic_string<char> const& a, basic_string<char> const& b);
+
+
 template<typename char_t>
 std::size_t basic_string_hash<char_t>::operator()(basic_string<char_t> const& obj) const
 {
