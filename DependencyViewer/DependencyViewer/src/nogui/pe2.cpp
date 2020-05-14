@@ -184,6 +184,7 @@ bool pe_process_export_eat(std::byte const* const file_data, pe_export_eat* cons
 	WARN_M_R(edt_parsed, L"Failed to parse export directory table.", false);
 	if(!edt.m_table || edt.m_table->m_export_address_count == 0)
 	{
+		*eat_in_out->m_enpt_count_out = 0;
 		eat_in_out->m_eti_out->m_count = 0;
 		return true;
 	}
