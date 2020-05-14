@@ -61,7 +61,7 @@ void dbghelp::set_env()
 	DWORD const got_tmp = GetTempPathW(static_cast<int>(buff.size()), buff.data());
 	if(got_tmp == 0 || got_tmp >= static_cast<int>(buff.size())) { return; }
 	std::filesystem::path p(buff.data(), buff.data() + got_tmp);
-	p.append(L"symbols");
+	p.append(L"SymbolCache");
 	std::wstring const nt_symbol_path = L"srv*" + p.wstring() + LR"---(*https://msdl.microsoft.com/download/symbols)---";
 	BOOL const set = SetEnvironmentVariableW(L"_NT_SYMBOL_PATH", nt_symbol_path.c_str());
 	if(set == 0) { return; }
