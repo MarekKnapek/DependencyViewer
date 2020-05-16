@@ -1,6 +1,7 @@
 #include "dbghelp.h"
 
 #include "cassert_my.h"
+#include "format_string.h"
 #include "scope_exit.h"
 #include "smart_reg_key.h"
 #include "wow.h"
@@ -62,7 +63,7 @@ void dbghelp::set_env()
 	if(got_tmp == 0 || got_tmp >= static_cast<int>(buff.size())) { return; }
 	std::filesystem::path p(buff.data(), buff.data() + got_tmp);
 	p.append(L"SymbolCache");
-	std::wstring const nt_symbol_path = L"srv*" + p.wstring() + LR"---(*https://msdl.microsoft.com/download/symbols)---";
+	std::wstring const nt_symbol_path = format_string(LR"---(srv*%s*https://msdl.microsoft.com/download/symbols)---", p.wstring().c_str());
 	BOOL const set = SetEnvironmentVariableW(L"_NT_SYMBOL_PATH", nt_symbol_path.c_str());
 	if(set == 0) { return; }
 }
