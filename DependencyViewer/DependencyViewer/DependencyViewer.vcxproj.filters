@@ -82,6 +82,7 @@
 		<ClInclude Include="src\nogui\dependency_locator.h"><Filter>src\nogui</Filter></ClInclude>
 		<ClInclude Include="src\nogui\file_name_provider.h"><Filter>src\nogui</Filter></ClInclude>
 		<ClInclude Include="src\nogui\fnv1a.h"><Filter>src\nogui</Filter></ClInclude>
+		<ClInclude Include="src\nogui\format_string.h"><Filter>src\nogui</Filter></ClInclude>
 		<ClInclude Include="src\nogui\int_to_string.h"><Filter>src\nogui</Filter></ClInclude>
 		<ClInclude Include="src\nogui\known_dlls.h"><Filter>src\nogui</Filter></ClInclude>
 		<ClInclude Include="src\nogui\memory_manager.h"><Filter>src\nogui</Filter></ClInclude>

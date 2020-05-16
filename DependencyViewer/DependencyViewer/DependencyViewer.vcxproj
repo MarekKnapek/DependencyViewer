@@ -236,6 +236,7 @@
 		<ClInclude Include="src\nogui\dependency_locator.h"/>
 		<ClInclude Include="src\nogui\file_name_provider.h"/>
 		<ClInclude Include="src\nogui\fnv1a.h"/>
+		<ClInclude Include="src\nogui\format_string.h"/>
 		<ClInclude Include="src\nogui\int_to_string.h"/>
 		<ClInclude Include="src\nogui\known_dlls.h"/>
 		<ClInclude Include="src\nogui\memory_manager.h"/>
