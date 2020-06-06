@@ -67,6 +67,15 @@ void known_dlls::init()
 	std::wstring known_dll_path;
 	std::vector<std::wstring> known_dll_names;
 	std::vector<std::string> known_dll_names_sorted_lowercase_ascii;
+	auto const finish = mk::make_scope_exit([&]()
+	{
+		assert(!g_known_dll_path);
+		assert(!g_known_dll_names);
+		assert(!g_known_dll_names_sorted_lowercase_ascii);
+		g_known_dll_path = new std::wstring{std::move(known_dll_path)};
+		g_known_dll_names = new std::vector<std::wstring>{std::move(known_dll_names)};
+		g_known_dll_names_sorted_lowercase_ascii = new std::vector<std::string>{std::move(known_dll_names_sorted_lowercase_ascii)};
+	});
 
 	HMODULE const ntdll = GetModuleHandleW(L"ntdll.dll");
 	WARN_M_RV(ntdll != nullptr, L"Library ntdll.dll is not loaded.");
@@ -170,13 +179,6 @@ void known_dlls::init()
 		return narrow;
 	});
 	std::sort(known_dll_names_sorted_lowercase_ascii.begin(), known_dll_names_sorted_lowercase_ascii.end());
-
-	assert(!g_known_dll_path);
-	assert(!g_known_dll_names);
-	assert(!g_known_dll_names_sorted_lowercase_ascii);
-	g_known_dll_path = new std::wstring{std::move(known_dll_path)};
-	g_known_dll_names = new std::vector<std::wstring>{std::move(known_dll_names)};
-	g_known_dll_names_sorted_lowercase_ascii = new std::vector<std::string>{std::move(known_dll_names_sorted_lowercase_ascii)};
 }
 
 void known_dlls::deinit()
