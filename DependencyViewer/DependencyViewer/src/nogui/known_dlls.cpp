@@ -135,9 +135,8 @@ void known_dlls::init()
 			WARN_M_RV(buff_1.m_union.m_odi.Name.Length % 2 == 0, L"Bad string length.");
 			known_dll_names.emplace_back(buff_1.m_union.m_odi.Name.Buffer, buff_1.m_union.m_odi.Name.Length / 2);
 		}
-		else if(is_symlink(buff_1.m_union.m_odi) && is_known_dll_path(buff_1.m_union.m_odi))
+		else if(known_dll_path.empty() && is_symlink(buff_1.m_union.m_odi) && is_known_dll_path(buff_1.m_union.m_odi))
 		{
-			WARN_M_RV(known_dll_path.empty(), L"There shall be only one path symlink.");
 			HANDLE symlink;
 			OBJECT_ATTRIBUTES oa_2{};
 			oa_2.Length = sizeof(oa_2);
