@@ -25,15 +25,6 @@
 #define STATUS_NO_MORE_ENTRIES ((NTSTATUS)0x8000001AL)
 
 
-static constexpr wchar_t const s_known_dlls_folder_name[] = LR"---(\KnownDlls)---";
-#ifdef _M_IX86
-static constexpr wchar_t const s_known_dlls_folder_name32[] = LR"---(\KnownDlls32)---";
-#endif
-static constexpr wchar_t const s_directory_item_type_name_section[] = L"Section";
-static constexpr wchar_t const s_directory_item_type_name_symlink[] = L"SymbolicLink";
-static constexpr wchar_t const s_known_dlls_symlink_name[] = L"KnownDllPath";
-
-
 static std::wstring* g_known_dll_path = nullptr;
 static std::vector<std::wstring>* g_known_dll_names = nullptr;
 static std::vector<std::string>* g_known_dll_names_sorted_lowercase_ascii = nullptr;
@@ -96,10 +87,12 @@ void known_dlls::init()
 	WARN_M_RV(NtQuerySymbolicLinkObject_proc != 0, L"NtQuerySymbolicLinkObject not found inside ntdll.dll.");
 	auto const NtQuerySymbolicLinkObject_fn = reinterpret_cast<decltype(&NtQuerySymbolicLinkObject)>(NtQuerySymbolicLinkObject_proc);
 
+	static constexpr wchar_t const s_known_dlls_folder_name[] = LR"---(\KnownDlls)---";
 	#if defined _M_IX86
+	static constexpr wchar_t const s_known_dlls_folder_name_wow[] = LR"---(\KnownDlls32)---";
 	bool const iswow64 = is_wow64();
-	auto const& known_dlls_folder_name = iswow64 ? s_known_dlls_folder_name32 : s_known_dlls_folder_name;
-	int const known_dlls_folder_name_len = static_cast<int>(iswow64 ? std::size(s_known_dlls_folder_name32) : std::size(s_known_dlls_folder_name)) - 1;
+	auto const& known_dlls_folder_name = iswow64 ? s_known_dlls_folder_name_wow : s_known_dlls_folder_name;
+	int const known_dlls_folder_name_len = static_cast<int>(iswow64 ? std::size(s_known_dlls_folder_name_wow) : std::size(s_known_dlls_folder_name)) - 1;
 	#elif defined _M_X64
 	auto const& known_dlls_folder_name = s_known_dlls_folder_name;
 	int const known_dlls_folder_name_len = static_cast<int>(std::size(s_known_dlls_folder_name)) - 1;
@@ -222,6 +215,7 @@ std::vector<std::string> const& known_dlls::get_names_sorted_lowercase_ascii()
 
 bool is_section(OBJECT_DIRECTORY_INFORMATION const& odi)
 {
+	static constexpr wchar_t const s_directory_item_type_name_section[] = L"Section";
 	if(odi.TypeName.Length != (std::size(s_directory_item_type_name_section) - 1) * sizeof(wchar_t))
 	{
 		return false;
@@ -235,6 +229,7 @@ bool is_section(OBJECT_DIRECTORY_INFORMATION const& odi)
 
 bool is_symlink(OBJECT_DIRECTORY_INFORMATION const& odi)
 {
+	static constexpr wchar_t const s_directory_item_type_name_symlink[] = L"SymbolicLink";
 	if(odi.TypeName.Length != (std::size(s_directory_item_type_name_symlink) - 1) * sizeof(wchar_t))
 	{
 		return false;
@@ -248,6 +243,7 @@ bool is_symlink(OBJECT_DIRECTORY_INFORMATION const& odi)
 
 bool is_known_dll_path(OBJECT_DIRECTORY_INFORMATION const& odi)
 {
+	static constexpr wchar_t const s_known_dlls_symlink_name[] = L"KnownDllPath";
 	if(odi.Name.Length != (std::size(s_known_dlls_symlink_name) - 1) * sizeof(wchar_t))
 	{
 		return false;
