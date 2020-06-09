@@ -1,5 +1,10 @@
 /DependencyViewer/.vs
+
 /DependencyViewer/Debug/
+/DependencyViewer/Release/
+/DependencyViewer/x64/Debug/
+/DependencyViewer/x64/Release/
+
 /DependencyViewer/DependencyViewer.VC.db
 /DependencyViewer/DependencyViewer.VC.VC.opendb
 /DependencyViewer/DependencyViewer/Debug/
@@ -7,6 +12,11 @@
 /DependencyViewer/DependencyViewer/Release/
 /DependencyViewer/DependencyViewer/x64/Debug/
 /DependencyViewer/DependencyViewer/x64/Release/
-/DependencyViewer/Release/
-/DependencyViewer/x64/Debug/
-/DependencyViewer/x64/Release/
+
+/DependencyViewer/new.VC.db
+/DependencyViewer/new.VC.VC.opendb
+/DependencyViewer/new/Debug/
+/DependencyViewer/new/DependencyViewer.vcxproj.user
+/DependencyViewer/new/Release/
+/DependencyViewer/new/x64/Debug/
+/DependencyViewer/new/x64/Release/
