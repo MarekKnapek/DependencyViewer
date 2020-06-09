@@ -1126,6 +1126,20 @@ bool find_string(mk_section_headers_t const& section_headers, int const& section
 
 
 
+bool find_dll(char const* const& dll_name, std::uint32_t const& dll_name_len, wchar_t const** const& dll_path, int* const& dll_path_len)
+{
+	return true;
+}
+
+
+
+
+
+
+
+
+
+
 template<typename t>
 t mk_read(void const* const& ptr, int const offset_bytes = 0)
 {
@@ -1238,6 +1252,11 @@ bool process_import_directory_table(mk_image_data_directories_t const& image_dat
 		std::uint32_t dll_name_len;
 		bool const dll_name_found = find_string(section_headers, section_headers_count, mapped_sections, import_directory_entry.m_name, &dll_name, &dll_name_len);
 		CHECK_RET(dll_name_found, false);
+
+		wchar_t const* dll_path;
+		int dll_path_len;
+		bool const dll_found = find_dll(dll_name, dll_name_len, &dll_path, &dll_path_len);
+		CHECK_RET(dll_found, false);
 
 		bool const import_address_table_processed = process_import_address_table(section_headers, section_headers_count, mapped_sections, is_32_bit, import_directory_entry.m_import_lookup_table_rva != 0 ? import_directory_entry.m_import_lookup_table_rva : import_directory_entry.m_import_address_table_rva);
 		CHECK_RET(import_address_table_processed, false);
