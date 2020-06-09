@@ -9,8 +9,7 @@
 #define CHECK_RET_V(A) do{ if(!(A)){ check_ret_failed(__LINE__, L ## #A); return; } }while(false)
 
 
-std::array<wchar_t, 1024> g_check_ret_failed_buff_1;
-std::array<wchar_t, 1024> g_check_ret_failed_buff_2;
+#define USE_THREADS 0
 
 
 void stop_here_dummy()
@@ -20,21 +19,147 @@ void stop_here_dummy()
 template<std::size_t N, typename... ts_t>
 void check_ret_failed(int const& line, wchar_t const(&expression)[N], wchar_t const* const& fmt, ts_t const&... ts)
 {
-	int const printed_1 = std::swprintf(g_check_ret_failed_buff_1.data(), g_check_ret_failed_buff_1.size(), fmt, ts...);
-	if(!(printed_1 >= 0 && printed_1 < static_cast<int>(g_check_ret_failed_buff_1.size()))) std::abort();
-	int const printed_2 = std::swprintf(g_check_ret_failed_buff_2.data(), g_check_ret_failed_buff_2.size(), L"check_ret_failed: Line: %d, expression: `%s`, message: `%s`.\x0D\x0A", line, expression, g_check_ret_failed_buff_1.data());
-	if(!(printed_2 >= 0 && printed_2 < static_cast<int>(g_check_ret_failed_buff_2.size()))) std::abort();
-	OutputDebugStringW(g_check_ret_failed_buff_2.data());
+	std::array<wchar_t, 1024> check_ret_failed_buff_1;
+	std::array<wchar_t, 1024> check_ret_failed_buff_2;
+
+	int const printed_1 = std::swprintf(check_ret_failed_buff_1.data(), check_ret_failed_buff_1.size(), fmt, ts...);
+	if(!(printed_1 >= 0 && printed_1 < static_cast<int>(check_ret_failed_buff_1.size()))) std::abort();
+	int const printed_2 = std::swprintf(check_ret_failed_buff_2.data(), check_ret_failed_buff_2.size(), L"check_ret_failed: Line: %d, expression: `%s`, message: `%s`.\x0D\x0A", line, expression, check_ret_failed_buff_1.data());
+	if(!(printed_2 >= 0 && printed_2 < static_cast<int>(check_ret_failed_buff_2.size()))) std::abort();
+	OutputDebugStringW(check_ret_failed_buff_2.data());
 	stop_here_dummy();
 }
 
 template<std::size_t N>
 void check_ret_failed(int const& line, wchar_t const(&expression)[N])
 {
-	int const printed_2 = std::swprintf(g_check_ret_failed_buff_2.data(), g_check_ret_failed_buff_2.size(), L"check_ret_failed: Line: %d, expression: `%s`.\x0D\x0A", line, expression);
-	if(!(printed_2 >= 0 && printed_2 < static_cast<int>(g_check_ret_failed_buff_2.size()))) std::abort();
-	OutputDebugStringW(g_check_ret_failed_buff_2.data());
+	std::array<wchar_t, 1024> check_ret_failed_buff_2;
+
+	int const printed_2 = std::swprintf(check_ret_failed_buff_2.data(), check_ret_failed_buff_2.size(), L"check_ret_failed: Line: %d, expression: `%s`.\x0D\x0A", line, expression);
+	if(!(printed_2 >= 0 && printed_2 < static_cast<int>(check_ret_failed_buff_2.size()))) std::abort();
+	OutputDebugStringW(check_ret_failed_buff_2.data());
 	stop_here_dummy();
+}
+
+
+
+
+
+
+
+
+
+
+#include <thread>
+#include <vector>
+#include <mutex>
+#include <condition_variable>
+#include <cassert>
+
+
+struct work_item_t
+{
+	void(*m_func)(void* data);
+	void* m_data;
+};
+
+
+class work_pool_t
+{
+public:
+	work_pool_t();
+	~work_pool_t();
+	void submit(void(*const& func)(void*), void* const& data);
+	void submit(work_item_t const& wi);
+private:
+	static void thread_func(void* const data);
+	void thread_func();
+private:
+	std::mutex m_mutex;
+	std::condition_variable m_cv;
+	std::vector<work_item_t> m_work_items;
+	std::vector<std::thread> m_threads;
+	bool m_shall_run;
+};
+
+
+work_pool_t::work_pool_t() :
+	m_mutex(),
+	m_cv(),
+	m_work_items(),
+	m_threads(),
+	m_shall_run(true)
+{
+	unsigned const n = std::thread::hardware_concurrency();
+	m_threads.resize(n);
+	for(unsigned i = 0; i != n; ++i)
+	{
+		void(*const func)(void*) = &work_pool_t::thread_func;
+		void* const data = this;
+		m_threads[i] = std::thread{func, data};
+	}
+}
+
+work_pool_t::~work_pool_t()
+{
+	{
+		std::lock_guard<std::mutex> const lck{m_mutex};
+		m_shall_run = false;
+	}
+	m_cv.notify_all();
+	for(auto& t : m_threads)
+	{
+		t.join();
+	}
+}
+
+void work_pool_t::submit(void(*const& func)(void*), void* const& data)
+{
+	submit(work_item_t{func, data});
+}
+
+void work_pool_t::submit(work_item_t const& wi)
+{
+	{
+		std::lock_guard<std::mutex> const lck{m_mutex};
+		m_work_items.push_back(wi);
+	}
+	m_cv.notify_one();
+}
+
+void work_pool_t::thread_func(void* const data)
+{
+	static_cast<work_pool_t*>(data)->thread_func();
+}
+
+void work_pool_t::thread_func()
+{
+	for(;;)
+	{
+		work_item_t wi;
+		{
+			std::unique_lock<std::mutex> lck{m_mutex};
+			run:;
+			if(m_work_items.empty())
+			{
+				if(!m_shall_run)
+				{
+					return;
+				}
+				else
+				{
+					m_cv.wait(lck);
+					goto run;
+				}
+			}
+			else
+			{
+				wi = m_work_items.back();
+				m_work_items.pop_back();
+			}
+		}
+		wi.m_func(wi.m_data);
+	}
 }
 
 
@@ -444,7 +569,7 @@ read_only_map_view_of_file_t::read_only_map_view_of_file_t(void const* const& v)
 
 
 
-void crawl_all_files(std::array<wchar_t, 32 * 1024>& path, void(* const& pfn)(wchar_t const* const& path, int const& len));
+void crawl_all_files(std::array<wchar_t, 32 * 1024>& path, void(* const& pfn)(wchar_t const* const& path, int const& len, void* const data), void* const data);
 
 
 #include "scope_exit.h"
@@ -452,7 +577,7 @@ void crawl_all_files(std::array<wchar_t, 32 * 1024>& path, void(* const& pfn)(wc
 
 
 bool skip_dots(HANDLE const& fff, WIN32_FIND_DATAW* const& output);
-void crawl_all_files_r(std::array<wchar_t, 32 * 1024>& path, int const& len, void(* const& pfn)(wchar_t const* const& path, int const& len), WIN32_FIND_DATAW& find_data);
+void crawl_all_files_r(std::array<wchar_t, 32 * 1024>& path, int const& len, void(* const& pfn)(wchar_t const* const& path, int const& len, void* const data), void* const data, WIN32_FIND_DATAW& find_data);
 
 
 bool skip_dots(HANDLE const& fff, WIN32_FIND_DATAW* const& output)
@@ -475,7 +600,7 @@ bool skip_dots(HANDLE const& fff, WIN32_FIND_DATAW* const& output)
 	return true;
 }
 
-void crawl_all_files_r(std::array<wchar_t, 32 * 1024>& path, int const& len, void(* const& pfn)(wchar_t const* const& path, int const& len), WIN32_FIND_DATAW& find_data)
+void crawl_all_files_r(std::array<wchar_t, 32 * 1024>& path, int const& len, void(* const& pfn)(wchar_t const* const& path, int const& len, void* const data), void* const data, WIN32_FIND_DATAW& find_data)
 {
 	assert(path[len - 1] != L'\\');
 	path[len + 0] = L'\\';
@@ -506,22 +631,22 @@ void crawl_all_files_r(std::array<wchar_t, 32 * 1024>& path, int const& len, voi
 		bool const is_dir = (find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
 		if(is_dir)
 		{
-			crawl_all_files_r(path, len + len_2 + 1, pfn, find_data);
+			crawl_all_files_r(path, len + len_2 + 1, pfn, data, find_data);
 		}
 		else
 		{
-			pfn(path.data(), len + len_2 + 1);
+			pfn(path.data(), len + len_2 + 1, data);
 		}
 	}while(FindNextFileW(fff, &find_data) != 0);
 	assert(GetLastError() == ERROR_NO_MORE_FILES);
 }
 
-void crawl_all_files(std::array<wchar_t, 32 * 1024>& path, void(* const& pfn)(wchar_t const* const& path, int const& len))
+void crawl_all_files(std::array<wchar_t, 32 * 1024>& path, void(* const& pfn)(wchar_t const* const& path, int const& len, void* const data), void* const data)
 {
 	WIN32_FIND_DATAW find_data;
 	int const len = static_cast<int>(std::wcslen(path.data()));
 	assert(path[len - 1] != L'\\');
-	crawl_all_files_r(path, len, pfn, find_data);
+	crawl_all_files_r(path, len, pfn, data, find_data);
 }
 
 
@@ -1157,7 +1282,7 @@ bool loader_load(read_only_file_mapping_t const& mapping, std::uint32_t const& f
 	return true;
 }
 
-void process_file(wchar_t const* const& path)
+void process_file_impl(wchar_t const* const& path)
 {
 	read_only_file_t const file = read_only_file_t::make(path);
 	if(!file) return;
@@ -1177,6 +1302,25 @@ void process_file(wchar_t const* const& path)
 
 	bool const loaded = loader_load(mapping, file_size, view, view_size);
 	CHECK_RET_V(loaded);
+}
+
+void process_file(wchar_t const* const& path, void* const data)
+{
+	#if defined USE_THREADS && USE_THREADS == 1
+	static constexpr auto const fn = [](void* const data)
+	{
+		wchar_t const* const path = static_cast<wchar_t const*>(data);
+		process_file_impl(path);
+	};
+	static constexpr void(*const fn_)(void*) = fn;
+
+	work_pool_t& wp = *static_cast<work_pool_t*>(data);
+	void* const data_ = static_cast<void*>(const_cast<wchar_t*>(path));
+	wp.submit(fn_, data_);
+	#else
+	process_file_impl(path);
+	(void)data;
+	#endif
 }
 
 struct mk_false_t
@@ -1199,33 +1343,33 @@ struct mk_is_array<t[n]>
 	typedef mk_true_t type;
 };
 
-void process_folder(wchar_t const* const& path, int const& path_len)
+void process_folder(wchar_t const* const& path, int const& path_len, void* const data)
 {
 	std::array<wchar_t, 32 * 1024> file_name_buff;
 	std::memcpy(file_name_buff.data(), path, path_len * sizeof(wchar_t));
 	file_name_buff[path_len] = L'\0';
-	crawl_all_files(file_name_buff, [](wchar_t const* const& path, int const&)
+	crawl_all_files(file_name_buff, [](wchar_t const* const& path, int const&, void* const data)
 	{
-		process_file(path);
-	});
+		process_file(path, data);
+	}, data);
 }
 
 template<unsigned N>
-void process_folder_impl(wchar_t const(&path)[N], mk_true_t const&)
+void process_folder_impl(wchar_t const(&path)[N], void* const data, mk_true_t const&)
 {
-	process_folder(path, static_cast<int>(N - 1));
+	process_folder(path, static_cast<int>(N - 1), data);
 }
 
-void process_folder_impl(wchar_t const* const& path, mk_false_t const&)
+void process_folder_impl(wchar_t const* const& path, void* const data, mk_false_t const&)
 {
 	int const path_len = static_cast<int>(std::wcslen(path));
-	process_folder(path, path_len);
+	process_folder(path, path_len, data);
 }
 
 template<typename tt>
-void process_folder(tt const& t)
+void process_folder(tt const& t, void* const data)
 {
-	process_folder_impl(t, typename mk_is_array<tt>::type{});
+	process_folder_impl(t, data, typename mk_is_array<tt>::type{});
 }
 
 
@@ -1239,11 +1383,17 @@ void process_folder(tt const& t)
 
 int wmain(int const argc, wchar_t const* argv[])
 {
+	#if defined USE_THREADS && USE_THREADS == 1
+	work_pool_t wp;
+	void* const param = &wp;
+	#else
+	void* const param = nullptr;
+	#endif
 	if(argc >= 2)
 	{
 		for(int i = 1; i != argc; ++i)
 		{
-			process_folder(argv[i]);
+			process_folder(argv[i], param);
 		}
 	}
 	return EXIT_SUCCESS;
