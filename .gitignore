@@ -34,3 +34,16 @@
 /DependencyViewer/imports/Release/
 /DependencyViewer/imports/x64/Debug/
 /DependencyViewer/imports/x64/Release/
+
+
+
+
+
+/DependencyViewer/exports/exports.VC.db
+/DependencyViewer/imports/exports.VC.VC.opendb
+/DependencyViewer/exports/exports.vcxproj.user
+
+/DependencyViewer/exports/Debug/
+/DependencyViewer/exports/Release/
+/DependencyViewer/exports/x64/Debug/
+/DependencyViewer/exports/x64/Release/
