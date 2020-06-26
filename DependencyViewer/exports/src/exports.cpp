@@ -1036,7 +1036,17 @@ namespace mk
 namespace mk
 {
 
-	bool process_export_directory_table(image_data_directories_t const& image_data_directories, int const& image_data_directories_count, section_headers_t const& section_headers, int const& section_headers_count, mapped_sections_t const& mapped_sections, bool const& is_32_bit);
+	typedef void* export_callback_ctx_t;
+	typedef void(*export_callback_fn_rva_t)(export_callback_ctx_t const& ctx, std::uint32_t const& rva);
+	typedef void(*export_callback_fn_fwd_t)(export_callback_ctx_t const& ctx, char const* const& forwarder_str, std::uint32_t const& forwarder_str_len);
+	struct export_callback_t
+	{
+		export_callback_ctx_t m_ctx;
+		export_callback_fn_rva_t m_fn_rva;
+		export_callback_fn_fwd_t m_fn_fwd;
+	};
+
+	bool process_export_directory_table(export_callback_t const& callback, image_data_directories_t const& image_data_directories, int const& image_data_directories_count, section_headers_t const& section_headers, int const& section_headers_count, mapped_sections_t const& mapped_sections);
 
 }
 
@@ -1049,7 +1059,7 @@ namespace mk
 
 
 
-bool mk::process_export_directory_table(image_data_directories_t const& image_data_directories, int const& image_data_directories_count, section_headers_t const& section_headers, int const& section_headers_count, mapped_sections_t const& mapped_sections, bool const& is_32_bit)
+bool mk::process_export_directory_table(export_callback_t const& callback, image_data_directories_t const& image_data_directories, int const& image_data_directories_count, section_headers_t const& section_headers, int const& section_headers_count, mapped_sections_t const& mapped_sections)
 {
 	if(!(image_data_directories_count >= static_cast<int>(image_data_directory_e::export_table) + 1)) return true;
 	std::uint32_t const& exports_rva = image_data_directories[static_cast<int>(image_data_directory_e::export_table)].m_rva;
@@ -1074,15 +1084,26 @@ bool mk::process_export_directory_table(image_data_directories_t const& image_da
 		std::uint16_t const ordinal = ordinal_base + static_cast<std::uint16_t>(i);
 		export_address_entry_t const export_address_entry = read_binary<export_address_entry_t>(export_address_table, i * sizeof(export_address_entry_t));
 		int export_address_entry_section_idx;
-		void const* const export_address_entry_ptr = find_in_sections(section_headers, section_headers_count, mapped_sections, export_address_entry.m_export_or_forwarder_rva, sizeof(std::uint32_t), &export_address_entry_section_idx);
+		void const* const export_address_entry_ptr = find_in_sections(section_headers, section_headers_count, mapped_sections, export_address_entry.m_export_or_forwarder_rva, 1, &export_address_entry_section_idx);
 		MK_CHECK_RET(export_address_entry_ptr, false);
-		if(export_address_entry.m_export_or_forwarder_rva >= exports_rva && export_address_entry.m_export_or_forwarder_rva < exports_rva + exports_size - static_cast<std::uint32_t>(sizeof(std::uint32_t)))
+		if(!(export_address_entry.m_export_or_forwarder_rva >= exports_rva && export_address_entry.m_export_or_forwarder_rva < exports_rva + exports_size - static_cast<std::uint32_t>(sizeof(std::uint32_t))))
 		{
-			std::uint32_t const forwarder_rva = export_address_entry.m_export_or_forwarder_rva;
+			std::uint32_t const export_rva = export_address_entry.m_export_or_forwarder_rva;
+			callback.m_fn_rva(callback.m_ctx, exports_rva);
 		}
 		else
 		{
-			std::uint32_t const export_rva = export_address_entry.m_export_or_forwarder_rva;
+			std::uint32_t const forwarder_rva = export_address_entry.m_export_or_forwarder_rva;
+			section_header_t const& section = section_headers[export_address_entry_section_idx];
+			read_only_map_view_of_file_t const& mapped_section = mapped_sections[export_address_entry_section_idx];
+			char const* const string = static_cast<char const*>(export_address_entry_ptr);
+			MK_CHECK_RET(string[0] != '\0', false);
+			char const* const string_max = (std::min)(string + 0xFFFF, static_cast<char const*>(mapped_section.get_view()) + section.m_size_of_raw_data);
+			char const* string_end = string + 1;
+			while(string_end != string_max && string_end[0] != '\0') ++string_end;
+			std::uint32_t const string_len = static_cast<std::uint32_t>(string_end - string);
+			MK_CHECK_RET(is_ascii(string, string_len), false);
+			callback.m_fn_fwd(callback.m_ctx, string, string_len);
 		}
 	}
 
@@ -1108,7 +1129,6 @@ bool mk::process_export_directory_table(image_data_directories_t const& image_da
 // ========== ==========
 
 
-#if 0
 #include <algorithm> // sort, transform
 #include <cstdio> // printf
 #include <cstdlib> // EXIT_SUCCESS, EXIT_FAILURE
@@ -1121,7 +1141,7 @@ bool mk::process_export_directory_table(image_data_directories_t const& image_da
 namespace mk
 {
 
-	bool imports(int const& argc, wchar_t const*const* const& argv);
+	bool exports(int const& argc, wchar_t const*const* const& argv);
 
 }
 
@@ -1134,34 +1154,23 @@ namespace mk
 
 
 
-bool mk::imports(int const& argc, wchar_t const*const* const& argv)
+bool mk::exports(int const& argc, wchar_t const*const* const& argv)
 {
 	struct callback_data_t
 	{
-		struct dll_t
-		{
-			std::string m_name;
-			std::vector<std::variant<std::uint16_t, std::string>> m_imports;
-		};
-		std::vector<dll_t> m_import_dlls;
+		std::vector<std::variant<std::uint32_t, std::string>> m_exports;
 	};
-	static constexpr import_callback_fn_dll_t const callback_fn_dll = [](import_callback_ctx_t const& ctx, char const* const& dll_name, std::uint32_t const& dll_name_len) -> void
+	static constexpr export_callback_fn_rva_t const callback_fn_rva = [](export_callback_ctx_t const& ctx, std::uint32_t const& rva) -> void
 	{
 		callback_data_t& data = *static_cast<callback_data_t*>(ctx);
-		data.m_import_dlls.push_back({});
-		data.m_import_dlls.back().m_name.assign(dll_name, dll_name + dll_name_len);
+		data.m_exports.push_back({});
+		data.m_exports.back().emplace<0>(rva);
 	};
-	static constexpr import_callback_fn_import_ordinal_t const callback_fn_ordinal = [](import_callback_ctx_t const& ctx, std::uint16_t const& ordinal) -> void
+	static constexpr export_callback_fn_fwd_t const callback_fn_fwd = [](export_callback_ctx_t const& ctx, char const* const& forwarder_str, std::uint32_t const& forwarder_str_len) -> void
 	{
 		callback_data_t& data = *static_cast<callback_data_t*>(ctx);
-		data.m_import_dlls.back().m_imports.push_back({});
-		data.m_import_dlls.back().m_imports.back().emplace<0>(ordinal);
-	};
-	static constexpr import_callback_fn_import_named_t const callback_fn_named = [](import_callback_ctx_t const& ctx, char const* const& import_name, std::uint32_t const& import_name_len) -> void
-	{
-		callback_data_t& data = *static_cast<callback_data_t*>(ctx);
-		data.m_import_dlls.back().m_imports.push_back({});
-		data.m_import_dlls.back().m_imports.back().emplace<1>(import_name, import_name + import_name_len);
+		data.m_exports.push_back({});
+		data.m_exports.back().emplace<1>(forwarder_str, forwarder_str + forwarder_str_len);
 	};
 
 
@@ -1203,34 +1212,26 @@ bool mk::imports(int const& argc, wchar_t const*const* const& argv)
 	MK_CHECK_RET(mapped, false);
 
 	callback_data_t callback_data;
-	import_callback_t const callback = {&callback_data, callback_fn_dll, callback_fn_ordinal, callback_fn_named};
-	bool const imports_processed = process_import_directory_table(callback, image_data_directories, image_data_directories_count, section_headers, section_headers_count, mapped_sections, is_32_bit);
-	MK_CHECK_RET(imports_processed, false);
+	export_callback_t const callback = {&callback_data, callback_fn_rva, callback_fn_fwd};
+	bool const exports_processed = process_export_directory_table(callback, image_data_directories, image_data_directories_count, section_headers, section_headers_count, mapped_sections);
+	MK_CHECK_RET(exports_processed, false);
 
 
 	if(sort)
 	{
 		static constexpr auto const to_lowercase = [](char const& ch) -> char { if(ch >= 'A' && ch <= 'Z') { return 'a' + (ch - 'A'); } else { return ch; } };
-		for(auto& e : callback_data.m_import_dlls)
-		{
-			std::transform(e.m_name.begin(), e.m_name.end(), e.m_name.begin(), to_lowercase);
-			std::sort(e.m_imports.begin(), e.m_imports.end(), [](auto const& a, auto const& b){ if(a.index() != b.index()){ return a.index() < b.index(); } else { if(a.index() == 0){ return std::get<0>(a) < std::get<0>(b); } else { return std::get<1>(a) < std::get<1>(b); } } });
-		}
-		std::sort(callback_data.m_import_dlls.begin(), callback_data.m_import_dlls.end(), [](auto const& a, auto const& b){ return a.m_name < b.m_name; });
+		std::sort(callback_data.m_exports.begin(), callback_data.m_exports.end(), [](auto const& a, auto const& b){ if(a.index() != b.index()){ return a.index() < b.index(); } else { if(a.index() == 0){ return std::get<0>(a) < std::get<0>(b); } else { return std::get<1>(a) < std::get<1>(b); } } });
 	}
-	for(auto const& dll : callback_data.m_import_dlls)
+	for(auto const& exprt : callback_data.m_exports)
 	{
-		std::printf("%s\n", dll.m_name.c_str());
-		for(auto const& import : dll.m_imports)
+		if(exprt.index() == 0)
 		{
-			if(import.index() == 0)
-			{
-				std::printf("\t%d (0x%04x)\n", static_cast<int>(std::get<0>(import)), static_cast<unsigned>(std::get<0>(import)));
-			}
-			else
-			{
-				std::printf("\t%s\n", std::get<1>(import).c_str());
-			}
+			static_assert(sizeof(std::uint32_t) == sizeof(unsigned), "");
+			std::printf("0x%08x\n", static_cast<unsigned>(std::get<0>(exprt)));
+		}
+		else
+		{
+			std::printf("%s\n", std::get<1>(exprt).c_str());
 		}
 	}
 
@@ -1248,8 +1249,8 @@ bool mk::imports(int const& argc, wchar_t const*const* const& argv)
 
 int wmain(int const argc, wchar_t const* argv[])
 {
-	bool const imports = mk::imports(argc, argv);
-	MK_CHECK_RET(imports, EXIT_FAILURE);
+	bool const exports = mk::exports(argc, argv);
+	MK_CHECK_RET(exports, EXIT_FAILURE);
 	return EXIT_SUCCESS;
 }
 
@@ -1257,4 +1258,3 @@ int wmain(int const argc, wchar_t const* argv[])
 // ========== ==========
 // application end
 // ========== ==========
-#endif
