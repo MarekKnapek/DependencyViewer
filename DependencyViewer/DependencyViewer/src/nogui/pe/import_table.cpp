@@ -203,7 +203,11 @@ bool pe_parse_delay_import_table(std::byte const* const file_data, pe_delay_impo
 	}
 	pe_section_header const* sct;
 	std::uint32_t const dimp_dir_tbl_raw = pe_find_object_in_raw(file_data, dimp_tbl.m_va, dimp_tbl.m_size, sct);
-	WARN_M_R(dimp_dir_tbl_raw != 0, L"Delay import directory table not found in any section.", false);
+	if(!dimp_dir_tbl_raw)
+	{
+		dlit_out->m_count = 0;
+		return true;
+	}
 	std::uint32_t const dimp_dir_tbl_cnt_max = std::min(1u * 1024u * 1024u, dimp_tbl.m_size / static_cast<int>(sizeof(pe_delay_load_descriptor)));
 	pe_delay_load_descriptor const* const dld_tbl = reinterpret_cast<pe_delay_load_descriptor const*>(file_data + dimp_dir_tbl_raw);
 	pe_delay_load_descriptor const* const dld_tbl_end_max = dld_tbl + dimp_dir_tbl_cnt_max;

@@ -30,7 +30,11 @@ bool pe_parse_resource_root_directory_table(std::byte const* const file_data, pe
 	}
 	pe_section_header const* sct;
 	std::uint32_t const res_dir_tbl_raw = pe_find_object_in_raw(file_data, res_dir.m_va, res_dir.m_size, sct);
-	WARN_M_R(res_dir_tbl_raw != 0, L"Resource table not found in any section.", false);
+	if(!res_dir_tbl_raw)
+	{
+		*res_root_dir_tbl_out = nullptr;
+		return true;
+	}
 	std::uint32_t const res_root_dir_tbl_offset = res_dir_tbl_raw - sct->m_raw_ptr;
 	pe_resource_directory_table const* res_root_dir_tbl;
 	bool const res_root_dir_tbl_parsed = pe_parse_resource_directory_table(file_data, *sct, res_root_dir_tbl_offset, &res_root_dir_tbl);
