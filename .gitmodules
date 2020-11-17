@@ -1,0 +1,3 @@
+[submodule "DependencyViewer/DependencyViewer/src/3rd_party/processhacker/phnt"]
+	path = DependencyViewer/DependencyViewer/src/3rd_party/processhacker/phnt
+	url = https://github.com/processhacker/phnt.git
