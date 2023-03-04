@@ -5,6 +5,7 @@
 #include "../nogui/pe.h"
 
 #include <cstdint>
+#include <string>
 
 
 struct htreeitem_s;
