@@ -47,8 +47,8 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE /*hPrevInstance
 	main_window::create_accel_table();
 	auto const fn_destroy_main_accel_table = mk::make_scope_exit([](){ main_window::destroy_accel_table(); });
 	main_window mw;
-	BOOL const shown = ShowWindow(mw.get_hwnd(), nCmdShow);
-	BOOL const updated = UpdateWindow(mw.get_hwnd());
+	BOOL const shown = ShowWindow(mw.get_hwnd(), nCmdShow); ((void)(shown));
+	BOOL const updated = UpdateWindow(mw.get_hwnd()); ((void)(updated));
 	int ret;
 	for(;;)
 	{
@@ -63,11 +63,11 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE /*hPrevInstance
 			int const acc_transated = TranslateAcceleratorW(mw.get_hwnd(), mw.get_accell_table(), &msg);
 			if(acc_transated == 0)
 			{
-				BOOL const translated = TranslateMessage(&msg);
-				LRESULT const dispatched = DispatchMessageW(&msg);
+				BOOL const translated = TranslateMessage(&msg); ((void)(translated));
+				LRESULT const dispatched = DispatchMessageW(&msg); ((void)(dispatched));
 			}
 		}
-		LRESULT const sent = SendMessageW(mw.get_hwnd(), wm_main_window_process_on_idle, 0, 0);
+		LRESULT const sent = SendMessageW(mw.get_hwnd(), wm_main_window_process_on_idle, 0, 0); ((void)(sent));
 		BOOL const got_msg = GetMessageW(&msg, nullptr, 0, 0);
 		if(got_msg == 0)
 		{
@@ -83,8 +83,8 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE /*hPrevInstance
 		int const acc_transated = TranslateAcceleratorW(mw.get_hwnd(), mw.get_accell_table(), &msg);
 		if(acc_transated == 0)
 		{
-			BOOL const translated = TranslateMessage(&msg);
-			LRESULT const dispatched = DispatchMessageW(&msg);
+			BOOL const translated = TranslateMessage(&msg); ((void)(translated));
+			LRESULT const dispatched = DispatchMessageW(&msg); ((void)(dispatched));
 		}
 	}
 	message_loop_end:;
