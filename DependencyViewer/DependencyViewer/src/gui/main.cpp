@@ -2,6 +2,7 @@
 
 #include "com_dlg.h"
 #include "common_controls.h"
+#include "dark_mode.h"
 #include "main_window.h"
 #include "splitter_window.h"
 #include "test.h"
@@ -41,6 +42,8 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE /*hPrevInstance
 	auto const dbg_provider_deinit = mk::make_scope_exit([](){ dbg_provider::deinit(); });
 	g_instance = hInstance;
 	common_controls::InitCommonControls();
+	dark_mode_init();
+	auto const dark_mode_deinit_ = mk::make_scope_exit([](){ dark_mode_deinit(); });
 	splitter_window_hor::register_class();
 	splitter_window_ver::register_class();
 	main_window::register_class();

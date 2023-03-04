@@ -3,6 +3,7 @@
 #include "com_dlg.h"
 #include "common_controls.h"
 #include "constants.h"
+#include "dark_mode.h"
 #include "main.h"
 #include "smart_dc.h"
 #include "test.h"
@@ -233,6 +234,12 @@ main_window::main_window() :
 	assert(m_hwnd != nullptr);
 
 	LONG_PTR const set = SetWindowLongPtrW(m_hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
+
+	dark_mode_ctrl_list_view(m_modules_view.get_hwnd());
+	dark_mode_ctrl_tree_view(m_tree_view.get_hwnd());
+	dark_mode_ctrl_list_view(m_import_view.get_hwnd());
+	dark_mode_ctrl_list_view(m_export_view.get_hwnd());
+
 	DragAcceptFiles(m_hwnd, TRUE);
 
 	m_main_panel.set_elements(m_upper_panel.get_hwnd(), m_modules_view.get_hwnd());
@@ -347,6 +354,10 @@ LRESULT CALLBACK main_window::class_proc(HWND hwnd, UINT msg, WPARAM wparam, LPA
 		main_window& win = *reinterpret_cast<main_window*>(ptr);
 		LRESULT const ret = win.on_message(msg, wparam, lparam);
 		return ret;
+	}
+	else if(msg == WM_CREATE)
+	{
+		dark_mode_window(hwnd);
 	}
 	LRESULT const ret = DefWindowProcW(hwnd, msg, wparam, lparam);
 	return ret;

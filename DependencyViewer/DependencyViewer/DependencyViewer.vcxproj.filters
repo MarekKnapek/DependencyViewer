@@ -49,6 +49,7 @@
 		<ClInclude Include="src\gui\com_dlg.h"><Filter>src\gui</Filter></ClInclude>
 		<ClInclude Include="src\gui\common_controls.h"><Filter>src\gui</Filter></ClInclude>
 		<ClInclude Include="src\gui\constants.h"><Filter>src\gui</Filter></ClInclude>
+		<ClInclude Include="src\gui\dark_mode.h"><Filter>src\gui</Filter></ClInclude>
 		<ClInclude Include="src\gui\export_view.h"><Filter>src\gui</Filter></ClInclude>
 		<ClInclude Include="src\gui\file_info_getters.h"><Filter>src\gui</Filter></ClInclude>
 		<ClInclude Include="src\gui\import_export_matcher.h"><Filter>src\gui</Filter></ClInclude>
@@ -128,6 +129,7 @@
 
 		<ClCompile Include="src\gui\com_dlg.cpp"><Filter>src\gui</Filter></ClCompile>
 		<ClCompile Include="src\gui\common_controls.cpp"><Filter>src\gui</Filter></ClCompile>
+		<ClCompile Include="src\gui\dark_mode.c"><Filter>src\gui</Filter></ClCompile>
 		<ClCompile Include="src\gui\export_view.cpp"><Filter>src\gui</Filter></ClCompile>
 		<ClCompile Include="src\gui\file_info_getters.cpp"><Filter>src\gui</Filter></ClCompile>
 		<ClCompile Include="src\gui\import_export_matcher.cpp"><Filter>src\gui</Filter></ClCompile>
