@@ -19,6 +19,7 @@
 
 #include "../res/resources.h"
 
+#include <algorithm>
 #include <array>
 #include <atomic>
 #include <cstdint>

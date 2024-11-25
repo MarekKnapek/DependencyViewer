@@ -10,6 +10,7 @@
 #include "../nogui/scope_exit.h"
 #include "../nogui/utils.h"
 
+#include <algorithm>
 #include <iterator>
 #include <numeric>
 
