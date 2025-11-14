@@ -18,6 +18,12 @@
 #pragma warning(disable:4201) // warning C4201: nonstandard extension used: nameless struct/union
 #pragma warning(disable:4324) // warning C4324: 'xxx': structure was padded due to alignment specifier
 #pragma warning(disable:4471) // warning C4471: 'xxx': a forward declaration of an unscoped enumeration must have an underlying type
+#include <ntstatus.h>
+#include <phnt_ntdef.h>
+#include <evntrace.h>
+#include <winioctl.h>
+#include <ntpoapi.h>
+#include <ntwmi.h>
 #include <phnt.h>
 #pragma warning(pop)
 

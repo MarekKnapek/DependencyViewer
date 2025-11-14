@@ -15,4 +15,5 @@
 
 
 typedef GUID* PGUID;
+typedef GUID const* PCGUID;
 typedef DWORD DEVICE_TYPE;
